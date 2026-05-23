@@ -153,11 +153,12 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
     return () => clearInterval(interval);
   }, [step, visible]);
 
-  const complete = useCallback(async () => {
+  const complete = useCallback(async (redirectTo?: string) => {
     setVisible(false);
     localStorage.setItem(LS_KEY, "1");
     localStorage.removeItem(LS_STEP_KEY);
     try { await fetch("/api/onboarding/complete", { method: "POST" }); } catch { /* non-critical */ }
+    if (redirectTo) window.location.href = redirectTo;
   }, []);
 
   const next = useCallback(() => {
@@ -169,7 +170,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
     const nextStep = step + 1;
 
     if (nextStep >= STEPS.length) {
-      complete();
+      complete("/dashboard");
       return;
     }
 
