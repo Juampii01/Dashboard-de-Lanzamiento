@@ -21,7 +21,12 @@ export function BootSequence() {
 
   const dismiss = () => {
     setFading(true);
-    setTimeout(() => { localStorage.setItem("gov_boot_v1", "1"); setGone(true); }, 650);
+    setTimeout(() => {
+      localStorage.setItem("gov_boot_v1", "1");
+      setGone(true);
+      // Signal to other components (e.g. OnboardingTutorial) that boot is done
+      window.dispatchEvent(new Event("boot-complete"));
+    }, 650);
   };
 
   useEffect(() => {

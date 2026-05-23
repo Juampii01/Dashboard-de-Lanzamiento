@@ -97,8 +97,18 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
       setStep(initialStep);
     }
 
-    const t = setTimeout(() => setVisible(true), 600);
-    return () => clearTimeout(t);
+    const show = () => setTimeout(() => setVisible(true), 400);
+
+    // Si el boot todavía no corrió (primera visita real), esperar el evento.
+    // Si ya corrió (navegación entre páginas durante el tutorial), mostrar directo.
+    const bootAlreadyDone = !!localStorage.getItem("gov_boot_v1");
+    if (!bootAlreadyDone) {
+      window.addEventListener("boot-complete", show, { once: true });
+      return () => window.removeEventListener("boot-complete", show);
+    } else {
+      const t = setTimeout(() => setVisible(true), 600);
+      return () => clearTimeout(t);
+    }
   }, [hasSeenOnboarding]);
 
   // Guardar step actual en localStorage para sobrevivir navegación
