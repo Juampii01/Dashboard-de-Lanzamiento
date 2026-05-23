@@ -82,8 +82,11 @@ export function PointsHUD({
       const next = !v;
       if (next && pillRef.current) {
         const rect = pillRef.current.getBoundingClientRect();
+        // Use the header's bottom edge as minimum top so tooltip never overlaps the progress bar
+        const header = document.querySelector("header");
+        const headerBottom = header ? header.getBoundingClientRect().bottom : rect.bottom;
         setTooltipPos({
-          top:   rect.bottom + 10,
+          top:   Math.max(rect.bottom + 10, headerBottom + 8),
           right: window.innerWidth - rect.right,
         });
       }
