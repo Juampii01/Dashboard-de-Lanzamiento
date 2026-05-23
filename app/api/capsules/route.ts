@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     .eq("day_number", day)
     .order("sort_order");
 
-  if (!capsules) return NextResponse.json({ capsules: [] });
+  if (!capsules || capsules.length === 0) return NextResponse.json({ capsules: [], lastCompletedAt: null });
 
   // Fetch completions for this user
   let completedIds = new Set<string>();

@@ -51,8 +51,10 @@ export function DevTestBar({ day, isCompleted }: DevTestBarProps) {
     createParticleBurst(cx, cy, "gold", 28);
     setTimeout(() => createParticleBurst(cx, cy, "cyan", 14), 220);
 
-    // Flying +25 XP label toward top of screen (where PointsHUD lives)
-    flyPoints(cx, cy, cx, 110, `+25 XP 🏆 DÍA ${day}`);
+    // Flying XP label only when points were actually awarded
+    if (xpRes?.ok && xpRes.pointsAwarded > 0) {
+      flyPoints(cx, cy, cx, 110, `+${xpRes.pointsAwarded} XP 🏆 DÍA ${day}`);
+    }
 
     await new Promise((r) => setTimeout(r, 1200));
     setShowFinish(false);

@@ -14,12 +14,6 @@ import { daysLeft, isExpired } from "@/lib/utils";
 import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
 
-function getXpLevel(pts: number) {
-  if (pts >= 500) return { name: "Gov Pro", emoji: "🏆", min: 500, max: Infinity };
-  if (pts >= 250) return { name: "Licitador", emoji: "🏛️", min: 250, max: 500 };
-  if (pts >= 100) return { name: "Contratista", emoji: "⚡", min: 100, max: 250 };
-  return { name: "Rookie", emoji: "🔰", min: 0, max: 100 };
-}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -33,6 +27,7 @@ const DEV_PROFILE = {
   access_expires_at: null,
   is_admin: true,
   total_points: 0,
+  has_seen_onboarding: true, // always skip onboarding in dev mode
 };
 
 async function getLayoutData(userId: string) {
@@ -159,21 +154,9 @@ export default async function DashboardLayout({
               )}
 
               {/* XP level + points (client component with 3D flip) */}
-              {(() => {
-                const pts = profile?.total_points ?? 0;
-                const lvl = getXpLevel(pts);
-                const pct = lvl.max === Infinity ? 100 : Math.round(((pts - lvl.min) / (lvl.max - lvl.min)) * 100);
-                return (
-                  <div data-tour-id="xp-pill">
-                  <PointsHUD
-                    points={pts}
-                    levelName={lvl.name}
-                    levelEmoji={lvl.emoji}
-                    levelPct={pct}
-                  />
-                  </div>
-                );
-              })()}
+              <div data-tour-id="xp-pill">
+                <PointsHUD points={profile?.total_points ?? 0} />
+              </div>
 
               <div className="text-right hidden sm:block">
                 <p className="text-xs font-medium text-white truncate max-w-[120px]">

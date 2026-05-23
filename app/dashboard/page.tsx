@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAllAdminToggles } from "@/lib/supabase/helpers";
@@ -40,14 +40,16 @@ const DAY_META = [
 ];
 
 async function getDashboardData(userId: string) {
-  const supabase = await createClient();
+  // Use service client so RLS doesn't silently return empty data (same reason as layout.tsx)
+  const supabase = createServiceClient();
+  const anonSupabase = await createClient(); // toggles use anon client (public data)
 
   const [{ data: progress }, toggles] = await Promise.all([
     supabase
       .from("day_progress")
       .select("day_number, is_unlocked, is_completed")
       .eq("user_id", userId),
-    getAllAdminToggles(supabase),
+    getAllAdminToggles(anonSupabase),
   ]);
 
   const progressMap = Object.fromEntries(
@@ -101,8 +103,8 @@ export default async function DashboardPage() {
     progressMap = data.progressMap;
     toggleMap = data.toggleMap;
 
-    // Grab user name, admin flag, and completed count for certificate preview
-    const { data: profile } = await supabase
+    // Grab user name, admin flag — use service client so RLS doesn't silently block
+    const { data: profile } = await createServiceClient()
       .from("users")
       .select("full_name, is_admin")
       .eq("id", user.id)
@@ -173,8 +175,8 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Leaderboard */}
-      <Leaderboard />
+      {/* Leaderboard — only when Supabase is configured (requires real auth) */}
+      {isSupabaseConfigured() && <Leaderboard />}
 
       {/* Bottom row: sorteo + certificate */}
       <div className="grid gap-5 sm:grid-cols-2">

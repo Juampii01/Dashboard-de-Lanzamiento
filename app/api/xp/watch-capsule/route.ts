@@ -12,25 +12,27 @@ export async function POST(req: NextRequest) {
   if (!capsuleId) return NextResponse.json({ ok: false, error: "missing_capsule_id" }, { status: 400 });
 
   // Check if already completed this capsule
+  // maybeSingle() returns null (not error) when no row exists
   const { data: existing } = await supabase
     .from("video_capsule_completions")
     .select("id")
     .eq("user_id", user.id)
     .eq("capsule_id", capsuleId)
-    .single();
+    .maybeSingle();
 
   if (existing) {
     return NextResponse.json({ ok: false, alreadyWatched: true });
   }
 
   // Check global 5-min cooldown (most recent completion by this user)
+  // maybeSingle() returns null when user has no prior completions
   const { data: recent } = await supabase
     .from("video_capsule_completions")
     .select("completed_at")
     .eq("user_id", user.id)
     .order("completed_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   if (recent?.completed_at) {
     const minutesSince = (Date.now() - new Date(recent.completed_at).getTime()) / 60_000;
@@ -49,13 +51,21 @@ export async function POST(req: NextRequest) {
 
   const points = capsule?.points_reward ?? 10;
 
-  // Record completion
-  await supabase.from("video_capsule_completions").insert({
+  // Record completion — capture error to handle unique constraint races
+  const { error: insertError } = await supabase.from("video_capsule_completions").insert({
     user_id: user.id,
     capsule_id: capsuleId,
     points_earned: points,
     completed_at: new Date().toISOString(),
   });
+
+  // 23505 = unique_violation: another request beat us to it
+  if (insertError) {
+    if (insertError.code === "23505") {
+      return NextResponse.json({ ok: false, alreadyWatched: true });
+    }
+    return NextResponse.json({ ok: false, error: "insert_failed" }, { status: 500 });
+  }
 
   // Award XP
   const { data: profile } = await supabase

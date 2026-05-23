@@ -5,9 +5,7 @@ import { flyPoints } from "@/lib/wow-effects";
 
 interface PointsHUDProps {
   points: number;
-  levelName: string;
-  levelEmoji: string;
-  levelPct: number;
+  // levelName / levelEmoji / levelPct removed — recomputed client-side from points
 }
 
 function getXpLevel(pts: number) {

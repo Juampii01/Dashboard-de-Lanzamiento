@@ -42,9 +42,8 @@ const STEPS: Step[] = [
   {
     title: "Videos de misión 📺",
     body: "Dentro de cada fase hay 4 videos. Cada video que marcás como visto suma +10 XP. Podés ver uno cada 5 minutos — ¡volvé seguido!",
-    targetId: "capsules",
+    // No targetId: the video capsules widget lives inside each day page, not on the dashboard
     santoMood: "star",
-    highlightPadding: 16,
   },
   {
     title: "Tu rango y el sorteo 🏆",

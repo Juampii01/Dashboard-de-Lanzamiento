@@ -17,27 +17,29 @@ export async function POST(req: NextRequest) {
   }
 
   // Check if already completed (prevent double points)
+  // Use maybeSingle() so a missing row returns null instead of PGRST116 error
   const { data: progress } = await supabase
     .from("day_progress")
     .select("is_completed")
     .eq("user_id", user.id)
     .eq("day_number", day)
-    .single();
+    .maybeSingle();
 
   const alreadyDone = progress?.is_completed ?? false;
 
-  // Mark day completed
+  // Mark day completed — onConflict requires UNIQUE(user_id, day_number) on the table
   await supabase
     .from("day_progress")
-    .upsert({
-      user_id: user.id,
-      day_number: day,
-      is_completed: true,
-      is_unlocked: true,
-      completed_at: new Date().toISOString(),
-    })
-    .eq("user_id", user.id)
-    .eq("day_number", day);
+    .upsert(
+      {
+        user_id: user.id,
+        day_number: day,
+        is_completed: true,
+        is_unlocked: true,
+        completed_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id,day_number" }
+    );
 
   if (alreadyDone) {
     // Already completed — return current total without adding points
