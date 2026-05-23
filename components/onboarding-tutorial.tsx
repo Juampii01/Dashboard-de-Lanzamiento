@@ -41,8 +41,7 @@ const STEPS: Step[] = [
   },
   {
     title: "Videos de misión 📺",
-    body: "Dentro de cada fase hay 4 videos. Cada video que marcás como visto suma +10 XP. Podés ver uno cada 5 minutos — ¡volvé seguido!",
-    // No targetId: the video capsules widget lives inside each day page, not on the dashboard
+    body: "Entrá a cualquier fase y al final vas a encontrar los videos. Marcá cada uno como visto y sumás +10 XP — podés ver uno cada 5 minutos. ¡Volvé seguido!",
     santoMood: "star",
   },
   {
@@ -164,23 +163,26 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
         />
       )}
 
-      {/* Tutorial card */}
+      {/* Tutorial card — smart positioning: below spotlight if room, above if not, centered otherwise */}
       <div
         className="fixed z-[99990] w-full max-w-sm px-4"
-        style={{
-          // If spotlight, position card below spotlight or at center-bottom
-          ...(spotlight
-            ? {
-                top:  Math.min(spotlight.top + spotlight.height + 16, window.innerHeight - 280),
-                left: "50%",
-                transform: "translateX(-50%)",
-              }
-            : {
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-              }),
-        }}
+        style={(() => {
+          const CARD_H = 310;
+          const MARGIN = 14;
+          if (!spotlight) {
+            return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+          }
+          const spaceBelow = window.innerHeight - (spotlight.top + spotlight.height) - MARGIN;
+          const spaceAbove = spotlight.top - MARGIN;
+          if (spaceBelow >= CARD_H) {
+            return { top: spotlight.top + spotlight.height + MARGIN, left: "50%", transform: "translateX(-50%)" };
+          }
+          if (spaceAbove >= CARD_H) {
+            return { top: spotlight.top - CARD_H - MARGIN, left: "50%", transform: "translateX(-50%)" };
+          }
+          // Not enough room above or below — center on screen
+          return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+        })()}
       >
         <div
           className="rounded-2xl overflow-hidden"
