@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// This route is only for local/preview dev mode — block it in production
+function isProduction() {
+  return process.env.NODE_ENV === "production";
+}
+
 export async function POST(req: NextRequest) {
+  if (isProduction()) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const { day } = await req.json();
   const existing = req.cookies.get("dev_completed")?.value ?? "";
   const days = new Set(existing.split(",").filter(Boolean));
@@ -11,6 +17,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (isProduction()) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const res = NextResponse.json({ ok: true });
   res.cookies.set("dev_completed", "", { path: "/", maxAge: 0 });
   return res;

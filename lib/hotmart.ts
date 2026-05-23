@@ -17,10 +17,18 @@ export function verifyHotmartSignature(
     .update(payload)
     .digest("hex");
 
-  return crypto.timingSafeEqual(
-    Buffer.from(expected, "hex"),
-    Buffer.from(signature.replace("sha256=", ""), "hex")
-  );
+  const expectedBuf = Buffer.from(expected, "hex");
+  let receivedBuf: Buffer;
+  try {
+    receivedBuf = Buffer.from(signature.replace("sha256=", ""), "hex");
+  } catch {
+    return false;
+  }
+
+  // timingSafeEqual throws if buffers have different lengths — check first
+  if (expectedBuf.length !== receivedBuf.length) return false;
+
+  return crypto.timingSafeEqual(expectedBuf, receivedBuf);
 }
 
 export interface HotmartWebhookPayload {

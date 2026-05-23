@@ -31,6 +31,16 @@ const DEV_PROFILE = {
   has_seen_onboarding: true, // always skip onboarding in dev mode
 };
 
+// Safe fallback for authenticated users whose DB profile doesn't exist yet
+// (e.g. webhook race condition). NEVER admin, NEVER expires.
+const SAFE_EMPTY_PROFILE = {
+  full_name: "Usuario",
+  access_expires_at: null,
+  is_admin: false,
+  total_points: 0,
+  has_seen_onboarding: false,
+};
+
 async function getLayoutData(userId: string) {
   // Use service client so RLS never blocks reading the user's own profile/progress
   const supabase = createServiceClient();
@@ -82,7 +92,9 @@ export default async function DashboardLayout({
     if (!user) redirect("/login");
 
     const layoutData = await getLayoutData(user.id);
-    profile = layoutData.user ?? DEV_PROFILE;
+    // Use SAFE_EMPTY_PROFILE (not DEV_PROFILE) so that users without a DB row
+    // never accidentally get is_admin: true
+    profile = layoutData.user ?? SAFE_EMPTY_PROFILE;
     completedDays = layoutData.completedDays;
   }
 
