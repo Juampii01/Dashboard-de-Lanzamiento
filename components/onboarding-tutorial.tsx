@@ -108,23 +108,45 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
   }, [step, visible]);
 
   // Calcular spotlight sobre el elemento target
+  // Usa retry para elementos que cargan async (ej: VideoCapsules fetches data)
   useEffect(() => {
     if (!visible) return;
     const current = STEPS[step];
     if (!current.targetId) { setSpotlight(null); return; }
 
-    const el = document.querySelector(`[data-tour-id="${current.targetId}"]`);
-    if (!el) { setSpotlight(null); return; }
+    const applySpotlight = (el: Element) => {
+      const pad = current.highlightPadding ?? 12;
+      const rect = el.getBoundingClientRect();
+      setSpotlight({
+        top:    rect.top    - pad,
+        left:   rect.left   - pad,
+        width:  rect.width  + pad * 2,
+        height: rect.height + pad * 2,
+      });
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
 
-    const pad = current.highlightPadding ?? 12;
-    const rect = el.getBoundingClientRect();
-    setSpotlight({
-      top:    rect.top    - pad,
-      left:   rect.left   - pad,
-      width:  rect.width  + pad * 2,
-      height: rect.height + pad * 2,
-    });
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Intentar inmediatamente
+    const el = document.querySelector(`[data-tour-id="${current.targetId}"]`);
+    if (el) { applySpotlight(el); return; }
+
+    // Elemento no encontrado — puede ser async (VideoCapsules). Reintentar hasta 3s.
+    setSpotlight(null);
+    let attempts = 0;
+    const maxAttempts = 12; // 12 × 250ms = 3 segundos
+    const interval = setInterval(() => {
+      attempts++;
+      const found = document.querySelector(`[data-tour-id="${current.targetId}"]`);
+      if (found) {
+        clearInterval(interval);
+        applySpotlight(found);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        // Dejar sin spotlight — la card queda centrada
+      }
+    }, 250);
+
+    return () => clearInterval(interval);
   }, [step, visible]);
 
   const complete = useCallback(async () => {

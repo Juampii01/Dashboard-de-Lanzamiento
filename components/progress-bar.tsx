@@ -261,24 +261,50 @@ export function ProgressBar({ completedDays }: ProgressBarProps) {
         </div>
       </div>
 
-      {/* Day labels */}
-      <div className="flex mt-2">
-        {[1, 2, 3, 4].map((d) => (
-          <div key={d} className="flex-1 text-center">
-            <span
+      {/* Day segment indicators */}
+      <div className="flex gap-1 mt-2">
+        {[1, 2, 3, 4].map((d) => {
+          const done = completedDays >= d;
+          const active = completedDays === d - 1; // current day to complete
+          return (
+            <div
+              key={d}
+              className="flex-1 flex items-center justify-center"
               style={{
-                fontFamily: "var(--font-arcade)",
-                fontSize: "6px",
-                letterSpacing: "0.06em",
-                color: completedDays >= d ? "#00D67A" : "#1E2E42",
-                textShadow: completedDays >= d ? "0 0 8px rgba(0,214,122,0.7)" : "none",
-                transition: "color 800ms, text-shadow 800ms",
+                height: "18px",
+                borderRadius: "3px",
+                border: `1px solid ${done ? "#00D67A" : active ? "#FFD60A" : "#1E3A5C"}`,
+                background: done
+                  ? "rgba(0,214,122,0.18)"
+                  : active
+                  ? "rgba(255,214,10,0.12)"
+                  : "rgba(255,255,255,0.03)",
+                boxShadow: done
+                  ? "0 0 6px rgba(0,214,122,0.35)"
+                  : active
+                  ? "0 0 8px rgba(255,214,10,0.4)"
+                  : "none",
+                transition: "all 800ms",
               }}
             >
-              D{d}
-            </span>
-          </div>
-        ))}
+              <span
+                style={{
+                  fontFamily: "var(--font-arcade)",
+                  fontSize: "7px",
+                  letterSpacing: "0.06em",
+                  color: done ? "#00D67A" : active ? "#FFD60A" : "#2A4060",
+                  textShadow: done
+                    ? "0 0 8px rgba(0,214,122,0.8)"
+                    : active
+                    ? "0 0 8px rgba(255,214,10,0.9)"
+                    : "none",
+                }}
+              >
+                {done ? "✓" : `DÍA ${d}`}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
