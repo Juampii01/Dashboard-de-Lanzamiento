@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Download, ExternalLink, Globe, Loader2, PlayCircle } from "lucide-react";
 import type { Database } from "@/lib/supabase/types";
+import { DevTestBar } from "@/components/dev-test-bar";
 
 type CompanyProfile = Database["public"]["Tables"]["company_profiles"]["Row"];
 type WebPreview = Database["public"]["Tables"]["web_previews"]["Row"];
@@ -33,6 +34,7 @@ interface Dia3ClientProps {
   existingPreview: WebPreview | null;
   profile: CompanyProfile | null;
   keywordsExpanded: string[];
+  devMode?: boolean;
 }
 
 export function Dia3Client({
@@ -41,6 +43,7 @@ export function Dia3Client({
   existingPreview,
   profile,
   keywordsExpanded,
+  devMode,
 }: Dia3ClientProps) {
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [generating, setGenerating] = useState(false);
@@ -126,6 +129,7 @@ ${webResult.html}
 
   return (
     <div className="space-y-8">
+      {devMode && <DevTestBar day={3} isCompleted={isCompleted} />}
       <div>
         <div className="flex items-center gap-2 mb-2">
           <Badge className="bg-emerald-100 text-emerald-700">Día 3</Badge>

@@ -25,7 +25,17 @@ async function getDia1Data(userId: string) {
   return { progress, profile, toggle };
 }
 
+const DEV_MODE = (process.env.NEXT_PUBLIC_APP_URL ?? "").includes("localhost");
+
 export default async function Dia1Page() {
+  if (DEV_MODE) {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
+    const isDone = devCompleted.split(",").includes("1");
+    return <Dia1Client userId="dev" isCompleted={isDone} existingProfile={null} devMode />;
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");

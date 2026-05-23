@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Download, ExternalLink, Loader2, PlayCircle } from "lucide-react";
 import type { Database } from "@/lib/supabase/types";
+import { DevTestBar } from "@/components/dev-test-bar";
 
 type CompanyProfile = Database["public"]["Tables"]["company_profiles"]["Row"];
 
@@ -25,9 +26,10 @@ interface Dia1ClientProps {
   userId: string;
   isCompleted: boolean;
   existingProfile: CompanyProfile | null;
+  devMode?: boolean;
 }
 
-export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile }: Dia1ClientProps) {
+export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile, devMode }: Dia1ClientProps) {
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [saving, setSaving] = useState(false);
   const [naicsResult, setNaicsResult] = useState<NAICSResult | null>(null);
@@ -145,6 +147,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
 
   return (
     <div className="space-y-8">
+      {devMode && <DevTestBar day={1} isCompleted={isCompleted} />}
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

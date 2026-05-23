@@ -1,81 +1,255 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { progressPercent } from "@/lib/utils";
+
+function SantoAvatar() {
+  const [visible, setVisible] = useState(false);
+  const [error, setError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return;
+    if (img.complete && img.naturalWidth > 0) setVisible(true);
+  }, []);
+
+  return (
+    <div
+      style={{
+        width: "30px",
+        height: "30px",
+        borderRadius: "50%",
+        overflow: "hidden",
+        border: "2px solid #00D67A",
+        background: "#0A2540",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        boxShadow: "0 0 10px rgba(0,214,122,0.6), 0 0 20px rgba(0,214,122,0.3)",
+      }}
+    >
+      {!error && (
+        <img
+          ref={imgRef}
+          src="/santo.png"
+          alt=""
+          onLoad={() => setVisible(true)}
+          onError={() => setError(true)}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center top",
+            display: visible ? "block" : "none",
+          }}
+        />
+      )}
+      {(!visible || error) && (
+        <span style={{ fontSize: "14px", lineHeight: 1 }}>🕺</span>
+      )}
+    </div>
+  );
+}
 
 interface ProgressBarProps {
   completedDays: number;
 }
 
 export function ProgressBar({ completedDays }: ProgressBarProps) {
-  const pct = progressPercent(completedDays);
+  const targetPct = progressPercent(completedDays);
+  const isEmpty = targetPct === 0;
+  const isFull = targetPct === 100;
+
+  // Cinematic entrance: bar starts at 0 and fills slowly on mount
+  const [displayPct, setDisplayPct] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setMounted(true), 120);
+    const t2 = setTimeout(() => setDisplayPct(targetPct), 400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [targetPct]);
 
   return (
-    <div className="w-full space-y-2">
+    <div className="w-full">
       {/* Header row */}
-      <div className="flex items-center justify-between">
-        <span
-          className="text-[11px] uppercase tracking-[0.15em] text-[#A8B5CC] font-medium"
-          style={{ fontFamily: "var(--font-sans)" }}
-        >
-          Tu progreso
-        </span>
-        <span
-          className="text-white font-bold text-base tabular-nums"
-          style={{ fontFamily: "var(--font-mono)" }}
-        >
-          {pct}%
-        </span>
-      </div>
-
-      {/* Track + avatar */}
-      <div className="relative h-7">
-        {/* Track */}
-        <div
-          className="absolute inset-0 rounded-full overflow-hidden"
-          style={{ background: "#0A2540", border: "1px solid #1E3A5C" }}
-        >
-          {/* Fill */}
-          <div
-            className="h-full rounded-full transition-all duration-700 ease-out"
-            style={{
-              width: `${pct}%`,
-              background: "#00D67A",
-              boxShadow:
-                pct > 0
-                  ? "inset 0 1px 0 rgba(255,255,255,0.25), 0 0 16px rgba(0,214,122,0.4)"
-                  : undefined,
-            }}
-          />
-        </div>
-
-        {/* Santo avatar */}
-        <div
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-xl transition-all duration-700 ease-out select-none"
-          style={{
-            left: `clamp(14px, ${pct}%, calc(100% - 14px))`,
-            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
-          }}
-          title="¡Vamos!"
-          aria-hidden
-        >
-          🕺
-        </div>
-      </div>
-
-      {/* Milestone labels */}
-      <div className="flex justify-between px-0.5">
-        {[1, 2, 3, 4].map((d) => (
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
           <span
-            key={d}
-            className="text-[10px] uppercase tracking-wider transition-colors"
             style={{
-              fontFamily: "var(--font-sans)",
-              color: completedDays >= d ? "#00D67A" : "#5A6B85",
-              fontWeight: completedDays >= d ? 600 : 400,
+              fontFamily: "var(--font-arcade)",
+              fontSize: "8px",
+              color: "#FFD60A",
+              letterSpacing: "0.08em",
+              textShadow: "0 0 8px rgba(255,214,10,0.9), 0 0 16px rgba(255,214,10,0.4)",
             }}
           >
-            Día {d}
+            P1
           </span>
+          <span
+            className="uppercase tracking-widest text-[10px]"
+            style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+          >
+            Tu progreso
+          </span>
+        </div>
+
+        <span
+          style={{
+            fontFamily: "var(--font-arcade)",
+            fontSize: "9px",
+            color: isFull ? "#FFD60A" : isEmpty ? "#D7263D" : "#00D67A",
+            textShadow: isFull
+              ? "0 0 12px rgba(255,214,10,1), 0 0 24px rgba(255,214,10,0.5)"
+              : !isEmpty
+              ? "0 0 10px rgba(0,214,122,0.8), 0 0 20px rgba(0,214,122,0.4)"
+              : "0 0 10px rgba(215,38,61,0.8)",
+            transition: "color 600ms",
+          }}
+        >
+          {isFull ? "FLAWLESS" : `${targetPct}%`}
+        </span>
+      </div>
+
+      {/* The bar */}
+      <div className="relative" style={{ height: "34px" }}>
+
+        {/* HUD corner brackets — outside the bar */}
+        <div className="absolute -top-[2px] -left-[2px] w-3 h-3 pointer-events-none z-30"
+          style={{ borderTop: "2px solid #FFD60A", borderLeft: "2px solid #FFD60A", opacity: 0.8 }} />
+        <div className="absolute -top-[2px] -right-[2px] w-3 h-3 pointer-events-none z-30"
+          style={{ borderTop: "2px solid #FFD60A", borderRight: "2px solid #FFD60A", opacity: 0.8 }} />
+        <div className="absolute -bottom-[2px] -left-[2px] w-3 h-3 pointer-events-none z-30"
+          style={{ borderBottom: "2px solid #FFD60A", borderLeft: "2px solid #FFD60A", opacity: 0.8 }} />
+        <div className="absolute -bottom-[2px] -right-[2px] w-3 h-3 pointer-events-none z-30"
+          style={{ borderBottom: "2px solid #FFD60A", borderRight: "2px solid #FFD60A", opacity: 0.8 }} />
+
+        {/* Outer chrome frame */}
+        <div
+          className={`absolute inset-0 bar-frame-pulse ${isEmpty ? "" : ""}`}
+          style={{
+            border: "2px solid #FFD60A",
+            borderRadius: "2px",
+            boxShadow: `
+              0 0 0 1px #0A2540,
+              0 0 20px rgba(255,214,10,0.22),
+              inset 0 0 0 1px rgba(0,0,0,0.9)
+            `,
+            overflow: "hidden",
+          }}
+        >
+          {/* Deep black BG */}
+          <div className="absolute inset-0" style={{ background: "#030303" }} />
+
+          {/* Ambient inner shadow */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ boxShadow: "inset 0 2px 12px rgba(0,0,0,0.8), inset 0 -1px 4px rgba(0,0,0,0.6)" }} />
+
+          {/* Green fill — cinematic transition */}
+          {displayPct > 0 && (
+            <div
+              className="absolute top-0 left-0 bottom-0 overflow-hidden"
+              style={{
+                width: `${displayPct}%`,
+                background: "linear-gradient(180deg, #12FF9A 0%, #00D67A 40%, #00B865 75%, #007A40 100%)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.5)",
+                transition: mounted
+                  ? `width 2800ms cubic-bezier(0.22, 0.61, 0.36, 1)`
+                  : "none",
+              }}
+            >
+              {/* Top specular highlight */}
+              <div className="absolute top-0 left-0 right-0 h-[6px]"
+                style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 100%)" }} />
+
+              {/* Scanlines on fill */}
+              <div className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.10) 3px, rgba(0,0,0,0.10) 4px)",
+                }} />
+
+              {/* Moving light sweep */}
+              <div
+                className="bar-light-sweep absolute top-0 bottom-0 pointer-events-none"
+                style={{
+                  width: "30%",
+                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)",
+                }}
+              />
+
+              {/* Crackle at the right edge of fill */}
+              <div
+                className="bar-edge-crackle absolute top-0 bottom-0 right-0"
+                style={{
+                  width: "3px",
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(120,255,180,0.9) 50%, rgba(255,255,255,0.95) 100%)",
+                }}
+              />
+            </div>
+          )}
+
+          {/* Segment dividers at 25 / 50 / 75 % */}
+          {[25, 50, 75].map((pos) => (
+            <div
+              key={pos}
+              className="absolute top-0 bottom-0 pointer-events-none z-10"
+              style={{
+                left: `${pos}%`,
+                width: "1px",
+                background: "linear-gradient(180deg, rgba(255,214,10,0.6) 0%, rgba(255,214,10,0.18) 100%)",
+              }}
+            />
+          ))}
+
+          {/* Low-health danger flicker */}
+          {isEmpty && (
+            <div
+              className="absolute inset-0 low-health-flicker"
+              style={{ background: "rgba(215,38,61,0.10)" }}
+            />
+          )}
+
+          {/* Full — gold shimmer */}
+          {isFull && (
+            <div className="absolute inset-0 progress-shimmer opacity-25" />
+          )}
+        </div>
+
+        {/* Santo avatar tracks the fill edge */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 select-none pointer-events-none z-20"
+          style={{
+            left: `clamp(4px, calc(${displayPct}% - 15px), calc(100% - 30px))`,
+            filter: "drop-shadow(0 0 8px rgba(0,214,122,0.9)) drop-shadow(0 0 16px rgba(0,214,122,0.5)) drop-shadow(0 3px 5px rgba(0,0,0,0.95))",
+            transition: mounted
+              ? `left 2800ms cubic-bezier(0.22, 0.61, 0.36, 1)`
+              : "none",
+          }}
+          aria-hidden
+        >
+          <SantoAvatar />
+        </div>
+      </div>
+
+      {/* Day labels */}
+      <div className="flex mt-2">
+        {[1, 2, 3, 4].map((d) => (
+          <div key={d} className="flex-1 text-center">
+            <span
+              style={{
+                fontFamily: "var(--font-arcade)",
+                fontSize: "6px",
+                letterSpacing: "0.06em",
+                color: completedDays >= d ? "#00D67A" : "#1E2E42",
+                textShadow: completedDays >= d ? "0 0 8px rgba(0,214,122,0.7)" : "none",
+                transition: "color 800ms, text-shadow 800ms",
+              }}
+            >
+              D{d}
+            </span>
+          </div>
         ))}
       </div>
     </div>

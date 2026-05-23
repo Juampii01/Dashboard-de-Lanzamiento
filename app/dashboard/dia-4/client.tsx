@@ -10,6 +10,7 @@ import { CheckCircle2, Download, ExternalLink, Loader2, Trophy, Upload, PlayCirc
 import { isExpired } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
+import { DevTestBar } from "@/components/dev-test-bar";
 
 type CompanyProfile = Database["public"]["Tables"]["company_profiles"]["Row"];
 type NaicsExpansion = Database["public"]["Tables"]["naics_expansions"]["Row"];
@@ -32,6 +33,7 @@ interface Dia4ClientProps {
   expansion: NaicsExpansion | null;
   fullName: string;
   accessExpiresAt: string | null;
+  devMode?: boolean;
 }
 
 export function Dia4Client({
@@ -43,6 +45,7 @@ export function Dia4Client({
   expansion,
   fullName,
   accessExpiresAt,
+  devMode,
 }: Dia4ClientProps) {
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [generating, setGenerating] = useState(false);
@@ -188,6 +191,7 @@ export function Dia4Client({
 
   return (
     <div className="space-y-8">
+      {devMode && <DevTestBar day={4} isCompleted={isCompleted} />}
       <div>
         <div className="flex items-center gap-2 mb-2">
           <Badge className="bg-amber-100 text-amber-700">Día 4</Badge>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
 import { ParticleBackground } from "@/components/particle-background";
@@ -61,7 +62,11 @@ export default async function DashboardLayout({
   let profile: typeof DEV_PROFILE | null = devMode ? DEV_PROFILE : null;
   let completedDays = 0;
 
-  if (!devMode) {
+  if (devMode) {
+    const cookieStore = await cookies();
+    const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
+    completedDays = devCompleted.split(",").filter(Boolean).length;
+  } else {
     const supabase = await createClient();
     let user = null;
     try {
@@ -211,7 +216,7 @@ export default async function DashboardLayout({
 
       {/* Main content */}
       <main
-        className="flex-1 max-w-5xl mx-auto w-full px-4 py-8"
+        className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 relative z-10"
         style={{ background: "#0A2540" }}
       >
         {children}

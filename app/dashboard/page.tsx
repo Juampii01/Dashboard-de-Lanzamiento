@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAllAdminToggles } from "@/lib/supabase/helpers";
 import { DayCard } from "@/components/day-card";
@@ -75,7 +76,16 @@ export default async function DashboardPage() {
   let completedDays = 0;
 
   if (!isSupabaseConfigured()) {
-    toggleMap = { 1: { is_globally_unlocked: true } };
+    // Dev/preview mode — treat as admin: all days visible, read completion from cookie
+    const cookieStore = await cookies();
+    const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
+    const completedSet = new Set(devCompleted.split(",").filter(Boolean));
+    for (let d = 1; d <= 4; d++) {
+      const isDone = completedSet.has(String(d));
+      toggleMap[d] = { is_globally_unlocked: true };
+      progressMap[d] = { is_unlocked: true, is_completed: isDone };
+    }
+    completedDays = completedSet.size;
   } else {
     const supabase = await createClient();
     let user = null;
@@ -92,14 +102,22 @@ export default async function DashboardPage() {
     progressMap = data.progressMap;
     toggleMap = data.toggleMap;
 
-    // Grab user name and completed count for certificate preview
+    // Grab user name, admin flag, and completed count for certificate preview
     const { data: profile } = await supabase
       .from("users")
-      .select("full_name")
+      .select("full_name, is_admin")
       .eq("id", user.id)
       .maybeSingle();
     userName = profile?.full_name ?? "Tu nombre";
     completedDays = Object.values(progressMap).filter((p) => p.is_completed).length;
+
+    if (profile?.is_admin) {
+      // Admins see all days unlocked regardless of global toggles or prior completion
+      for (let d = 1; d <= 4; d++) {
+        progressMap[d] = { ...progressMap[d], is_unlocked: true, is_completed: progressMap[d]?.is_completed ?? false };
+        toggleMap[d] = { is_globally_unlocked: true };
+      }
+    }
   }
 
   return (

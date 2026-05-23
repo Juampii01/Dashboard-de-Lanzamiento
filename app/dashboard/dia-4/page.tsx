@@ -3,21 +3,34 @@ import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia4Client } from "./client";
 
+const DEV_MODE = (process.env.NEXT_PUBLIC_APP_URL ?? "").includes("localhost");
+
 export default async function Dia4Page() {
+  if (DEV_MODE) {
+    const { cookies } = await import("next/headers");
+    const cookieStore = await cookies();
+    const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
+    const isDone = devCompleted.split(",").includes("4");
+    return <Dia4Client userId="dev" isCompleted={isDone} existingStatement={null} existingSorteo={null} profile={null} expansion={null} fullName="Dev Preview" accessExpiresAt={null} devMode />;
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [toggle, { data: progress }, { data: prevProgress }, { data: profile }, { data: expansion }] =
+  const [toggle, { data: progress }, { data: prevProgress }, { data: profile }, { data: expansion }, { data: adminUser }] =
     await Promise.all([
       getAdminToggle(supabase, 4),
       supabase.from("day_progress").select("is_unlocked, is_completed").eq("user_id", user.id).eq("day_number", 4).single(),
       supabase.from("day_progress").select("is_completed").eq("user_id", user.id).eq("day_number", 3).single(),
       supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
       supabase.from("naics_expansions").select("*").eq("user_id", user.id).single(),
+      supabase.from("users").select("is_admin").eq("id", user.id).single(),
     ]);
 
+  const isAdmin = adminUser?.is_admin === true;
   const isUnlocked =
+    isAdmin ||
     (toggle?.is_globally_unlocked === true && prevProgress?.is_completed === true) ||
     progress?.is_unlocked === true;
 

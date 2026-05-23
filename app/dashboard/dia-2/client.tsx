@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Download, ExternalLink, Loader2, Plus, X, PlayCircle } from "lucide-react";
 import type { Database } from "@/lib/supabase/types";
+import { DevTestBar } from "@/components/dev-test-bar";
 
 type NaicsExpansion = Database["public"]["Tables"]["naics_expansions"]["Row"];
 
@@ -36,6 +37,7 @@ interface Dia2ClientProps {
   existingExpansion: NaicsExpansion | null;
   primaryNaics: string;
   companyNiche: string;
+  devMode?: boolean;
 }
 
 export function Dia2Client({
@@ -44,6 +46,7 @@ export function Dia2Client({
   existingExpansion,
   primaryNaics,
   companyNiche,
+  devMode,
 }: Dia2ClientProps) {
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [naicsInput, setNaicsInput] = useState(primaryNaics);
@@ -147,6 +150,7 @@ export function Dia2Client({
 
   return (
     <div className="space-y-8">
+      {devMode && <DevTestBar day={2} isCompleted={isCompleted} />}
       <div>
         <div className="flex items-center gap-2 mb-2">
           <Badge className="bg-purple-100 text-purple-700">Día 2</Badge>

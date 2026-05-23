@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Lock, CheckCircle2, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useCallback, useRef, useState } from "react";
 
 interface DayCardProps {
   day: number;
@@ -13,6 +14,12 @@ interface DayCardProps {
   href: string;
 }
 
+interface Ripple {
+  x: number;
+  y: number;
+  id: number;
+}
+
 export function DayCard({
   day,
   title,
@@ -21,10 +28,32 @@ export function DayCard({
   isCompleted,
   href,
 }: DayCardProps) {
+  const [shaking, setShaking] = useState(false);
+  const [ripple, setRipple] = useState<Ripple | null>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+
+  // Shake locked cards on click — MK "blocked move" feedback
+  const handleLockedClick = useCallback(() => {
+    if (shaking) return;
+    setShaking(true);
+    setTimeout(() => setShaking(false), 580);
+  }, [shaking]);
+
+  // Ripple burst on CTA button
+  const handleRipple = useCallback((e: React.MouseEvent) => {
+    const el = ctaRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setRipple({ x: e.clientX - rect.left, y: e.clientY - rect.top, id: Date.now() });
+    setTimeout(() => setRipple(null), 700);
+  }, []);
+
   const card = (
     <div
+      onClick={!isUnlocked ? handleLockedClick : undefined}
       className={cn(
         "relative rounded-xl overflow-hidden border transition-all duration-300",
+        shaking && "card-shake",
         isCompleted
           ? "border-[#00D67A]/40 cursor-pointer hover:-translate-y-1"
           : isUnlocked
@@ -45,6 +74,16 @@ export function DayCard({
           : "none",
       }}
     >
+      {/* HUD corner brackets — same as health bar */}
+      <div className="absolute top-0 left-0 w-4 h-4 pointer-events-none z-30"
+        style={{ borderTop: "2px solid rgba(255,214,10,0.5)", borderLeft: "2px solid rgba(255,214,10,0.5)" }} />
+      <div className="absolute top-0 right-0 w-4 h-4 pointer-events-none z-30"
+        style={{ borderTop: "2px solid rgba(255,214,10,0.5)", borderRight: "2px solid rgba(255,214,10,0.5)" }} />
+      <div className="absolute bottom-0 left-0 w-4 h-4 pointer-events-none z-30"
+        style={{ borderBottom: "2px solid rgba(255,214,10,0.5)", borderLeft: "2px solid rgba(255,214,10,0.5)" }} />
+      <div className="absolute bottom-0 right-0 w-4 h-4 pointer-events-none z-30"
+        style={{ borderBottom: "2px solid rgba(255,214,10,0.5)", borderRight: "2px solid rgba(255,214,10,0.5)" }} />
+
       {/* Completed green overlay */}
       {isCompleted && (
         <div className="absolute inset-0 bg-[#00D67A]/5 pointer-events-none" />
@@ -125,14 +164,23 @@ export function DayCard({
           </button>
         ) : isUnlocked ? (
           <div
-            className="w-full py-3 rounded-lg text-center text-white font-bold text-sm transition-all hover:brightness-90"
+            ref={ctaRef}
+            onClick={handleRipple}
+            className="w-full py-3 rounded-lg text-center text-white font-bold text-sm transition-all hover:brightness-110 relative overflow-hidden select-none"
             style={{
-              background: "#D7263D",
+              background: "linear-gradient(135deg, #E8293F 0%, #D7263D 50%, #B01E31 100%)",
               fontFamily: "var(--font-sans)",
-              boxShadow: "0 4px 16px rgba(215,38,61,0.4)",
+              boxShadow: "0 4px 16px rgba(215,38,61,0.45), inset 0 1px 0 rgba(255,255,255,0.15)",
             }}
           >
             Empezar reto →
+            {ripple && (
+              <span
+                key={ripple.id}
+                className="cta-ripple"
+                style={{ left: ripple.x, top: ripple.y }}
+              />
+            )}
           </div>
         ) : (
           <p className="text-center text-[11px] text-[#5A6B85] py-1 flex items-center justify-center gap-1.5">
