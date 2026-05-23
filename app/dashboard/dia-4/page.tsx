@@ -18,7 +18,7 @@ export default async function Dia4Page() {
     return (
       <div className="space-y-8">
         <Dia4Client userId="dev" isCompleted={isDone} existingStatement={null} existingSorteo={null} profile={null} expansion={null} fullName="Dev Preview" accessExpiresAt={null} devMode />
-        <VideoCapsules day={4} />
+        <VideoCapsules day={4} isAdmin={isAdmin} />
       </div>
     );
   }
@@ -65,7 +65,7 @@ export default async function Dia4Page() {
       fullName={userProfile?.full_name ?? user.email ?? ""}
       accessExpiresAt={userProfile?.access_expires_at ?? null}
     />
-      <VideoCapsules day={4} />
+      <VideoCapsules day={4} isAdmin={isAdmin} />
     </div>
   );
 }

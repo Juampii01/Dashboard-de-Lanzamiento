@@ -18,7 +18,7 @@ export default async function Dia2Page() {
     return (
       <div className="space-y-8">
         <Dia2Client userId="dev" isCompleted={isDone} existingExpansion={null} primaryNaics="" companyNiche="" devMode />
-        <VideoCapsules day={2} />
+        <VideoCapsules day={2} isAdmin={isAdmin} />
       </div>
     );
   }
@@ -56,7 +56,7 @@ export default async function Dia2Page() {
       primaryNaics={profile?.primary_naics ?? ""}
       companyNiche={profile?.niche ?? ""}
     />
-      <VideoCapsules day={2} />
+      <VideoCapsules day={2} isAdmin={isAdmin} />
     </div>
   );
 }

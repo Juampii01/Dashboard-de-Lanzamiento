@@ -77,7 +77,7 @@ export default async function Dia1Page() {
         isCompleted={progress?.is_completed ?? false}
         existingProfile={profile}
       />
-      <VideoCapsules day={1} />
+      <VideoCapsules day={1} isAdmin={isAdmin} />
     </div>
   );
 }

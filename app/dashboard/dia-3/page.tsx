@@ -18,7 +18,7 @@ export default async function Dia3Page() {
     return (
       <div className="space-y-8">
         <Dia3Client userId="dev" isCompleted={isDone} existingPreview={null} profile={null} keywordsExpanded={[]} devMode />
-        <VideoCapsules day={3} />
+        <VideoCapsules day={3} isAdmin={isAdmin} />
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default async function Dia3Page() {
       profile={profile}
       keywordsExpanded={(expansion?.keywords_expanded as string[]) ?? []}
     />
-      <VideoCapsules day={3} />
+      <VideoCapsules day={3} isAdmin={isAdmin} />
     </div>
   );
 }

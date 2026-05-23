@@ -15,6 +15,7 @@ interface Capsule {
 
 interface VideoCapsulesProps {
   day: number;
+  isAdmin?: boolean;
 }
 
 const COOLDOWN_SECONDS = 5 * 60; // 5 minutes
@@ -54,7 +55,7 @@ function CooldownBadge({ seconds }: { seconds: number }) {
   );
 }
 
-export function VideoCapsules({ day }: VideoCapsulesProps) {
+export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
   const [capsules, setCapsules]         = useState<Capsule[]>([]);
   const [loading, setLoading]           = useState(true);
   const [cooldownSecs, setCooldownSecs] = useState(0);
@@ -70,8 +71,8 @@ export function VideoCapsules({ day }: VideoCapsulesProps) {
 
       setCapsules(data.capsules ?? []);
 
-      // Compute cooldown from last completion
-      if (data.lastCompletedAt) {
+      // Admins have no cooldown
+      if (!isAdmin && data.lastCompletedAt) {
         const elapsed = (Date.now() - new Date(data.lastCompletedAt).getTime()) / 1000;
         const left = Math.ceil(COOLDOWN_SECONDS - elapsed);
         setCooldownSecs(Math.max(0, left));
@@ -130,7 +131,7 @@ export function VideoCapsules({ day }: VideoCapsulesProps) {
         // Refresh list and close modal
         await loadCapsules();
         setActiveId(null);
-        setCooldownSecs(COOLDOWN_SECONDS);
+        if (!isAdmin) setCooldownSecs(COOLDOWN_SECONDS);
       } else if (data.cooldown && data.nextInSeconds) {
         setCooldownSecs(data.nextInSeconds);
         setActiveId(null);
