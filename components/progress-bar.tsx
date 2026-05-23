@@ -21,6 +21,10 @@ function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }
     if (jumping) return;
     setJumping(true);
     setTimeout(() => setJumping(false), 650);
+
+    // Fire avatar XP (handled by XpEngine listening to this event)
+    window.dispatchEvent(new CustomEvent("xp-avatar-click"));
+
     if (onClick && wrapRef.current) {
       const rect = wrapRef.current.getBoundingClientRect();
       onClick(rect.left + rect.width / 2, rect.top + rect.height / 2);

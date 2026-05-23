@@ -16,11 +16,29 @@ export function DevTestBar({ day, isCompleted }: DevTestBarProps) {
 
   async function markDone() {
     setLoading(true);
-    await fetch("/api/dev/complete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ day }),
-    });
+
+    // Call both APIs in parallel: cookie (dev UI) + real Supabase XP
+    const [, xpRes] = await Promise.all([
+      fetch("/api/dev/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day }),
+      }),
+      fetch("/api/xp/complete-day", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day }),
+      }).then((r) => r.json()).catch(() => null),
+    ]);
+
+    // If XP was awarded, dispatch event so PointsHUD updates live
+    if (xpRes?.ok && xpRes.pointsAwarded > 0) {
+      window.dispatchEvent(
+        new CustomEvent("xp-gained", {
+          detail: { delta: xpRes.pointsAwarded, total: xpRes.total, source: "day" },
+        })
+      );
+    }
 
     // Cinematic KO finish sequence
     setShowFinish(true);
@@ -33,8 +51,8 @@ export function DevTestBar({ day, isCompleted }: DevTestBarProps) {
     createParticleBurst(cx, cy, "gold", 28);
     setTimeout(() => createParticleBurst(cx, cy, "cyan", 14), 220);
 
-    // Flying +25% label toward top of screen (where progress bar lives)
-    flyPoints(cx, cy, cx, 110, `+25% DÍA ${day}`);
+    // Flying +25 XP label toward top of screen (where PointsHUD lives)
+    flyPoints(cx, cy, cx, 110, `+25 XP 🏆 DÍA ${day}`);
 
     await new Promise((r) => setTimeout(r, 1200));
     setShowFinish(false);

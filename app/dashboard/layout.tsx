@@ -8,6 +8,7 @@ import { CountdownTimer } from "@/components/countdown-timer";
 import { UnlockEventListener } from "@/components/unlock-event-listener";
 import { PointsHUD } from "@/components/points-hud";
 import { ArcadeAmbient } from "@/components/arcade-ambient";
+import { XpEngine } from "@/components/xp-engine";
 import { daysLeft, isExpired } from "@/lib/utils";
 import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
@@ -100,6 +101,8 @@ export default async function DashboardLayout({
       <ArcadeAmbient />
       <BootSequence />
       <UnlockEventListener />
+      {/* XP Engine: invisible heartbeat + avatar XP listener */}
+      {!devMode && <XpEngine />}
       {/* Header */}
       <header
         className="sticky top-0 z-50 px-4 py-4 shadow-xl"
