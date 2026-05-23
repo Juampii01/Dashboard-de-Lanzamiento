@@ -143,7 +143,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
       <div
         ref={overlayRef}
         className="fixed inset-0 z-[99980]"
-        style={{ background: "rgba(0,0,0,0.78)", backdropFilter: "blur(2px)" }}
+        style={{ background: "rgba(0,0,0,0.55)" }}
         onClick={(e) => { if (e.target === overlayRef.current) complete(); }}
       />
 
@@ -157,8 +157,9 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
             width:  spotlight.width,
             height: spotlight.height,
             borderRadius: "12px",
-            boxShadow: "0 0 0 9999px rgba(0,0,0,0.78)",
-            border: "2px solid rgba(255,214,10,0.6)",
+            boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)",
+            border: "2px solid rgba(255,214,10,0.7)",
+            background: "rgba(255,214,10,0.04)",
           }}
         />
       )}
