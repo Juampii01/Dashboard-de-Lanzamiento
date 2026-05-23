@@ -44,7 +44,8 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const devMode = !isSupabaseConfigured();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const devMode = !isSupabaseConfigured() || appUrl.includes("localhost");
 
   let profile: typeof DEV_PROFILE | null = devMode ? DEV_PROFILE : null;
   let completedDays = 0;
@@ -73,44 +74,80 @@ export default async function DashboardLayout({
   const remaining = daysLeft(profile?.access_expires_at ?? null);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header superior con barra de progreso */}
-      <header className="bg-primary text-primary-foreground px-4 py-4 shadow-lg sticky top-0 z-50">
+    <div className="min-h-screen flex flex-col" style={{ background: "#0A2540" }}>
+      {/* Header */}
+      <header
+        className="sticky top-0 z-50 px-4 py-4 shadow-xl"
+        style={{
+          background: "linear-gradient(180deg, #0A2540 0%, #143A6B 100%)",
+          borderBottom: "1px solid #1E3A5C",
+        }}
+      >
         <div className="max-w-5xl mx-auto">
-          {/* Fila superior: logo + nombre + acciones */}
+          {/* Top row */}
           <div className="flex items-center justify-between mb-4">
+            {/* Logo + brand */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center font-bold text-accent-foreground text-sm">
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white text-sm"
+                style={{
+                  background: "#D7263D",
+                  boxShadow: "0 2px 12px rgba(215,38,61,0.4)",
+                  fontFamily: "var(--font-display)",
+                }}
+              >
                 G
               </div>
               <div>
-                <p className="font-bold text-sm leading-tight">Govbidder</p>
-                <p className="text-primary-foreground/60 text-xs">Code Challenge</p>
+                <p
+                  className="font-bold text-sm leading-tight text-white"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Govbidder
+                </p>
+                <p className="text-[11px] text-[#A8B5CC] tracking-wide">
+                  Code Challenge
+                </p>
               </div>
             </div>
 
+            {/* Right: admin + points + user + logout */}
             <div className="flex items-center gap-3">
               {profile?.is_admin && (
                 <Link
                   href="/admin"
-                  className="flex items-center gap-1 text-xs text-accent hover:text-accent/80 transition-colors"
+                  className="flex items-center gap-1 text-xs text-[#D7263D] hover:text-[#ff4d6d] transition-colors"
                 >
                   <Shield className="w-3.5 h-3.5" />
                   Admin
                 </Link>
               )}
+
+              {/* Points capsule */}
+              {(profile?.total_points ?? 0) > 0 && (
+                <div
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                  style={{
+                    background: "#FFD60A",
+                    color: "#0A2540",
+                    fontFamily: "var(--font-mono)",
+                    boxShadow: "0 2px 8px rgba(255,214,10,0.3)",
+                  }}
+                >
+                  ⭐ {profile?.total_points} pts
+                </div>
+              )}
+
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-medium truncate max-w-[140px]">
+                <p className="text-xs font-medium text-white truncate max-w-[140px]">
                   {profile?.full_name ?? "Usuario"}
                 </p>
-                {profile?.total_points ? (
-                  <p className="text-xs text-accent">{profile.total_points} pts</p>
-                ) : null}
               </div>
+
               <form action="/api/auth/signout" method="POST">
                 <button
                   type="submit"
-                  className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  className="p-2 rounded-lg text-[#A8B5CC] hover:text-white hover:bg-white/10 transition-colors"
                   title="Cerrar sesión"
                 >
                   <LogOut className="w-4 h-4" />
@@ -119,22 +156,26 @@ export default async function DashboardLayout({
             </div>
           </div>
 
-          {/* Barra de progreso */}
+          {/* Progress bar */}
           <ProgressBar completedDays={completedDays} />
         </div>
       </header>
 
-      {/* Banner de días restantes */}
+      {/* Expiry banner */}
       {remaining <= 3 && remaining > 0 && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center">
-          <p className="text-amber-800 text-sm font-medium">
-            ⏳ Te quedan <strong>{remaining} día{remaining !== 1 ? "s" : ""}</strong> de acceso al dashboard.
-          </p>
+        <div
+          className="px-4 py-2 text-center text-sm font-medium"
+          style={{ background: "#A11D2E", color: "#FFFFFF" }}
+        >
+          ⏳ Te quedan <strong>{remaining} día{remaining !== 1 ? "s" : ""}</strong> de acceso.
         </div>
       )}
 
-      {/* Contenido principal */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+      {/* Main content */}
+      <main
+        className="flex-1 max-w-5xl mx-auto w-full px-4 py-8"
+        style={{ background: "#0A2540" }}
+      >
         {children}
       </main>
     </div>

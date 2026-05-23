@@ -6,53 +6,75 @@ interface ProgressBarProps {
   completedDays: number;
 }
 
-const MILESTONES = [
-  { day: 1, label: "Día 1", pct: 25 },
-  { day: 2, label: "Día 2", pct: 50 },
-  { day: 3, label: "Día 3", pct: 75 },
-  { day: 4, label: "Día 4", pct: 100 },
-];
-
 export function ProgressBar({ completedDays }: ProgressBarProps) {
   const pct = progressPercent(completedDays);
 
   return (
     <div className="w-full space-y-2">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-semibold text-primary-foreground">
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <span
+          className="text-[11px] uppercase tracking-[0.15em] text-[#A8B5CC] font-medium"
+          style={{ fontFamily: "var(--font-sans)" }}
+        >
           Tu progreso
         </span>
-        <span className="font-bold text-accent">{pct}%</span>
+        <span
+          className="text-white font-bold text-base tabular-nums"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {pct}%
+        </span>
       </div>
 
-      {/* Barra con avatar de Santo */}
-      <div className="relative h-8">
+      {/* Track + avatar */}
+      <div className="relative h-7">
         {/* Track */}
-        <div className="absolute inset-y-0 left-0 right-0 rounded-full bg-white/20 overflow-hidden">
+        <div
+          className="absolute inset-0 rounded-full overflow-hidden"
+          style={{ background: "#0A2540", border: "1px solid #1E3A5C" }}
+        >
+          {/* Fill */}
           <div
-            className="h-full rounded-full bg-accent transition-all duration-700 ease-out"
-            style={{ width: `${pct}%` }}
+            className="h-full rounded-full transition-all duration-700 ease-out"
+            style={{
+              width: `${pct}%`,
+              background: "#00D67A",
+              boxShadow:
+                pct > 0
+                  ? "inset 0 1px 0 rgba(255,255,255,0.25), 0 0 16px rgba(0,214,122,0.4)"
+                  : undefined,
+            }}
           />
         </div>
 
-        {/* Avatar de Santo — emoji que avanza */}
+        {/* Santo avatar */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-2xl transition-all duration-700 ease-out select-none"
-          style={{ left: `clamp(16px, ${pct}%, calc(100% - 16px))` }}
-          title="Santo"
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 text-xl transition-all duration-700 ease-out select-none"
+          style={{
+            left: `clamp(14px, ${pct}%, calc(100% - 14px))`,
+            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6))",
+          }}
+          title="¡Vamos!"
+          aria-hidden
         >
-          🧑‍💼
+          🕺
         </div>
       </div>
 
-      {/* Milestones */}
-      <div className="flex justify-between text-xs text-white/60 px-1">
-        {MILESTONES.map((m) => (
+      {/* Milestone labels */}
+      <div className="flex justify-between px-0.5">
+        {[1, 2, 3, 4].map((d) => (
           <span
-            key={m.day}
-            className={pct >= m.pct ? "text-accent font-semibold" : ""}
+            key={d}
+            className="text-[10px] uppercase tracking-wider transition-colors"
+            style={{
+              fontFamily: "var(--font-sans)",
+              color: completedDays >= d ? "#00D67A" : "#5A6B85",
+              fontWeight: completedDays >= d ? 600 : 400,
+            }}
           >
-            {m.label}
+            Día {d}
           </span>
         ))}
       </div>

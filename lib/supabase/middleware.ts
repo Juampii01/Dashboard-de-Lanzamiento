@@ -5,6 +5,8 @@ import type { Database } from "./types";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "";
+
 function isSupabaseConfigured() {
   return (
     SUPABASE_URL.startsWith("https://") &&
@@ -13,12 +15,16 @@ function isSupabaseConfigured() {
   );
 }
 
+function isLocalDev() {
+  return APP_URL.includes("localhost");
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
   const { pathname } = request.nextUrl;
 
-  // Si Supabase no está configurado, dejar pasar todo (modo de desarrollo sin credenciales)
-  if (!isSupabaseConfigured()) {
+  // En localhost o sin Supabase configurado, dejar pasar todo
+  if (!isSupabaseConfigured() || isLocalDev()) {
     return supabaseResponse;
   }
 

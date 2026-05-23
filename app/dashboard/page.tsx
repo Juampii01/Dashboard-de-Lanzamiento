@@ -57,7 +57,12 @@ async function getDashboardData(userId: string) {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
-  return SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder");
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  return (
+    SUPABASE_URL.startsWith("https://") &&
+    !SUPABASE_URL.includes("placeholder") &&
+    !appUrl.includes("localhost")
+  );
 }
 
 export default async function DashboardPage() {
@@ -85,20 +90,27 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Welcome */}
-      <div>
-        <h1 className="text-3xl font-bold text-primary">
-          Bienvenido al Code Challenge 🚀
+    <div className="space-y-10 page-enter">
+      {/* Hero welcome */}
+      <div className="pt-2">
+        <h1
+          className="text-4xl font-bold text-white leading-tight mb-3"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          Bienvenido al Code Challenge
+          <span className="ml-2">🚀</span>
         </h1>
-        <p className="text-muted-foreground mt-2 text-lg">
-          4 días para aprender a venderle al gobierno federal. Completá cada reto
-          para desbloquear el siguiente.
+        <p
+          className="text-lg"
+          style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+        >
+          4 días para aprender a venderle al gobierno federal.
+          Completá cada reto para desbloquear el siguiente.
         </p>
       </div>
 
-      {/* Grid de días */}
-      <div className="grid gap-5 sm:grid-cols-2">
+      {/* Grid de retos */}
+      <div className="grid gap-5 sm:grid-cols-2 stagger-children">
         {DAY_META.map(({ day, title, description, href }) => {
           const dayToggle = toggleMap[day];
           const dayProgress = progressMap[day];
@@ -108,8 +120,7 @@ export default async function DashboardPage() {
           const prevCompleted = day === 1 || prevDayProgress?.is_completed === true;
           const userUnlocked = dayProgress?.is_unlocked ?? false;
 
-          const isUnlocked =
-            (globallyUnlocked && prevCompleted) || userUnlocked;
+          const isUnlocked = (globallyUnlocked && prevCompleted) || userUnlocked;
           const isCompleted = dayProgress?.is_completed ?? false;
 
           return (
@@ -126,14 +137,35 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Info del sorteo */}
-      <div className="bg-accent/10 border border-accent/30 rounded-2xl p-6">
-        <h2 className="font-bold text-lg mb-2">🎁 Sorteo final</h2>
-        <p className="text-muted-foreground text-sm">
-          Completá los 4 días y subí tus entregables para participar del sorteo.
-          Los puntos acumulados en las mini-cápsulas de video determinan tu
-          ranking de elegibilidad.
-        </p>
+      {/* Sorteo final */}
+      <div
+        className="rounded-xl p-6 border"
+        style={{
+          background: "linear-gradient(135deg, #143A6B 0%, #0A2540 100%)",
+          borderColor: "#FFD60A33",
+        }}
+      >
+        <div className="flex items-start gap-4">
+          <div
+            className="text-3xl select-none"
+            style={{ filter: "drop-shadow(0 2px 8px rgba(255,214,10,0.4))" }}
+          >
+            🏆
+          </div>
+          <div>
+            <h2
+              className="font-bold text-lg text-white mb-1"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              Sorteo final
+            </h2>
+            <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC" }}>
+              Completá los 4 retos y subí tus entregables para participar del
+              sorteo. Los puntos acumulados en las mini-cápsulas de video
+              determinan tu ranking de elegibilidad.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

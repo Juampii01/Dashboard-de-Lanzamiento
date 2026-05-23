@@ -5,117 +5,110 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
+  /* Fonts */
+  --font-sans:    var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono:    var(--font-mono);
+  --font-arcade:  var(--font-arcade);
+
+  /* Color mappings */
+  --color-background:           var(--background);
+  --color-foreground:           var(--foreground);
+  --color-card:                 var(--card);
+  --color-card-foreground:      var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-destructive:          var(--destructive);
+  --color-border:               var(--border);
+  --color-input:                var(--input);
+  --color-ring:                 var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
 }
 
 :root {
-  /* Govbidder brand — navy + gold (placeholder hasta que cliente provea paleta oficial) */
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.13 0.04 255);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.04 255);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.04 255);
-  --primary: oklch(0.28 0.09 255);       /* navy #1a2a6c */
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.94 0.02 255);
-  --secondary-foreground: oklch(0.28 0.09 255);
-  --muted: oklch(0.95 0.01 255);
-  --muted-foreground: oklch(0.50 0.04 255);
-  --accent: oklch(0.76 0.14 85);         /* gold #c9a227 */
-  --accent-foreground: oklch(0.13 0.04 255);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.90 0.02 255);
-  --input: oklch(0.90 0.02 255);
-  --ring: oklch(0.28 0.09 255);
-  --chart-1: oklch(0.76 0.14 85);
-  --chart-2: oklch(0.50 0.12 255);
-  --chart-3: oklch(0.65 0.10 180);
-  --chart-4: oklch(0.70 0.08 140);
-  --chart-5: oklch(0.60 0.08 30);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.28 0.09 255);
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.76 0.14 85);
-  --sidebar-primary-foreground: oklch(0.13 0.04 255);
-  --sidebar-accent: oklch(0.35 0.09 255);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.35 0.09 255);
-  --sidebar-ring: oklch(0.76 0.14 85);
+  /* ── Govbidder brand (dark arcade) ─── */
+  --background:           #0A2540;  /* govbidder-blue */
+  --foreground:           #FFFFFF;
+
+  --card:                 #143A6B;  /* govbidder-blue-mid */
+  --card-foreground:      #FFFFFF;
+  --popover:              #143A6B;
+  --popover-foreground:   #FFFFFF;
+
+  /* Primary: Rojo USA */
+  --primary:              #D7263D;
+  --primary-foreground:   #FFFFFF;
+
+  /* Secondary: Azul claro (hover states) */
+  --secondary:            #1E5BA8;
+  --secondary-foreground: #FFFFFF;
+
+  /* Muted: locked-gray */
+  --muted:                #3D4E6B;
+  --muted-foreground:     #A8B5CC;
+
+  /* Accent: dorado arcade */
+  --accent:               #FFD60A;
+  --accent-foreground:    #0A2540;
+
+  --destructive:          #D7263D;
+  --border:               #1E3A5C;
+  --input:                #0A2540;
+  --ring:                 rgba(215, 38, 61, 0.40);
+
+  /* Charts */
+  --chart-1: #D7263D;
+  --chart-2: #FFD60A;
+  --chart-3: #00D67A;
+  --chart-4: #1E5BA8;
+  --chart-5: #A8B5CC;
+
+  /* Radius — 12px base (spec: cards 12px, buttons 8px, inputs 6px) */
+  --radius: 0.75rem;
+
+  /* Sidebar */
+  --sidebar:                   #0A2540;
+  --sidebar-foreground:        #FFFFFF;
+  --sidebar-primary:           #D7263D;
+  --sidebar-primary-foreground:#FFFFFF;
+  --sidebar-accent:            rgba(255,255,255,0.08);
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border:            #1E3A5C;
+  --sidebar-ring:              #D7263D;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* ── Custom tokens (no Tailwind mapping needed) ─ */
+:root {
+  --govbidder-blue:       #0A2540;
+  --govbidder-blue-mid:   #143A6B;
+  --govbidder-blue-light: #1E5BA8;
+  --govbidder-red:        #D7263D;
+  --govbidder-red-deep:   #A11D2E;
+  --arcade-gold:          #FFD60A;
+  --arcade-green:         #00D67A;
+  --locked-gray:          #3D4E6B;
+  --text-secondary-color: #A8B5CC;
+  --text-muted-color:     #5A6B85;
+  --border-default:       #1E3A5C;
+  --border-active:        #D7263D;
 }
 
 @layer base {
@@ -124,8 +117,106 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  html {
-    @apply font-sans;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+  .font-mono, code, pre {
+    font-family: var(--font-mono);
   }
 }
+
+/* ── Animations ─────────────────────────────── */
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Pulse del borde rojo en cards activos */
+@keyframes border-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(215,38,61,0.4), 0 0 16px rgba(215,38,61,0.15); }
+  50%       { box-shadow: 0 0 0 2px rgba(215,38,61,0.7), 0 0 28px rgba(215,38,61,0.30); }
+}
+.card-active-pulse {
+  animation: border-glow-pulse 3s ease-in-out infinite;
+}
+
+/* Shimmer IA */
+@keyframes progress-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.progress-shimmer {
+  background: linear-gradient(90deg, #D7263D 0%, #ff6b6a 40%, #D7263D 60%, #A11D2E 100%);
+  background-size: 200% auto;
+  animation: progress-shimmer 1.2s linear infinite;
+}
+
+/* Skeleton */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #143A6B 25%, #1E5BA8 50%, #143A6B 75%);
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* Card hover lift */
+.card-lift {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 220ms;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(215,38,61,0.2);
+}
+
+/* Ambient background */
+.ambient-bg {
+  background-image:
+    radial-gradient(900px circle at 80% -10%, rgba(215,38,61,0.06), transparent 50%),
+    radial-gradient(700px circle at 0% 100%, rgba(30,58,138,0.08), transparent 50%);
+}
+
+/* Gold glow (recompensas) */
+.gold-glow {
+  box-shadow: 0 0 0 1px rgba(255,214,10,0.25), 0 4px 20px rgba(255,214,10,0.15);
+}
+
+/* Green glow (logros) */
+.green-glow {
+  box-shadow: 0 0 0 1px rgba(0,214,122,0.3), 0 4px 20px rgba(0,214,122,0.15);
+}
+
+/* Spin */
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.spin-slow { animation: spin-slow 0.8s linear infinite; }
+
+/* Stagger children fade-in */
+.stagger-children > * {
+  animation: page-enter 0.4s cubic-bezier(0.22,1,0.36,1) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+
+/* ── Scrollbar ───────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0A2540; }
+::-webkit-scrollbar-thumb {
+  background: #1E3A5C;
+  border-radius: 999px;
+  border: 2px solid #0A2540;
+}
+::-webkit-scrollbar-thumb:hover { background: #1E5BA8; }

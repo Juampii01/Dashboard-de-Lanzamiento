@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import { Lock, CheckCircle2, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 
 interface DayCardProps {
   day: number;
@@ -14,13 +13,6 @@ interface DayCardProps {
   href: string;
 }
 
-const DAY_COLORS: Record<number, string> = {
-  1: "from-blue-600 to-blue-800",
-  2: "from-purple-600 to-purple-800",
-  3: "from-emerald-600 to-emerald-800",
-  4: "from-amber-500 to-orange-600",
-};
-
 export function DayCard({
   day,
   title,
@@ -29,79 +21,121 @@ export function DayCard({
   isCompleted,
   href,
 }: DayCardProps) {
-  const gradient = DAY_COLORS[day] ?? "from-slate-600 to-slate-800";
-
   const card = (
     <div
       className={cn(
-        "relative rounded-2xl overflow-hidden border transition-all duration-300",
-        isUnlocked
-          ? "cursor-pointer hover:shadow-xl hover:-translate-y-1 border-border"
-          : "cursor-not-allowed opacity-60 border-border/40",
-        isCompleted && "ring-2 ring-green-500"
+        "relative rounded-xl overflow-hidden border transition-all duration-300",
+        isCompleted
+          ? "border-[#00D67A]/50 bg-[#143A6B]"
+          : isUnlocked
+          ? "border-[#D7263D] bg-[#143A6B] card-active-pulse hover:-translate-y-1 cursor-pointer"
+          : "border-[#1E3A5C] bg-[#0A2540]/80 cursor-not-allowed"
       )}
     >
-      {/* Header con gradiente */}
-      <div className={cn("bg-gradient-to-r p-5", gradient)}>
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-white/70 text-xs font-medium uppercase tracking-widest mb-1">
-              Día {day}
-            </p>
-            <h3 className="text-white font-bold text-lg leading-tight">{title}</h3>
-          </div>
-          <div className="flex-shrink-0 ml-3">
-            {isCompleted ? (
-              <CheckCircle2 className="w-8 h-8 text-green-300" />
-            ) : isUnlocked ? (
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg">
-                {day}
-              </div>
-            ) : (
-              <Lock className="w-8 h-8 text-white/50" />
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Completed green overlay */}
+      {isCompleted && (
+        <div className="absolute inset-0 bg-[#00D67A]/5 pointer-events-none" />
+      )}
 
-      {/* Body */}
-      <div className="bg-card p-5">
-        <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+      {/* Main content */}
+      <div className={cn("p-6 pb-4", !isUnlocked && "[filter:grayscale(0.5)]")}>
+        {/* Row: label + state badge */}
+        <div className="flex items-center justify-between mb-5">
+          <span
+            className="text-[10px] uppercase tracking-[0.18em] text-[#A8B5CC] font-medium"
+            style={{ fontFamily: "var(--font-sans)" }}
+          >
+            Reto {day}
+          </span>
 
-        <div className="mt-4 flex items-center justify-between">
           {isCompleted ? (
-            <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-              Completado
-            </Badge>
+            <span
+              className="px-2.5 py-0.5 rounded-full bg-[#00D67A]/20 text-[#00D67A] text-[9px] font-bold uppercase tracking-wider flex items-center gap-1"
+              style={{ fontFamily: "var(--font-arcade)" }}
+            >
+              <CheckCircle2 className="w-3 h-3" /> Listo
+            </span>
           ) : isUnlocked ? (
-            <Badge className="bg-accent/20 text-accent-foreground hover:bg-accent/30">
-              Disponible
-            </Badge>
+            <span
+              className="px-2.5 py-0.5 rounded-full bg-[#D7263D] text-white text-[9px] font-bold uppercase tracking-wider animate-pulse"
+              style={{ fontFamily: "var(--font-arcade)" }}
+            >
+              Activo
+            </span>
           ) : (
-            <Badge variant="secondary">Bloqueado</Badge>
-          )}
-
-          {isUnlocked && (
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <Lock className="w-4 h-4 text-[#5A6B85]" />
           )}
         </div>
+
+        {/* Big day number */}
+        <div
+          className="text-8xl font-bold leading-none mb-4 select-none tabular-nums"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: isCompleted ? "#00D67A" : isUnlocked ? "#FFFFFF" : "#3D4E6B",
+            textShadow: isUnlocked && !isCompleted
+              ? "0 0 40px rgba(255,214,10,0.12)"
+              : isCompleted
+              ? "0 0 30px rgba(0,214,122,0.2)"
+              : undefined,
+          }}
+        >
+          {String(day).padStart(2, "0")}
+        </div>
+
+        {/* Title */}
+        <h3
+          className="font-bold text-lg leading-snug mb-2"
+          style={{
+            fontFamily: "var(--font-display)",
+            color: isUnlocked ? "#FFFFFF" : "#5A6B85",
+          }}
+        >
+          {title}
+        </h3>
+
+        {/* Description */}
+        <p
+          className="text-sm leading-relaxed"
+          style={{ color: isUnlocked ? "#A8B5CC" : "#5A6B85" }}
+        >
+          {description}
+        </p>
       </div>
 
-      {/* Overlay difuminado para días bloqueados */}
-      {!isUnlocked && (
-        <div className="absolute inset-0 backdrop-blur-[2px] bg-background/30 flex items-center justify-center">
-          <div className="text-center">
-            <Lock className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm font-medium text-muted-foreground">
-              Se desbloquea en vivo
-            </p>
+      {/* CTA row */}
+      <div className="px-6 pb-6">
+        {isCompleted ? (
+          <button className="w-full py-2.5 rounded-lg border border-white/20 text-white/80 text-sm font-semibold hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+            Ver entregables
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        ) : isUnlocked ? (
+          <div
+            className="w-full py-3 rounded-lg text-center text-white font-bold text-sm transition-all hover:brightness-90"
+            style={{
+              background: "#D7263D",
+              fontFamily: "var(--font-sans)",
+              boxShadow: "0 4px 16px rgba(215,38,61,0.4)",
+            }}
+          >
+            Empezar reto →
           </div>
-        </div>
+        ) : (
+          <p className="text-center text-[11px] text-[#5A6B85] py-1 flex items-center justify-center gap-1.5">
+            <Lock className="w-3 h-3" />
+            Se desbloquea en vivo
+          </p>
+        )}
+      </div>
+
+      {/* Locked blur */}
+      {!isUnlocked && (
+        <div className="absolute inset-0 backdrop-blur-[1.5px]" />
       )}
     </div>
   );
 
   if (!isUnlocked) return card;
-
   return <Link href={href}>{card}</Link>;
 }
