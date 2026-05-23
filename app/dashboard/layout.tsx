@@ -58,8 +58,10 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  const devMode = !isSupabaseConfigured() || appUrl.includes("localhost");
+  // devMode = true only when Supabase is NOT configured (placeholder URL).
+  // localhost intentionally uses real Supabase auth so the full login flow
+  // can be tested locally without deploying first.
+  const devMode = !isSupabaseConfigured();
 
   let profile: typeof DEV_PROFILE | null = devMode ? DEV_PROFILE : null;
   let completedDays = 0;
