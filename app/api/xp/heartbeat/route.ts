@@ -14,21 +14,25 @@ export async function POST() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("total_points, last_time_xp_at")
+    .select("total_points, last_time_xp_at, is_admin")
     .eq("id", user.id)
     .single();
 
   if (!profile) return NextResponse.json({ awarded: false }, { status: 404 });
 
   const now = new Date();
-  const lastXp = profile.last_time_xp_at ? new Date(profile.last_time_xp_at) : null;
-  const minutesSinceLast = lastXp
-    ? (now.getTime() - lastXp.getTime()) / 60_000
-    : Infinity;
 
-  if (minutesSinceLast < COOLDOWN_MINUTES) {
-    const nextInSeconds = Math.ceil((COOLDOWN_MINUTES - minutesSinceLast) * 60);
-    return NextResponse.json({ awarded: false, nextInSeconds });
+  // Admins bypass the cooldown entirely
+  if (!profile.is_admin) {
+    const lastXp = profile.last_time_xp_at ? new Date(profile.last_time_xp_at) : null;
+    const minutesSinceLast = lastXp
+      ? (now.getTime() - lastXp.getTime()) / 60_000
+      : Infinity;
+
+    if (minutesSinceLast < COOLDOWN_MINUTES) {
+      const nextInSeconds = Math.ceil((COOLDOWN_MINUTES - minutesSinceLast) * 60);
+      return NextResponse.json({ awarded: false, nextInSeconds });
+    }
   }
 
   const newTotal = (profile.total_points ?? 0) + POINTS;

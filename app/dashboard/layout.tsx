@@ -194,7 +194,7 @@ export default async function DashboardLayout({
 
           {/* Progress bar */}
           <div data-tour-id="progress-bar">
-            <ProgressBar completedDays={completedDays} />
+            <ProgressBar completedDays={completedDays} isAdmin={profile?.is_admin ?? false} />
           </div>
         </div>
       </header>

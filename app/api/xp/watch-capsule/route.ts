@@ -11,8 +11,15 @@ export async function POST(req: NextRequest) {
   const { capsuleId } = await req.json();
   if (!capsuleId) return NextResponse.json({ ok: false, error: "missing_capsule_id" }, { status: 400 });
 
-  // Check if already completed this capsule
-  // maybeSingle() returns null (not error) when no row exists
+  // Check if user is admin (admins bypass all cooldowns)
+  const { data: userProfile } = await supabase
+    .from("users")
+    .select("is_admin")
+    .eq("id", user.id)
+    .maybeSingle();
+  const isAdmin = userProfile?.is_admin === true;
+
+  // Check if already completed this capsule (applies to everyone, even admins)
   const { data: existing } = await supabase
     .from("video_capsule_completions")
     .select("id")
@@ -24,21 +31,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, alreadyWatched: true });
   }
 
-  // Check global 5-min cooldown (most recent completion by this user)
-  // maybeSingle() returns null when user has no prior completions
-  const { data: recent } = await supabase
-    .from("video_capsule_completions")
-    .select("completed_at")
-    .eq("user_id", user.id)
-    .order("completed_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // Check global 5-min cooldown — admins skip this
+  if (!isAdmin) {
+    const { data: recent } = await supabase
+      .from("video_capsule_completions")
+      .select("completed_at")
+      .eq("user_id", user.id)
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  if (recent?.completed_at) {
-    const minutesSince = (Date.now() - new Date(recent.completed_at).getTime()) / 60_000;
-    if (minutesSince < COOLDOWN_MINUTES) {
-      const nextInSeconds = Math.ceil((COOLDOWN_MINUTES - minutesSince) * 60);
-      return NextResponse.json({ ok: false, cooldown: true, nextInSeconds });
+    if (recent?.completed_at) {
+      const minutesSince = (Date.now() - new Date(recent.completed_at).getTime()) / 60_000;
+      if (minutesSince < COOLDOWN_MINUTES) {
+        const nextInSeconds = Math.ceil((COOLDOWN_MINUTES - minutesSince) * 60);
+        return NextResponse.json({ ok: false, cooldown: true, nextInSeconds });
+      }
     }
   }
 

@@ -7,7 +7,7 @@ import { triggerAvatarStars } from "@/lib/wow-effects";
 const AVATAR_LS_KEY      = "govbidder_avatar_xp_at";
 const AVATAR_COOLDOWN_MS = 60 * 60_000; // 60 minutos
 
-function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }) {
+function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) => void; isAdmin?: boolean }) {
   const [visible, setVisible]   = useState(false);
   const [error, setError]       = useState(false);
   const [jumping, setJumping]   = useState(false);
@@ -17,7 +17,9 @@ function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // Restaurar cooldown desde localStorage al montar; refrescar cada 30 s
+  // Los admins nunca tienen cooldown
   useEffect(() => {
+    if (isAdmin) { setCooldown(false); return; }
     function check() {
       const stored = localStorage.getItem(AVATAR_LS_KEY);
       if (!stored) { setCooldown(false); return; }
@@ -33,7 +35,7 @@ function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }
     check();
     const id = setInterval(check, 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     const img = imgRef.current;
@@ -62,16 +64,18 @@ function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }
       } = await res.json();
 
       if (data.awarded && data.points && data.total != null) {
-        // XP otorgado — bloquear avatar y actualizar HUD
-        localStorage.setItem(AVATAR_LS_KEY, String(Date.now()));
-        setCooldown(true);
-        setMinsLeft(60);
+        // XP otorgado — bloquear avatar solo si no es admin
+        if (!isAdmin) {
+          localStorage.setItem(AVATAR_LS_KEY, String(Date.now()));
+          setCooldown(true);
+          setMinsLeft(60);
+        }
         window.dispatchEvent(
           new CustomEvent("xp-gained", {
             detail: { delta: data.points, total: data.total, source: "avatar" },
           })
         );
-      } else if (data.nextInMinutes) {
+      } else if (data.nextInMinutes && !isAdmin) {
         // Servidor dice que está en cooldown — sincronizar localStorage
         const msUsed = AVATAR_COOLDOWN_MS - data.nextInMinutes * 60_000;
         localStorage.setItem(AVATAR_LS_KEY, String(Date.now() - msUsed));
@@ -163,9 +167,10 @@ function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }
 
 interface ProgressBarProps {
   completedDays: number;
+  isAdmin?: boolean;
 }
 
-export function ProgressBar({ completedDays }: ProgressBarProps) {
+export function ProgressBar({ completedDays, isAdmin }: ProgressBarProps) {
   const targetPct = progressPercent(completedDays);
   const isEmpty = targetPct === 0;
   const isFull = targetPct === 100;
@@ -341,7 +346,7 @@ export function ProgressBar({ completedDays }: ProgressBarProps) {
           }}
           aria-hidden
         >
-          <SantoAvatar onClick={handleAvatarClick} />
+          <SantoAvatar onClick={handleAvatarClick} isAdmin={isAdmin} />
         </div>
       </div>
 
