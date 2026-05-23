@@ -4,12 +4,36 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { progressPercent } from "@/lib/utils";
 import { triggerAvatarStars } from "@/lib/wow-effects";
 
+const AVATAR_LS_KEY      = "govbidder_avatar_xp_at";
+const AVATAR_COOLDOWN_MS = 60 * 60_000; // 60 minutos
+
 function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }) {
-  const [visible, setVisible] = useState(false);
-  const [error, setError] = useState(false);
-  const [jumping, setJumping] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const [visible, setVisible]   = useState(false);
+  const [error, setError]       = useState(false);
+  const [jumping, setJumping]   = useState(false);
+  const [cooldown, setCooldown] = useState(false);
+  const [minsLeft, setMinsLeft] = useState(0);
+  const imgRef  = useRef<HTMLImageElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Restaurar cooldown desde localStorage al montar; refrescar cada 30 s
+  useEffect(() => {
+    function check() {
+      const stored = localStorage.getItem(AVATAR_LS_KEY);
+      if (!stored) { setCooldown(false); return; }
+      const elapsed = Date.now() - parseInt(stored, 10);
+      if (elapsed < AVATAR_COOLDOWN_MS) {
+        setCooldown(true);
+        setMinsLeft(Math.ceil((AVATAR_COOLDOWN_MS - elapsed) / 60_000));
+      } else {
+        setCooldown(false);
+        localStorage.removeItem(AVATAR_LS_KEY);
+      }
+    }
+    check();
+    const id = setInterval(check, 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const img = imgRef.current;
@@ -18,60 +42,96 @@ function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }
   }, []);
 
   const handleClick = useCallback(() => {
-    if (jumping) return;
+    if (jumping || cooldown) return;
     setJumping(true);
     setTimeout(() => setJumping(false), 650);
 
-    // Fire avatar XP (handled by XpEngine listening to this event)
+    // Bloquear optimistamente — no esperamos la respuesta del API
+    localStorage.setItem(AVATAR_LS_KEY, String(Date.now()));
+    setCooldown(true);
+    setMinsLeft(60);
+
+    // XpEngine escucha este evento y llama al API
     window.dispatchEvent(new CustomEvent("xp-avatar-click"));
 
     if (onClick && wrapRef.current) {
       const rect = wrapRef.current.getBoundingClientRect();
       onClick(rect.left + rect.width / 2, rect.top + rect.height / 2);
     }
-  }, [jumping, onClick]);
+  }, [jumping, cooldown, onClick]);
 
   return (
-    <div
-      ref={wrapRef}
-      onClick={handleClick}
-      title="Easter egg 🕺"
-      style={{
-        width: "30px",
-        height: "30px",
-        borderRadius: "50%",
-        overflow: "hidden",
-        border: "2px solid #00D67A",
-        background: "#0A2540",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        cursor: "pointer",
-        boxShadow: "0 0 10px rgba(0,214,122,0.6), 0 0 20px rgba(0,214,122,0.3)",
-        animation: jumping
-          ? "bar-avatar-jump 0.6s cubic-bezier(0.34,1.56,0.64,1)"
-          : "bar-bounce 1.4s ease-in-out infinite",
-      }}
-    >
-      {!error && (
-        <img
-          ref={imgRef}
-          src="/santo.png"
-          alt=""
-          onLoad={() => setVisible(true)}
-          onError={() => setError(true)}
+    <div ref={wrapRef} style={{ position: "relative", flexShrink: 0 }}>
+      {/* Avatar clickeable */}
+      <div
+        onClick={handleClick}
+        title={cooldown ? `Santo en cooldown — ${minsLeft} min` : "¡Clic para XP! 🕺"}
+        style={{
+          width: "30px",
+          height: "30px",
+          borderRadius: "50%",
+          overflow: "hidden",
+          border: `2px solid ${cooldown ? "#2A3F56" : "#00D67A"}`,
+          background: "#0A2540",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: cooldown ? "not-allowed" : "pointer",
+          boxShadow: cooldown
+            ? "none"
+            : "0 0 10px rgba(0,214,122,0.6), 0 0 20px rgba(0,214,122,0.3)",
+          filter: cooldown ? "grayscale(70%) brightness(0.5)" : "none",
+          animation: cooldown
+            ? "none"
+            : jumping
+            ? "bar-avatar-jump 0.6s cubic-bezier(0.34,1.56,0.64,1)"
+            : "bar-bounce 1.4s ease-in-out infinite",
+          transition: "border-color 0.4s, box-shadow 0.4s, filter 0.4s",
+        }}
+      >
+        {!error && (
+          <img
+            ref={imgRef}
+            src="/santo.png"
+            alt=""
+            onLoad={() => setVisible(true)}
+            onError={() => setError(true)}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center top",
+              display: visible ? "block" : "none",
+            }}
+          />
+        )}
+        {(!visible || error) && (
+          <span style={{ fontSize: "14px", lineHeight: 1 }}>🕺</span>
+        )}
+      </div>
+
+      {/* Candado de cooldown */}
+      {cooldown && (
+        <div
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "center top",
-            display: visible ? "block" : "none",
+            position: "absolute",
+            bottom: "-1px",
+            right: "-3px",
+            width: "13px",
+            height: "13px",
+            borderRadius: "50%",
+            background: "#061528",
+            border: "1px solid #2A3F56",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "7px",
+            lineHeight: 1,
+            pointerEvents: "none",
           }}
-        />
-      )}
-      {(!visible || error) && (
-        <span style={{ fontSize: "14px", lineHeight: 1 }}>🕺</span>
+        >
+          🔒
+        </div>
       )}
     </div>
   );
