@@ -62,11 +62,9 @@ async function getDashboardData(userId: string) {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
   return (
     SUPABASE_URL.startsWith("https://") &&
-    !SUPABASE_URL.includes("placeholder") &&
-    !appUrl.includes("localhost")
+    !SUPABASE_URL.includes("placeholder")
   );
 }
 

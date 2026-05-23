@@ -4,7 +4,8 @@ import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia3Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 
-const DEV_MODE = (process.env.NEXT_PUBLIC_APP_URL ?? "").includes("localhost");
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
 export default async function Dia3Page() {
   if (DEV_MODE) {
@@ -12,7 +13,12 @@ export default async function Dia3Page() {
     const cookieStore = await cookies();
     const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
     const isDone = devCompleted.split(",").includes("3");
-    return <Dia3Client userId="dev" isCompleted={isDone} existingPreview={null} profile={null} keywordsExpanded={[]} devMode />;
+    return (
+      <div className="space-y-8">
+        <Dia3Client userId="dev" isCompleted={isDone} existingPreview={null} profile={null} keywordsExpanded={[]} devMode />
+        <VideoCapsules day={3} />
+      </div>
+    );
   }
 
   const supabase = await createClient();

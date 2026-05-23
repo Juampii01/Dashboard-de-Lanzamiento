@@ -4,7 +4,8 @@ import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia4Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 
-const DEV_MODE = (process.env.NEXT_PUBLIC_APP_URL ?? "").includes("localhost");
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
 export default async function Dia4Page() {
   if (DEV_MODE) {
@@ -12,7 +13,12 @@ export default async function Dia4Page() {
     const cookieStore = await cookies();
     const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
     const isDone = devCompleted.split(",").includes("4");
-    return <Dia4Client userId="dev" isCompleted={isDone} existingStatement={null} existingSorteo={null} profile={null} expansion={null} fullName="Dev Preview" accessExpiresAt={null} devMode />;
+    return (
+      <div className="space-y-8">
+        <Dia4Client userId="dev" isCompleted={isDone} existingStatement={null} existingSorteo={null} profile={null} expansion={null} fullName="Dev Preview" accessExpiresAt={null} devMode />
+        <VideoCapsules day={4} />
+      </div>
+    );
   }
 
   const supabase = await createClient();

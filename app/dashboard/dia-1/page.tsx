@@ -26,7 +26,8 @@ async function getDia1Data(userId: string) {
   return { progress, profile, toggle };
 }
 
-const DEV_MODE = (process.env.NEXT_PUBLIC_APP_URL ?? "").includes("localhost");
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
 export default async function Dia1Page() {
   if (DEV_MODE) {
@@ -34,7 +35,12 @@ export default async function Dia1Page() {
     const cookieStore = await cookies();
     const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
     const isDone = devCompleted.split(",").includes("1");
-    return <Dia1Client userId="dev" isCompleted={isDone} existingProfile={null} devMode />;
+    return (
+      <div className="space-y-8">
+        <Dia1Client userId="dev" isCompleted={isDone} existingProfile={null} devMode />
+        <VideoCapsules day={1} />
+      </div>
+    );
   }
 
   const supabase = await createClient();
