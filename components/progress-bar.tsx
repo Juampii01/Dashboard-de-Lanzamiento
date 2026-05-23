@@ -45,7 +45,9 @@ function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }
         flexShrink: 0,
         cursor: "pointer",
         boxShadow: "0 0 10px rgba(0,214,122,0.6), 0 0 20px rgba(0,214,122,0.3)",
-        animation: jumping ? "bar-avatar-jump 0.6s cubic-bezier(0.34,1.56,0.64,1)" : undefined,
+        animation: jumping
+          ? "bar-avatar-jump 0.6s cubic-bezier(0.34,1.56,0.64,1)"
+          : "bar-bounce 1.4s ease-in-out infinite",
       }}
     >
       {!error && (
@@ -184,7 +186,7 @@ export function ProgressBar({ completedDays }: ProgressBarProps) {
             >
               {/* Top specular highlight */}
               <div className="absolute top-0 left-0 right-0 h-[6px]"
-                style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 100%)" }} />
+                style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.55) 0%, transparent 100%)" }} />
 
               {/* Scanlines on fill */}
               <div className="absolute inset-0 pointer-events-none"
@@ -197,7 +199,7 @@ export function ProgressBar({ completedDays }: ProgressBarProps) {
                 className="bar-light-sweep absolute top-0 bottom-0 pointer-events-none"
                 style={{
                   width: "30%",
-                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)",
+                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.38) 50%, transparent 100%)",
                 }}
               />
 
@@ -241,7 +243,7 @@ export function ProgressBar({ completedDays }: ProgressBarProps) {
 
         {/* Santo avatar tracks the fill edge */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 select-none pointer-events-none z-20"
+          className="absolute top-1/2 -translate-y-1/2 select-none z-20"
           style={{
             left: `clamp(4px, calc(${displayPct}% - 15px), calc(100% - 30px))`,
             filter: "drop-shadow(0 0 8px rgba(0,214,122,0.9)) drop-shadow(0 0 16px rgba(0,214,122,0.5)) drop-shadow(0 3px 5px rgba(0,0,0,0.95))",
