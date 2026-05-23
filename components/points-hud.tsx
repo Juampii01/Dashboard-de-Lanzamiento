@@ -24,6 +24,7 @@ export function PointsHUD({
   const [open, setOpen]                 = useState(false);
   const [currentPoints, setCurrentPoints] = useState(initialPoints);
   const [levelUp, setLevelUp]           = useState(false);
+  const [tooltipPos, setTooltipPos]     = useState({ top: 0, right: 0 });
   const pillRef = useRef<HTMLDivElement>(null);
   const prevPointsRef = useRef(initialPoints);
 
@@ -79,10 +80,20 @@ export function PointsHUD({
   const handleClick = useCallback(() => {
     setFlipping(true);
     setTimeout(() => setFlipping(false), 780);
-    setOpen((v) => !v);
+    setOpen((v) => {
+      const next = !v;
+      if (next && pillRef.current) {
+        const rect = pillRef.current.getBoundingClientRect();
+        setTooltipPos({
+          top:   rect.bottom + 10,
+          right: window.innerWidth - rect.right,
+        });
+      }
+      return next;
+    });
   }, []);
 
-  // Close on outside click
+  // Close on outside click or scroll
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => {
@@ -90,8 +101,13 @@ export function PointsHUD({
         setOpen(false);
       }
     };
+    const closeScroll = () => setOpen(false);
     document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    window.addEventListener("scroll", closeScroll, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", close);
+      window.removeEventListener("scroll", closeScroll);
+    };
   }, [open]);
 
   return (
@@ -166,11 +182,15 @@ export function PointsHUD({
         <span>{currentPoints} pts</span>
       </div>
 
-      {/* Detail tooltip */}
+      {/* Detail tooltip — fixed position to escape header stacking context */}
       {open && (
         <div
-          className="pts-detail-show absolute right-0 top-full mt-2 z-50"
+          className="pts-detail-show"
           style={{
+            position: "fixed",
+            top:   tooltipPos.top,
+            right: tooltipPos.right,
+            zIndex: 99999,
             background: "#061528",
             border: "2px solid #FFD60A",
             borderRadius: "10px",

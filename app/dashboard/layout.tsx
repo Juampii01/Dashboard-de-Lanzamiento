@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
@@ -36,7 +36,8 @@ const DEV_PROFILE = {
 };
 
 async function getLayoutData(userId: string) {
-  const supabase = await createClient();
+  // Use service client so RLS never blocks reading the user's own profile/progress
+  const supabase = createServiceClient();
 
   const [{ data: user }, { data: progress }] = await Promise.all([
     supabase
