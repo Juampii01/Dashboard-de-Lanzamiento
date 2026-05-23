@@ -41,22 +41,46 @@ function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }
     if (img.complete && img.naturalWidth > 0) setVisible(true);
   }, []);
 
-  const handleClick = useCallback(() => {
+  const handleClick = useCallback(async () => {
     if (jumping || cooldown) return;
     setJumping(true);
     setTimeout(() => setJumping(false), 650);
 
-    // Bloquear optimistamente — no esperamos la respuesta del API
-    localStorage.setItem(AVATAR_LS_KEY, String(Date.now()));
-    setCooldown(true);
-    setMinsLeft(60);
-
-    // XpEngine escucha este evento y llama al API
-    window.dispatchEvent(new CustomEvent("xp-avatar-click"));
-
+    // Efecto de estrellas inmediato
     if (onClick && wrapRef.current) {
       const rect = wrapRef.current.getBoundingClientRect();
       onClick(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    }
+
+    try {
+      const res = await fetch("/api/xp/avatar", { method: "POST" });
+      const data: {
+        awarded: boolean;
+        points?: number;
+        total?: number;
+        nextInMinutes?: number;
+      } = await res.json();
+
+      if (data.awarded && data.points && data.total != null) {
+        // XP otorgado — bloquear avatar y actualizar HUD
+        localStorage.setItem(AVATAR_LS_KEY, String(Date.now()));
+        setCooldown(true);
+        setMinsLeft(60);
+        window.dispatchEvent(
+          new CustomEvent("xp-gained", {
+            detail: { delta: data.points, total: data.total, source: "avatar" },
+          })
+        );
+      } else if (data.nextInMinutes) {
+        // Servidor dice que está en cooldown — sincronizar localStorage
+        const msUsed = AVATAR_COOLDOWN_MS - data.nextInMinutes * 60_000;
+        localStorage.setItem(AVATAR_LS_KEY, String(Date.now() - msUsed));
+        setCooldown(true);
+        setMinsLeft(data.nextInMinutes);
+      }
+      // Si no hay awarded ni nextInMinutes: error silencioso, NO bloquear
+    } catch {
+      // Error de red — no bloquear avatar, el usuario puede reintentar
     }
   }, [jumping, cooldown, onClick]);
 
