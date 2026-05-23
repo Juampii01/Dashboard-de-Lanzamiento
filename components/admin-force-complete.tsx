@@ -24,11 +24,9 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
         body: JSON.stringify({ day }),
       });
       const data = await res.json();
-
       if (data.ok) {
         setDone(true);
         if (data.pointsAwarded > 0) {
-          // Fly XP animation: from screen center up to XP pill (top-right)
           flyPoints(
             window.innerWidth / 2,
             window.innerHeight / 2,
@@ -36,12 +34,10 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
             56,
             `+${data.pointsAwarded} XP`
           );
-          // Dispatch XP event so HUD updates
           window.dispatchEvent(new CustomEvent("xp-gained", {
             detail: { delta: data.pointsAwarded, total: data.total, source: "day" },
           }));
         }
-        // Reload to reflect completed state
         setTimeout(() => window.location.reload(), 800);
       }
     } catch {
@@ -51,30 +47,76 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
     }
   }
 
+  async function handleUncomplete() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/force-complete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setDone(false);
+        if (data.pointsRemoved > 0) {
+          window.dispatchEvent(new CustomEvent("xp-gained", {
+            detail: { delta: -data.pointsRemoved, total: data.total, source: "day" },
+          }));
+        }
+        setTimeout(() => window.location.reload(), 400);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const btnBase: React.CSSProperties = {
+    fontFamily: "var(--font-arcade)",
+    fontSize: "9px",
+    letterSpacing: "0.08em",
+    padding: "5px 10px",
+    borderRadius: "6px",
+    cursor: loading ? "not-allowed" : "pointer",
+    opacity: loading ? 0.5 : 1,
+    transition: "opacity 0.2s",
+    border: "1px solid",
+  };
+
   return (
-    <button
-      onClick={handleForceComplete}
-      disabled={loading || done}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
-      style={{
-        background: done
-          ? "rgba(0,214,122,0.15)"
-          : "rgba(215,38,61,0.15)",
-        border: `1px solid ${done ? "#00D67A" : "#D7263D"}`,
-        color: done ? "#00D67A" : "#D7263D",
-        fontFamily: "var(--font-arcade)",
-        fontSize: "9px",
-        letterSpacing: "0.08em",
-      }}
-      title="Admin: forzar completado del día"
-    >
-      {loading ? (
-        <>⏳ PROCESANDO...</>
-      ) : done ? (
-        <>✓ DÍA {day} COMPLETADO</>
-      ) : (
-        <>⚡ ADMIN: REALIZAR DÍA {day}</>
+    <div className="flex items-center gap-2">
+      {/* Realizar */}
+      <button
+        onClick={handleForceComplete}
+        disabled={loading || done}
+        style={{
+          ...btnBase,
+          background: done ? "rgba(0,214,122,0.1)" : "rgba(215,38,61,0.15)",
+          borderColor: done ? "#00D67A" : "#D7263D",
+          color: done ? "#00D67A" : "#D7263D",
+        }}
+        title="Admin: forzar completado del día"
+      >
+        {loading && !done ? "⏳ ..." : done ? `✓ DÍA ${day} COMPLETADO` : `⚡ REALIZAR DÍA ${day}`}
+      </button>
+
+      {/* Descompletar — solo visible si está completado */}
+      {done && (
+        <button
+          onClick={handleUncomplete}
+          disabled={loading}
+          style={{
+            ...btnBase,
+            background: "rgba(255,214,10,0.1)",
+            borderColor: "#FFD60A",
+            color: "#FFD60A",
+          }}
+          title="Admin: descompletar este día"
+        >
+          {loading ? "⏳ ..." : `↺ DESCOMPLETAR`}
+        </button>
       )}
-    </button>
+    </div>
   );
 }
