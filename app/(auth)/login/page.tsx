@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import Image from "next/image";
 
@@ -14,6 +10,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [sent, setSent] = useState(false);
+
+  // Show a helpful message when redirected here after an expired / already-used link
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error") === "auth") {
+      toast.error("Tu link de acceso expiró o ya fue usado. Ingresá tu email para recibir uno nuevo.", {
+        duration: 6000,
+      });
+    }
+  }, []);
 
   async function handleGoogle() {
     setLoadingGoogle(true);
@@ -35,14 +41,24 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        // Use /auth/confirm (client-side) instead of /auth/callback (server-side).
+        // This prevents Gmail / email clients from pre-fetching and consuming the
+        // one-time OTP before the user actually clicks the link.
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
       },
     });
 
     setLoading(false);
 
     if (error) {
-      toast.error("Hubo un problema. Verificá tu email e intentá de nuevo.");
+      const msg = error.message?.toLowerCase() ?? "";
+      if (msg.includes("rate limit") || msg.includes("too many") || (error as { status?: number }).status === 429) {
+        toast.error("Demasiados intentos. Esperá unos minutos y pedí otro link.", { duration: 8000 });
+      } else if (msg.includes("not found") || msg.includes("user not found")) {
+        toast.error("Este email no tiene acceso al dashboard. Verificá el email con el que compraste.", { duration: 8000 });
+      } else {
+        toast.error("Hubo un problema enviando el link. Intentá de nuevo en unos segundos.", { duration: 6000 });
+      }
       return;
     }
 

@@ -14,6 +14,7 @@ import { daysLeft, isExpired } from "@/lib/utils";
 import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
+import { ResetDashboardButton } from "@/components/reset-dashboard-button";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -166,6 +167,7 @@ export default async function DashboardLayout({
                     Admin
                   </Link>
                   <ResetTutorialButton />
+                  <ResetDashboardButton />
                 </div>
               )}
 
