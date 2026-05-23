@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
 import { CheckCircle2, Download, ExternalLink, Loader2, PlayCircle } from "lucide-react";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
@@ -54,17 +55,49 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // Custom game-style validation (noValidate on form — no browser tooltips)
+    // Custom game-style validation
+    const gameError = (msg: string) => {
+      triggerFlash("rgba(215,38,61,0.35)");
+      triggerScreenShake();
+      toast.custom(() => (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #1a0008 0%, #2d0010 100%)",
+            border: "2px solid #D7263D",
+            borderRadius: "10px",
+            padding: "14px 18px",
+            boxShadow: "0 0 24px rgba(215,38,61,0.6), 0 0 8px rgba(215,38,61,0.8)",
+            fontFamily: "var(--font-arcade)",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            animation: "pts-detail-show 0.2s ease-out",
+            minWidth: "280px",
+          }}
+        >
+          <span style={{ fontSize: "22px", flexShrink: 0 }}>🚫</span>
+          <div>
+            <p style={{ color: "#FFD60A", fontSize: "9px", letterSpacing: "0.12em", marginBottom: "4px" }}>
+              ▶ CAMPO REQUERIDO
+            </p>
+            <p style={{ color: "#ff6b6b", fontSize: "11px", lineHeight: 1.4, fontFamily: "var(--font-sans)" }}>
+              {msg}
+            </p>
+          </div>
+        </div>
+      ), { duration: 3000 });
+    };
+
     if (!form.company_name.trim()) {
-      toast.error("⚠️ CAMPO REQUERIDO — Ingresá el nombre de tu empresa para continuar");
+      gameError("Ingresá el nombre de tu empresa para continuar");
       return;
     }
     if (!form.niche.trim()) {
-      toast.error("⚠️ CAMPO REQUERIDO — Contanos qué vende tu empresa");
+      gameError("Contanos qué vende o hace tu empresa");
       return;
     }
     if (!form.problem_solved.trim()) {
-      toast.error("⚠️ CAMPO REQUERIDO — Describí qué problema resolvés para tus clientes");
+      gameError("Describí qué problema resolvés para tus clientes");
       return;
     }
 
