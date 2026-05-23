@@ -34,14 +34,14 @@ const STEPS: Step[] = [
   },
   {
     title: "Tus fases de entrenamiento 🗓️",
-    body: "Cada tarjeta es una fase de tu plan. Completalas en orden — cada una te da +25 XP y desbloquea la siguiente. Los admins controlan cuándo se abre cada fase.",
+    body: "Empezá por el Día 1 — completá el formulario y desbloqueás el Día 2, y así sucesivamente. Cada fase completada suma +25 XP y acerca al sorteo.",
     targetId: "day-cards",
     santoMood: "thumbs",
     highlightPadding: 20,
   },
   {
-    title: "Videos de misión 📺",
-    body: "Entrá a cualquier fase y al final vas a encontrar los videos. Marcá cada uno como visto y sumás +10 XP — podés ver uno cada 5 minutos. ¡Volvé seguido!",
+    title: "Misiones en Video 📺",
+    body: "Al entrar a cualquier fase vas a ver la sección \"Misiones en Video\" al final. Son 4 videos por día — marcá cada uno como visto y sumás +10 XP. Podés marcar uno cada 5 minutos.",
     santoMood: "star",
   },
   {
