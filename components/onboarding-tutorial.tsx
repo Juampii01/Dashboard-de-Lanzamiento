@@ -115,15 +115,19 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
     if (!current.targetId) { setSpotlight(null); return; }
 
     const applySpotlight = (el: Element) => {
-      const pad = current.highlightPadding ?? 12;
-      const rect = el.getBoundingClientRect();
-      setSpotlight({
-        top:    rect.top    - pad,
-        left:   rect.left   - pad,
-        width:  rect.width  + pad * 2,
-        height: rect.height + pad * 2,
+      // Scroll first (instant) so getBoundingClientRect returns viewport-accurate coords
+      el.scrollIntoView({ behavior: "instant" as ScrollBehavior, block: "center" });
+      // Measure in the next animation frame — after layout reflects the scroll
+      requestAnimationFrame(() => {
+        const pad = current.highlightPadding ?? 12;
+        const rect = el.getBoundingClientRect();
+        setSpotlight({
+          top:    rect.top    - pad,
+          left:   rect.left   - pad,
+          width:  rect.width  + pad * 2,
+          height: rect.height + pad * 2,
+        });
       });
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
     };
 
     // Intentar inmediatamente
