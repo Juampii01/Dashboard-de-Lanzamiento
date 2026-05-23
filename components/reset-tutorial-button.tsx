@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-const LS_KEY = "govbidder_tour_v1";
+const LS_KEY      = "govbidder_tour_v1";
+const LS_STEP_KEY = "govbidder_tour_step_v1";
 
 export function ResetTutorialButton() {
   const [loading, setLoading] = useState(false);
@@ -12,6 +13,7 @@ export function ResetTutorialButton() {
     try {
       await fetch("/api/onboarding/reset", { method: "POST" });
       localStorage.removeItem(LS_KEY);
+      localStorage.removeItem(LS_STEP_KEY);
       window.location.href = "/dashboard";
     } catch {
       setLoading(false);

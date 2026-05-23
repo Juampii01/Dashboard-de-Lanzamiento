@@ -17,12 +17,12 @@ async function getDia1Data(userId: string) {
         .select("is_unlocked, is_completed")
         .eq("user_id", userId)
         .eq("day_number", 1)
-        .single(),
+        .maybeSingle(),
       supabase
         .from("company_profiles")
         .select("*")
         .eq("user_id", userId)
-        .single(),
+        .maybeSingle(),
     ]);
 
   return { progress, profile, toggle };

@@ -28,8 +28,14 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
       if (data.ok) {
         setDone(true);
         if (data.pointsAwarded > 0) {
-          // Fly XP animation
-          flyPoints(window.innerWidth / 2, window.innerHeight / 2, data.pointsAwarded);
+          // Fly XP animation: from screen center up to XP pill (top-right)
+          flyPoints(
+            window.innerWidth / 2,
+            window.innerHeight / 2,
+            window.innerWidth - 80,
+            56,
+            `+${data.pointsAwarded} XP`
+          );
           // Dispatch XP event so HUD updates
           window.dispatchEvent(new CustomEvent("xp-gained", {
             detail: { delta: data.pointsAwarded, total: data.total, source: "day" },
