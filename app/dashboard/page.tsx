@@ -2,6 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAllAdminToggles } from "@/lib/supabase/helpers";
 import { DayCard } from "@/components/day-card";
+import { SamContractsWidget } from "@/components/sam-contracts-widget";
+import { SocialProof } from "@/components/social-proof";
+import { CertificatePreview } from "@/components/certificate-preview";
 
 const DAY_META = [
   {
@@ -68,9 +71,10 @@ function isSupabaseConfigured() {
 export default async function DashboardPage() {
   let progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }> = {};
   let toggleMap: Record<number, { is_globally_unlocked: boolean }> = {};
+  let userName = "Tu nombre";
+  let completedDays = 0;
 
   if (!isSupabaseConfigured()) {
-    // Dev preview: día 1 desbloqueado, resto bloqueados
     toggleMap = { 1: { is_globally_unlocked: true } };
   } else {
     const supabase = await createClient();
@@ -87,19 +91,31 @@ export default async function DashboardPage() {
     const data = await getDashboardData(user.id);
     progressMap = data.progressMap;
     toggleMap = data.toggleMap;
+
+    // Grab user name and completed count for certificate preview
+    const { data: profile } = await supabase
+      .from("users")
+      .select("full_name")
+      .eq("id", user.id)
+      .maybeSingle();
+    userName = profile?.full_name ?? "Tu nombre";
+    completedDays = Object.values(progressMap).filter((p) => p.is_completed).length;
   }
 
   return (
-    <div className="space-y-10 page-enter">
+    <div className="space-y-8 page-enter">
       {/* Hero welcome */}
       <div className="pt-2">
-        <h1
-          className="text-4xl font-bold text-white leading-tight mb-3"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Bienvenido al Code Challenge
-          <span className="ml-2">🚀</span>
-        </h1>
+        <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+          <h1
+            className="text-4xl font-bold text-white leading-tight"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            Bienvenido al Code Challenge
+            <span className="ml-2">🚀</span>
+          </h1>
+          <SocialProof />
+        </div>
         <p
           className="text-lg"
           style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
@@ -108,6 +124,9 @@ export default async function DashboardPage() {
           Completá cada reto para desbloquear el siguiente.
         </p>
       </div>
+
+      {/* SAM.gov live contracts widget */}
+      <SamContractsWidget />
 
       {/* Grid de retos */}
       <div className="grid gap-5 sm:grid-cols-2 stagger-children">
@@ -137,35 +156,42 @@ export default async function DashboardPage() {
         })}
       </div>
 
-      {/* Sorteo final */}
-      <div
-        className="rounded-xl p-6 border"
-        style={{
-          background: "linear-gradient(135deg, #143A6B 0%, #0A2540 100%)",
-          borderColor: "#FFD60A33",
-        }}
-      >
-        <div className="flex items-start gap-4">
-          <div
-            className="text-3xl select-none"
-            style={{ filter: "drop-shadow(0 2px 8px rgba(255,214,10,0.4))" }}
-          >
-            🏆
-          </div>
-          <div>
-            <h2
-              className="font-bold text-lg text-white mb-1"
-              style={{ fontFamily: "var(--font-display)" }}
+      {/* Bottom row: sorteo + certificate */}
+      <div className="grid gap-5 sm:grid-cols-2">
+        {/* Sorteo final */}
+        <div
+          className="rounded-xl p-6 border"
+          style={{
+            background: "linear-gradient(135deg, rgba(20,58,107,0.55) 0%, rgba(10,37,64,0.7) 100%)",
+            borderColor: "#FFD60A33",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div className="flex items-start gap-4">
+            <div
+              className="text-3xl select-none"
+              style={{ filter: "drop-shadow(0 2px 8px rgba(255,214,10,0.4))" }}
             >
-              Sorteo final
-            </h2>
-            <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC" }}>
-              Completá los 4 retos y subí tus entregables para participar del
-              sorteo. Los puntos acumulados en las mini-cápsulas de video
-              determinan tu ranking de elegibilidad.
-            </p>
+              🏆
+            </div>
+            <div>
+              <h2
+                className="font-bold text-lg text-white mb-1"
+                style={{ fontFamily: "var(--font-display)" }}
+              >
+                Sorteo final
+              </h2>
+              <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC" }}>
+                Completá los 4 retos y subí tus entregables para participar del
+                sorteo. Los puntos acumulados en las mini-cápsulas de video
+                determinan tu ranking de elegibilidad.
+              </p>
+            </div>
           </div>
         </div>
+
+        {/* Certificate preview */}
+        <CertificatePreview completedDays={completedDays} userName={userName} />
       </div>
     </div>
   );

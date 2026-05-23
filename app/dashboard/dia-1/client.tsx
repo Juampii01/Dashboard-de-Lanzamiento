@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import confetti from "canvas-confetti";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -108,6 +109,12 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
 
       setIsCompleted(true);
       toast.success("¡Perfil Estratégico guardado! Ya podés descargar tu análisis.");
+
+      // Celebración arcade
+      const colors = ["#D7263D", "#FFD60A", "#00D67A", "#FFFFFF"];
+      confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 }, colors });
+      setTimeout(() => confetti({ particleCount: 60, spread: 60, origin: { x: 0.2, y: 0.6 }, colors }), 250);
+      setTimeout(() => confetti({ particleCount: 60, spread: 60, origin: { x: 0.8, y: 0.6 }, colors }), 450);
     } catch (err) {
       console.error(err);
       toast.error("Estamos teniendo un problema. Intentá de nuevo.");

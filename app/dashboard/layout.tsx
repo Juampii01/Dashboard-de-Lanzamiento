@@ -1,9 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
+import { ParticleBackground } from "@/components/particle-background";
+import { BootSequence } from "@/components/boot-sequence";
+import { CountdownTimer } from "@/components/countdown-timer";
+import { UnlockEventListener } from "@/components/unlock-event-listener";
 import { daysLeft, isExpired } from "@/lib/utils";
 import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
+
+function getXpLevel(pts: number) {
+  if (pts >= 500) return { name: "Gov Pro", emoji: "🏆", min: 500, max: Infinity };
+  if (pts >= 250) return { name: "Licitador", emoji: "🏛️", min: 250, max: 500 };
+  if (pts >= 100) return { name: "Contratista", emoji: "⚡", min: 100, max: 250 };
+  return { name: "Rookie", emoji: "🔰", min: 0, max: 100 };
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -75,6 +86,10 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#0A2540" }}>
+      {/* Global overlays & ambient effects */}
+      <ParticleBackground />
+      <BootSequence />
+      <UnlockEventListener />
       {/* Header */}
       <header
         className="sticky top-0 z-50 px-4 py-4 shadow-xl"
@@ -111,8 +126,13 @@ export default async function DashboardLayout({
               </div>
             </div>
 
-            {/* Right: admin + points + user + logout */}
-            <div className="flex items-center gap-3">
+            {/* Right: countdown + admin + xp + user + logout */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Countdown to next unlock */}
+              <div className="hidden md:block">
+                <CountdownTimer />
+              </div>
+
               {profile?.is_admin && (
                 <Link
                   href="/admin"
@@ -123,23 +143,41 @@ export default async function DashboardLayout({
                 </Link>
               )}
 
-              {/* Points capsule */}
-              {(profile?.total_points ?? 0) > 0 && (
-                <div
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-                  style={{
-                    background: "#FFD60A",
-                    color: "#0A2540",
-                    fontFamily: "var(--font-mono)",
-                    boxShadow: "0 2px 8px rgba(255,214,10,0.3)",
-                  }}
-                >
-                  ⭐ {profile?.total_points} pts
-                </div>
-              )}
+              {/* XP level + points */}
+              {(() => {
+                const pts = profile?.total_points ?? 0;
+                const lvl = getXpLevel(pts);
+                const pct = lvl.max === Infinity ? 100 : Math.round(((pts - lvl.min) / (lvl.max - lvl.min)) * 100);
+                return (
+                  <div className="hidden sm:flex flex-col items-end gap-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px]">{lvl.emoji}</span>
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-wide"
+                        style={{ color: "#FFD60A", fontFamily: "var(--font-arcade)" }}
+                      >
+                        {lvl.name}
+                      </span>
+                    </div>
+                    {/* Mini XP bar */}
+                    <div className="w-16 h-1 rounded-full overflow-hidden" style={{ background: "#1E3A5C" }}>
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{ width: `${pct}%`, background: "#FFD60A" }}
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] tabular-nums"
+                      style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}
+                    >
+                      {pts} pts
+                    </span>
+                  </div>
+                );
+              })()}
 
               <div className="text-right hidden sm:block">
-                <p className="text-xs font-medium text-white truncate max-w-[140px]">
+                <p className="text-xs font-medium text-white truncate max-w-[120px]">
                   {profile?.full_name ?? "Usuario"}
                 </p>
               </div>

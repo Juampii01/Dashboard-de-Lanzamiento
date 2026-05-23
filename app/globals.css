@@ -211,6 +211,32 @@
 .stagger-children > *:nth-child(3) { animation-delay: 160ms; }
 .stagger-children > *:nth-child(4) { animation-delay: 240ms; }
 
+/* Glassmorphism helper */
+.glass-card {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* XP bar fill */
+@keyframes xp-fill {
+  from { width: 0%; }
+}
+.xp-fill { animation: xp-fill 0.8s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* Boot cursor blink */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.cursor-blink { animation: cursor-blink 1s step-end infinite; }
+
+/* Unlock event spotlight */
+@keyframes spotlight-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.spotlight-in { animation: spotlight-in 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+
 /* ── Scrollbar ───────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: #0A2540; }

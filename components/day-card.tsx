@@ -26,11 +26,24 @@ export function DayCard({
       className={cn(
         "relative rounded-xl overflow-hidden border transition-all duration-300",
         isCompleted
-          ? "border-[#00D67A]/50 bg-[#143A6B]"
+          ? "border-[#00D67A]/40 cursor-pointer hover:-translate-y-1"
           : isUnlocked
-          ? "border-[#D7263D] bg-[#143A6B] card-active-pulse hover:-translate-y-1 cursor-pointer"
-          : "border-[#1E3A5C] bg-[#0A2540]/80 cursor-not-allowed"
+          ? "border-[#D7263D] card-active-pulse hover:-translate-y-1 cursor-pointer"
+          : "border-[#1E3A5C] cursor-not-allowed"
       )}
+      style={{
+        background: isCompleted
+          ? "rgba(0,30,20,0.55)"
+          : isUnlocked
+          ? "rgba(20,58,107,0.65)"
+          : "rgba(10,37,64,0.5)",
+        backdropFilter: isUnlocked || isCompleted ? "blur(18px)" : "none",
+        boxShadow: isCompleted
+          ? "0 0 0 1px rgba(0,214,122,0.35), 0 8px 32px rgba(0,0,0,0.4)"
+          : isUnlocked
+          ? undefined
+          : "none",
+      }}
     >
       {/* Completed green overlay */}
       {isCompleted && (
