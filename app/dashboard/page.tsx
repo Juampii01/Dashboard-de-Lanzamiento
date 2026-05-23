@@ -162,15 +162,16 @@ export default async function DashboardPage() {
           const isCompleted = dayProgress?.is_completed ?? false;
 
           return (
-            <DayCard
-              key={day}
-              day={day}
-              title={title}
-              description={description}
-              isUnlocked={isUnlocked}
-              isCompleted={isCompleted}
-              href={href}
-            />
+            <div key={day} {...(day === 1 ? { "data-tour-id": "day-card-1" } : {})}>
+              <DayCard
+                day={day}
+                title={title}
+                description={description}
+                isUnlocked={isUnlocked}
+                isCompleted={isCompleted}
+                href={href}
+              />
+            </div>
           );
         })}
       </div>

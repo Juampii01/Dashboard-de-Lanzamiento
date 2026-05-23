@@ -3,10 +3,11 @@
 /**
  * OnboardingTutorial — primer ingreso al dashboard.
  *
- * - Se muestra cuando has_seen_onboarding es false (prop del servidor).
- * - 5 pasos con spotlight sobre elementos clave del dashboard.
- * - No menciona "lanzamiento" — usa el framing de "Code Challenge".
- * - Al cerrar: persiste en DB via /api/onboarding/complete y en localStorage.
+ * - 5 pasos multi-página: steps 0-3 en /dashboard, step 4 en /dia-1
+ * - Spotlight sobre elementos reales en cada página
+ * - Persiste step en localStorage para sobrevivir navegación entre páginas
+ * - Al cerrar: persiste en DB via /api/onboarding/complete y en localStorage
+ * - No menciona "lanzamiento"
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -14,9 +15,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 interface Step {
   title: string;
   body: string;
-  targetId?: string;          // data-tour-id del elemento a iluminar
+  targetId?: string;
   santoMood?: "wave" | "point" | "thumbs" | "star";
   highlightPadding?: number;
+  /** Navegar a esta URL al presionar "Siguiente" en ESTE step */
+  navigateTo?: string;
+  /** Navegar a esta URL al presionar "← Atrás" en ESTE step */
+  backTo?: string;
 }
 
 const STEPS: Step[] = [
@@ -34,15 +39,10 @@ const STEPS: Step[] = [
   },
   {
     title: "Tus fases de entrenamiento 🗓️",
-    body: "Empezá por el Día 1 — completá el formulario y desbloqueás el Día 2, y así sucesivamente. Cada fase completada suma +25 XP y acerca al sorteo.",
-    targetId: "day-cards",
+    body: "Empezá por el Día 1 — completá el formulario y desbloqueás el Día 2. Cada fase completada suma +25 XP y te acerca al sorteo.",
+    targetId: "day-card-1",
     santoMood: "thumbs",
-    highlightPadding: 20,
-  },
-  {
-    title: "Misiones en Video 📺",
-    body: "Al entrar a cualquier fase vas a ver la sección \"Misiones en Video\" al final. Son 4 videos por día — marcá cada uno como visto y sumás +10 XP. Podés marcar uno cada 5 minutos.",
-    santoMood: "star",
+    highlightPadding: 16,
   },
   {
     title: "Tu rango y el sorteo 🏆",
@@ -50,6 +50,17 @@ const STEPS: Step[] = [
     targetId: "xp-pill",
     santoMood: "star",
     highlightPadding: 12,
+    // Al presionar Siguiente en este paso, navegamos a día 1 para mostrar los videos
+    navigateTo: "/dashboard/dia-1",
+  },
+  {
+    title: "Misiones en Video 📺",
+    body: "¡Acá están! Marcá cada video como visto y sumás +10 XP — uno cada 5 minutos. Son 4 videos por fase. ¡Volvé seguido para acumular puntos!",
+    targetId: "capsules",
+    santoMood: "star",
+    highlightPadding: 16,
+    // Al presionar Atrás desde este paso, volvemos al dashboard
+    backTo: "/dashboard",
   },
 ];
 
@@ -64,32 +75,43 @@ interface SpotlightRect {
   top: number; left: number; width: number; height: number;
 }
 
-const LS_KEY = "govbidder_tour_v1";
+const LS_KEY      = "govbidder_tour_v1";       // "1" = completado
+const LS_STEP_KEY = "govbidder_tour_step_v1";  // N = step actual en curso
 
 export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: boolean }) {
-  const [step, setStep]       = useState(0);
-  const [visible, setVisible] = useState(false);
+  const [step, setStep]           = useState(0);
+  const [visible, setVisible]     = useState(false);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
   const [animating, setAnimating] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Decide if we should show
+  // Decide si mostrar — recupera step en progreso si existe
   useEffect(() => {
     if (hasSeenOnboarding) return;
-    if (typeof window !== "undefined" && localStorage.getItem(LS_KEY)) return;
-    // Small delay so the page renders before the tutorial
-    const t = setTimeout(() => setVisible(true), 900);
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem(LS_KEY)) return; // ya completó
+
+    const savedStep = localStorage.getItem(LS_STEP_KEY);
+    const initialStep = savedStep ? parseInt(savedStep, 10) : 0;
+    if (!isNaN(initialStep) && initialStep >= 0 && initialStep < STEPS.length) {
+      setStep(initialStep);
+    }
+
+    const t = setTimeout(() => setVisible(true), 600);
     return () => clearTimeout(t);
   }, [hasSeenOnboarding]);
 
-  // Position spotlight on target element
+  // Guardar step actual en localStorage para sobrevivir navegación
+  useEffect(() => {
+    if (!visible) return;
+    localStorage.setItem(LS_STEP_KEY, String(step));
+  }, [step, visible]);
+
+  // Calcular spotlight sobre el elemento target
   useEffect(() => {
     if (!visible) return;
     const current = STEPS[step];
-    if (!current.targetId) {
-      setSpotlight(null);
-      return;
-    }
+    if (!current.targetId) { setSpotlight(null); return; }
 
     const el = document.querySelector(`[data-tour-id="${current.targetId}"]`);
     if (!el) { setSpotlight(null); return; }
@@ -102,33 +124,54 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
       width:  rect.width  + pad * 2,
       height: rect.height + pad * 2,
     });
-
-    // Scroll element into view smoothly
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [step, visible]);
 
   const complete = useCallback(async () => {
     setVisible(false);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(LS_KEY, "1");
-    }
-    try {
-      await fetch("/api/onboarding/complete", { method: "POST" });
-    } catch {
-      // non-critical
-    }
+    localStorage.setItem(LS_KEY, "1");
+    localStorage.removeItem(LS_STEP_KEY);
+    try { await fetch("/api/onboarding/complete", { method: "POST" }); } catch { /* non-critical */ }
   }, []);
 
   const next = useCallback(() => {
     if (animating) return;
     setAnimating(true);
     setTimeout(() => setAnimating(false), 300);
-    if (step >= STEPS.length - 1) {
+
+    const current = STEPS[step];
+    const nextStep = step + 1;
+
+    if (nextStep >= STEPS.length) {
       complete();
-    } else {
-      setStep((s) => s + 1);
+      return;
     }
+
+    if (current.navigateTo) {
+      // Guardar el próximo step y navegar — el tutorial se retoma allá
+      localStorage.setItem(LS_STEP_KEY, String(nextStep));
+      setVisible(false);
+      window.location.href = current.navigateTo;
+      return;
+    }
+
+    setStep(nextStep);
   }, [step, animating, complete]);
+
+  const prev = useCallback(() => {
+    const current = STEPS[step];
+    const prevStep = step - 1;
+
+    if (current.backTo) {
+      // Volver a otra página y retomar el step anterior
+      localStorage.setItem(LS_STEP_KEY, String(prevStep));
+      setVisible(false);
+      window.location.href = current.backTo;
+      return;
+    }
+
+    setStep(prevStep);
+  }, [step]);
 
   if (!visible) return null;
 
@@ -136,9 +179,27 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
   const isLast  = step === STEPS.length - 1;
   const isFirst = step === 0;
 
+  // Posicionamiento inteligente de la card
+  const cardStyle = (() => {
+    const CARD_H = 310;
+    const MARGIN = 14;
+    if (!spotlight) {
+      return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+    }
+    const spaceBelow = window.innerHeight - (spotlight.top + spotlight.height) - MARGIN;
+    const spaceAbove = spotlight.top - MARGIN;
+    if (spaceBelow >= CARD_H) {
+      return { top: spotlight.top + spotlight.height + MARGIN, left: "50%", transform: "translateX(-50%)" };
+    }
+    if (spaceAbove >= CARD_H) {
+      return { top: spotlight.top - CARD_H - MARGIN, left: "50%", transform: "translateX(-50%)" };
+    }
+    return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+  })();
+
   return (
     <>
-      {/* Dark overlay */}
+      {/* Overlay oscuro */}
       <div
         ref={overlayRef}
         className="fixed inset-0 z-[99980]"
@@ -146,7 +207,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
         onClick={(e) => { if (e.target === overlayRef.current) complete(); }}
       />
 
-      {/* Spotlight hole — uses box-shadow trick */}
+      {/* Spotlight — box-shadow trick */}
       {spotlight && (
         <div
           className="fixed z-[99981] pointer-events-none"
@@ -157,33 +218,14 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
             height: spotlight.height,
             borderRadius: "12px",
             boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)",
-            border: "2px solid rgba(255,214,10,0.7)",
-            background: "rgba(255,214,10,0.04)",
+            border: "2px solid rgba(255,214,10,0.8)",
+            background: "rgba(255,214,10,0.05)",
           }}
         />
       )}
 
-      {/* Tutorial card — smart positioning: below spotlight if room, above if not, centered otherwise */}
-      <div
-        className="fixed z-[99990] w-full max-w-sm px-4"
-        style={(() => {
-          const CARD_H = 310;
-          const MARGIN = 14;
-          if (!spotlight) {
-            return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
-          }
-          const spaceBelow = window.innerHeight - (spotlight.top + spotlight.height) - MARGIN;
-          const spaceAbove = spotlight.top - MARGIN;
-          if (spaceBelow >= CARD_H) {
-            return { top: spotlight.top + spotlight.height + MARGIN, left: "50%", transform: "translateX(-50%)" };
-          }
-          if (spaceAbove >= CARD_H) {
-            return { top: spotlight.top - CARD_H - MARGIN, left: "50%", transform: "translateX(-50%)" };
-          }
-          // Not enough room above or below — center on screen
-          return { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
-        })()}
-      >
+      {/* Tutorial card */}
+      <div className="fixed z-[99990] w-full max-w-sm px-4" style={cardStyle}>
         <div
           className="rounded-2xl overflow-hidden"
           style={{
@@ -192,7 +234,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
             boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(255,214,10,0.15)",
           }}
         >
-          {/* Progress dots */}
+          {/* Dots de progreso */}
           <div className="flex justify-center gap-1.5 pt-4">
             {STEPS.map((_, i) => (
               <div
@@ -207,15 +249,10 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
             ))}
           </div>
 
-          {/* Content */}
+          {/* Contenido */}
           <div className="px-6 pt-5 pb-2 text-center">
-            {/* Santo avatar — siempre la foto real */}
             <div className="flex justify-center mb-4">
-              <div
-                className="relative select-none"
-                style={{ animation: "bar-bounce 1.4s ease-in-out infinite" }}
-              >
-                {/* Glow ring */}
+              <div className="relative select-none" style={{ animation: "bar-bounce 1.4s ease-in-out infinite" }}>
                 <div
                   className="w-20 h-20 rounded-full overflow-hidden"
                   style={{
@@ -227,15 +264,9 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
                   <img
                     src="/santo.png"
                     alt="Santo"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      objectPosition: "center top",
-                    }}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
                   />
                 </div>
-                {/* Mood badge bottom-right */}
                 <span
                   className="absolute -bottom-1 -right-1 text-lg leading-none"
                   style={{ filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.8))" }}
@@ -245,24 +276,16 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
               </div>
             </div>
 
-            <h2
-              className="text-lg font-bold text-white mb-3 leading-tight"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
+            <h2 className="text-lg font-bold text-white mb-3 leading-tight" style={{ fontFamily: "var(--font-display)" }}>
               {current.title}
             </h2>
-
-            <p
-              className="text-sm leading-relaxed"
-              style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
-            >
+            <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>
               {current.body}
             </p>
           </div>
 
-          {/* Actions */}
+          {/* Acciones */}
           <div className="px-6 pt-4 pb-5 flex items-center justify-between gap-3">
-            {/* Skip */}
             <button
               onClick={complete}
               className="text-xs transition-colors"
@@ -271,46 +294,32 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
               Saltar
             </button>
 
-            {/* Back */}
             {!isFirst && (
               <button
-                onClick={() => setStep((s) => s - 1)}
+                onClick={prev}
                 className="text-xs px-4 py-2 rounded-lg transition-all"
-                style={{
-                  color: "#A8B5CC",
-                  border: "1px solid #1E3A5C",
-                  fontFamily: "var(--font-sans)",
-                }}
+                style={{ color: "#A8B5CC", border: "1px solid #1E3A5C", fontFamily: "var(--font-sans)" }}
               >
                 ← Atrás
               </button>
             )}
 
-            {/* Next / Finish */}
             <button
               onClick={next}
               disabled={animating}
               className="flex-1 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-60"
               style={{
-                background: isLast
-                  ? "linear-gradient(135deg, #00D67A, #00B865)"
-                  : "linear-gradient(135deg, #FFD60A, #FFA500)",
+                background: isLast ? "linear-gradient(135deg, #00D67A, #00B865)" : "linear-gradient(135deg, #FFD60A, #FFA500)",
                 color: "#000",
                 fontFamily: "var(--font-sans)",
-                boxShadow: isLast
-                  ? "0 0 16px rgba(0,214,122,0.4)"
-                  : "0 0 16px rgba(255,214,10,0.4)",
+                boxShadow: isLast ? "0 0 16px rgba(0,214,122,0.4)" : "0 0 16px rgba(255,214,10,0.4)",
               }}
             >
-              {isLast ? "🚀 ¡Comenzar misión!" : "Siguiente →"}
+              {isLast ? "🚀 ¡Comenzar misión!" : current.navigateTo ? "Siguiente → (ir a Día 1)" : "Siguiente →"}
             </button>
           </div>
 
-          {/* Step counter */}
-          <p
-            className="text-center pb-3 text-[9px]"
-            style={{ color: "#1E3A5C", fontFamily: "var(--font-mono)" }}
-          >
+          <p className="text-center pb-3 text-[9px]" style={{ color: "#1E3A5C", fontFamily: "var(--font-mono)" }}>
             PASO {step + 1} / {STEPS.length}
           </p>
         </div>
