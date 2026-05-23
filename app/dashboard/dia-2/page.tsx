@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia2Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
+import { AdminForceComplete } from "@/components/admin-force-complete";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -47,7 +48,7 @@ export default async function Dia2Page() {
 
   return (
     <div className="space-y-8">
-      <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
+      <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={2} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
       <Dia2Client
       userId={user.id}
       isCompleted={progress?.is_completed ?? false}

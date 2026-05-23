@@ -1,8 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia1Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
+import { AdminForceComplete } from "@/components/admin-force-complete";
 import Link from "next/link";
 
 async function getDia1Data(userId: string) {
@@ -55,15 +56,22 @@ export default async function Dia1Page() {
 
   if (!isUnlocked) redirect("/dashboard");
 
+  const { data: userProfile } = await createServiceClient()
+    .from("users").select("is_admin").eq("id", user.id).maybeSingle();
+  const isAdmin = userProfile?.is_admin ?? false;
+
   return (
     <div className="space-y-8">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-2 text-sm transition-colors"
-        style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
-      >
-        ← Dashboard
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-2 text-sm transition-colors"
+          style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+        >
+          ← Dashboard
+        </Link>
+        <AdminForceComplete day={1} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} />
+      </div>
       <Dia1Client
         userId={user.id}
         isCompleted={progress?.is_completed ?? false}

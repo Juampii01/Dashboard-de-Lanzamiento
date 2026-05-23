@@ -211,7 +211,7 @@ export default async function DashboardLayout({
 
       {/* Main content */}
       <main
-        className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 relative z-10"
+        className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 relative"
         style={{ background: "#0A2540" }}
       >
         {children}

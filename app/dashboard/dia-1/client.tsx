@@ -53,6 +53,21 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // Custom game-style validation (noValidate on form — no browser tooltips)
+    if (!form.company_name.trim()) {
+      toast.error("⚠️ CAMPO REQUERIDO — Ingresá el nombre de tu empresa para continuar");
+      return;
+    }
+    if (!form.niche.trim()) {
+      toast.error("⚠️ CAMPO REQUERIDO — Contanos qué vende tu empresa");
+      return;
+    }
+    if (!form.problem_solved.trim()) {
+      toast.error("⚠️ CAMPO REQUERIDO — Describí qué problema resolvés para tus clientes");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -204,7 +219,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="company_name">Nombre de la empresa *</Label>
@@ -213,7 +228,6 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   value={form.company_name}
                   onChange={setField("company_name")}
                   placeholder="Ej: ABC Services LLC"
-                  required
                 />
               </div>
               <div className="space-y-2">
