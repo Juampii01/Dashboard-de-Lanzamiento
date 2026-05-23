@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia4Client } from "./client";
+import { VideoCapsules } from "@/components/video-capsules";
 
 const DEV_MODE = (process.env.NEXT_PUBLIC_APP_URL ?? "").includes("localhost");
 
@@ -44,7 +45,8 @@ export default async function Dia4Page() {
     ]);
 
   return (
-    <Dia4Client
+    <div className="space-y-8">
+      <Dia4Client
       userId={user.id}
       isCompleted={progress?.is_completed ?? false}
       existingStatement={capabilityStatement}
@@ -54,5 +56,7 @@ export default async function Dia4Page() {
       fullName={userProfile?.full_name ?? user.email ?? ""}
       accessExpiresAt={userProfile?.access_expires_at ?? null}
     />
+      <VideoCapsules day={4} />
+    </div>
   );
 }

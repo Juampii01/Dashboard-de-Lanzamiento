@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia2Client } from "./client";
+import { VideoCapsules } from "@/components/video-capsules";
 
 const DEV_MODE = (process.env.NEXT_PUBLIC_APP_URL ?? "").includes("localhost");
 
@@ -38,12 +39,15 @@ export default async function Dia2Page() {
   const { data: expansion } = await supabase.from("naics_expansions").select("*").eq("user_id", user.id).single();
 
   return (
-    <Dia2Client
+    <div className="space-y-8">
+      <Dia2Client
       userId={user.id}
       isCompleted={progress?.is_completed ?? false}
       existingExpansion={expansion}
       primaryNaics={profile?.primary_naics ?? ""}
       companyNiche={profile?.niche ?? ""}
     />
+      <VideoCapsules day={2} />
+    </div>
   );
 }

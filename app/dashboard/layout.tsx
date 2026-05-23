@@ -9,6 +9,7 @@ import { UnlockEventListener } from "@/components/unlock-event-listener";
 import { PointsHUD } from "@/components/points-hud";
 import { ArcadeAmbient } from "@/components/arcade-ambient";
 import { XpEngine } from "@/components/xp-engine";
+import { OnboardingTutorial } from "@/components/onboarding-tutorial";
 import { daysLeft, isExpired } from "@/lib/utils";
 import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
@@ -40,7 +41,7 @@ async function getLayoutData(userId: string) {
   const [{ data: user }, { data: progress }] = await Promise.all([
     supabase
       .from("users")
-      .select("full_name, access_expires_at, is_admin, total_points")
+      .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding")
       .eq("id", userId)
       .single(),
     supabase
@@ -162,12 +163,14 @@ export default async function DashboardLayout({
                 const lvl = getXpLevel(pts);
                 const pct = lvl.max === Infinity ? 100 : Math.round(((pts - lvl.min) / (lvl.max - lvl.min)) * 100);
                 return (
+                  <div data-tour-id="xp-pill">
                   <PointsHUD
                     points={pts}
                     levelName={lvl.name}
                     levelEmoji={lvl.emoji}
                     levelPct={pct}
                   />
+                  </div>
                 );
               })()}
 
@@ -190,7 +193,9 @@ export default async function DashboardLayout({
           </div>
 
           {/* Progress bar */}
-          <ProgressBar completedDays={completedDays} />
+          <div data-tour-id="progress-bar">
+            <ProgressBar completedDays={completedDays} />
+          </div>
         </div>
       </header>
 
@@ -211,6 +216,13 @@ export default async function DashboardLayout({
       >
         {children}
       </main>
+
+      {/* Onboarding tutorial — only on first visit */}
+      {!devMode && (
+        <OnboardingTutorial
+          hasSeenOnboarding={profile?.has_seen_onboarding ?? false}
+        />
+      )}
     </div>
   );
 }

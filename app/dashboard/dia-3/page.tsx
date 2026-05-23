@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia3Client } from "./client";
+import { VideoCapsules } from "@/components/video-capsules";
 
 const DEV_MODE = (process.env.NEXT_PUBLIC_APP_URL ?? "").includes("localhost");
 
@@ -39,12 +40,15 @@ export default async function Dia3Page() {
   const { data: webPreview } = await supabase.from("web_previews").select("*").eq("user_id", user.id).single();
 
   return (
-    <Dia3Client
+    <div className="space-y-8">
+      <Dia3Client
       userId={user.id}
       isCompleted={progress?.is_completed ?? false}
       existingPreview={webPreview}
       profile={profile}
       keywordsExpanded={(expansion?.keywords_expanded as string[]) ?? []}
     />
+      <VideoCapsules day={3} />
+    </div>
   );
 }

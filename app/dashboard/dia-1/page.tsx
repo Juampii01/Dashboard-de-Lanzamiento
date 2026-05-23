@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia1Client } from "./client";
+import { VideoCapsules } from "@/components/video-capsules";
 
 async function getDia1Data(userId: string) {
   const supabase = await createClient();
@@ -48,10 +49,13 @@ export default async function Dia1Page() {
   if (!isUnlocked) redirect("/dashboard");
 
   return (
-    <Dia1Client
-      userId={user.id}
-      isCompleted={progress?.is_completed ?? false}
-      existingProfile={profile}
-    />
+    <div className="space-y-8">
+      <Dia1Client
+        userId={user.id}
+        isCompleted={progress?.is_completed ?? false}
+        existingProfile={profile}
+      />
+      <VideoCapsules day={1} />
+    </div>
   );
 }

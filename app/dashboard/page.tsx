@@ -6,6 +6,7 @@ import { DayCard } from "@/components/day-card";
 import { SamContractsWidget } from "@/components/sam-contracts-widget";
 import { SocialProof } from "@/components/social-proof";
 import { CertificatePreview } from "@/components/certificate-preview";
+import { Leaderboard } from "@/components/leaderboard";
 
 const DAY_META = [
   {
@@ -147,7 +148,7 @@ export default async function DashboardPage() {
       <SamContractsWidget />
 
       {/* Grid de retos */}
-      <div className="grid gap-5 sm:grid-cols-2 stagger-children">
+      <div data-tour-id="day-cards" className="grid gap-5 sm:grid-cols-2 stagger-children">
         {DAY_META.map(({ day, title, description, href }) => {
           const dayToggle = toggleMap[day];
           const dayProgress = progressMap[day];
@@ -173,6 +174,9 @@ export default async function DashboardPage() {
           );
         })}
       </div>
+
+      {/* Leaderboard */}
+      <Leaderboard />
 
       {/* Bottom row: sorteo + certificate */}
       <div className="grid gap-5 sm:grid-cols-2">
