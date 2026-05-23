@@ -13,6 +13,7 @@ import { OnboardingTutorial } from "@/components/onboarding-tutorial";
 import { daysLeft, isExpired } from "@/lib/utils";
 import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
+import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -144,13 +145,16 @@ export default async function DashboardLayout({
               </div>
 
               {profile?.is_admin && (
-                <Link
-                  href="/admin"
-                  className="flex items-center gap-1 text-xs text-[#D7263D] hover:text-[#ff4d6d] transition-colors"
-                >
-                  <Shield className="w-3.5 h-3.5" />
-                  Admin
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1 text-xs text-[#D7263D] hover:text-[#ff4d6d] transition-colors"
+                  >
+                    <Shield className="w-3.5 h-3.5" />
+                    Admin
+                  </Link>
+                  <ResetTutorialButton />
+                </div>
               )}
 
               {/* XP level + points (client component with 3D flip) */}
