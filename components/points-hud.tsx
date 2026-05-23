@@ -60,6 +60,8 @@ export function PointsHUD({
         const label =
           source === "time"   ? `+${delta} XP ⏱️`
           : source === "avatar" ? `+${delta} XP 🕺`
+          : source === "start"  ? `+${delta} XP 🚀`
+          : source === "join"   ? `+${delta} XP 📞`
           : `+${delta} XP`;
         flyPoints(
           rect.left + rect.width  / 2,

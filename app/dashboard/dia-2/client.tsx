@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, ExternalLink, Loader2, Plus, X, PlayCircle } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Plus, X, PlayCircle } from "lucide-react";
+import { JoinCallButton } from "@/components/join-call-button";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 
@@ -175,11 +176,7 @@ export function Dia2Client({
             <p className="font-semibold">Clase en vivo — Día 2</p>
             <p className="text-sm text-muted-foreground">Mirá la clase antes de generar tu mapa.</p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <a href="https://youtube.com/@govbidder" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-              Ver clase <ExternalLink className="w-3 h-3" />
-            </a>
-          </Button>
+          <JoinCallButton day={2} />
         </CardContent>
       </Card>
 

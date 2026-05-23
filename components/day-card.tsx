@@ -73,10 +73,29 @@ export function DayCard({
         triggerFlash();
         triggerScreenShake();
       }
+
+      // Award +25 XP for starting the day (fire-and-forget, non-blocking)
+      fetch("/api/xp/start-day", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day }),
+      })
+        .then((r) => r.json())
+        .then((data: { awarded: boolean; points?: number; total?: number }) => {
+          if (data.awarded && data.points && data.total != null) {
+            window.dispatchEvent(
+              new CustomEvent("xp-gained", {
+                detail: { delta: data.points, total: data.total, source: "start" },
+              })
+            );
+          }
+        })
+        .catch(() => {});
+
       // Small delay so particles are visible before navigation
       setTimeout(() => router.push(href), 320);
     },
-    [href, router, handleRipple]
+    [day, href, router, handleRipple]
   );
 
   const card = (

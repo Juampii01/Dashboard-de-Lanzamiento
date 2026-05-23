@@ -1,7 +1,7 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
-const POINTS_PER_DAY = 25;
+const POINTS_PER_DAY = 50;
 
 // Admin: descompletar un día
 export async function DELETE(req: NextRequest) {

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Download, ExternalLink, Loader2, Trophy, Upload, PlayCircle } from "lucide-react";
+import { JoinCallButton } from "@/components/join-call-button";
 import { isExpired } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
@@ -216,11 +217,7 @@ export function Dia4Client({
             <p className="font-semibold">Clase en vivo — Día 4 (Q&A)</p>
             <p className="text-sm text-muted-foreground">La clase de cierre y preguntas en vivo.</p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <a href="https://youtube.com/@govbidder" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-              Ver clase <ExternalLink className="w-3 h-3" />
-            </a>
-          </Button>
+          <JoinCallButton day={4} />
         </CardContent>
       </Card>
 

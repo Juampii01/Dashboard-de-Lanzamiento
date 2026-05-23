@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Download, ExternalLink, Globe, Loader2, PlayCircle } from "lucide-react";
+import { JoinCallButton } from "@/components/join-call-button";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 
@@ -154,11 +155,7 @@ ${webResult.html}
             <p className="font-semibold">Clase en vivo — Día 3</p>
             <p className="text-sm text-muted-foreground">Mirá la clase antes de generar tu web.</p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <a href="https://youtube.com/@govbidder" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-              Ver clase <ExternalLink className="w-3 h-3" />
-            </a>
-          </Button>
+          <JoinCallButton day={3} />
         </CardContent>
       </Card>
 
