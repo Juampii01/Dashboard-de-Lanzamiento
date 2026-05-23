@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
@@ -52,6 +53,7 @@ export default async function Dia4Page() {
 
   return (
     <div className="space-y-8">
+      <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
       <Dia4Client
       userId={user.id}
       isCompleted={progress?.is_completed ?? false}

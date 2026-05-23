@@ -125,7 +125,7 @@ export default async function DashboardLayout({
           {/* Top row */}
           <div className="flex items-center justify-between mb-4">
             {/* Logo + brand */}
-            <div className="flex items-center gap-3">
+            <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div
                 className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white text-sm"
                 style={{
@@ -147,7 +147,7 @@ export default async function DashboardLayout({
                   Code Challenge
                 </p>
               </div>
-            </div>
+            </Link>
 
             {/* Right: countdown + admin + xp + user + logout */}
             <div className="flex items-center gap-2 sm:gap-3">

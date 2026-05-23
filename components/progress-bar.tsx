@@ -261,46 +261,28 @@ export function ProgressBar({ completedDays }: ProgressBarProps) {
         </div>
       </div>
 
-      {/* Day segment indicators */}
-      <div className="flex gap-1 mt-2">
+      {/* Day segment labels — below bar, slim */}
+      <div className="flex mt-1.5 gap-px">
         {[1, 2, 3, 4].map((d) => {
           const done = completedDays >= d;
-          const active = completedDays === d - 1; // current day to complete
+          const active = completedDays === d - 1;
           return (
-            <div
-              key={d}
-              className="flex-1 flex items-center justify-center"
-              style={{
-                height: "18px",
-                borderRadius: "3px",
-                border: `1px solid ${done ? "#00D67A" : active ? "#FFD60A" : "#1E3A5C"}`,
-                background: done
-                  ? "rgba(0,214,122,0.18)"
-                  : active
-                  ? "rgba(255,214,10,0.12)"
-                  : "rgba(255,255,255,0.03)",
-                boxShadow: done
-                  ? "0 0 6px rgba(0,214,122,0.35)"
-                  : active
-                  ? "0 0 8px rgba(255,214,10,0.4)"
-                  : "none",
-                transition: "all 800ms",
-              }}
-            >
+            <div key={d} className="flex-1 flex items-center justify-center py-0.5">
               <span
                 style={{
                   fontFamily: "var(--font-arcade)",
-                  fontSize: "7px",
-                  letterSpacing: "0.06em",
-                  color: done ? "#00D67A" : active ? "#FFD60A" : "#2A4060",
+                  fontSize: "6px",
+                  letterSpacing: "0.05em",
+                  color: done ? "#00D67A" : active ? "#FFD60A" : "#1E3A5C",
                   textShadow: done
-                    ? "0 0 8px rgba(0,214,122,0.8)"
+                    ? "0 0 6px rgba(0,214,122,0.7)"
                     : active
-                    ? "0 0 8px rgba(255,214,10,0.9)"
+                    ? "0 0 6px rgba(255,214,10,0.8)"
                     : "none",
+                  transition: "all 800ms",
                 }}
               >
-                {done ? "✓" : `DÍA ${d}`}
+                {done ? `✓ DÍA ${d}` : `DÍA ${d}`}
               </span>
             </div>
           );

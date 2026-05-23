@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia1Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
+import Link from "next/link";
 
 async function getDia1Data(userId: string) {
   const supabase = await createClient();
@@ -56,6 +57,13 @@ export default async function Dia1Page() {
 
   return (
     <div className="space-y-8">
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-2 text-sm transition-colors"
+        style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+      >
+        ← Dashboard
+      </Link>
       <Dia1Client
         userId={user.id}
         isCompleted={progress?.is_completed ?? false}
