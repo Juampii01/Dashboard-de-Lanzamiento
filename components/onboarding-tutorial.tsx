@@ -207,18 +207,39 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
 
           {/* Content */}
           <div className="px-6 pt-5 pb-2 text-center">
-            {/* Santo avatar */}
+            {/* Santo avatar — siempre la foto real */}
             <div className="flex justify-center mb-4">
               <div
-                className="w-20 h-20 rounded-full flex items-center justify-center text-4xl select-none"
-                style={{
-                  background: "linear-gradient(135deg, #0A2540, #143A6B)",
-                  border: "3px solid #FFD60A",
-                  boxShadow: "0 0 24px rgba(255,214,10,0.35)",
-                  animation: "bar-bounce 1.4s ease-in-out infinite",
-                }}
+                className="relative select-none"
+                style={{ animation: "bar-bounce 1.4s ease-in-out infinite" }}
               >
-                {SANTO_EMOJIS[current.santoMood ?? "wave"]}
+                {/* Glow ring */}
+                <div
+                  className="w-20 h-20 rounded-full overflow-hidden"
+                  style={{
+                    border: "3px solid #FFD60A",
+                    boxShadow: "0 0 28px rgba(255,214,10,0.5), 0 0 8px rgba(255,214,10,0.8)",
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/santo.png"
+                    alt="Santo"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      objectPosition: "center top",
+                    }}
+                  />
+                </div>
+                {/* Mood badge bottom-right */}
+                <span
+                  className="absolute -bottom-1 -right-1 text-lg leading-none"
+                  style={{ filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.8))" }}
+                >
+                  {SANTO_EMOJIS[current.santoMood ?? "wave"]}
+                </span>
               </div>
             </div>
 
