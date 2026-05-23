@@ -6,6 +6,8 @@ import { ParticleBackground } from "@/components/particle-background";
 import { BootSequence } from "@/components/boot-sequence";
 import { CountdownTimer } from "@/components/countdown-timer";
 import { UnlockEventListener } from "@/components/unlock-event-listener";
+import { PointsHUD } from "@/components/points-hud";
+import { ArcadeAmbient } from "@/components/arcade-ambient";
 import { daysLeft, isExpired } from "@/lib/utils";
 import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
@@ -93,6 +95,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen flex flex-col" style={{ background: "#0A2540" }}>
       {/* Global overlays & ambient effects */}
       <ParticleBackground />
+      <ArcadeAmbient />
       <BootSequence />
       <UnlockEventListener />
       {/* Header */}
@@ -148,36 +151,18 @@ export default async function DashboardLayout({
                 </Link>
               )}
 
-              {/* XP level + points */}
+              {/* XP level + points (client component with 3D flip) */}
               {(() => {
                 const pts = profile?.total_points ?? 0;
                 const lvl = getXpLevel(pts);
                 const pct = lvl.max === Infinity ? 100 : Math.round(((pts - lvl.min) / (lvl.max - lvl.min)) * 100);
                 return (
-                  <div className="hidden sm:flex flex-col items-end gap-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px]">{lvl.emoji}</span>
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-wide"
-                        style={{ color: "#FFD60A", fontFamily: "var(--font-arcade)" }}
-                      >
-                        {lvl.name}
-                      </span>
-                    </div>
-                    {/* Mini XP bar */}
-                    <div className="w-16 h-1 rounded-full overflow-hidden" style={{ background: "#1E3A5C" }}>
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${pct}%`, background: "#FFD60A" }}
-                      />
-                    </div>
-                    <span
-                      className="text-[9px] tabular-nums"
-                      style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}
-                    >
-                      {pts} pts
-                    </span>
-                  </div>
+                  <PointsHUD
+                    points={pts}
+                    levelName={lvl.name}
+                    levelEmoji={lvl.emoji}
+                    levelPct={pct}
+                  />
                 );
               })()}
 

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createParticleBurst, flyPoints, triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
 
 interface DevTestBarProps {
   day: number;
@@ -23,9 +24,19 @@ export function DevTestBar({ day, isCompleted }: DevTestBarProps) {
 
     // Cinematic KO finish sequence
     setShowFinish(true);
-    document.body.classList.add("body-shake");
-    setTimeout(() => document.body.classList.remove("body-shake"), 650);
-    await new Promise((r) => setTimeout(r, 1100));
+    triggerFlash("rgba(255,214,10,0.32)");
+    triggerScreenShake();
+
+    // Particle burst from center screen
+    const cx = window.innerWidth  / 2;
+    const cy = window.innerHeight / 2;
+    createParticleBurst(cx, cy, "gold", 28);
+    setTimeout(() => createParticleBurst(cx, cy, "cyan", 14), 220);
+
+    // Flying +25% label toward top of screen (where progress bar lives)
+    flyPoints(cx, cy, cx, 110, `+25% DÍA ${day}`);
+
+    await new Promise((r) => setTimeout(r, 1200));
     setShowFinish(false);
 
     router.push("/dashboard");

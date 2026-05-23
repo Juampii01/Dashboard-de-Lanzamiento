@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createParticleBurst } from "@/lib/wow-effects";
 
 interface SamData {
   source: "live" | "demo";
@@ -26,13 +27,45 @@ function formatUSD(n: number) {
 export function SamContractsWidget() {
   const [data, setData] = useState<SamData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [displayAmount, setDisplayAmount] = useState<number | null>(null);
+  const animating = useRef(false);
+  const amountRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     fetch("/api/sam/contracts")
       .then((r) => r.json())
-      .then((d: SamData) => { setData(d); setLoading(false); })
+      .then((d: SamData) => { setData(d); setDisplayAmount(d.totalAmount); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
+
+  const handleStatClick = useCallback(() => {
+    if (animating.current || !data?.totalAmount) return;
+    animating.current = true;
+
+    // Green particle burst from the amount element
+    if (amountRef.current) {
+      const rect = amountRef.current.getBoundingClientRect();
+      createParticleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, "green", 18);
+    }
+
+    // Count-up from 0 to totalAmount
+    const target = data.totalAmount;
+    const duration = 1200;
+    const start = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayAmount(Math.round(target * eased));
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        setDisplayAmount(target);
+        animating.current = false;
+      }
+    };
+    setDisplayAmount(0);
+    requestAnimationFrame(step);
+  }, [data]);
 
   if (loading) {
     return (
@@ -46,12 +79,14 @@ export function SamContractsWidget() {
 
   return (
     <div
-      className="rounded-xl border p-5 relative overflow-hidden"
+      onClick={handleStatClick}
+      className="rounded-xl border p-5 relative overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
       style={{
         background: "linear-gradient(135deg, rgba(20,58,107,0.5) 0%, rgba(10,37,64,0.7) 100%)",
         borderColor: "rgba(0,214,122,0.25)",
         backdropFilter: "blur(12px)",
       }}
+      title="Click para ver en vivo"
     >
       {/* Ambient green glow */}
       <div
@@ -74,17 +109,19 @@ export function SamContractsWidget() {
             </p>
 
             <div className="flex items-baseline gap-3 flex-wrap">
-              {data.totalAmount != null && (
+              {displayAmount != null && (
                 <span
-                  className="font-bold leading-none"
+                  ref={amountRef}
+                  className="font-bold leading-none tabular-nums"
                   style={{
                     fontFamily: "var(--font-display)",
                     fontSize: "2rem",
                     color: "#00D67A",
                     textShadow: "0 0 24px rgba(0,214,122,0.3)",
+                    transition: "text-shadow 0.3s",
                   }}
                 >
-                  {formatUSD(data.totalAmount)}
+                  {formatUSD(displayAmount)}
                 </span>
               )}
               <span className="text-sm font-semibold" style={{ color: "#A8B5CC" }}>

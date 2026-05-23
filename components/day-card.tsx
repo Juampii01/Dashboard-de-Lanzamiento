@@ -2,8 +2,9 @@
 
 import { cn } from "@/lib/utils";
 import { Lock, CheckCircle2, ChevronRight } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
+import { createParticleBurst, triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
 
 interface DayCardProps {
   day: number;
@@ -28,18 +29,28 @@ export function DayCard({
   isCompleted,
   href,
 }: DayCardProps) {
+  const router = useRouter();
   const [shaking, setShaking] = useState(false);
+  const [showTooltip, setShowTooltip] = useState<"in" | "out" | null>(null);
   const [ripple, setRipple] = useState<Ripple | null>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const tooltipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Shake locked cards on click — MK "blocked move" feedback
+  /* ── Shake locked cards ─────────────────────── */
   const handleLockedClick = useCallback(() => {
     if (shaking) return;
     setShaking(true);
+    // Show bounce tooltip
+    setShowTooltip("in");
+    if (tooltipTimer.current) clearTimeout(tooltipTimer.current);
+    tooltipTimer.current = setTimeout(() => {
+      setShowTooltip("out");
+      setTimeout(() => setShowTooltip(null), 220);
+    }, 1300);
     setTimeout(() => setShaking(false), 580);
   }, [shaking]);
 
-  // Ripple burst on CTA button
+  /* ── CTA ripple ─────────────────────────────── */
   const handleRipple = useCallback((e: React.MouseEvent) => {
     const el = ctaRef.current;
     if (!el) return;
@@ -47,6 +58,26 @@ export function DayCard({
     setRipple({ x: e.clientX - rect.left, y: e.clientY - rect.top, id: Date.now() });
     setTimeout(() => setRipple(null), 700);
   }, []);
+
+  /* ── WOW: particles + flash then navigate ────── */
+  const handleStartChallenge = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const el = ctaRef.current;
+      const rect = el?.getBoundingClientRect();
+      if (rect) {
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        handleRipple(e);
+        createParticleBurst(cx, cy, "gold", 22);
+        triggerFlash();
+        triggerScreenShake();
+      }
+      // Small delay so particles are visible before navigation
+      setTimeout(() => router.push(href), 320);
+    },
+    [href, router, handleRipple]
+  );
 
   const card = (
     <div
@@ -74,7 +105,7 @@ export function DayCard({
           : "none",
       }}
     >
-      {/* HUD corner brackets — same as health bar */}
+      {/* HUD corner brackets */}
       <div className="absolute top-0 left-0 w-4 h-4 pointer-events-none z-30"
         style={{ borderTop: "2px solid rgba(255,214,10,0.5)", borderLeft: "2px solid rgba(255,214,10,0.5)" }} />
       <div className="absolute top-0 right-0 w-4 h-4 pointer-events-none z-30"
@@ -83,6 +114,28 @@ export function DayCard({
         style={{ borderBottom: "2px solid rgba(255,214,10,0.5)", borderLeft: "2px solid rgba(255,214,10,0.5)" }} />
       <div className="absolute bottom-0 right-0 w-4 h-4 pointer-events-none z-30"
         style={{ borderBottom: "2px solid rgba(255,214,10,0.5)", borderRight: "2px solid rgba(255,214,10,0.5)" }} />
+
+      {/* Lock bounce tooltip */}
+      {showTooltip && (
+        <div
+          className={cn(
+            "absolute top-1/2 left-1/2 z-40 pointer-events-none px-4 py-2.5 rounded-xl text-center",
+            showTooltip === "in"  && "lock-tooltip-show",
+            showTooltip === "out" && "lock-tooltip-hide"
+          )}
+          style={{
+            background: "#061528",
+            border: "2px solid #D7263D",
+            boxShadow: "0 0 24px rgba(215,38,61,0.5)",
+            color: "#FFFFFF",
+            fontSize: "12px",
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+          }}
+        >
+          🔒 Se desbloquea en vivo
+        </div>
+      )}
 
       {/* Completed green overlay */}
       {isCompleted && (
@@ -165,8 +218,8 @@ export function DayCard({
         ) : isUnlocked ? (
           <div
             ref={ctaRef}
-            onClick={handleRipple}
-            className="w-full py-3 rounded-lg text-center text-white font-bold text-sm transition-all hover:brightness-110 relative overflow-hidden select-none"
+            onClick={handleStartChallenge}
+            className="w-full py-3 rounded-lg text-center text-white font-bold text-sm transition-all hover:brightness-110 relative overflow-hidden select-none cursor-pointer"
             style={{
               background: "linear-gradient(135deg, #E8293F 0%, #D7263D 50%, #B01E31 100%)",
               fontFamily: "var(--font-sans)",
@@ -197,6 +250,15 @@ export function DayCard({
     </div>
   );
 
+  // Unlocked cards: card handles its own navigation via handleStartChallenge
+  // Completed cards: wrap in link for revisiting
   if (!isUnlocked) return card;
-  return <Link href={href}>{card}</Link>;
+  if (isCompleted) {
+    return (
+      <a href={href} style={{ textDecoration: "none" }}>
+        {card}
+      </a>
+    );
+  }
+  return card;
 }

@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { progressPercent } from "@/lib/utils";
+import { triggerAvatarStars } from "@/lib/wow-effects";
 
-function SantoAvatar() {
+function SantoAvatar({ onClick }: { onClick?: (cx: number, cy: number) => void }) {
   const [visible, setVisible] = useState(false);
   const [error, setError] = useState(false);
+  const [jumping, setJumping] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const img = imgRef.current;
@@ -14,8 +17,21 @@ function SantoAvatar() {
     if (img.complete && img.naturalWidth > 0) setVisible(true);
   }, []);
 
+  const handleClick = useCallback(() => {
+    if (jumping) return;
+    setJumping(true);
+    setTimeout(() => setJumping(false), 650);
+    if (onClick && wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect();
+      onClick(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    }
+  }, [jumping, onClick]);
+
   return (
     <div
+      ref={wrapRef}
+      onClick={handleClick}
+      title="Easter egg 🕺"
       style={{
         width: "30px",
         height: "30px",
@@ -27,7 +43,9 @@ function SantoAvatar() {
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
+        cursor: "pointer",
         boxShadow: "0 0 10px rgba(0,214,122,0.6), 0 0 20px rgba(0,214,122,0.3)",
+        animation: jumping ? "bar-avatar-jump 0.6s cubic-bezier(0.34,1.56,0.64,1)" : undefined,
       }}
     >
       {!error && (
@@ -71,6 +89,10 @@ export function ProgressBar({ completedDays }: ProgressBarProps) {
     const t2 = setTimeout(() => setDisplayPct(targetPct), 400);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [targetPct]);
+
+  const handleAvatarClick = useCallback((cx: number, cy: number) => {
+    triggerAvatarStars(cx, cy);
+  }, []);
 
   return (
     <div className="w-full">
@@ -229,7 +251,7 @@ export function ProgressBar({ completedDays }: ProgressBarProps) {
           }}
           aria-hidden
         >
-          <SantoAvatar />
+          <SantoAvatar onClick={handleAvatarClick} />
         </div>
       </div>
 
