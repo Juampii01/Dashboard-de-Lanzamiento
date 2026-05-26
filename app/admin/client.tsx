@@ -1,6 +1,51 @@
 "use client";
 
 import { useState } from "react";
+
+function UserResetButton({ userId, userEmail }: { userId: string; userEmail: string }) {
+  const [phase, setPhase] = useState<"idle" | "confirm" | "loading" | "done">("idle");
+
+  const handleReset = async () => {
+    setPhase("loading");
+    await fetch("/api/admin/reset-all", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ targetUserId: userId }),
+    });
+    setPhase("done");
+    setTimeout(() => setPhase("idle"), 2000);
+  };
+
+  if (phase === "confirm")
+    return (
+      <span className="flex gap-1">
+        <button
+          onClick={handleReset}
+          className="text-[10px] text-red-400 border border-red-400/40 px-1.5 py-0.5 rounded"
+        >
+          Sí
+        </button>
+        <button
+          onClick={() => setPhase("idle")}
+          className="text-[10px] text-gray-400 border border-gray-600 px-1.5 py-0.5 rounded"
+        >
+          No
+        </button>
+      </span>
+    );
+  if (phase === "loading") return <span className="text-[10px] text-gray-400">...</span>;
+  if (phase === "done") return <span className="text-[10px] text-green-400">✓</span>;
+
+  return (
+    <button
+      onClick={() => setPhase("confirm")}
+      className="text-[10px] text-red-400/70 hover:text-red-400 border border-red-400/20 hover:border-red-400/40 px-1.5 py-0.5 rounded transition-colors"
+      title={`Reset ${userEmail}`}
+    >
+      ↺
+    </button>
+  );
+}
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -188,6 +233,7 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
                 <TableHead className="text-center">Sorteo</TableHead>
                 <TableHead className="text-center">Acceso</TableHead>
                 <TableHead className="text-center">Override</TableHead>
+                <TableHead className="text-center">Reset</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -258,6 +304,9 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
                           );
                         })}
                       </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <UserResetButton userId={user.id} userEmail={user.email} />
                     </TableCell>
                   </TableRow>
                 );
