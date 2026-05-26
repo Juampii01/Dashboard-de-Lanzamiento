@@ -15,23 +15,52 @@
  *   window.dispatchEvent(new CustomEvent("xp-avatar-click"));
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const HEARTBEAT_MS = 10 * 60 * 1_000; // 10 minutes
+const IDLE_THRESHOLD_MS = 5 * 60 * 1_000; // 5 minutes
 
 export function XpEngine() {
+  const lastActivityRef = useRef<number>(Date.now());
+
+  // ── Activity tracking ────────────────────────────────────────────────
+  useEffect(() => {
+    function recordActivity() {
+      lastActivityRef.current = Date.now();
+    }
+
+    window.addEventListener("mousemove", recordActivity);
+    window.addEventListener("click", recordActivity);
+    window.addEventListener("keypress", recordActivity);
+    window.addEventListener("scroll", recordActivity);
+
+    return () => {
+      window.removeEventListener("mousemove", recordActivity);
+      window.removeEventListener("click", recordActivity);
+      window.removeEventListener("keypress", recordActivity);
+      window.removeEventListener("scroll", recordActivity);
+    };
+  }, []);
+
   // ── Time-based XP heartbeat ──────────────────────────────────────────
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
 
     async function ping() {
       try {
+        // Skip heartbeat if user has been idle for 5+ minutes
+        if (Date.now() - lastActivityRef.current >= IDLE_THRESHOLD_MS) {
+          timer = setTimeout(ping, HEARTBEAT_MS);
+          return;
+        }
+
         const res  = await fetch("/api/xp/heartbeat", { method: "POST" });
         const data = await res.json() as {
           awarded: boolean;
           points?: number;
           total?: number;
           nextInSeconds?: number;
+          capped?: boolean;
         };
 
         if (data.awarded && data.points && data.total != null) {
