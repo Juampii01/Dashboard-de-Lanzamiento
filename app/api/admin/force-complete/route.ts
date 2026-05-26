@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const POINTS_PER_DAY = 50;
 
-// Admin: descompletar un día
+// Admin: descompletar un día usando función SQL atómica
 export async function DELETE(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -12,7 +12,7 @@ export async function DELETE(req: NextRequest) {
   const service = createServiceClient();
   const { data: profile } = await service
     .from("users")
-    .select("is_admin, total_points")
+    .select("is_admin")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -20,26 +20,35 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
   }
 
-  const { day } = await req.json();
+  const { day, targetUserId } = await req.json() as { day?: number; targetUserId?: string };
   if (!day || day < 1 || day > 4) {
     return NextResponse.json({ ok: false, error: "invalid_day" }, { status: 400 });
   }
 
-  // Marcar como no completado (mantiene is_unlocked para no bloquear acceso)
-  await service
-    .from("day_progress")
-    .update({ is_completed: false, completed_at: null })
-    .eq("user_id", user.id)
-    .eq("day_number", day);
+  const userId = targetUserId ?? user.id;
 
-  // Descontar XP si el total lo permite
-  const newTotal = Math.max(0, (profile.total_points ?? 0) - POINTS_PER_DAY);
-  await service
-    .from("users")
-    .update({ total_points: newTotal })
-    .eq("id", user.id);
+  // Call atomic SQL function that handles full XP rollback
+  const { data: result, error } = await service.rpc("admin_uncomplete_day", {
+    p_user_id: userId,
+    p_day: day,
+  });
 
-  return NextResponse.json({ ok: true, pointsRemoved: POINTS_PER_DAY, total: newTotal });
+  if (error) {
+    console.error("[force-complete DELETE] rpc error:", error);
+    return NextResponse.json({ ok: false, error: "internal" }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    ok: true,
+    xpRemoved: result.xp_removed,
+    breakdown: {
+      start: result.start_xp,
+      complete: result.complete_xp,
+      videos: result.video_xp,
+      callJoin: result.calljoin_xp,
+    },
+    newTotal: result.new_total,
+  });
 }
 
 export async function POST(req: NextRequest) {
