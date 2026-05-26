@@ -26,7 +26,7 @@ export function JoinCallButton({ day, callUrl = "https://youtube.com/@govbidder"
     // Always open the call URL
     window.open(callUrl, "_blank", "noopener,noreferrer");
 
-    if (joined || loading) return;
+    if (loading) return;
     setLoading(true);
 
     try {
@@ -35,17 +35,30 @@ export function JoinCallButton({ day, callUrl = "https://youtube.com/@govbidder"
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ day }),
       });
-      const data: { awarded: boolean; points?: number; total?: number } = await res.json();
+      const data: {
+        ok?: boolean;
+        awarded?: boolean;
+        already_claimed?: boolean;
+        delta?: number;
+        total?: number;
+        error?: string;
+      } = await res.json();
 
-      if (data.awarded && data.points && data.total != null) {
+      if (data.awarded && data.delta && data.total != null) {
+        // First-time claim: persist in localStorage for UI cache and dispatch XP event
         localStorage.setItem(lsKey, "1");
         setJoined(true);
         window.dispatchEvent(
           new CustomEvent("xp-gained", {
-            detail: { delta: data.points, total: data.total, source: "join" },
+            detail: { delta: data.delta, total: data.total, source: "join" },
           })
         );
+      } else if (data.already_claimed) {
+        // Server confirms already claimed — sync UI state without firing XP
+        setJoined(true);
+        localStorage.setItem(lsKey, "1");
       }
+      // If neither awarded nor already_claimed: silent error, no state change
     } catch {
       // non-critical
     } finally {
