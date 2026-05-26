@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 const POINTS_PER_DAY = 50;
@@ -16,21 +16,55 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid_day" }, { status: 400 });
   }
 
-  // Check if already completed (prevent double points)
-  // Use maybeSingle() so a missing row returns null instead of PGRST116 error
-  const { data: progress } = await supabase
+  const service = createServiceClient();
+
+  // Atomic update: only succeeds if the row exists AND is_completed = false.
+  // This eliminates the SELECT→UPDATE race condition.
+  const { data: updatedRows, error: updateError } = await service
     .from("day_progress")
-    .select("is_completed")
+    .update({
+      is_completed: true,
+      completed_at: new Date().toISOString(),
+      is_unlocked: true,
+    })
     .eq("user_id", user.id)
     .eq("day_number", day)
-    .maybeSingle();
+    .eq("is_completed", false) // only update if NOT already completed
+    .select();
 
-  const alreadyDone = progress?.is_completed ?? false;
+  if (updateError) {
+    console.error("[complete-day] update error:", updateError);
+    return NextResponse.json({ ok: false, error: "internal" }, { status: 500 });
+  }
 
-  // Mark day completed — onConflict requires UNIQUE(user_id, day_number) on the table
-  await supabase
-    .from("day_progress")
-    .upsert(
+  const wasAlreadyCompleted = !updatedRows || updatedRows.length === 0;
+
+  if (wasAlreadyCompleted) {
+    // Either already completed, or row doesn't exist yet (edge case: no start-day)
+    const { data: existing } = await service
+      .from("day_progress")
+      .select("is_completed")
+      .eq("user_id", user.id)
+      .eq("day_number", day)
+      .maybeSingle();
+
+    if (existing?.is_completed) {
+      // Legitimately already completed — return current XP total
+      const { data: u } = await service
+        .from("users")
+        .select("total_points")
+        .eq("id", user.id)
+        .single();
+      return NextResponse.json({
+        ok: true,
+        pointsAwarded: 0,
+        total: u?.total_points ?? 0,
+        alreadyCompleted: true,
+      });
+    }
+
+    // Row doesn't exist — create and mark completed (edge case: user skipped start-day)
+    await service.from("day_progress").upsert(
       {
         user_id: user.id,
         day_number: day,
@@ -40,25 +74,11 @@ export async function POST(req: NextRequest) {
       },
       { onConflict: "user_id,day_number" }
     );
-
-  if (alreadyDone) {
-    // Already completed — return current total without adding points
-    const { data: profile } = await supabase
-      .from("users")
-      .select("total_points")
-      .eq("id", user.id)
-      .single();
-
-    return NextResponse.json({
-      ok: true,
-      pointsAwarded: 0,
-      total: profile?.total_points ?? 0,
-      alreadyCompleted: true,
-    });
+    // Fall through to award XP below
   }
 
-  // Award points
-  const { data: profile } = await supabase
+  // Award points — read-then-write (same pattern used across all XP endpoints)
+  const { data: profile } = await service
     .from("users")
     .select("total_points")
     .eq("id", user.id)
@@ -66,7 +86,7 @@ export async function POST(req: NextRequest) {
 
   const newTotal = (profile?.total_points ?? 0) + POINTS_PER_DAY;
 
-  await supabase
+  await service
     .from("users")
     .update({ total_points: newTotal })
     .eq("id", user.id);
