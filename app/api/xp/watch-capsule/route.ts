@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
   const points = capsule?.points_reward ?? 10;
 
-  // Record completion — capture error to handle unique constraint races
+  // Record completion — unique constraint prevents double-award on concurrent requests
   const { error: insertError } = await supabase.from("video_capsule_completions").insert({
     user_id: user.id,
     capsule_id: capsuleId,
@@ -75,15 +75,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "insert_failed" }, { status: 500 });
   }
 
-  // Award XP
-  const { data: profile } = await supabase
-    .from("users")
-    .select("total_points")
-    .eq("id", user.id)
-    .single();
+  // A3 fix: atomic increment — no read-then-write race on total_points
+  const { data: newTotal, error: pointsError } = await supabase.rpc("add_points", {
+    p_user_id: user.id,
+    p_delta: points,
+  });
 
-  const newTotal = (profile?.total_points ?? 0) + points;
-  await supabase.from("users").update({ total_points: newTotal }).eq("id", user.id);
+  if (pointsError) {
+    console.error("[watch-capsule] add_points error:", pointsError);
+    // Completion already recorded; points will drift but capsule is locked
+    return NextResponse.json({ ok: true, points, total: null });
+  }
 
   return NextResponse.json({ ok: true, points, total: newTotal });
 }

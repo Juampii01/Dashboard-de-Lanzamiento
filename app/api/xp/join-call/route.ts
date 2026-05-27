@@ -32,19 +32,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  // Read current points and add reward
-  const { data: profile } = await service
-    .from("users")
-    .select("total_points")
-    .eq("id", user.id)
-    .single();
+  // A3 fix: atomic increment — no read-then-write race on total_points
+  const { data: newTotal, error: pointsError } = await service.rpc("add_points", {
+    p_user_id: user.id,
+    p_delta: POINTS,
+  });
 
-  const newTotal = (profile?.total_points ?? 0) + POINTS;
-
-  await service
-    .from("users")
-    .update({ total_points: newTotal })
-    .eq("id", user.id);
+  if (pointsError) {
+    console.error("[join-call] add_points error:", pointsError);
+    return NextResponse.json({ error: "internal" }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true, awarded: true, delta: POINTS, total: newTotal });
 }

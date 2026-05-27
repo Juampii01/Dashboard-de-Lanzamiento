@@ -77,24 +77,21 @@ export async function POST(req: NextRequest) {
     // Fall through to award XP below
   }
 
-  // Award points — read-then-write (same pattern used across all XP endpoints)
-  const { data: profile } = await service
-    .from("users")
-    .select("total_points")
-    .eq("id", user.id)
-    .single();
+  // A3 fix: atomic increment — no read-then-write race on total_points
+  const { data: newTotal, error: pointsError } = await service.rpc("add_points", {
+    p_user_id: user.id,
+    p_delta: POINTS_PER_DAY,
+  });
 
-  const newTotal = (profile?.total_points ?? 0) + POINTS_PER_DAY;
-
-  await service
-    .from("users")
-    .update({ total_points: newTotal })
-    .eq("id", user.id);
+  if (pointsError) {
+    console.error("[complete-day] add_points error:", pointsError);
+    return NextResponse.json({ ok: false, error: "internal" }, { status: 500 });
+  }
 
   return NextResponse.json({
     ok: true,
     pointsAwarded: POINTS_PER_DAY,
-    total: newTotal,
+    total: newTotal ?? 0,
     alreadyCompleted: false,
   });
 }

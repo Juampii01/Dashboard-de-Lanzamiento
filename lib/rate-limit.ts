@@ -1,4 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+/**
+ * Rate-limit helper for AI endpoints.
+ *
+ * Uses createServiceClient() (service role) so that check_ai_rate_limit
+ * runs with the correct privileges after the Día 2 REVOKE tightening.
+ * This is always called from server-side API routes, never from the browser.
+ */
+import { createServiceClient } from '@/lib/supabase/server'
 
 type RateLimitResult =
   | { allowed: true; current_count: number; limit: number }
@@ -10,7 +17,8 @@ export async function checkRateLimit(
   maxCalls: number,
   windowSeconds: number
 ): Promise<RateLimitResult> {
-  const supabase = await createClient()
+  // createServiceClient() is synchronous — no await
+  const supabase = createServiceClient()
 
   const { data, error } = await supabase.rpc('check_ai_rate_limit', {
     p_user_id: userId,

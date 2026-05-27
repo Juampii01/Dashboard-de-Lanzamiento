@@ -25,20 +25,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ awarded: false, alreadyStarted: true });
   }
 
-  // Create the row and award XP
+  // Create the row
   await supabase.from("day_progress").upsert(
     { user_id: user.id, day_number: day, is_unlocked: true, is_completed: false },
     { onConflict: "user_id,day_number" }
   );
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("total_points, is_admin")
-    .eq("id", user.id)
-    .single();
+  // A3 fix: atomic increment — no read-then-write race on total_points
+  const { data: newTotal, error } = await supabase.rpc("add_points", {
+    p_user_id: user.id,
+    p_delta: POINTS,
+  });
 
-  const newTotal = (profile?.total_points ?? 0) + POINTS;
-  await supabase.from("users").update({ total_points: newTotal }).eq("id", user.id);
+  if (error) {
+    console.error("[start-day] add_points error:", error);
+    return NextResponse.json({ awarded: false }, { status: 500 });
+  }
 
   return NextResponse.json({ awarded: true, points: POINTS, total: newTotal });
 }

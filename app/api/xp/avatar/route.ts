@@ -14,7 +14,7 @@ export async function POST() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("total_points, last_avatar_xp_at, is_admin")
+    .select("last_avatar_xp_at, is_admin")
     .eq("id", user.id)
     .single();
 
@@ -37,11 +37,21 @@ export async function POST() {
     }
   }
 
-  const newTotal = (profile.total_points ?? 0) + POINTS;
+  // A3 fix: atomic increment — no read-then-write race on total_points
+  const { data: newTotal, error } = await supabase.rpc("add_points", {
+    p_user_id: user.id,
+    p_delta: POINTS,
+  });
 
+  if (error) {
+    console.error("[avatar] add_points error:", error);
+    return NextResponse.json({ awarded: false }, { status: 500 });
+  }
+
+  // Stamp the cooldown timestamp (separate, non-critical write)
   await supabase
     .from("users")
-    .update({ total_points: newTotal, last_avatar_xp_at: now.toISOString() })
+    .update({ last_avatar_xp_at: now.toISOString() })
     .eq("id", user.id);
 
   return NextResponse.json({ awarded: true, points: POINTS, total: newTotal });
