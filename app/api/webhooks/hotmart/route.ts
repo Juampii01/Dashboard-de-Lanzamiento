@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { verifyHotmartSignature, type HotmartWebhookPayload } from "@/lib/hotmart";
+import {
+  verifyHotmartSignature,
+  validateHotmartTimestamp,
+  type HotmartWebhookPayload,
+} from "@/lib/hotmart";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const payload = await request.text();
   const signature = request.headers.get("x-hotmart-webhook-token");
 
+  // ── C7: HMAC verification ────────────────────────────────────────────────
   if (!verifyHotmartSignature(payload, signature)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
@@ -15,6 +20,15 @@ export async function POST(request: Request) {
     body = JSON.parse(payload);
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  // ── C7: Timestamp / replay-attack prevention ─────────────────────────────
+  if (!validateHotmartTimestamp(body)) {
+    console.warn("[hotmart] Webhook rejected: timestamp outside ±5 min window");
+    return NextResponse.json(
+      { error: "Timestamp out of allowed window" },
+      { status: 401 }
+    );
   }
 
   // Solo procesar compras aprobadas
@@ -54,13 +68,13 @@ export async function POST(request: Request) {
   const now = new Date().toISOString();
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Upsert en tabla users
+  // ── C3: Upsert in users — hotmart_transaction_id persisted ──────────────
   const { error: upsertError } = await supabase.from("users").upsert(
     {
       id: userId,
       email,
       full_name: name,
-      hotmart_transaction_id: transaction,
+      hotmart_transaction_id: transaction,   // saved → paywall proof
       access_starts_at: now,
       access_expires_at: expiresAt,
       is_admin: false,
@@ -74,7 +88,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "DB error" }, { status: 500 });
   }
 
-  // Crear filas de day_progress para los 4 días
+  // Create placeholder day_progress rows for days that don't exist yet.
+  // ignoreDuplicates: true so we never overwrite progress for repeat purchases.
   const progressRows = [1, 2, 3, 4].map((day) => ({
     user_id: userId,
     day_number: day,
@@ -85,6 +100,21 @@ export async function POST(request: Request) {
   await supabase
     .from("day_progress")
     .upsert(progressRows, { onConflict: "user_id,day_number", ignoreDuplicates: true });
+
+  // ── C2 fix: Explicitly unlock Day 1 regardless of trigger state.
+  //    The handle_new_user trigger now creates rows with is_unlocked = false.
+  //    We must flip day 1 here to grant access after a verified purchase.
+  //    We use a targeted UPDATE so we never touch is_completed for any day.
+  const { error: unlockError } = await supabase
+    .from("day_progress")
+    .update({ is_unlocked: true })
+    .eq("user_id", userId)
+    .eq("day_number", 1);
+
+  if (unlockError) {
+    console.error("Error unlocking day 1:", unlockError);
+    // Non-fatal: user row + expiry are correct; admin can manually unlock
+  }
 
   // Enviar magic link de primer acceso
   await supabase.auth.admin.generateLink({

@@ -30,16 +30,19 @@ const DEV_PROFILE = {
   is_admin: true,
   total_points: 0,
   has_seen_onboarding: true, // always skip onboarding in dev mode
+  hotmart_transaction_id: "dev-mode" as string | null,
 };
 
 // Safe fallback for authenticated users whose DB profile doesn't exist yet
-// (e.g. webhook race condition). NEVER admin, NEVER expires.
+// (e.g. webhook race condition). NEVER admin, NEVER expires, NO purchase.
+// hotmart_transaction_id: null → will be caught by paywall gate below.
 const SAFE_EMPTY_PROFILE = {
   full_name: "Usuario",
   access_expires_at: null,
   is_admin: false,
   total_points: 0,
   has_seen_onboarding: false,
+  hotmart_transaction_id: null as string | null,
 };
 
 async function getLayoutData(userId: string) {
@@ -49,7 +52,9 @@ async function getLayoutData(userId: string) {
   const [{ data: user }, { data: progress }] = await Promise.all([
     supabase
       .from("users")
-      .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding")
+      // hotmart_transaction_id included so the paywall gate below can verify
+      // that this user has a real Hotmart purchase on record.
+      .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id")
       .eq("id", userId)
       .single(),
     supabase
@@ -102,6 +107,22 @@ export default async function DashboardLayout({
   if (profile && isExpired(profile.access_expires_at)) {
     redirect("/dashboard/expirado");
   }
+
+  // ── C2 fix (part 2 of 2): server-side paywall gate ───────────────────────
+  // Non-admin users must have a verified Hotmart purchase on record.
+  // This blocks:
+  //   • accounts created directly in Supabase Auth (no webhook fired)
+  //   • accounts whose trigger ran but the webhook never set the transaction id
+  //   • SAFE_EMPTY_PROFILE fallback (no DB row at all)
+  // Admins bypass this check (hotmart_transaction_id = null is fine for them).
+  if (!devMode && profile && !profile.is_admin) {
+    const hasPurchase = !!(profile as { hotmart_transaction_id?: string | null })
+      .hotmart_transaction_id;
+    if (!hasPurchase) {
+      redirect("/sin-acceso");
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   const remaining = daysLeft(profile?.access_expires_at ?? null);
 
