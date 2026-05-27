@@ -26,7 +26,11 @@ export default function ConfirmPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
-    const next = params.get("next") ?? "/dashboard";
+
+    // M1: Validate `next` to prevent open-redirect attacks.
+    // Accept only relative paths that start with "/" but NOT "//" (protocol-relative redirect).
+    const rawNext = params.get("next") ?? "/dashboard";
+    const next = /^\/[^/]/.test(rawNext) || rawNext === "/" ? rawNext : "/dashboard";
 
     // Error forwarded by Supabase (e.g. link already used before JS ran)
     const urlError = params.get("error");

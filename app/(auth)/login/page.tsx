@@ -45,6 +45,10 @@ export default function LoginPage() {
         // This prevents Gmail / email clients from pre-fetching and consuming the
         // one-time OTP before the user actually clicks the link.
         emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        // M4: Prevent new account creation through the login form.
+        // Users must be pre-registered by the Hotmart webhook. Anyone
+        // who didn't purchase will get a "user not found" response here.
+        shouldCreateUser: false,
       },
     });
 

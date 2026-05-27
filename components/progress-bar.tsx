@@ -37,10 +37,16 @@ function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) 
     return () => clearInterval(id);
   }, [isAdmin]);
 
+  // M5: Mark image as visible immediately if browser already cached it
+  // (img.complete is true synchronously for cached images, so onLoad won't fire again).
   useEffect(() => {
     const img = imgRef.current;
     if (!img) return;
     if (img.complete && img.naturalWidth > 0) setVisible(true);
+    // Also listen for the load event in case the effect runs before the browser sets complete.
+    const handleLoad = () => setVisible(true);
+    img.addEventListener("load", handleLoad);
+    return () => img.removeEventListener("load", handleLoad);
   }, []);
 
   const handleClick = useCallback(async () => {
@@ -117,6 +123,8 @@ function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) 
           transition: "border-color 0.4s, box-shadow 0.4s, filter 0.4s",
         }}
       >
+        {/* M5: Use opacity + absolute positioning for smooth image/emoji crossfade.
+             This prevents the flash caused by toggling display on cached images. */}
         {!error && (
           <img
             ref={imgRef}
@@ -125,17 +133,26 @@ function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) 
             onLoad={() => setVisible(true)}
             onError={() => setError(true)}
             style={{
+              position: "absolute",
+              inset: 0,
               width: "100%",
               height: "100%",
               objectFit: "cover",
               objectPosition: "center top",
-              display: visible ? "block" : "none",
+              opacity: visible ? 1 : 0,
+              transition: "opacity 0.25s ease",
             }}
           />
         )}
-        {(!visible || error) && (
-          <span style={{ fontSize: "14px", lineHeight: 1 }}>🕺</span>
-        )}
+        {/* Emoji fallback — visible behind image until it loads, or permanently on error */}
+        <span
+          style={{
+            fontSize: "14px",
+            lineHeight: 1,
+            opacity: visible && !error ? 0 : 1,
+            transition: "opacity 0.25s ease",
+          }}
+        >🕺</span>
       </div>
 
       {/* Candado de cooldown */}
