@@ -20,7 +20,8 @@ const INJECTION_PATTERNS: RegExp[] = [
   /ignore\s+(all\s+)?(previous|prior|above)\s+(instructions?|prompts?|directives?|context)/gi,
   /forget\s+(all\s+)?(previous|prior|above)\s+(instructions?|prompts?|context)/gi,
   /disregard\s+(all\s+)?(previous|prior|above)\s+(instructions?|prompts?)/gi,
-  /you\s+are\s+now\s+(?:a|an?)\s/gi,
+  // "you are now [anything]" — catches DAN, GPT-4, etc.
+  /you\s+are\s+now\s+\S/gi,
   /act\s+as\s+(?:a|an?)\s/gi,
   /\bsystem\s*:/gi,
   /\buser\s*:/gi,
@@ -40,12 +41,17 @@ const MAX_FIELD_LENGTH = 2000; // characters per user-supplied field
  * Sanitize a single user-supplied string:
  *   - Enforce max length (truncate, don't reject — avoids 400 noise)
  *   - Strip known injection trigger phrases
+ *   - Neutralize sentinel-tag escapes so attackers can't break out of
+ *     the <user_data>…</user_data> wrapper added by callClaude()
  */
 export function sanitizeInput(raw: string): string {
   const truncated = raw.slice(0, MAX_FIELD_LENGTH);
+  // Neutralize sentinel-tag escape attempts first
+  const noTags = truncated
+    .replace(/<\/?user_data>/gi, "[user_data]");
   return INJECTION_PATTERNS.reduce(
     (s, re) => s.replace(re, "[REMOVED]"),
-    truncated
+    noTags
   );
 }
 

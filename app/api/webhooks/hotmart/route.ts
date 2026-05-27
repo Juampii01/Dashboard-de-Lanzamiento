@@ -55,11 +55,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Auth error" }, { status: 500 });
   }
 
-  const userId =
-    authUser?.user?.id ??
-    (await supabase.auth.admin.listUsers()).data.users.find(
-      (u) => u.email === email
-    )?.id;
+  // M3 fix: listUsers() only returns the first page (default: 50 users).
+  // If createUser returned a user, use that id directly.
+  // If the user already existed, query public.users by email (indexed,
+  // O(1)) instead of scanning a potentially paginated auth.users list.
+  let userId: string | undefined = authUser?.user?.id;
+  if (!userId) {
+    const { data: existingRow } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    userId = existingRow?.id;
+  }
 
   if (!userId) {
     return NextResponse.json({ error: "Could not resolve user id" }, { status: 500 });
