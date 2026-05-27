@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { callClaudeJSON } from "@/lib/claude";
+import { callClaudeJSON, sanitizeInput } from "@/lib/claude";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
@@ -67,7 +67,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const { primaryNaics, keywords, niche } = parsed.data;
+  // A6: sanitize user-supplied strings
+  const primaryNaics = sanitizeInput(parsed.data.primaryNaics);
+  const keywords     = parsed.data.keywords.map(sanitizeInput);
+  const niche        = parsed.data.niche ? sanitizeInput(parsed.data.niche) : undefined;
 
   try {
     const result = await callClaudeJSON<ExpandCodesResult>(

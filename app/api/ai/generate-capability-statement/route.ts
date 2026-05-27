@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { callClaudeJSON } from "@/lib/claude";
+import { callClaudeJSON, sanitizeInput } from "@/lib/claude";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 
@@ -77,7 +77,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  const data = parsed.data;
+  // A6: sanitize all user-supplied text fields
+  const data = {
+    ...parsed.data,
+    companyName:   sanitizeInput(parsed.data.companyName),
+    niche:         sanitizeInput(parsed.data.niche),
+    problemSolved: sanitizeInput(parsed.data.problemSolved),
+    targetAvatar:  parsed.data.targetAvatar ? sanitizeInput(parsed.data.targetAvatar) : undefined,
+  };
   const naicsCodes = [data.primaryNaics, ...(data.relatedCodes?.filter(c => c.type === "NAICS").map(c => c.code) ?? [])].filter(Boolean);
   const pscCodes = data.relatedCodes?.filter(c => c.type === "PSC").map(c => c.code) ?? [];
 

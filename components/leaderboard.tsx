@@ -38,12 +38,11 @@ export function Leaderboard() {
     return () => clearInterval(t);
   }, [load]);
 
-  // Update leaderboard when XP is earned
-  useEffect(() => {
-    const handler = () => load();
-    window.addEventListener("xp-gained", handler);
-    return () => window.removeEventListener("xp-gained", handler);
-  }, [load]);
+  // A7 fix: DO NOT re-fetch on xp-gained.
+  // PointsHUD already updates from the event detail instantly.
+  // The 60s poll above is sufficient for leaderboard ranking —
+  // triggering an extra fetch on every heartbeat/avatar/video XP event
+  // would fire ~6 redundant API calls per hour per active user.
 
   const handleRowClick = (e: React.MouseEvent, entry: LeaderEntry) => {
     if (!entry.is_current_user) return;

@@ -10,7 +10,13 @@ interface JoinCallButtonProps {
 
 const POINTS = 30;
 
-export function JoinCallButton({ day, callUrl = "https://youtube.com/@govbidder" }: JoinCallButtonProps) {
+// C6 fix: call URL comes from env var so it can be swapped without a code deploy.
+// Set NEXT_PUBLIC_CALL_URL in Vercel to the actual live-stream / Zoom link
+// before the event.  Falls back to the Govbidder YouTube channel.
+const DEFAULT_CALL_URL =
+  process.env.NEXT_PUBLIC_CALL_URL ?? "https://youtube.com/@govbidder";
+
+export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL }: JoinCallButtonProps) {
   const lsKey = `govbidder_joined_call_day_${day}`;
   const [joined, setJoined] = useState(false);
   const [loading, setLoading] = useState(false);

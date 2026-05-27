@@ -1,7 +1,16 @@
 "use client";
 
+/**
+ * SocialProof — A2 fix
+ *
+ * BEFORE: used createBrowserClient() to call get_day_completion_counts() directly.
+ *         After Día 2 REVOKE, anon/authenticated can no longer call that RPC —
+ *         the component was silently returning nothing.
+ *
+ * AFTER:  polls /api/social-proof (server-side route, service_role) every 60s.
+ *         Realtime subscription removed — the widget is decorative, polling is enough.
+ */
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 
 interface DayCount {
   day_number: number;
@@ -13,26 +22,24 @@ export function SocialProof() {
   const [counts, setCounts] = useState<DayCount[]>([]);
 
   useEffect(() => {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) return;
+    let mounted = true;
 
-    const supabase = createBrowserClient(url, key);
-
-    const fetchCounts = async () => {
-      // Uses the get_day_completion_counts() RPC function (migration 004)
-      const { data, error } = await supabase.rpc("get_day_completion_counts");
-      if (!error && data) setCounts(data as DayCount[]);
-    };
+    async function fetchCounts() {
+      try {
+        const res  = await fetch("/api/social-proof");
+        const data = await res.json() as { counts: DayCount[] };
+        if (mounted) setCounts(data.counts ?? []);
+      } catch {
+        // silent — decorative widget
+      }
+    }
 
     fetchCounts();
-
-    const channel = supabase
-      .channel("social_proof_realtime")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "day_progress" }, fetchCounts)
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    const t = setInterval(fetchCounts, 60_000);
+    return () => {
+      mounted = false;
+      clearInterval(t);
+    };
   }, []);
 
   if (counts.length === 0) return null;
