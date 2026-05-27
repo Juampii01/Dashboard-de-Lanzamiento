@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createParticleBurst, flyPoints } from "@/lib/wow-effects";
+import { QuizModal } from "./quiz-modal";
 
 interface Capsule {
   id: string;
@@ -56,12 +57,14 @@ function CooldownBadge({ seconds }: { seconds: number }) {
 }
 
 export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
-  const [capsules, setCapsules]         = useState<Capsule[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [cooldownSecs, setCooldownSecs] = useState(0);
-  const [activeId, setActiveId]         = useState<string | null>(null);
-  const [marking, setMarking]           = useState(false);
-  const [expanded, setExpanded]         = useState(false);
+  const [capsules, setCapsules]           = useState<Capsule[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [cooldownSecs, setCooldownSecs]   = useState(0);
+  const [activeId, setActiveId]           = useState<string | null>(null);
+  const [marking, setMarking]             = useState(false);
+  const [expanded, setExpanded]           = useState(false);
+  // Quiz modal — opens after video is marked as watched
+  const [quizCapsuleId, setQuizCapsuleId] = useState<string | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const loadCapsules = useCallback(async () => {
@@ -128,10 +131,13 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
           flyPoints(cx, cy, cx, cy - 80, `+${data.points} XP 📺`);
         }
 
-        // Refresh list and close modal
+        // Refresh list and close video modal, then open quiz
         await loadCapsules();
+        const watchedId = activeId;   // capture before clearing
         setActiveId(null);
         if (!isAdmin) setCooldownSecs(COOLDOWN_SECONDS);
+        // Open quiz for the video that was just watched (non-blocking XP gate)
+        if (watchedId) setQuizCapsuleId(watchedId);
       } else if (data.cooldown && data.nextInSeconds) {
         setCooldownSecs(data.nextInSeconds);
         setActiveId(null);
@@ -239,6 +245,13 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
           </div>
         </div>
       )}
+
+      {/* Quiz modal — appears after video is marked as watched */}
+      <QuizModal
+        capsuleId={quizCapsuleId ?? ""}
+        isOpen={!!quizCapsuleId}
+        onClose={() => setQuizCapsuleId(null)}
+      />
 
       {/* Widget */}
       <div
