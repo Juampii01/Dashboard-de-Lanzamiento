@@ -30,13 +30,16 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  // When image loads → compute fill scale and reset offset
+  // When image loads → start at FIT scale (full image visible) and reset offset
   const handleImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     const w = img.naturalWidth;
     const h = img.naturalHeight;
     setNaturalSize({ w, h });
-    setScale(Math.max(PREVIEW_SIZE / w, PREVIEW_SIZE / h));
+    // FIT: smallest scale that fits the full image inside the circle (may show black bars)
+    // The user then zooms in to frame/crop. This avoids showing a pitch-black circle
+    // when the centre of a photo happens to be dark.
+    setScale(Math.min(PREVIEW_SIZE / w, PREVIEW_SIZE / h));
     setOffset({ x: 0, y: 0 });
   }, []);
 
@@ -48,9 +51,10 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
       e.preventDefault();
       const factor = e.deltaY > 0 ? 0.92 : 1.08;
       setScale(prev => {
+        // minimum = FIT (full image visible); cannot zoom out past seeing the whole image
         const min = naturalSize.w > 0
-          ? Math.max(PREVIEW_SIZE / naturalSize.w, PREVIEW_SIZE / naturalSize.h)
-          : 0.5;
+          ? Math.min(PREVIEW_SIZE / naturalSize.w, PREVIEW_SIZE / naturalSize.h)
+          : 0.1;
         return Math.max(min, Math.min(8, prev * factor));
       });
     };
@@ -88,9 +92,10 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
   const zoom = useCallback((dir: 1 | -1) => {
     setScale(prev => {
       const factor = dir > 0 ? 1.15 : 0.87;
+      // same FIT minimum as wheel handler
       const min = naturalSize.w > 0
-        ? Math.max(PREVIEW_SIZE / naturalSize.w, PREVIEW_SIZE / naturalSize.h)
-        : 0.5;
+        ? Math.min(PREVIEW_SIZE / naturalSize.w, PREVIEW_SIZE / naturalSize.h)
+        : 0.1;
       return Math.max(min, Math.min(8, prev * factor));
     });
   }, [naturalSize]);
@@ -117,6 +122,10 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
       ctx.beginPath();
       ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
       ctx.clip();
+
+      // Fill background so any uncovered area (FIT zoom) stays dark, not transparent
+      ctx.fillStyle = "#030303";
+      ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
       // Source-rectangle approach: compute which pixels of the original image are
       // visible inside the crop circle, then map them exactly onto the canvas.
@@ -168,8 +177,12 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
     }
   }, [status, imgSrc, naturalSize, scale, offset, onUploaded, onClose]);
 
-  const imgW = naturalSize.w * scale;
-  const imgH = naturalSize.h * scale;
+  const imgW    = naturalSize.w * scale;
+  const imgH    = naturalSize.h * scale;
+  // FIT scale = smallest scale that fits the whole image inside the circle
+  const fitScale  = naturalSize.w > 0 ? Math.min(PREVIEW_SIZE / naturalSize.w, PREVIEW_SIZE / naturalSize.h) : 0.1;
+  // Zoom bar: 0 % at fitScale, 100 % at 8×
+  const zoomPct   = naturalSize.w > 0 ? Math.max(0, Math.min(100, (scale - fitScale) / (8 - fitScale) * 100)) : 0;
 
   return (
     <>
@@ -294,8 +307,10 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                     onLoad={handleImageLoad}
                     style={{
                       position: "absolute",
-                      // Only set width; height follows natural aspect ratio.
+                      // Explicit width AND height so the browser never auto-computes
+                      // dimensions in a way that disagrees with our layout math.
                       width:   naturalSize.w > 0 ? `${imgW}px` : "1px",
+                      height:  naturalSize.w > 0 ? `${imgH}px` : "1px",
                       left:    naturalSize.w > 0 ? `${PREVIEW_SIZE / 2 - imgW / 2 + offset.x}px` : "0",
                       top:     naturalSize.w > 0 ? `${PREVIEW_SIZE / 2 - imgH / 2 + offset.y}px` : "0",
                       opacity: naturalSize.w > 0 ? 1 : 0,
@@ -353,7 +368,7 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                   height: "100%",
                   borderRadius: "2px",
                   background: "linear-gradient(90deg, #00D67A, #0056D6)",
-                  width: `${Math.min(100, ((scale - 0.5) / 7.5) * 100)}%`,
+                  width: `${zoomPct}%`,
                   transition: "width 0.1s",
                 }} />
               </div>
