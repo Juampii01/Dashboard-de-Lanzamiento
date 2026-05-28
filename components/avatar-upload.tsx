@@ -173,12 +173,12 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — z-index above profile modal (99993/99994) */}
       <div
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 99993,
+          zIndex: 99997,
           background: "rgba(3,10,20,0.88)",
           backdropFilter: "blur(6px)",
         }}
@@ -190,7 +190,7 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 99994,
+          zIndex: 99998,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -279,25 +279,32 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleMouseUp}
               >
-                {imgSrc && naturalSize.w > 0 && (
+                {/*
+                  Single image element that is always mounted once imgSrc is set.
+                  onLoad lives here — no separate hidden duplicate needed.
+                  Before naturalSize is known (w === 0) we keep opacity:0 so the
+                  black background shows the loading spinner underneath.
+                  After load the image snaps to its correct position/size.
+                */}
+                {imgSrc && (
                   <img
                     src={imgSrc}
                     alt=""
                     draggable={false}
+                    onLoad={handleImageLoad}
                     style={{
                       position: "absolute",
-                      // Only set width; let the browser compute height from the natural
-                      // aspect ratio. Setting both dimensions explicitly can introduce
-                      // subpixel rounding that stretches non-square images.
-                      width: `${imgW}px`,
-                      left:  `${PREVIEW_SIZE / 2 - imgW / 2 + offset.x}px`,
-                      top:   `${PREVIEW_SIZE / 2 - imgH / 2 + offset.y}px`,
+                      // Only set width; height follows natural aspect ratio.
+                      width:   naturalSize.w > 0 ? `${imgW}px` : "1px",
+                      left:    naturalSize.w > 0 ? `${PREVIEW_SIZE / 2 - imgW / 2 + offset.x}px` : "0",
+                      top:     naturalSize.w > 0 ? `${PREVIEW_SIZE / 2 - imgH / 2 + offset.y}px` : "0",
+                      opacity: naturalSize.w > 0 ? 1 : 0,
                       pointerEvents: "none",
                     }}
                   />
                 )}
 
-                {/* Loading state */}
+                {/* Loading spinner — shown until image dimensions are known */}
                 {(!imgSrc || naturalSize.w === 0) && (
                   <div style={{
                     position: "absolute",
@@ -311,16 +318,6 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                   </div>
                 )}
               </div>
-
-              {/* Hidden img to trigger onLoad and get natural dimensions */}
-              {imgSrc && (
-                <img
-                  src={imgSrc}
-                  alt=""
-                  onLoad={handleImageLoad}
-                  style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }}
-                />
-              )}
             </div>
 
             {/* Zoom controls */}
