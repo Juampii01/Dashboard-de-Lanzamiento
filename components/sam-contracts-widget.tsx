@@ -69,7 +69,7 @@ export function SamContractsWidget() {
 
   if (loading) {
     return (
-      <div className="rounded-xl border p-5 flex items-center gap-3" style={{ background: "rgba(20,58,107,0.4)", borderColor: "#1E3A5C", backdropFilter: "blur(12px)" }}>
+      <div className="rounded-xl border p-5 flex items-center gap-3" style={{ background: "rgba(20,58,107,0.85)", borderColor: "#1E3A5C" }}>
         <div className="skeleton h-4 w-48" />
       </div>
     );
@@ -82,9 +82,8 @@ export function SamContractsWidget() {
       onClick={handleStatClick}
       className="rounded-xl border p-5 relative overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-0.5"
       style={{
-        background: "linear-gradient(135deg, rgba(20,58,107,0.5) 0%, rgba(10,37,64,0.7) 100%)",
+        background: "linear-gradient(135deg, rgba(20,58,107,0.88) 0%, rgba(10,37,64,0.92) 100%)",
         borderColor: "rgba(0,214,122,0.25)",
-        backdropFilter: "blur(12px)",
       }}
       title="Click para ver en vivo"
     >

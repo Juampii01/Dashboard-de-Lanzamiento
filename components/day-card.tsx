@@ -111,12 +111,12 @@ export function DayCard({
           : "border-[#1E3A5C] cursor-not-allowed"
       )}
       style={{
+        // Solid backgrounds (no backdrop-filter — 4 simultaneous blur layers kill perf)
         background: isCompleted
-          ? "rgba(0,30,20,0.55)"
+          ? "rgba(0,30,20,0.88)"
           : isUnlocked
-          ? "rgba(20,58,107,0.65)"
-          : "rgba(10,37,64,0.5)",
-        backdropFilter: isUnlocked || isCompleted ? "blur(18px)" : "none",
+          ? "rgba(20,58,107,0.90)"
+          : "rgba(10,37,64,0.80)",
         boxShadow: isCompleted
           ? "0 0 0 1px rgba(0,214,122,0.35), 0 8px 32px rgba(0,0,0,0.4)"
           : isUnlocked

@@ -42,26 +42,49 @@ export function ParticleBackground() {
       const my = mouse.current.y;
       const cols = Math.ceil(canvas.width / SPACING) + 1;
       const rows = Math.ceil(canvas.height / SPACING) + 1;
+      const MOUSE_R  = 150;
+      const MOUSE_R2 = MOUSE_R * MOUSE_R;
 
-      // Dot grid with mouse reactivity
+      // ── Dot grid — batched by color to minimise canvas state changes ────────
+      // Pass 1: all base dots in a single path → single fill() call
+      ctx.beginPath();
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
-          const x = i * SPACING;
-          const y = j * SPACING;
+          const x = i * SPACING, y = j * SPACING;
           const dx = x - mx, dy = y - my;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const glow = Math.max(0, 1 - dist / 150);
-          ctx.beginPath();
-          ctx.arc(x, y, 0.8 + glow * 2, 0, Math.PI * 2);
-          ctx.fillStyle = glow > 0.25
-            ? `rgba(215,38,61,${0.08 + glow * 0.55})`
-            : `rgba(30,58,92,${0.14 + glow * 0.2})`;
-          ctx.fill();
+          if (dx * dx + dy * dy >= MOUSE_R2) {
+            ctx.moveTo(x + 0.8, y);
+            ctx.arc(x, y, 0.8, 0, Math.PI * 2);
+          }
         }
       }
+      ctx.fillStyle = "rgba(30,58,92,0.14)";
+      ctx.fill();
 
-      // Red radial mouse glow
+      // Pass 2: only dots within mouse radius (much fewer; drawn individually for colour variation)
       if (mx > -100) {
+        const iStart = Math.max(0, Math.floor((mx - MOUSE_R) / SPACING));
+        const iEnd   = Math.min(cols - 1, Math.ceil((mx + MOUSE_R) / SPACING));
+        const jStart = Math.max(0, Math.floor((my - MOUSE_R) / SPACING));
+        const jEnd   = Math.min(rows - 1, Math.ceil((my + MOUSE_R) / SPACING));
+        for (let i = iStart; i <= iEnd; i++) {
+          for (let j = jStart; j <= jEnd; j++) {
+            const x = i * SPACING, y = j * SPACING;
+            const dx = x - mx, dy = y - my;
+            const distSq = dx * dx + dy * dy;
+            if (distSq < MOUSE_R2) {
+              const glow = 1 - Math.sqrt(distSq) / MOUSE_R;
+              ctx.beginPath();
+              ctx.arc(x, y, 0.8 + glow * 2, 0, Math.PI * 2);
+              ctx.fillStyle = glow > 0.25
+                ? `rgba(215,38,61,${0.08 + glow * 0.55})`
+                : `rgba(30,58,92,${0.14 + glow * 0.2})`;
+              ctx.fill();
+            }
+          }
+        }
+
+        // Red radial mouse glow
         const g = ctx.createRadialGradient(mx, my, 0, mx, my, 160);
         g.addColorStop(0, "rgba(215,38,61,0.07)");
         g.addColorStop(1, "rgba(215,38,61,0)");
@@ -69,7 +92,7 @@ export function ParticleBackground() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
 
-      // Floating green particles
+      // ── Floating green particles ──────────────────────────────────────────
       for (const p of particles) {
         p.x += p.vx; p.y += p.vy;
         p.alpha += p.dAlpha;

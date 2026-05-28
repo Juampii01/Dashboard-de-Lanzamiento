@@ -159,9 +159,8 @@ export function Leaderboard() {
       data-tour-id="leaderboard"
       className="rounded-xl border overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, rgba(20,58,107,0.5) 0%, rgba(10,37,64,0.7) 100%)",
+        background: "linear-gradient(135deg, rgba(20,58,107,0.88) 0%, rgba(10,37,64,0.92) 100%)",
         borderColor: "rgba(255,214,10,0.2)",
-        backdropFilter: "blur(12px)",
       }}
     >
       {/* Header */}
