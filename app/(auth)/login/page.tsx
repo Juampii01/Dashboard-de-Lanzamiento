@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -99,27 +98,19 @@ export default function LoginPage() {
         <div className="p-8">
           {/* Logo */}
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="w-20 h-20 relative mb-5">
-              <Image
-                src="/govbidder-logo.png"
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
+              style={{
+                background: "#D7263D",
+                boxShadow: "0 0 32px rgba(215,38,61,0.4)",
+                overflow: "hidden",
+              }}
+            >
+              <img
+                src="/halcon.png"
                 alt="Govbidder"
-                fill
-                className="object-contain"
-                priority
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
+                style={{ width: "72px", height: "72px", objectFit: "contain" }}
               />
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white"
-                style={{
-                  background: "#D7263D",
-                  boxShadow: "0 0 32px rgba(215,38,61,0.4)",
-                  fontFamily: "var(--font-display)",
-                }}
-              >
-                G
-              </div>
             </div>
             <h1
               className="text-3xl font-bold text-white mb-1"

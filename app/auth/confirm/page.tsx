@@ -58,14 +58,18 @@ export default function ConfirmPage() {
     >
       {/* Logo */}
       <div
-        className="w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold text-white"
+        className="w-16 h-16 rounded-full flex items-center justify-center"
         style={{
           background: "#D7263D",
           boxShadow: "0 0 32px rgba(215,38,61,0.4)",
-          fontFamily: "var(--font-display)",
+          overflow: "hidden",
         }}
       >
-        G
+        <img
+          src="/halcon.png"
+          alt="Govbidder"
+          style={{ width: "58px", height: "58px", objectFit: "contain" }}
+        />
       </div>
 
       {status === "loading" ? (

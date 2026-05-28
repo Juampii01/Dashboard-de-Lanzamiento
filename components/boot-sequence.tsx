@@ -57,10 +57,14 @@ export function BootSequence() {
         {/* Logo row */}
         <div className="flex items-center gap-3 mb-8">
           <div
-            className="w-8 h-8 rounded flex items-center justify-center font-bold text-white text-sm"
-            style={{ background: "#D7263D", fontFamily: "var(--font-display)" }}
+            className="w-8 h-8 rounded flex items-center justify-center"
+            style={{ background: "#D7263D", overflow: "hidden" }}
           >
-            G
+            <img
+              src="/halcon.png"
+              alt="Govbidder"
+              style={{ width: "28px", height: "28px", objectFit: "contain" }}
+            />
           </div>
           <span style={{ fontFamily: "var(--font-mono)", color: "#00D67A", fontSize: "11px", letterSpacing: "0.22em" }}>
             GOVBIDDER TERMINAL v1.0

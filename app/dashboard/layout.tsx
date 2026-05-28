@@ -149,14 +149,18 @@ export default async function DashboardLayout({
             {/* Logo + brand */}
             <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-white text-sm"
+                className="w-9 h-9 rounded-lg flex items-center justify-center"
                 style={{
                   background: "#D7263D",
                   boxShadow: "0 2px 12px rgba(215,38,61,0.4)",
-                  fontFamily: "var(--font-display)",
+                  overflow: "hidden",
                 }}
               >
-                G
+                <img
+                  src="/halcon.png"
+                  alt="Govbidder"
+                  style={{ width: "32px", height: "32px", objectFit: "contain" }}
+                />
               </div>
               <div>
                 <p
