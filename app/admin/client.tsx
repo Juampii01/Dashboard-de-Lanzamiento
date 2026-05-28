@@ -53,7 +53,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle2, Trophy, Users } from "lucide-react";
+import { CheckCircle2, Trophy, Users, UserPlus } from "lucide-react";
+import Link from "next/link";
 import { isExpired } from "@/lib/utils";
 
 interface AdminToggle {
@@ -157,11 +158,20 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="text-2xl font-bold text-primary">Panel de Administración</h1>
-        <p className="text-muted-foreground mt-1">
-          Controlá los días del challenge en vivo y monitoreá el progreso de los alumnos.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Panel de Administración</h1>
+          <p className="text-muted-foreground mt-1">
+            Controlá los días del challenge en vivo y monitoreá el progreso de los alumnos.
+          </p>
+        </div>
+        <Link
+          href="/admin/usuarios/nuevo"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shrink-0"
+        >
+          <UserPlus className="w-4 h-4" />
+          Crear usuario
+        </Link>
       </div>
 
       {/* Toggles globales */}

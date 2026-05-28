@@ -8,14 +8,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [showAuthError, setShowAuthError] = useState(false);
 
-  // Show a helpful message when redirected here after an expired / already-used link
+  // Show support banner when redirected here after an expired / already-used link
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("error") === "auth") {
-      toast.error("Tu link de acceso expiró o ya fue usado. Ingresá tu email para recibir uno nuevo.", {
-        duration: 6000,
-      });
+      setShowAuthError(true);
     }
   }, []);
 
@@ -105,6 +104,52 @@ export default function LoginPage() {
               />
             </div>
           </div>
+
+          {/* Auth error banner — shown when redirected from /auth/confirm with ?error=auth */}
+          {showAuthError && (
+            <div
+              className="rounded-lg p-4 mb-6"
+              style={{
+                background: "rgba(215,38,61,0.12)",
+                border: "1px solid rgba(215,38,61,0.35)",
+              }}
+            >
+              <p className="font-semibold text-white text-sm mb-2">
+                No pudimos verificar tu acceso
+              </p>
+              <p className="text-sm mb-3" style={{ color: "#A8B5CC" }}>
+                Tu link de acceso expiró o no es válido. Por seguridad, no podemos
+                darte acceso automáticamente sin verificar tu cuenta.
+              </p>
+              <p className="text-sm mb-2" style={{ color: "#A8B5CC" }}>
+                Si tenés problemas para ingresar, contactá a soporte:
+              </p>
+              <ul className="text-sm space-y-1" style={{ color: "#A8B5CC" }}>
+                <li>
+                  📧{" "}
+                  <a
+                    href="mailto:soporte@govbidder.com"
+                    className="underline"
+                    style={{ color: "#00D67A" }}
+                  >
+                    soporte@govbidder.com
+                  </a>
+                </li>
+                <li>
+                  📱 WhatsApp:{" "}
+                  <a
+                    href="https://wa.me/5492355693601"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline"
+                    style={{ color: "#00D67A" }}
+                  >
+                    +54 9 2355 693601
+                  </a>
+                </li>
+              </ul>
+            </div>
+          )}
 
           {sent ? (
             <div className="text-center space-y-4 py-2">
