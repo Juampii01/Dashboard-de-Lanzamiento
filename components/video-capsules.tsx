@@ -206,15 +206,12 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
   useEffect(() => { loadCapsules(); }, [loadCapsules]);
 
-  // ── Pick a random unwatched capsule ──────────────────────────────────────────
+  // ── Open a specific capsule ───────────────────────────────────────────────────
 
-  const handleWatch = useCallback(() => {
-    const unwatched = capsules.filter((c) => !c.completed);
-    if (unwatched.length === 0) return;
-    const pick = unwatched[Math.floor(Math.random() * unwatched.length)];
-    setActiveId(pick.id);
+  const handleWatchCapsule = useCallback((id: string) => {
+    setActiveId(id);
     setVideoUnlocked(false);
-  }, [capsules]);
+  }, []);
 
   // ── YouTube IFrame API + fallback timer when modal opens ─────────────────────
 
@@ -328,11 +325,11 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
   // ── Derived ───────────────────────────────────────────────────────────────────
 
-  const completed = capsules.filter((c) => c.completed).length;
-  const total     = capsules.length;
-  const allDone   = total > 0 && completed === total;
-  const canWatch  = cooldownSecs <= 0 && !allDone;
-  const activeCap = capsules.find((c) => c.id === activeId);
+  const completed   = capsules.filter((c) => c.completed).length;
+  const total       = capsules.length;
+  const allDone     = total > 0 && completed === total;
+  const onCooldown  = cooldownSecs > 0;
+  const activeCap   = capsules.find((c) => c.id === activeId);
   const videoId   = activeCap ? getYoutubeId(activeCap.youtube_url) : null;
   const isVertical = activeCap?.orientation === "vertical";
 
@@ -473,9 +470,8 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
         data-tour-id="capsules"
         className="rounded-xl border overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(0,212,255,0.05) 0%, rgba(10,37,64,0.7) 100%)",
+          background: "linear-gradient(135deg, rgba(0,212,255,0.05) 0%, rgba(10,37,64,0.88) 100%)",
           borderColor: "rgba(0,212,255,0.2)",
-          backdropFilter: "blur(12px)",
         }}
       >
         {/* Widget Header */}
@@ -522,61 +518,40 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
         {/* Widget Body */}
         {expanded && (
-          <div className="px-5 py-4 space-y-4">
-            {/* Main CTA */}
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                {allDone ? (
-                  <p className="text-sm font-semibold" style={{ color: "#00D67A" }}>
-                    🏆 ¡Todas las misiones completadas!
-                  </p>
-                ) : canWatch ? (
-                  <p className="text-xs" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>
-                    {capsules.filter((c) => !c.completed).length} misión{capsules.filter((c) => !c.completed).length !== 1 ? "es" : ""} disponible{capsules.filter((c) => !c.completed).length !== 1 ? "s" : ""}
-                  </p>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs" style={{ color: "#5A6B85" }}>Próxima misión en</p>
-                    <CooldownBadge seconds={cooldownSecs} />
-                  </div>
-                )}
+          <div className="px-5 py-4">
+
+            {/* Status row — only shown when cooldown active or all done */}
+            {allDone && (
+              <p className="text-sm font-semibold mb-3" style={{ color: "#00D67A" }}>
+                🏆 ¡Todas las misiones completadas!
+              </p>
+            )}
+            {!allDone && onCooldown && (
+              <div className="flex items-center gap-2 mb-3 pb-3" style={{ borderBottom: "1px solid rgba(0,212,255,0.08)" }}>
+                <p className="text-xs" style={{ color: "#5A6B85" }}>Próxima misión en</p>
+                <CooldownBadge seconds={cooldownSecs} />
               </div>
+            )}
 
-              {!allDone && (
-                <button
-                  onClick={handleWatch}
-                  disabled={!canWatch}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                  style={{
-                    background: canWatch
-                      ? "linear-gradient(135deg, #00D4FF, #0099CC)"
-                      : "rgba(0,212,255,0.1)",
-                    color: canWatch ? "#000" : "#3A5070",
-                    fontFamily: "var(--font-sans)",
-                    boxShadow: canWatch ? "0 0 16px rgba(0,212,255,0.35)" : "none",
-                  }}
-                >
-                  ▶ Ver misión
-                </button>
-              )}
-            </div>
-
-            {/* Capsule list */}
-            <div className="space-y-1.5">
+            {/* Capsule list — each row has its own action button */}
+            <div className="space-y-2">
               {capsules.map((c) => {
-                const badge = typeBadge(c.video_type);
+                const badge    = typeBadge(c.video_type);
+                const canDoThis = !c.completed && !onCooldown;
                 return (
                   <div
                     key={c.id}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
                     style={{
                       background: c.completed ? "rgba(0,214,122,0.06)" : "rgba(0,212,255,0.04)",
                       border: `1px solid ${c.completed ? "rgba(0,214,122,0.15)" : "rgba(0,212,255,0.08)"}`,
                     }}
                   >
+                    {/* Completion dot */}
                     <span className="text-xs shrink-0" style={{ color: c.completed ? "#00D67A" : "#3A5070" }}>
                       {c.completed ? "✓" : "○"}
                     </span>
+
                     {/* Type badge */}
                     <span
                       className="text-[9px] shrink-0 px-1.5 py-0.5 rounded"
@@ -589,21 +564,49 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     >
                       {badge.label}
                     </span>
+
+                    {/* Title */}
                     <span
                       className="flex-1 text-xs truncate"
-                      style={{
-                        color: c.completed ? "#00D67A" : "#A8B5CC",
-                        fontFamily: "var(--font-sans)",
-                      }}
+                      style={{ color: c.completed ? "#00D67A" : "#A8B5CC", fontFamily: "var(--font-sans)" }}
                     >
                       {c.title}
                     </span>
+
+                    {/* XP reward */}
                     <span
                       className="text-[10px] shrink-0"
                       style={{ color: c.completed ? "#00D67A" : "#3A5070", fontFamily: "var(--font-mono)" }}
                     >
                       +{c.points_reward} XP
                     </span>
+
+                    {/* Per-capsule action button */}
+                    {c.completed ? (
+                      <span
+                        className="text-[10px] shrink-0 px-2 py-1 rounded"
+                        style={{ color: "#00D67A", background: "rgba(0,214,122,0.1)", fontFamily: "var(--font-mono)" }}
+                      >
+                        ✓ Hecha
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleWatchCapsule(c.id)}
+                        disabled={!canDoThis}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={{
+                          background: canDoThis
+                            ? "linear-gradient(135deg, #00D4FF, #0099CC)"
+                            : "rgba(0,212,255,0.08)",
+                          color: canDoThis ? "#000" : "#3A5070",
+                          fontFamily: "var(--font-sans)",
+                          boxShadow: canDoThis ? "0 0 10px rgba(0,212,255,0.3)" : "none",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ▶ Hacer misión
+                      </button>
+                    )}
                   </div>
                 );
               })}
