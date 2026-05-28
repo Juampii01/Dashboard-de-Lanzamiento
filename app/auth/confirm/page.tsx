@@ -40,11 +40,19 @@ export default function ConfirmPage() {
     }
 
     const supabase = createClient();
-    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+    supabase.auth.exchangeCodeForSession(code).then(async ({ error }) => {
       if (error) {
         console.error("[auth/confirm] exchangeCodeForSession:", error.message);
-        setStatus("error");
-        setTimeout(() => router.replace("/login?error=auth"), 1500);
+        // Code may have been used already (e.g. user clicked link twice, or link
+        // was already exchanged in another tab). Check if there's a live session
+        // before showing the error — if there is, just redirect silently.
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          router.replace(next);
+        } else {
+          setStatus("error");
+          setTimeout(() => router.replace("/login?error=auth"), 1500);
+        }
       } else {
         router.replace(next);
       }
@@ -57,15 +65,21 @@ export default function ConfirmPage() {
       style={{ background: "linear-gradient(135deg, #0A2540 0%, #143A6B 100%)" }}
     >
       {/* Logo */}
-      <img
-        src="/halcon.png"
-        alt="Govbidder Challenge"
+      <div
         style={{
-          height: "130px",
-          width: "auto",
-          display: "block",
+          background: "#fff",
+          borderRadius: "18px",
+          padding: "14px 20px",
+          display: "inline-block",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
         }}
-      />
+      >
+        <img
+          src="/halcon.png"
+          alt="Govbidder Challenge"
+          style={{ height: "110px", width: "auto", display: "block" }}
+        />
+      </div>
 
       {status === "loading" ? (
         <>
