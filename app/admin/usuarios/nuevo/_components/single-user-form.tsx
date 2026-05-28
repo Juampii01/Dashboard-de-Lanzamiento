@@ -16,6 +16,7 @@ export function SingleUserForm() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [expiresAt, setExpiresAt] = useState(defaultExpiresAt());
+  const [isAdmin, setIsAdmin] = useState(false);
   const [notes, setNotes] = useState("");
 
   const [status, setStatus] = useState<Status>("idle");
@@ -38,6 +39,7 @@ export function SingleUserForm() {
           expires_at: expiresAt
             ? new Date(`${expiresAt}T23:59:59Z`).toISOString()
             : null,
+          is_admin: isAdmin,
           notes: notes.trim() || null,
         }),
       });
@@ -65,6 +67,7 @@ export function SingleUserForm() {
     setFullName("");
     setPhone("");
     setExpiresAt(defaultExpiresAt());
+    setIsAdmin(false);
     setNotes("");
     setStatus("idle");
     setErrorMsg("");
@@ -156,6 +159,21 @@ export function SingleUserForm() {
         <p className="text-xs text-muted-foreground">
           Default: 30 días desde hoy
         </p>
+      </div>
+
+      {/* Admin toggle */}
+      <div className="flex items-center gap-3 py-1">
+        <input
+          type="checkbox"
+          id="is-admin"
+          checked={isAdmin}
+          onChange={(e) => setIsAdmin(e.target.checked)}
+          className="w-4 h-4 rounded accent-primary cursor-pointer"
+        />
+        <label htmlFor="is-admin" className="text-sm font-medium cursor-pointer select-none">
+          Es administrador
+        </label>
+        <span className="text-xs text-muted-foreground">(acceso al panel /admin)</span>
       </div>
 
       {/* Notes */}

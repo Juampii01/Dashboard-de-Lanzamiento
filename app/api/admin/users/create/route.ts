@@ -14,6 +14,7 @@ const userSchema = z.object({
     .optional()
     .nullable(),
   expires_at: z.string().datetime().optional().nullable(),
+  is_admin: z.boolean().optional().default(false),
   notes: z.string().max(500).optional().nullable(),
 });
 
@@ -123,6 +124,7 @@ export async function POST(req: Request) {
           hotmart_transaction_id: syntheticTxnId,
           access_starts_at: new Date().toISOString(),
           access_expires_at: expiresAt.toISOString(),
+          is_admin: userData.is_admin ?? false,
         })
         .eq("id", newUserId);
 
