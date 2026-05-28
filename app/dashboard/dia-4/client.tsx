@@ -412,7 +412,7 @@ export function Dia4Client({
         <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
           <CardContent className="text-center py-8 space-y-4">
             <div className="text-5xl">🏆</div>
-            <h2 className="text-2xl font-bold">¡Completaste el Govbidder Code Challenge!</h2>
+            <h2 className="text-2xl font-bold">¡Completaste el Govbidder Challenge!</h2>
             <p className="text-primary-foreground/80">
               Hola <strong>{fullName}</strong>, completaste los 4 días del challenge.
               Ya tenés las herramientas para empezar a venderle al gobierno federal.

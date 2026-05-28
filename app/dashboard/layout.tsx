@@ -166,7 +166,7 @@ export default async function DashboardLayout({
                   Govbidder
                 </p>
                 <p className="text-[11px] text-[#A8B5CC] tracking-wide">
-                  Code Challenge
+                  Challenge
                 </p>
               </div>
             </Link>

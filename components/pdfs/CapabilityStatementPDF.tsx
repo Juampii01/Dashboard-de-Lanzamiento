@@ -192,7 +192,7 @@ export function CapabilityStatementPDF({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Govbidder Code Challenge · {generatedAt}</Text>
+          <Text style={styles.footerText}>Govbidder Challenge · {generatedAt}</Text>
           <Text style={styles.footerContact}>{data.contact_placeholder}</Text>
         </View>
       </Page>

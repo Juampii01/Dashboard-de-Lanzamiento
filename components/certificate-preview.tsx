@@ -116,7 +116,7 @@ export function CertificatePreview({ completedDays, userName }: CertificatePrevi
                 filter: completedDays >= 2 ? "none" : "blur(8px)",
               }}
             >
-              Govbidder Code Challenge
+              Govbidder Challenge
             </p>
 
             {/* Day badges */}

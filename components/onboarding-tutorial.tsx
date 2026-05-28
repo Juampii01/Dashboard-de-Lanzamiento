@@ -26,7 +26,7 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    title: "¡Bienvenido al Code Challenge! 🎮",
+    title: "¡Bienvenido al Challenge! 🎮",
     body: "Soy Santo, tu guía en esta misión. En los próximos 4 días vas a construir tu presencia en el mercado federal. Cada acción suma puntos — y los puntos deciden quién gana el sorteo.",
     santoMood: "wave",
   },

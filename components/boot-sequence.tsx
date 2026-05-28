@@ -8,7 +8,7 @@ const LINES = [
   { text: "> Conectando con SAM.gov...", color: "#A8B5CC" },
   { text: "> Cargando oportunidades de contratos...", color: "#A8B5CC" },
   { text: "> [OK] Perfil de contratista: VERIFICADO", color: "#00D67A" },
-  { text: "> ACCESO CONCEDIDO. Bienvenido al Code Challenge.", color: "#FFD60A" },
+  { text: "> ACCESO CONCEDIDO. Bienvenido al Challenge.", color: "#FFD60A" },
 ];
 
 const DELAYS = [0, 420, 820, 1200, 1680, 2200];

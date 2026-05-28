@@ -131,7 +131,7 @@ export default function LoginPage() {
               className="text-sm uppercase tracking-[0.15em]"
               style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
             >
-              Code Challenge
+              Challenge
             </p>
           </div>
 

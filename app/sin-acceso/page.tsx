@@ -46,7 +46,7 @@ export default function SinAccesoPage() {
             </h1>
             <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC" }}>
               Tu cuenta no tiene una compra verificada asociada al{" "}
-              <strong className="text-white">Govbidder Code Challenge</strong>.
+              <strong className="text-white">Govbidder Challenge</strong>.
             </p>
           </div>
 

@@ -1,5 +1,5 @@
 /**
- * WOW Effects — Govbidder Code Challenge v4
+ * WOW Effects — Govbidder Challenge v4
  * Web Animations API, no dependencies. All DOM elements self-clean on finish.
  */
 

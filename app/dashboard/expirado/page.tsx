@@ -16,7 +16,7 @@ export default function ExpiradoPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-muted-foreground">
-            La ventana de 7 días del Govbidder Code Challenge terminó. Pero lo que
+            La ventana de 7 días del Govbidder Challenge terminó. Pero lo que
             aprendiste es tuyo para siempre.
           </p>
 

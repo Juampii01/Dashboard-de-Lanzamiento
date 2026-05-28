@@ -129,7 +129,7 @@ export function Day1AnalysisPDF({
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.logo}>GOVBIDDER</Text>
-          <Text style={styles.subtitle}>Code Challenge — Análisis Inicial Día 1</Text>
+          <Text style={styles.subtitle}>Govbidder Challenge — Análisis Inicial Día 1</Text>
         </View>
 
         <Text style={styles.title}>Perfil Estratégico: {companyName}</Text>
@@ -183,7 +183,7 @@ export function Day1AnalysisPDF({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text>Govbidder Code Challenge</Text>
+          <Text>Govbidder Challenge</Text>
           <Text>Generado el {generatedAt}</Text>
         </View>
       </Page>

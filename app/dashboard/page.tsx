@@ -130,7 +130,7 @@ export default async function DashboardPage() {
             className="text-4xl font-bold text-white leading-tight"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Bienvenido al Code Challenge
+            Bienvenido al Challenge
             <span className="ml-2">🚀</span>
           </h1>
           <SocialProof />

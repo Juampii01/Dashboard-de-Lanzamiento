@@ -101,7 +101,7 @@ export function Day2CodeMapPDF({
       <Page size="LETTER" style={styles.page}>
         <View style={styles.header}>
           <Text style={styles.logo}>GOVBIDDER</Text>
-          <Text style={styles.subtitle}>Code Challenge — Mapa de Código Gubernamental Día 2</Text>
+          <Text style={styles.subtitle}>Govbidder Challenge — Mapa de Código Gubernamental Día 2</Text>
         </View>
 
         <Text style={styles.title}>Mapa de Códigos: {companyName}</Text>
@@ -132,7 +132,7 @@ export function Day2CodeMapPDF({
         </View>
 
         <View style={styles.footer}>
-          <Text>Govbidder Code Challenge</Text>
+          <Text>Govbidder Challenge</Text>
           <Text>Generado el {generatedAt}</Text>
         </View>
       </Page>

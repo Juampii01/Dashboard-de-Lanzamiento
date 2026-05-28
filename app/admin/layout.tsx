@@ -29,7 +29,7 @@ export default async function AdminLayout({
             <Shield className="w-6 h-6 text-accent" />
             <div>
               <p className="font-bold">Panel Admin</p>
-              <p className="text-xs text-primary-foreground/60">Govbidder Code Challenge</p>
+              <p className="text-xs text-primary-foreground/60">Govbidder Challenge</p>
             </div>
           </div>
           <Link
