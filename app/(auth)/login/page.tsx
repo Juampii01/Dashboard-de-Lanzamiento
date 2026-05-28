@@ -102,10 +102,8 @@ export default function LoginPage() {
               src="/halcon.png"
               alt="Govbidder Challenge"
               style={{
-                height: "160px",
+                height: "180px",
                 width: "auto",
-                borderRadius: "12px",
-                boxShadow: "0 4px 32px rgba(0,0,0,0.4)",
                 display: "block",
               }}
             />

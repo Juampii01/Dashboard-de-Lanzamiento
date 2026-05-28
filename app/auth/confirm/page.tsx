@@ -61,10 +61,8 @@ export default function ConfirmPage() {
         src="/halcon.png"
         alt="Govbidder Challenge"
         style={{
-          height: "120px",
+          height: "130px",
           width: "auto",
-          borderRadius: "10px",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
           display: "block",
         }}
       />

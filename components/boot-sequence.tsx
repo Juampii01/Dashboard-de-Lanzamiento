@@ -60,9 +60,8 @@ export function BootSequence() {
             src="/halcon.png"
             alt="Govbidder Challenge"
             style={{
-              height: "36px",
+              height: "40px",
               width: "auto",
-              borderRadius: "5px",
               display: "block",
             }}
           />

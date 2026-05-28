@@ -152,10 +152,8 @@ export default async function DashboardLayout({
                 src="/halcon.png"
                 alt="Govbidder Challenge"
                 style={{
-                  height: "48px",
+                  height: "56px",
                   width: "auto",
-                  borderRadius: "8px",
-                  boxShadow: "0 2px 16px rgba(0,0,0,0.35)",
                   display: "block",
                 }}
               />
