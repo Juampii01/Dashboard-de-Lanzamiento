@@ -155,16 +155,22 @@ export default async function DashboardLayout({
           <div className="flex items-center justify-between mb-4">
             {/* Logo */}
             <Link href="/dashboard" className="hover:opacity-80 transition-opacity shrink-0">
-              <img
-                src="/halcon.png"
-                alt="Govbidder Challenge"
+              <div
                 style={{
-                  height: "56px",
-                  width: "auto",
-                  display: "block",
-                  filter: "drop-shadow(0 0 10px rgba(255,255,255,0.35))",
+                  background: "#fff",
+                  borderRadius: "10px",
+                  padding: "5px 10px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
                 }}
-              />
+              >
+                <img
+                  src="/halcon.png"
+                  alt="Govbidder Challenge"
+                  style={{ height: "46px", width: "auto", display: "block" }}
+                />
+              </div>
             </Link>
 
             {/* Right: countdown + admin + xp + user + logout */}
