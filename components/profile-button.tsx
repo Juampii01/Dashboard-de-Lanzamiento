@@ -152,22 +152,24 @@ export function ProfileButton({
             position: "relative",
           }}
         >
-          {/* Initials fallback */}
-          <span
+          {/* Eagle logo fallback — shown when no avatar (or while avatar loads) */}
+          <img
+            src="/halcon.png"
+            alt=""
             style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: "#A8B5CC",
-              lineHeight: 1,
               position: "absolute",
-              userSelect: "none",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center",
               opacity: avatarVisible && !avatarError ? 0 : 1,
               transition: "opacity 0.2s",
+              background: "#fff",
             }}
-          >
-            {initial}
-          </span>
+          />
 
+          {/* User avatar — fades in on top of the eagle once loaded */}
           {headerAvatar && !avatarError && (
             <img
               key={headerAvatar}
