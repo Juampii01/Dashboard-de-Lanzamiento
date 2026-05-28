@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Shield, ArrowLeft } from "lucide-react";
+import { Shield, ArrowLeft, BookOpen } from "lucide-react";
 
 export default async function AdminLayout({
   children,
@@ -32,13 +32,22 @@ export default async function AdminLayout({
               <p className="text-xs text-primary-foreground/60">Govbidder Challenge</p>
             </div>
           </div>
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1 text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al Dashboard
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/admin/guia"
+              className="flex items-center gap-1 text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
+              <BookOpen className="w-4 h-4" />
+              Guía
+            </Link>
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-1 text-sm text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Volver al Dashboard
+            </Link>
+          </div>
         </div>
       </header>
       <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
