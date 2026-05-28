@@ -15,6 +15,7 @@ export default async function Dia2Page() {
     const cookieStore = await cookies();
     const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
     const isDone = devCompleted.split(",").includes("2");
+    const isAdmin = true;
     return (
       <div className="space-y-8">
         <Dia2Client userId="dev" isCompleted={isDone} existingExpansion={null} primaryNaics="" companyNiche="" devMode />

@@ -96,12 +96,22 @@ export function Dia4Client({
 
       if (error) throw new Error(error.message);
 
-      await supabase
-        .from("day_progress")
-        // @ts-ignore
-        .update({ is_completed: true, completed_at: new Date().toISOString() })
-        .eq("user_id", userId)
-        .eq("day_number", 4);
+      // Marcar día 4 como completado + otorgar XP (idempotente)
+      const xpRes = await fetch("/api/xp/complete-day", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day: 4 }),
+      });
+      if (!xpRes.ok) throw new Error("Error al marcar día completo");
+      const xpData: { ok: boolean; pointsAwarded: number; total: number; alreadyCompleted: boolean } =
+        await xpRes.json();
+      if (xpData.pointsAwarded > 0) {
+        window.dispatchEvent(
+          new CustomEvent("xp-gained", {
+            detail: { delta: xpData.pointsAwarded, total: xpData.total, source: "day" },
+          })
+        );
+      }
 
       setIsCompleted(true);
       toast.success("¡Capability Statement generado!");

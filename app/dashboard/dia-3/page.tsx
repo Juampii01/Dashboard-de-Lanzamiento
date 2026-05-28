@@ -15,6 +15,7 @@ export default async function Dia3Page() {
     const cookieStore = await cookies();
     const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
     const isDone = devCompleted.split(",").includes("3");
+    const isAdmin = true;
     return (
       <div className="space-y-8">
         <Dia3Client userId="dev" isCompleted={isDone} existingPreview={null} profile={null} keywordsExpanded={[]} devMode />

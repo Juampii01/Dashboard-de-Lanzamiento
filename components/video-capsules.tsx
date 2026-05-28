@@ -487,7 +487,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                 Misiones en video
               </p>
               <p className="text-[10px] mt-0.5" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
-                {completed}/{total} completadas · {(total - completed) * 10} XP disponibles
+                {completed}/{total} completadas · {capsules.filter(c => !c.completed).reduce((sum, c) => sum + c.points_reward, 0)} XP disponibles
               </p>
             </div>
           </div>

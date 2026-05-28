@@ -9,6 +9,21 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Gate: only users who completed Day 4 can download the certificate
+  const { data: day4 } = await supabase
+    .from("day_progress")
+    .select("is_completed")
+    .eq("user_id", user.id)
+    .eq("day_number", 4)
+    .maybeSingle();
+
+  if (!day4?.is_completed) {
+    return NextResponse.json(
+      { error: "Completá el challenge primero para descargar el certificado." },
+      { status: 403 }
+    );
+  }
+
   const { data: profile } = await supabase
     .from("users")
     .select("full_name")
