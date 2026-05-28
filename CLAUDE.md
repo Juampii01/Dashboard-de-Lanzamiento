@@ -138,7 +138,7 @@ El tutorial persiste el step en `localStorage` (`govbidder_tour_step_v1`) para s
 | `video_capsules` | `id, day_number, title, youtube_url, points_reward, sort_order` |
 | `video_capsule_completions` | `user_id, capsule_id, points_earned, completed_at` — UNIQUE(user_id, capsule_id) |
 | `naics_expansions` | `user_id, keywords_expanded` |
-| `admin_day_toggles` | `day_number, is_globally_unlocked` |
+| `admin_toggles` | `day_number, is_globally_unlocked` |
 
 **RPC**: `get_leaderboard()` — SECURITY DEFINER, devuelve ranking con nombres enmascarados.
 

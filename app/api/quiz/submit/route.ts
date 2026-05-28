@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const bodySchema = z.object({
   quiz_id: z.string().uuid(),
-  selected_option_index: z.number().int().min(0).max(3),
+  selected_option_index: z.number().int().min(0).max(4),
 });
 
 /**
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
   const service = createServiceClient();
   const { data: quiz, error: quizErr } = await service
     .from("video_quizzes")
-    .select("id, correct_option_index, xp_reward")
+    .select("id, correct_option_index, xp_reward, capsule_id")
     .eq("id", quiz_id)
     .maybeSingle();
 
@@ -47,6 +47,36 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
   if (!quiz) return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+
+  // ── Day-unlock gate ─────────────────────────────────────────────────────────
+  // Derive day_number from the capsule, then verify the user has that day unlocked.
+  // One extra query per submit — acceptable; prevents XP farming on locked days.
+  const { data: capsule, error: capsuleErr } = await service
+    .from("video_capsules")
+    .select("day_number")
+    .eq("id", quiz.capsule_id)
+    .maybeSingle();
+
+  if (capsuleErr || !capsule) {
+    console.error("[quiz/submit] fetch capsule error:", capsuleErr);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+
+  const { data: dayAccess, error: dayErr } = await service
+    .from("day_progress")
+    .select("is_unlocked")
+    .eq("user_id", user.id)
+    .eq("day_number", capsule.day_number)
+    .maybeSingle();
+
+  if (dayErr) {
+    console.error("[quiz/submit] fetch day_progress error:", dayErr);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+  if (!dayAccess?.is_unlocked) {
+    return NextResponse.json({ error: "day_locked" }, { status: 403 });
+  }
+  // ───────────────────────────────────────────────────────────────────────────
 
   const is_correct = selected_option_index === quiz.correct_option_index;
 

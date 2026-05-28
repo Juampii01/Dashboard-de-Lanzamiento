@@ -1,27 +1,36 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-// M8: Cache leaderboard responses at the CDN edge for 30 s.
-// The component polls every 60 s, so a 30 s CDN TTL collapses N concurrent
-// user requests into ~2 DB calls per minute instead of N.
-// get_leaderboard() returns anonymized data — safe to serve from CDN cache.
-export const revalidate = 30;
+// The RPC now returns user-specific data (my_rank, in_top, me).
+// Cache must be private — cannot be shared across users at the CDN layer.
+// Browser-level 30 s cache is kept so rapid navigations don't re-hit the DB.
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ top: [] }, { status: 401 });
+  if (!user) {
+    return NextResponse.json(
+      { top: [], me: null, my_rank: null, in_top: false, total: 0 },
+      { status: 401 }
+    );
+  }
 
   const { data, error } = await supabase.rpc("get_leaderboard");
-  if (error) return NextResponse.json({ top: [] }, { status: 500 });
+  if (error) {
+    console.error("[leaderboard] rpc error:", error);
+    return NextResponse.json(
+      { top: [], me: null, my_rank: null, in_top: false, total: 0 },
+      { status: 500 }
+    );
+  }
 
-  return NextResponse.json(
-    { top: data ?? [] },
-    {
-      headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
-      },
-    }
-  );
+  // data is the raw json object returned by the RPC
+  return NextResponse.json(data, {
+    headers: {
+      // private: browser-level 30 s cache, no CDN sharing between users
+      "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
+    },
+  });
 }

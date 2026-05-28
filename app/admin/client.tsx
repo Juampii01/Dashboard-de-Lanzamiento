@@ -434,13 +434,21 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
             Controlá los días del challenge en vivo y monitoreá el progreso de los alumnos.
           </p>
         </div>
-        <Link
-          href="/admin/usuarios/nuevo"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shrink-0"
-        >
-          <UserPlus className="w-4 h-4" />
-          Crear usuario
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/contenido"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-[#1E3A5C] text-[#00D4FF] text-sm font-semibold hover:bg-[rgba(0,212,255,0.1)] transition-colors shrink-0"
+          >
+            📺 Contenido
+          </Link>
+          <Link
+            href="/admin/usuarios/nuevo"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shrink-0"
+          >
+            <UserPlus className="w-4 h-4" />
+            Crear usuario
+          </Link>
+        </div>
       </div>
 
       {/* Bloqueo de dashboard */}

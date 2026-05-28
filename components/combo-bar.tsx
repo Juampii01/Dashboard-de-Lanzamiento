@@ -12,26 +12,30 @@ export function ComboBar({ initialProgress }: ComboBarProps) {
   const [claiming, setClaiming] = useState(false);
   const [justClaimed, setJustClaimed] = useState(false);
   const [flash, setFlash] = useState(false);
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const btnRef      = useRef<HTMLButtonElement>(null);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isFull = progress >= 100;
 
   // Listen to combo-progress events dispatched by XP endpoints
   useEffect(() => {
+    function triggerFlash() {
+      // Cancel any pending flash-off timer before starting a new one
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+      setFlash(true);
+      flashTimerRef.current = setTimeout(() => setFlash(false), 400);
+    }
+
     function onComboProgress(e: Event) {
       const { progress: newProgress } = (e as CustomEvent<{ progress: number }>).detail;
       setProgress(newProgress);
-
-      // Flash the bar briefly when it gains progress
-      setFlash(true);
-      setTimeout(() => setFlash(false), 400);
+      triggerFlash();
     }
 
     // Also listen to video capsule combo updates
     function onComboDelta(e: Event) {
       const { delta } = (e as CustomEvent<{ delta: number }>).detail;
       setProgress((prev) => Math.min(100, prev + delta));
-      setFlash(true);
-      setTimeout(() => setFlash(false), 400);
+      triggerFlash();
     }
 
     window.addEventListener("combo-progress", onComboProgress);
@@ -39,6 +43,8 @@ export function ComboBar({ initialProgress }: ComboBarProps) {
     return () => {
       window.removeEventListener("combo-progress", onComboProgress);
       window.removeEventListener("combo-delta",    onComboDelta);
+      // Clean up any pending flash timer on unmount
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     };
   }, []);
 

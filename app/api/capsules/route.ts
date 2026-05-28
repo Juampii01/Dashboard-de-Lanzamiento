@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   // Fetch capsules for this day
   const { data: capsules } = await supabase
     .from("video_capsules")
-    .select("id, title, description, youtube_url, points_reward, sort_order")
+    .select("id, title, description, youtube_url, podcast_url, video_type, orientation, duration_seconds, points_reward, sort_order")
     .eq("day_number", day)
     .order("sort_order");
 

@@ -34,13 +34,42 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "file_too_large" }, { status: 413 });
   }
 
+  // ── Magic-bytes validation ──────────────────────────────────────────────────
+  // Reject anything that isn't a real PNG, JPEG, or WebP image, regardless of
+  // what the client claims in the data-URL prefix.
+  function detectImageType(buf: Buffer): { contentType: string; ext: string } | null {
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) {
+      return { contentType: "image/png", ext: "png" };
+    }
+    // JPEG: FF D8 FF
+    if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) {
+      return { contentType: "image/jpeg", ext: "jpg" };
+    }
+    // WebP: RIFF????WEBP  (bytes 0-3 = "RIFF", bytes 8-11 = "WEBP")
+    if (
+      buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[3] === 0x46 &&
+      buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50
+    ) {
+      return { contentType: "image/webp", ext: "webp" };
+    }
+    return null;
+  }
+
+  const imageType = detectImageType(buffer);
+  if (!imageType) {
+    return NextResponse.json({ error: "invalid_image" }, { status: 400 });
+  }
+  // ───────────────────────────────────────────────────────────────────────────
+
+  // Always store as avatar.png regardless of source format — keeps paths stable
   const filePath = `${user.id}/avatar.png`;
 
   // Upload using the user-session client so storage RLS policies apply
   const { error: uploadError } = await supabase.storage
     .from("avatars")
     .upload(filePath, buffer, {
-      contentType: "image/png",
+      contentType: imageType.contentType,
       upsert: true,
     });
 

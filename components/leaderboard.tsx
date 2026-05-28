@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { createParticleBurst } from "@/lib/wow-effects";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface LeaderEntry {
   rank: number;
   display_name: string;
@@ -11,44 +13,146 @@ interface LeaderEntry {
   is_current_user: boolean;
 }
 
-const RANK_COLORS = ["#FFD60A", "#C0C0C0", "#CD7F32"] as const;
-const RANK_EMOJI  = ["🥇", "🥈", "🥉"] as const;
+interface LeaderboardData {
+  top:     LeaderEntry[];
+  me:      Omit<LeaderEntry, "is_current_user"> | null;
+  my_rank: number | null;
+  in_top:  boolean;
+  total:   number;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const TOP_COLORS: Record<number, string> = {
+  1: "#FFD700",  // gold
+  2: "#C0C0C0",  // silver
+  3: "#CD7F32",  // bronze
+};
+
+// ─── RankBadge ───────────────────────────────────────────────────────────────
+
+function RankBadge({ rank, small = false }: { rank: number; small?: boolean }) {
+  const color = TOP_COLORS[rank] ?? "#5A6B85";
+  const isTop3 = rank <= 3;
+
+  return (
+    <span
+      className="w-8 text-center shrink-0 tabular-nums"
+      style={{
+        fontFamily: "var(--font-arcade)",
+        fontSize: small ? "9px" : isTop3 ? "12px" : "9px",
+        color,
+        textShadow: isTop3
+          ? `0 0 8px ${color}80, 0 0 2px ${color}`
+          : "none",
+        letterSpacing: isTop3 ? "0.02em" : "0.04em",
+      }}
+    >
+      #{rank}
+    </span>
+  );
+}
+
+// ─── LeaderRow ────────────────────────────────────────────────────────────────
+
+function LeaderRow({
+  rank,
+  display_name,
+  total_points,
+  raffle_entries,
+  is_current_user,
+  onClick,
+}: LeaderEntry & { onClick?: (e: React.MouseEvent) => void }) {
+  const isTop3 = rank <= 3;
+  const rankColor = TOP_COLORS[rank] ?? "#5A6B85";
+  const ptColor   = isTop3 ? rankColor : "#A8B5CC";
+
+  return (
+    <div
+      onClick={onClick}
+      className="flex items-center gap-3 px-5 py-2.5 transition-all duration-200"
+      style={{
+        background:   is_current_user ? "rgba(255,214,10,0.07)" : undefined,
+        cursor:       is_current_user ? "pointer" : "default",
+        borderLeft:   is_current_user ? "3px solid #FFD60A" : "3px solid transparent",
+        borderBottom: "1px solid rgba(255,255,255,0.04)",
+      }}
+    >
+      <RankBadge rank={rank} />
+
+      <span
+        className="flex-1 text-sm truncate"
+        style={{
+          color:      is_current_user ? "#FFD60A" : "#C8D6E8",
+          fontWeight: is_current_user ? 700 : 400,
+          fontFamily: "var(--font-sans)",
+        }}
+      >
+        {display_name}
+        {is_current_user && (
+          <span className="ml-2 text-[9px] opacity-60">(vos)</span>
+        )}
+      </span>
+
+      <div className="text-right shrink-0">
+        <p
+          className="text-xs font-bold tabular-nums"
+          style={{ color: ptColor, fontFamily: "var(--font-mono)" }}
+        >
+          {total_points} pts
+        </p>
+        <p className="text-[9px]" style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}>
+          {raffle_entries} entr.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Leaderboard ──────────────────────────────────────────────────────────────
 
 export function Leaderboard() {
-  const [entries, setEntries]   = useState<LeaderEntry[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [lastRefresh, setLastRefresh] = useState(0);
+  const [board, setBoard]     = useState<LeaderboardData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
       const res  = await fetch("/api/leaderboard");
-      const data = await res.json() as { top: LeaderEntry[] };
-      setEntries(data.top ?? []);
+      const data = await res.json() as LeaderboardData;
+      setBoard(data);
     } catch {
       // silent — non-critical
     } finally {
       setLoading(false);
-      setLastRefresh(Date.now());
     }
   }, []);
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 60_000); // refresh every minute
+    const t = setInterval(load, 60_000);
     return () => clearInterval(t);
   }, [load]);
 
-  // A7 fix: DO NOT re-fetch on xp-gained.
-  // PointsHUD already updates from the event detail instantly.
-  // The 60s poll above is sufficient for leaderboard ranking —
-  // triggering an extra fetch on every heartbeat/avatar/video XP event
-  // would fire ~6 redundant API calls per hour per active user.
+  // A7 fix: no re-fetch on xp-gained (60 s poll is enough for ranking)
 
-  const handleRowClick = (e: React.MouseEvent, entry: LeaderEntry) => {
-    if (!entry.is_current_user) return;
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  const handleRowClick = (e: React.MouseEvent) => {
+    const el = e.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
     createParticleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, "gold", 10);
   };
+
+  const top   = board?.top ?? [];
+  const me    = board?.me ?? null;
+  const inTop = board?.in_top ?? true;
+  const myRank = board?.my_rank ?? null;
+  const total = board?.total ?? 0;
+
+  // Build "me" as a full LeaderEntry for the out-of-top row
+  const meEntry: LeaderEntry | null = me
+    ? { ...me, rank: me.rank, is_current_user: true }
+    : null;
+
+  const isEmpty = !loading && top.length === 0;
 
   return (
     <div
@@ -73,6 +177,14 @@ export function Leaderboard() {
           >
             Tabla de líderes
           </span>
+          {total > 0 && (
+            <span
+              className="text-[9px]"
+              style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}
+            >
+              {total} participante{total !== 1 ? "s" : ""}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5">
           <span
@@ -86,80 +198,58 @@ export function Leaderboard() {
       </div>
 
       {/* Table */}
-      <div className="divide-y" style={{ divideColor: "rgba(255,255,255,0.04)" }}>
-        {loading ? (
+      <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+
+        {/* Loading skeletons */}
+        {loading &&
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3 px-5 py-3">
-              <div className="skeleton w-5 h-3 rounded" />
+              <div className="skeleton w-8 h-3 rounded" />
               <div className="skeleton flex-1 h-3 rounded" />
               <div className="skeleton w-12 h-3 rounded" />
             </div>
           ))
-        ) : entries.length === 0 ? (
+        }
+
+        {/* Empty state */}
+        {isEmpty && (
           <p className="text-center py-8 text-sm" style={{ color: "#5A6B85" }}>
             Aún no hay participantes. ¡Sé el primero!
           </p>
-        ) : (
-          entries.map((entry) => {
-            const isTop3 = entry.rank <= 3;
-            const rankColor = isTop3 ? RANK_COLORS[entry.rank - 1] : "#5A6B85";
-            return (
-              <div
-                key={entry.rank}
-                onClick={(e) => handleRowClick(e, entry)}
-                className="flex items-center gap-3 px-5 py-2.5 transition-all duration-200"
+        )}
+
+        {/* Top 20 */}
+        {!loading && top.map((entry) => (
+          <LeaderRow
+            key={entry.rank}
+            {...entry}
+            onClick={entry.is_current_user ? handleRowClick : undefined}
+          />
+        ))}
+
+        {/* Divider + user row when outside top 20 */}
+        {!loading && !inTop && meEntry && (
+          <>
+            {/* Divider — dots separator, no text */}
+            <div
+              className="flex items-center justify-center py-2"
+              style={{ background: "rgba(0,0,0,0.2)" }}
+            >
+              <span
                 style={{
-                  background: entry.is_current_user
-                    ? "rgba(255,214,10,0.07)"
-                    : undefined,
-                  cursor: entry.is_current_user ? "pointer" : "default",
-                  borderLeft: entry.is_current_user
-                    ? "3px solid #FFD60A"
-                    : "3px solid transparent",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "10px",
+                  color: "#3A5070",
+                  letterSpacing: "0.3em",
                 }}
               >
-                {/* Rank */}
-                <span
-                  className="w-7 text-center shrink-0"
-                  style={{
-                    fontFamily: "var(--font-arcade)",
-                    fontSize: isTop3 ? "14px" : "9px",
-                    color: rankColor,
-                  }}
-                >
-                  {isTop3 ? RANK_EMOJI[entry.rank - 1] : `#${entry.rank}`}
-                </span>
+                • • •
+              </span>
+            </div>
 
-                {/* Name */}
-                <span
-                  className="flex-1 text-sm truncate"
-                  style={{
-                    color: entry.is_current_user ? "#FFD60A" : "#C8D6E8",
-                    fontWeight: entry.is_current_user ? 700 : 400,
-                    fontFamily: "var(--font-sans)",
-                  }}
-                >
-                  {entry.display_name}
-                  {entry.is_current_user && (
-                    <span className="ml-2 text-[9px] opacity-60">(vos)</span>
-                  )}
-                </span>
-
-                {/* Points + entries */}
-                <div className="text-right shrink-0">
-                  <p
-                    className="text-xs font-bold tabular-nums"
-                    style={{ color: isTop3 ? rankColor : "#A8B5CC", fontFamily: "var(--font-mono)" }}
-                  >
-                    {entry.total_points} pts
-                  </p>
-                  <p className="text-[9px]" style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}>
-                    {entry.raffle_entries} entr.
-                  </p>
-                </div>
-              </div>
-            );
-          })
+            {/* User's real position */}
+            <LeaderRow {...meEntry} onClick={handleRowClick} />
+          </>
         )}
       </div>
 
@@ -168,6 +258,11 @@ export function Leaderboard() {
         className="px-5 py-2.5 text-center"
         style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
       >
+        {!loading && !inTop && myRank && (
+          <p className="text-[9px] mb-1" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
+            Tu posición actual: #{myRank} de {total}
+          </p>
+        )}
         <p className="text-[9px]" style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}>
           Cada 10 pts = 1 entrada al sorteo · Se actualiza cada 60s
         </p>

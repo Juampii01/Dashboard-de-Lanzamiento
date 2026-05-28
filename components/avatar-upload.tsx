@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Camera, X, Check, Loader2, ZoomIn, ZoomOut } from "lucide-react";
 
-const PREVIEW_SIZE = 260; // px — diameter of the circular crop preview
+const PREVIEW_SIZE = 256; // px — diameter of the circular crop preview (must equal OUTPUT_SIZE for 1:1 WYSIWYG)
 const OUTPUT_SIZE  = 256; // px — exported square (with circular clip)
 
 interface AvatarCropModalProps {
@@ -118,15 +118,32 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
       ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
       ctx.clip();
 
-      // Mirror the preview positioning (PREVIEW_SIZE === OUTPUT_SIZE so 1:1 mapping)
-      const imgW = naturalSize.w * scale;
-      const imgH = naturalSize.h * scale;
+      // Source-rectangle approach: compute which pixels of the original image are
+      // visible inside the crop circle, then map them exactly onto the canvas.
+      // This is true WYSIWYG — the canvas output matches the preview 1:1.
+      //
+      // In the preview the image is centered at:
+      //   cx = PREVIEW_SIZE/2 + offset.x  (screen px)
+      //   cy = PREVIEW_SIZE/2 + offset.y  (screen px)
+      // Each screen pixel corresponds to (1/scale) source pixels, so the center of
+      // the visible crop square in source image coordinates is:
+      //   srcCX = naturalSize.w/2 - offset.x / scale
+      //   srcCY = naturalSize.h/2 - offset.y / scale
+      // The crop square is OUTPUT_SIZE screen pixels wide, i.e. OUTPUT_SIZE/scale
+      // source pixels wide (PREVIEW_SIZE === OUTPUT_SIZE, so no correction needed).
+      const srcSize = OUTPUT_SIZE / scale;
+      const srcCX   = naturalSize.w / 2 - offset.x / scale;
+      const srcCY   = naturalSize.h / 2 - offset.y / scale;
       ctx.drawImage(
         img,
-        OUTPUT_SIZE / 2 - imgW / 2 + offset.x,
-        OUTPUT_SIZE / 2 - imgH / 2 + offset.y,
-        imgW,
-        imgH
+        srcCX - srcSize / 2,  // sx — left edge of the source rectangle
+        srcCY - srcSize / 2,  // sy — top  edge of the source rectangle
+        srcSize,               // sWidth
+        srcSize,               // sHeight
+        0,                     // dx
+        0,                     // dy
+        OUTPUT_SIZE,           // dWidth
+        OUTPUT_SIZE            // dHeight
       );
 
       const base64 = canvas.toDataURL("image/png");
@@ -269,8 +286,10 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                     draggable={false}
                     style={{
                       position: "absolute",
+                      // Only set width; let the browser compute height from the natural
+                      // aspect ratio. Setting both dimensions explicitly can introduce
+                      // subpixel rounding that stretches non-square images.
                       width: `${imgW}px`,
-                      height: `${imgH}px`,
                       left:  `${PREVIEW_SIZE / 2 - imgW / 2 + offset.x}px`,
                       top:   `${PREVIEW_SIZE / 2 - imgH / 2 + offset.y}px`,
                       pointerEvents: "none",

@@ -30,7 +30,7 @@ function SantoAvatar({
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // Reset visible/error when avatarUrl changes (new upload)
-  const imgSrc = avatarUrl || "/santo.png";
+  const imgSrc = avatarUrl || "/aguila.png";
   const prevSrcRef = useRef(imgSrc);
   useEffect(() => {
     if (prevSrcRef.current !== imgSrc) {

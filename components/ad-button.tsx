@@ -437,6 +437,8 @@ export function AdButton({ initialLastAdAt }: AdButtonProps) {
   }, []);
 
   function startCooldownTick(initial: number) {
+    // Clear any existing interval before creating a new one to prevent orphaned ticks
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
     let left = initial;
     cooldownRef.current = setInterval(() => {
       left -= 1;

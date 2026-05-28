@@ -18,7 +18,7 @@ import { ResetDashboardButton } from "@/components/reset-dashboard-button";
 import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
 import { ComboBar } from "@/components/combo-bar";
 import { AdButton } from "@/components/ad-button";
-import { HeaderAvatar } from "@/components/header-avatar";
+import { ProfileButton } from "@/components/profile-button";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -84,6 +84,7 @@ export default async function DashboardLayout({
 
   let profile: typeof DEV_PROFILE | null = devMode ? DEV_PROFILE : null;
   let completedDays = 0;
+  let userEmail = "";
 
   if (devMode) {
     const cookieStore = await cookies();
@@ -100,6 +101,8 @@ export default async function DashboardLayout({
     }
 
     if (!user) redirect("/login");
+
+    userEmail = user.email ?? "";
 
     const layoutData = await getLayoutData(user.id);
     // Use SAFE_EMPTY_PROFILE (not DEV_PROFILE) so that users without a DB row
@@ -199,15 +202,11 @@ export default async function DashboardLayout({
                 <PointsHUD points={profile?.total_points ?? 0} />
               </div>
 
-              <div className="hidden sm:flex items-center gap-2">
-                <HeaderAvatar
-                  avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
-                  fullName={profile?.full_name ?? "Usuario"}
-                />
-                <p className="text-xs font-medium text-white truncate max-w-[100px]">
-                  {profile?.full_name ?? "Usuario"}
-                </p>
-              </div>
+              <ProfileButton
+                fullName={profile?.full_name ?? "Usuario"}
+                email={userEmail}
+                avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
+              />
 
               <form action="/api/auth/signout" method="POST">
                 <button
