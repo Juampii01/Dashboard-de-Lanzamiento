@@ -146,33 +146,19 @@ export default async function DashboardLayout({
         <div className="max-w-5xl mx-auto">
           {/* Top row */}
           <div className="flex items-center justify-between mb-4">
-            {/* Logo + brand */}
-            <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center"
+            {/* Logo */}
+            <Link href="/dashboard" className="hover:opacity-80 transition-opacity shrink-0">
+              <img
+                src="/halcon.png"
+                alt="Govbidder Challenge"
                 style={{
-                  background: "#D7263D",
-                  boxShadow: "0 2px 12px rgba(215,38,61,0.4)",
-                  overflow: "hidden",
+                  height: "48px",
+                  width: "auto",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 16px rgba(0,0,0,0.35)",
+                  display: "block",
                 }}
-              >
-                <img
-                  src="/halcon.png"
-                  alt="Govbidder"
-                  style={{ width: "32px", height: "32px", objectFit: "contain" }}
-                />
-              </div>
-              <div>
-                <p
-                  className="font-bold text-sm leading-tight text-white"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  Govbidder
-                </p>
-                <p className="text-[11px] text-[#A8B5CC] tracking-wide">
-                  Challenge
-                </p>
-              </div>
+              />
             </Link>
 
             {/* Right: countdown + admin + xp + user + logout */}

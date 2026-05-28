@@ -98,32 +98,17 @@ export default function LoginPage() {
         <div className="p-8">
           {/* Logo */}
           <div className="flex flex-col items-center text-center mb-8">
-            <div
-              className="w-20 h-20 rounded-full flex items-center justify-center mb-5"
+            <img
+              src="/halcon.png"
+              alt="Govbidder Challenge"
               style={{
-                background: "#D7263D",
-                boxShadow: "0 0 32px rgba(215,38,61,0.4)",
-                overflow: "hidden",
+                height: "160px",
+                width: "auto",
+                borderRadius: "12px",
+                boxShadow: "0 4px 32px rgba(0,0,0,0.4)",
+                display: "block",
               }}
-            >
-              <img
-                src="/halcon.png"
-                alt="Govbidder"
-                style={{ width: "72px", height: "72px", objectFit: "contain" }}
-              />
-            </div>
-            <h1
-              className="text-3xl font-bold text-white mb-1"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Govbidder
-            </h1>
-            <p
-              className="text-sm uppercase tracking-[0.15em]"
-              style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
-            >
-              Challenge
-            </p>
+            />
           </div>
 
           {sent ? (

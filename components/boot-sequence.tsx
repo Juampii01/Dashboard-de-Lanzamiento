@@ -56,16 +56,16 @@ export function BootSequence() {
       <div className="w-full max-w-lg px-8">
         {/* Logo row */}
         <div className="flex items-center gap-3 mb-8">
-          <div
-            className="w-8 h-8 rounded flex items-center justify-center"
-            style={{ background: "#D7263D", overflow: "hidden" }}
-          >
-            <img
-              src="/halcon.png"
-              alt="Govbidder"
-              style={{ width: "28px", height: "28px", objectFit: "contain" }}
-            />
-          </div>
+          <img
+            src="/halcon.png"
+            alt="Govbidder Challenge"
+            style={{
+              height: "36px",
+              width: "auto",
+              borderRadius: "5px",
+              display: "block",
+            }}
+          />
           <span style={{ fontFamily: "var(--font-mono)", color: "#00D67A", fontSize: "11px", letterSpacing: "0.22em" }}>
             GOVBIDDER TERMINAL v1.0
           </span>

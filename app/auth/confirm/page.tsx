@@ -57,20 +57,17 @@ export default function ConfirmPage() {
       style={{ background: "linear-gradient(135deg, #0A2540 0%, #143A6B 100%)" }}
     >
       {/* Logo */}
-      <div
-        className="w-16 h-16 rounded-full flex items-center justify-center"
+      <img
+        src="/halcon.png"
+        alt="Govbidder Challenge"
         style={{
-          background: "#D7263D",
-          boxShadow: "0 0 32px rgba(215,38,61,0.4)",
-          overflow: "hidden",
+          height: "120px",
+          width: "auto",
+          borderRadius: "10px",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+          display: "block",
         }}
-      >
-        <img
-          src="/halcon.png"
-          alt="Govbidder"
-          style={{ width: "58px", height: "58px", objectFit: "contain" }}
-        />
-      </div>
+      />
 
       {status === "loading" ? (
         <>
