@@ -32,7 +32,8 @@ function getYouTubeEmbedUrl(url: string): string {
     url.match(/youtu\.be\/([^?&]+)/) ||
     url.match(/[?&]v=([^?&]+)/);
   const id = match?.[1] ?? "";
-  return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
+  // controls=0 → oculta la barra de YouTube; disablekb=1 → bloquea teclado
+  return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&controls=0&disablekb=1`;
 }
 
 function formatTime(s: number) {
@@ -55,25 +56,26 @@ function AdModal({
   onClose: () => void;
   onClaimed: (xp: number, newTotal: number) => void;
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef    = useRef<HTMLVideoElement>(null);
   const claimBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Must-watch timer: seconds remaining until user can claim
+  // Must-watch timer: counts DOWN from duration to 0
   const mustWatchSec = ad.duration_seconds ?? 20;
-  const [watchLeft, setWatchLeft] = useState(mustWatchSec);
-  const [watched, setWatched] = useState(false);
-  const [claiming, setClaiming] = useState(false);
-  const [claimed, setClaimed] = useState(false);
+  const [watchLeft,      setWatchLeft]      = useState(mustWatchSec);
+  const [videoPct,       setVideoPct]       = useState(0);   // 0-100 for the custom progress bar
+  const [watched,        setWatched]        = useState(false);
+  const [claiming,       setClaiming]       = useState(false);
+  const [claimed,        setClaimed]        = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Block navigation while modal is open
+  // Block browser navigation (tab close / refresh) while watching
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
   }, []);
 
-  // Start must-watch countdown automatically
+  // Server-side countdown (primary: fires independently of actual video playback)
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setWatchLeft((prev) => {
@@ -88,12 +90,32 @@ function AdModal({
     return () => { if (timerRef.current) clearInterval(timerRef.current!); };
   }, []);
 
-  // Also mark watched if <video> element fires onEnded before timer
-  function handleVideoEnded() {
-    if (timerRef.current) clearInterval(timerRef.current);
+  // Mark watched when <video> fires onEnded (fires before timer if video is shorter than countdown)
+  const handleVideoEnded = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current!);
     setWatchLeft(0);
+    setVideoPct(100);
     setWatched(true);
-  }
+  }, []);
+
+  // Update custom progress bar from actual video position (read-only)
+  const handleTimeUpdate = useCallback(() => {
+    const v = videoRef.current;
+    if (v && v.duration > 0) {
+      setVideoPct((v.currentTime / v.duration) * 100);
+    }
+  }, []);
+
+  // Prevent seeking: reset currentTime if user somehow manages to seek
+  const handleSeeking = useCallback(() => {
+    const v = videoRef.current;
+    if (!v || watched) return;
+    // Clamp back: allow only forward progress up to what the timer says was played
+    const maxAllowed = ((mustWatchSec - watchLeft) / mustWatchSec) * (v.duration || mustWatchSec);
+    if (v.currentTime > maxAllowed + 1) {
+      v.currentTime = maxAllowed;
+    }
+  }, [watched, mustWatchSec, watchLeft]);
 
   const handleClaim = useCallback(async () => {
     if (!watched || claiming || claimed) return;
@@ -106,14 +128,12 @@ function AdModal({
       if (data.awarded) {
         setClaimed(true);
 
-        // XP effect
         window.dispatchEvent(
           new CustomEvent("xp-gained", {
             detail: { delta: data.xp ?? 20, total: data.new_total ?? 0, source: "ad" },
           })
         );
 
-        // Fly points from claim button
         if (claimBtnRef.current) {
           const rect = claimBtnRef.current.getBoundingClientRect();
           flyPoints(
@@ -136,14 +156,18 @@ function AdModal({
   }, [watched, claiming, claimed, onClaimed, onClose]);
 
   const useIframe = !isDirectVideo(ad.video_url);
-  const iframeSrc = isYouTube(ad.video_url)
+  const iframeSrc  = isYouTube(ad.video_url)
     ? getYouTubeEmbedUrl(ad.video_url)
     : ad.video_url;
 
+  // Progress bar fill: use real video position for direct videos, timer for iframes
+  const barPct = useIframe
+    ? Math.max(0, ((mustWatchSec - watchLeft) / mustWatchSec) * 100)
+    : videoPct;
+
   return (
-    /* Backdrop */
+    /* Backdrop — does NOT close while watching */
     <div
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
         position: "fixed",
         inset: 0,
@@ -155,18 +179,22 @@ function AdModal({
         alignItems: "center",
         justifyContent: "center",
         padding: "16px",
+        // Cursor indicates the modal is locked while watching
+        cursor: watched ? "default" : "not-allowed",
       }}
     >
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
           maxWidth: "680px",
           background: "linear-gradient(160deg, #0A1828 0%, #0F2035 100%)",
-          border: "1px solid #1E3A5C",
+          border: `1px solid ${watched ? "#1E3A5C" : "#0D2A48"}`,
           borderRadius: "20px",
           overflow: "hidden",
           boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04)",
           animation: "ad-modal-in 0.35s cubic-bezier(0.22,1,0.36,1) both",
+          cursor: "default",
         }}
       >
         {/* Header */}
@@ -181,23 +209,15 @@ function AdModal({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span
-              style={{
-                fontFamily: "var(--font-arcade)",
-                fontSize: "10px",
-                color: "#00D67A",
-                letterSpacing: "0.1em",
-              }}
-            >
+            <span style={{ fontFamily: "var(--font-arcade)", fontSize: "10px", color: "#00D67A", letterSpacing: "0.1em" }}>
               📺 ANUNCIO
             </span>
             {ad.title && (
-              <span style={{ fontSize: "12px", color: "#5A6B85" }}>
-                · {ad.title}
-              </span>
+              <span style={{ fontSize: "12px", color: "#5A6B85" }}>· {ad.title}</span>
             )}
           </div>
-          {/* Must-watch countdown badge */}
+
+          {/* Countdown badge */}
           <div
             style={{
               display: "flex",
@@ -205,18 +225,14 @@ function AdModal({
               gap: "6px",
               padding: "4px 10px",
               borderRadius: "12px",
-              background: watched
-                ? "rgba(0,214,122,0.15)"
-                : "rgba(255,214,10,0.1)",
+              background: watched ? "rgba(0,214,122,0.15)" : "rgba(255,214,10,0.1)",
               border: `1px solid ${watched ? "rgba(0,214,122,0.3)" : "rgba(255,214,10,0.2)"}`,
               transition: "background 0.5s, border-color 0.5s",
             }}
           >
             <span
               style={{
-                width: "5px",
-                height: "5px",
-                borderRadius: "50%",
+                width: "5px", height: "5px", borderRadius: "50%",
                 background: watched ? "#00D67A" : "#FFD60A",
                 display: "inline-block",
                 animation: watched ? "none" : "ad-dot-blink 1s ease-in-out infinite",
@@ -236,63 +252,57 @@ function AdModal({
         </div>
 
         {/* Video player */}
-        <div
-          style={{
-            position: "relative",
-            width: "100%",
-            paddingTop: "56.25%", // 16:9
-            background: "#000",
-          }}
-        >
+        <div style={{ position: "relative", width: "100%", paddingTop: "56.25%", background: "#000" }}>
           {useIframe ? (
+            /* YouTube / iframe — controls=0 hides YouTube seekbar */
             <iframe
               src={iframeSrc}
               allow="autoplay; fullscreen"
               allowFullScreen
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                border: "none",
-              }}
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
             />
           ) : (
+            /* Direct video — NO native controls, seek prevention */
             <video
               ref={videoRef}
               src={ad.video_url}
               autoPlay
-              controls
+              playsInline
               onEnded={handleVideoEnded}
+              onTimeUpdate={handleTimeUpdate}
+              onSeeking={handleSeeking}
               style={{
                 position: "absolute",
                 inset: 0,
                 width: "100%",
                 height: "100%",
                 objectFit: "contain",
+                // pointer-events: none would block play/pause on click — keep it for now
               }}
             />
           )}
 
-          {/* Overlay progress bar at bottom of video */}
+          {/* Custom read-only progress bar at bottom of video (replaces native seekbar) */}
           <div
             style={{
               position: "absolute",
               bottom: 0,
               left: 0,
               right: 0,
-              height: "3px",
-              background: "#0A1828",
+              height: "4px",
+              background: "rgba(0,0,0,0.6)",
+              pointerEvents: "none", // not clickable — purely visual
             }}
           >
             <div
               style={{
                 height: "100%",
-                width: `${Math.max(0, ((mustWatchSec - watchLeft) / mustWatchSec) * 100)}%`,
+                width: `${barPct}%`,
                 background: watched
                   ? "#00D67A"
-                  : "linear-gradient(90deg, #00D67A, #FFD60A)",
-                transition: "width 1s linear, background 0.5s",
+                  : "linear-gradient(90deg, #00D67A 0%, #FFD60A 100%)",
+                transition: useIframe ? "width 1s linear, background 0.5s" : "background 0.5s",
+                boxShadow: "0 0 6px rgba(0,214,122,0.6)",
               }}
             />
           </div>
@@ -303,78 +313,76 @@ function AdModal({
           style={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            justifyContent: watched ? "space-between" : "center",
             padding: "14px 18px",
             gap: "12px",
+            minHeight: "60px",
           }}
         >
-          {/* Close (available any time, no XP) */}
-          <button
-            onClick={onClose}
-            style={{
-              padding: "8px 18px",
-              borderRadius: "10px",
-              border: "1px solid #1E3A5C",
-              background: "transparent",
-              color: "#5A6B85",
-              fontSize: "13px",
-              cursor: "pointer",
-              transition: "color 0.2s, border-color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.color = "#A8B5CC";
-              (e.currentTarget as HTMLElement).style.borderColor = "#2E4A6B";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.color = "#5A6B85";
-              (e.currentTarget as HTMLElement).style.borderColor = "#1E3A5C";
-            }}
-          >
-            {watched ? "Cerrar sin cobrar" : "Cerrar (sin XP)"}
-          </button>
+          {watched ? (
+            /* Video terminado — mostrar ambas opciones */
+            <>
+              <button
+                onClick={onClose}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: "10px",
+                  border: "1px solid #1E3A5C",
+                  background: "transparent",
+                  color: "#5A6B85",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.color = "#A8B5CC";
+                  (e.currentTarget as HTMLElement).style.borderColor = "#2E4A6B";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.color = "#5A6B85";
+                  (e.currentTarget as HTMLElement).style.borderColor = "#1E3A5C";
+                }}
+              >
+                Cerrar sin cobrar
+              </button>
 
-          {/* Claim button */}
-          <button
-            ref={claimBtnRef}
-            onClick={handleClaim}
-            disabled={!watched || claiming || claimed}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "10px 24px",
-              borderRadius: "12px",
-              background: claimed
-                ? "#00D67A"
-                : watched
-                ? "linear-gradient(135deg, #00D67A 0%, #00A86B 100%)"
-                : "#1E3A5C",
-              color: watched || claimed ? "#fff" : "#3A5070",
-              fontWeight: 700,
-              fontSize: "14px",
-              border: "none",
-              cursor: watched && !claiming && !claimed ? "pointer" : "not-allowed",
-              transition: "background 0.5s, color 0.5s, box-shadow 0.5s",
-              boxShadow: watched && !claimed
-                ? "0 4px 20px rgba(0,214,122,0.45)"
-                : "none",
-              animation: watched && !claimed && !claiming
-                ? "ad-claim-pulse 1.5s ease-in-out infinite"
-                : "none",
-              flex: 1,
-              justifyContent: "center",
-            }}
-          >
-            {claimed ? (
-              "✓ ¡XP cobrado!"
-            ) : claiming ? (
-              "Procesando..."
-            ) : watched ? (
-              <>📺 Cobrar +20 XP</>
-            ) : (
-              <>⏳ Ver el video para cobrar</>
-            )}
-          </button>
+              <button
+                ref={claimBtnRef}
+                onClick={handleClaim}
+                disabled={claiming || claimed}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "10px 24px",
+                  borderRadius: "12px",
+                  background: claimed
+                    ? "#00D67A"
+                    : "linear-gradient(135deg, #00D67A 0%, #00A86B 100%)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  border: "none",
+                  cursor: claiming || claimed ? "not-allowed" : "pointer",
+                  transition: "background 0.5s, box-shadow 0.5s",
+                  boxShadow: claimed ? "none" : "0 4px 20px rgba(0,214,122,0.45)",
+                  animation: claimed || claiming ? "none" : "ad-claim-pulse 1.5s ease-in-out infinite",
+                  flex: 1,
+                }}
+              >
+                {claimed ? "✓ ¡XP cobrado!" : claiming ? "Procesando..." : <>📺 Cobrar +20 XP</>}
+              </button>
+            </>
+          ) : (
+            /* Video en curso — solo mensaje de bloqueo */
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "13px" }}>🔒</span>
+              <span style={{ fontSize: "12px", color: "#4A6A8A" }}>
+                Mirá el video completo para desbloquear los puntos
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
