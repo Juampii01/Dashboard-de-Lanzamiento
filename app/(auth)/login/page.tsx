@@ -98,15 +98,25 @@ export default function LoginPage() {
         <div className="p-8">
           {/* Logo */}
           <div className="flex flex-col items-center text-center mb-8">
-            <img
-              src="/halcon.png"
-              alt="Govbidder Challenge"
+            <div
               style={{
-                height: "180px",
-                width: "auto",
-                display: "block",
+                background: "#fff",
+                borderRadius: "20px",
+                padding: "16px 24px",
+                display: "inline-block",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
               }}
-            />
+            >
+              <img
+                src="/halcon.png"
+                alt="Govbidder Challenge"
+                style={{
+                  height: "140px",
+                  width: "auto",
+                  display: "block",
+                }}
+              />
+            </div>
           </div>
 
           {sent ? (

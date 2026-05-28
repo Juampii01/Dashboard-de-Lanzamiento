@@ -155,6 +155,7 @@ export default async function DashboardLayout({
                   height: "56px",
                   width: "auto",
                   display: "block",
+                  filter: "drop-shadow(0 0 10px rgba(255,255,255,0.35))",
                 }}
               />
             </Link>
