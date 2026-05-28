@@ -33,6 +33,11 @@ const pressStart = Press_Start_2P({
 export const metadata: Metadata = {
   title: "Govbidder Challenge",
   description: "Aprende a venderle al gobierno federal en 4 días.",
+  icons: {
+    icon: "/halcon.png",
+    apple: "/halcon.png",
+    shortcut: "/halcon.png",
+  },
 };
 
 export default function RootLayout({
