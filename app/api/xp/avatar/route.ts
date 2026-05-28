@@ -48,11 +48,19 @@ export async function POST() {
     return NextResponse.json({ awarded: false }, { status: 500 });
   }
 
-  // Stamp the cooldown timestamp (separate, non-critical write)
-  await supabase
-    .from("users")
-    .update({ last_avatar_xp_at: now.toISOString() })
-    .eq("id", user.id);
+  // Stamp cooldown + increment combo in parallel (both non-critical)
+  const [, { data: comboVal }] = await Promise.all([
+    supabase
+      .from("users")
+      .update({ last_avatar_xp_at: now.toISOString() })
+      .eq("id", user.id),
+    supabase.rpc("add_combo_progress", { p_user_id: user.id, p_delta: 5 }),
+  ]);
 
-  return NextResponse.json({ awarded: true, points: POINTS, total: newTotal });
+  return NextResponse.json({
+    awarded: true,
+    points: POINTS,
+    total: newTotal,
+    combo: comboVal ?? undefined,
+  });
 }

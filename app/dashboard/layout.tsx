@@ -15,6 +15,10 @@ import { LogOut, Shield } from "lucide-react";
 import Link from "next/link";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 import { ResetDashboardButton } from "@/components/reset-dashboard-button";
+import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
+import { ComboBar } from "@/components/combo-bar";
+import { AdButton } from "@/components/ad-button";
+import { HeaderAvatar } from "@/components/header-avatar";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -54,7 +58,7 @@ async function getLayoutData(userId: string) {
       .from("users")
       // hotmart_transaction_id included so the paywall gate below can verify
       // that this user has a real Hotmart purchase on record.
-      .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id")
+      .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id, combo_progress, last_ad_watched_at, avatar_url")
       .eq("id", userId)
       .single(),
     supabase
@@ -181,13 +185,26 @@ export default async function DashboardLayout({
                 </div>
               )}
 
+              {/* Ad button — +20 XP por ver un anuncio, cooldown 10 min */}
+              {!devMode && (
+                <AdButton
+                  initialLastAdAt={
+                    (profile as { last_ad_watched_at?: string | null })?.last_ad_watched_at ?? null
+                  }
+                />
+              )}
+
               {/* XP level + points (client component with 3D flip) */}
               <div data-tour-id="xp-pill">
                 <PointsHUD points={profile?.total_points ?? 0} />
               </div>
 
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-medium text-white truncate max-w-[120px]">
+              <div className="hidden sm:flex items-center gap-2">
+                <HeaderAvatar
+                  avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
+                  fullName={profile?.full_name ?? "Usuario"}
+                />
+                <p className="text-xs font-medium text-white truncate max-w-[100px]">
                   {profile?.full_name ?? "Usuario"}
                 </p>
               </div>
@@ -206,8 +223,19 @@ export default async function DashboardLayout({
 
           {/* Progress bar */}
           <div data-tour-id="progress-bar">
-            <ProgressBar completedDays={completedDays} isAdmin={profile?.is_admin ?? false} />
+            <ProgressBar
+            completedDays={completedDays}
+            isAdmin={profile?.is_admin ?? false}
+            avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
+          />
           </div>
+
+          {/* Combo bar — thin fill bar below progress bar */}
+          {!devMode && (
+            <ComboBar
+              initialProgress={(profile as { combo_progress?: number })?.combo_progress ?? 0}
+            />
+          )}
         </div>
       </header>
 
@@ -235,6 +263,9 @@ export default async function DashboardLayout({
           hasSeenOnboarding={profile?.has_seen_onboarding ?? false}
         />
       )}
+
+      {/* Dashboard lock overlay — polling every 20s, appears automatically during live calls */}
+      {!devMode && <DashboardLockOverlay />}
     </div>
   );
 }

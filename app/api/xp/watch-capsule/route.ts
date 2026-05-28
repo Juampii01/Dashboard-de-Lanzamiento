@@ -83,9 +83,14 @@ export async function POST(req: NextRequest) {
 
   if (pointsError) {
     console.error("[watch-capsule] add_points error:", pointsError);
-    // Completion already recorded; points will drift but capsule is locked
     return NextResponse.json({ ok: true, points, total: null });
   }
 
-  return NextResponse.json({ ok: true, points, total: newTotal });
+  // Combo progress — video da el mayor incremento
+  const { data: comboVal } = await supabase.rpc("add_combo_progress", {
+    p_user_id: user.id,
+    p_delta: 20,
+  });
+
+  return NextResponse.json({ ok: true, points, total: newTotal, combo: comboVal ?? undefined });
 }

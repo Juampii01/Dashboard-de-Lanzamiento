@@ -3,18 +3,42 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { progressPercent } from "@/lib/utils";
 import { triggerAvatarStars } from "@/lib/wow-effects";
+import { Camera } from "lucide-react";
+import { AvatarCropModal } from "@/components/avatar-upload";
 
 const AVATAR_LS_KEY      = "govbidder_avatar_xp_at";
 const AVATAR_COOLDOWN_MS = 60 * 60_000; // 60 minutos
 
-function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) => void; isAdmin?: boolean }) {
+function SantoAvatar({
+  onClick,
+  isAdmin,
+  avatarUrl,
+  onCameraClick,
+}: {
+  onClick?: (cx: number, cy: number) => void;
+  isAdmin?: boolean;
+  avatarUrl?: string | null;
+  onCameraClick?: () => void;
+}) {
   const [visible, setVisible]   = useState(false);
   const [error, setError]       = useState(false);
   const [jumping, setJumping]   = useState(false);
   const [cooldown, setCooldown] = useState(false);
   const [minsLeft, setMinsLeft] = useState(0);
+  const [hovered, setHovered]   = useState(false);
   const imgRef  = useRef<HTMLImageElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Reset visible/error when avatarUrl changes (new upload)
+  const imgSrc = avatarUrl || "/santo.png";
+  const prevSrcRef = useRef(imgSrc);
+  useEffect(() => {
+    if (prevSrcRef.current !== imgSrc) {
+      prevSrcRef.current = imgSrc;
+      setVisible(false);
+      setError(false);
+    }
+  }, [imgSrc]);
 
   // Restaurar cooldown desde localStorage al montar; refrescar cada 30 s
   // Los admins nunca tienen cooldown
@@ -47,7 +71,8 @@ function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) 
     const handleLoad = () => setVisible(true);
     img.addEventListener("load", handleLoad);
     return () => img.removeEventListener("load", handleLoad);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imgSrc]); // re-run when src changes so cached custom avatars become visible immediately
 
   const handleClick = useCallback(async () => {
     if (jumping || cooldown) return;
@@ -95,11 +120,16 @@ function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) 
   }, [jumping, cooldown, onClick]);
 
   return (
-    <div ref={wrapRef} style={{ position: "relative", flexShrink: 0 }}>
-      {/* Avatar clickeable */}
+    <div
+      ref={wrapRef}
+      style={{ position: "relative", flexShrink: 0 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Avatar clickeable — XP */}
       <div
         onClick={handleClick}
-        title={cooldown ? `Santo en cooldown — ${minsLeft} min` : "¡Clic para XP! 🕺"}
+        title={cooldown ? `Cooldown — ${minsLeft} min` : "¡Clic para XP! 🕺"}
         style={{
           width: "30px",
           height: "30px",
@@ -128,10 +158,10 @@ function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) 
         {!error && (
           <img
             ref={imgRef}
-            src="/santo.png"
+            src={imgSrc}
             alt=""
             onLoad={() => setVisible(true)}
-            onError={() => setError(true)}
+            onError={() => { setError(true); setVisible(false); }}
             style={{
               position: "absolute",
               inset: 0,
@@ -154,6 +184,35 @@ function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) 
           }}
         >🕺</span>
       </div>
+
+      {/* Camera badge — appears on hover, opens upload modal */}
+      {onCameraClick && (
+        <button
+          onClick={e => { e.stopPropagation(); onCameraClick(); }}
+          title="Cambiar avatar"
+          style={{
+            position: "absolute",
+            top: "-5px",
+            right: "-7px",
+            width: "16px",
+            height: "16px",
+            borderRadius: "50%",
+            background: "#0A2540",
+            border: "1px solid #3A6A9C",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            opacity: hovered && !cooldown ? 1 : 0,
+            transform: hovered && !cooldown ? "scale(1)" : "scale(0.7)",
+            transition: "opacity 0.18s, transform 0.18s",
+            pointerEvents: hovered && !cooldown ? "auto" : "none",
+            zIndex: 30,
+          }}
+        >
+          <Camera style={{ width: "8px", height: "8px", color: "#A8D4FF" }} />
+        </button>
+      )}
 
       {/* Candado de cooldown */}
       {cooldown && (
@@ -185,9 +244,10 @@ function SantoAvatar({ onClick, isAdmin }: { onClick?: (cx: number, cy: number) 
 interface ProgressBarProps {
   completedDays: number;
   isAdmin?: boolean;
+  avatarUrl?: string | null;
 }
 
-export function ProgressBar({ completedDays, isAdmin }: ProgressBarProps) {
+export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUrl }: ProgressBarProps) {
   const targetPct = progressPercent(completedDays);
   const isEmpty = targetPct === 0;
   const isFull = targetPct === 100;
@@ -195,6 +255,11 @@ export function ProgressBar({ completedDays, isAdmin }: ProgressBarProps) {
   // Cinematic entrance: bar starts at 0 and fills slowly on mount
   const [displayPct, setDisplayPct] = useState(0);
   const [mounted, setMounted] = useState(false);
+
+  // Avatar upload state
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(initialAvatarUrl ?? null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const t1 = setTimeout(() => setMounted(true), 120);
@@ -206,8 +271,43 @@ export function ProgressBar({ completedDays, isAdmin }: ProgressBarProps) {
     triggerAvatarStars(cx, cy);
   }, []);
 
+  const handleCameraClick = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) setCropFile(file);
+    // Reset input so same file can be picked again
+    e.target.value = "";
+  }, []);
+
+  const handleAvatarUploaded = useCallback((url: string) => {
+    setCurrentAvatarUrl(url);
+    setCropFile(null);
+    // Notify HeaderAvatar (and any other listener) so they refresh without a page reload
+    window.dispatchEvent(new CustomEvent("avatar-updated", { detail: { url } }));
+  }, []);
+
   return (
     <div className="w-full">
+      {/* Hidden file input for avatar upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
+
+      {/* Avatar crop modal */}
+      {cropFile && (
+        <AvatarCropModal
+          file={cropFile}
+          onClose={() => setCropFile(null)}
+          onUploaded={handleAvatarUploaded}
+        />
+      )}
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -363,7 +463,12 @@ export function ProgressBar({ completedDays, isAdmin }: ProgressBarProps) {
           }}
           aria-hidden
         >
-          <SantoAvatar onClick={handleAvatarClick} isAdmin={isAdmin} />
+          <SantoAvatar
+            onClick={handleAvatarClick}
+            isAdmin={isAdmin}
+            avatarUrl={currentAvatarUrl}
+            onCameraClick={handleCameraClick}
+          />
         </div>
       </div>
 

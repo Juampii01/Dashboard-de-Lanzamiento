@@ -88,10 +88,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "internal" }, { status: 500 });
   }
 
+  // Combo progress — completar un día da un gran impulso
+  const { data: comboVal } = await service.rpc("add_combo_progress", {
+    p_user_id: user.id,
+    p_delta: 30,
+  });
+
   return NextResponse.json({
     ok: true,
     pointsAwarded: POINTS_PER_DAY,
     total: newTotal ?? 0,
     alreadyCompleted: false,
+    combo: comboVal ?? undefined,
   });
 }
