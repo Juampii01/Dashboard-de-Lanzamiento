@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, XCircle, Download, RotateCcw } from "lucide-react";
+import { CheckCircle2, XCircle, Download, RotateCcw, TriangleAlert } from "lucide-react";
 
 export type UserResult = {
   email: string;
@@ -8,6 +8,8 @@ export type UserResult = {
   status: "ok" | "error";
   error?: string;
   user_id?: string;
+  email_sent?: boolean;
+  magic_link?: string | null;
 };
 
 interface ResultReportProps {
@@ -19,14 +21,20 @@ export function ResultReport({ results, onReset }: ResultReportProps) {
   const okCount = results.filter((r) => r.status === "ok").length;
   const errCount = results.filter((r) => r.status === "error").length;
 
+  const emailFailCount = results.filter(
+    (r) => r.status === "ok" && r.email_sent === false
+  ).length;
+
   function downloadCsv() {
-    const header = "email,full_name,status,error,user_id";
+    const header = "email,full_name,status,email_sent,magic_link,error,user_id";
     const rows = results.map(
       (r) =>
         [
           `"${r.email}"`,
           `"${r.full_name ?? ""}"`,
           r.status,
+          r.status === "ok" ? (r.email_sent !== false ? "si" : "no") : "",
+          `"${r.magic_link ?? ""}"`,
           `"${r.error ?? ""}"`,
           r.user_id ?? "",
         ].join(",")
@@ -44,6 +52,22 @@ export function ResultReport({ results, onReset }: ResultReportProps) {
 
   return (
     <div className="space-y-6">
+      {/* Email failure warning */}
+      {emailFailCount > 0 && (
+        <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-300 rounded-xl text-sm">
+          <TriangleAlert className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-yellow-900">
+              {emailFailCount} email{emailFailCount > 1 ? "s" : ""} no se enviaron
+            </p>
+            <p className="text-yellow-800 mt-0.5">
+              Descargá el CSV — incluye la columna <span className="font-mono">magic_link</span> con el
+              link de acceso de cada usuario para que puedas enviárselo manualmente.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4">
         <div className="border rounded-xl p-4 bg-green-50 border-green-200 text-center">
@@ -83,6 +107,7 @@ export function ResultReport({ results, onReset }: ResultReportProps) {
                 <th className="text-left px-4 py-2 font-medium">Email</th>
                 <th className="text-left px-4 py-2 font-medium">Nombre</th>
                 <th className="text-center px-4 py-2 font-medium">Estado</th>
+                <th className="text-center px-4 py-2 font-medium">Mail</th>
                 <th className="text-left px-4 py-2 font-medium">Detalle</th>
               </tr>
             </thead>
@@ -91,7 +116,11 @@ export function ResultReport({ results, onReset }: ResultReportProps) {
                 <tr
                   key={i}
                   className={
-                    r.status === "error" ? "bg-red-50/60" : undefined
+                    r.status === "error"
+                      ? "bg-red-50/60"
+                      : r.email_sent === false
+                      ? "bg-yellow-50/60"
+                      : undefined
                   }
                 >
                   <td className="px-4 py-2 font-mono text-xs">{r.email}</td>
@@ -103,6 +132,17 @@ export function ResultReport({ results, onReset }: ResultReportProps) {
                       <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
                     ) : (
                       <XCircle className="w-4 h-4 text-red-500 mx-auto" />
+                    )}
+                  </td>
+                  <td className="px-4 py-2 text-center">
+                    {r.status === "ok" ? (
+                      r.email_sent === false ? (
+                        <TriangleAlert className="w-4 h-4 text-yellow-500 mx-auto" title="Email no enviado" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4 text-green-400 mx-auto" title="Email enviado" />
+                      )
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </td>
                   <td className="px-4 py-2 text-xs text-muted-foreground">

@@ -84,6 +84,8 @@ export async function POST(req: Request) {
     status: "ok" | "error";
     error?: string;
     user_id?: string;
+    email_sent?: boolean;
+    magic_link?: string | null;
   };
 
   const results: Result[] = [];
@@ -143,18 +145,22 @@ export async function POST(req: Request) {
         .eq("day_number", 1);
 
       // 4d. Generate + send magic link
-      const { error: linkError } = await admin.auth.admin.generateLink({
+      const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
         type: "magiclink",
         email: userData.email,
         options: { redirectTo: `${appUrl}/auth/confirm` },
       });
+
+      const emailSent = !linkError;
+      const magicLink = (linkData as { properties?: { action_link?: string } } | null)
+        ?.properties?.action_link ?? null;
 
       if (linkError) {
         console.warn(
           `[create-user] magic link failed for ${userData.email}:`,
           linkError.message
         );
-        // Non-fatal — user still created. Log the warning but don't throw.
+        // Non-fatal — user still created. Return link info so admin can share manually.
       }
 
       // 4e. Audit log — success
@@ -167,7 +173,13 @@ export async function POST(req: Request) {
         notes: userData.notes ?? null,
       });
 
-      results.push({ email: userData.email, status: "ok", user_id: newUserId });
+      results.push({
+        email: userData.email,
+        status: "ok",
+        user_id: newUserId,
+        email_sent: emailSent,
+        magic_link: magicLink,
+      });
     } catch (err: unknown) {
       const errorMsg =
         err instanceof Error ? err.message : "unknown_error";
