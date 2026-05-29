@@ -150,10 +150,11 @@ export default async function DashboardLayout({
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100vh",
         display: "flex",
-        flexDirection: "column",
+        flexDirection: "row",     /* sidebar izquierdo, todo el resto a la derecha */
         background: "#0A2540",
+        overflow: "hidden",
       }}
     >
       {/* Invisible global effects */}
@@ -163,54 +164,8 @@ export default async function DashboardLayout({
       <UnlockEventListener />
       {!devMode && <XpEngine />}
 
-      {/* ── PROGRESS BAR — full width, nada encima ── */}
-      <div
-        data-tour-id="progress-bar"
-        style={{
-          background: "linear-gradient(180deg, #0A2540 0%, #143A6B 100%)",
-          borderBottom: "1px solid #1E3A5C",
-          padding: "8px 20px",
-          flexShrink: 0,
-          zIndex: 40,
-        }}
-      >
-        <ProgressBar
-          completedDays={completedDays}
-          isAdmin={profile?.is_admin ?? false}
-          avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
-        />
-        {!devMode && (
-          <ComboBar
-            initialProgress={(profile as { combo_progress?: number })?.combo_progress ?? 0}
-          />
-        )}
-      </div>
-
-      {/* Expiry banner */}
-      {remaining <= 3 && remaining > 0 && (
-        <div
-          style={{
-            padding: "6px 20px",
-            textAlign: "center",
-            fontSize: "13px",
-            fontWeight: 600,
-            background: "#A11D2E",
-            color: "#FFFFFF",
-            flexShrink: 0,
-          }}
-        >
-          ⏳ Te quedan <strong>{remaining} día{remaining !== 1 ? "s" : ""}</strong> de acceso.
-        </div>
-      )}
-
-      {/* ── TABS debajo del combo ── */}
-      <DayTabs progressMap={progressMapFromLayout} />
-
-      {/* ── BODY: sidebar + main ── */}
-      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-
-        {/* Sidebar */}
-        <SidebarNav
+      {/* ── SIDEBAR — columna izquierda, altura completa ── */}
+      <SidebarNav
           profile={{
             full_name:               profile?.full_name ?? "Usuario",
             total_points:            profile?.total_points ?? 0,
@@ -228,18 +183,46 @@ export default async function DashboardLayout({
           devMode={devMode}
         />
 
-        {/* Main content */}
-        <main
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            background: "#0A2540",
-            padding: "28px 24px",
-          }}
-        >
-          {children}
-        </main>
-      </div>
+        {/* ── Columna derecha: barras + tabs + contenido ── */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+
+          {/* Barras de progreso — solo en la columna derecha */}
+          <div
+            data-tour-id="progress-bar"
+            style={{
+              background: "linear-gradient(180deg, #0A2540 0%, #143A6B 100%)",
+              borderBottom: "1px solid #1E3A5C",
+              padding: "8px 20px",
+              flexShrink: 0,
+            }}
+          >
+            <ProgressBar
+              completedDays={completedDays}
+              isAdmin={profile?.is_admin ?? false}
+              avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
+            />
+            {!devMode && (
+              <ComboBar
+                initialProgress={(profile as { combo_progress?: number })?.combo_progress ?? 0}
+              />
+            )}
+          </div>
+
+          {/* Expiry banner */}
+          {remaining <= 3 && remaining > 0 && (
+            <div style={{ padding: "6px 20px", textAlign: "center", fontSize: "13px", fontWeight: 600, background: "#A11D2E", color: "#FFFFFF", flexShrink: 0 }}>
+              ⏳ Te quedan <strong>{remaining} día{remaining !== 1 ? "s" : ""}</strong> de acceso.
+            </div>
+          )}
+
+          {/* Tabs */}
+          <DayTabs progressMap={progressMapFromLayout} />
+
+          {/* Contenido principal */}
+          <main style={{ flex: 1, overflowY: "auto", background: "#0A2540", padding: "28px 24px" }}>
+            {children}
+          </main>
+        </div>
 
       {/* Onboarding tutorial */}
       {!devMode && (

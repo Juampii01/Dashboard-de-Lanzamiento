@@ -254,10 +254,7 @@ export function SidebarNav({
           overflowX: "hidden",
           flexShrink: 0,
           scrollbarWidth: "none",
-          /* sticky for the full height below the bars */
-          position: "sticky",
-          top: 0,
-          height: "100%",
+          height: "100vh",
         }}
       >
         {/* ── Marca ── */}

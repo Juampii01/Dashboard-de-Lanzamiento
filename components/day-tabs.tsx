@@ -52,14 +52,12 @@ export function DayTabs({ progressMap }: DayTabsProps) {
       style={{
         display: "flex",
         alignItems: "flex-end",
-        padding: "0 24px",
+        padding: "0 20px",
         gap: "3px",
         background: "#0A2540",
         borderBottom: "1px solid #1E3A5C",
         flexShrink: 0,
         height: "42px",
-        // Offset para que las tabs empiecen después del sidebar
-        paddingLeft: "calc(var(--sidebar-width, 240px) + 24px)",
       }}
     >
       {TABS.map(({ day, label, href }) => {
