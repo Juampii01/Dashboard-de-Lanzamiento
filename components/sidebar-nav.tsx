@@ -275,25 +275,21 @@ export function SidebarNav({
             </div>
           </Link>
 
-          {/* Fila 2: Avatar + nombre + logout */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <ProfileButton
-              fullName={profile.full_name}
-              email={email}
-              avatarUrl={profile.avatar_url ?? null}
-            />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.3 }}>
-                {profile.full_name}
-              </div>
-              <div style={{ fontSize: "9px", color: "#5A6B85" }}>
-                {email}
-              </div>
+          {/* Fila 2: usuario + logout en una fila, ProfileButton ocupa el espacio disponible */}
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
+            {/* ProfileButton se encarga del avatar + nombre — le damos todo el ancho disponible */}
+            <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+              <ProfileButton
+                fullName={profile.full_name}
+                email={email}
+                avatarUrl={profile.avatar_url ?? null}
+              />
             </div>
+            {/* Logout */}
             <form action="/api/auth/signout" method="POST" style={{ flexShrink: 0 }}>
               <button type="submit" title="Cerrar sesión"
-                style={{ width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", borderRadius: "6px", color: "#5A6B85", cursor: "pointer" }}>
-                <LogOut style={{ width: "13px", height: "13px" }} />
+                style={{ width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", borderRadius: "6px", color: "#5A6B85", cursor: "pointer" }}>
+                <LogOut style={{ width: "14px", height: "14px" }} />
               </button>
             </form>
           </div>
