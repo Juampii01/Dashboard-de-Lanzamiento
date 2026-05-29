@@ -22,6 +22,11 @@ interface DayCount {
 export const revalidate = 30;
 
 export async function GET() {
+  // Guard: during preview builds Supabase env vars may not be set
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json({ counts: [] });
+  }
+
   const supabase = createServiceClient();
 
   const { data, error } = await supabase.rpc("get_day_completion_counts");
