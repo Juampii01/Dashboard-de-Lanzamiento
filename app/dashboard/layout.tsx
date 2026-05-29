@@ -4,21 +4,15 @@ import { redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
 import { ParticleBackground } from "@/components/particle-background";
 import { BootSequence } from "@/components/boot-sequence";
-import { CountdownTimer } from "@/components/countdown-timer";
 import { UnlockEventListener } from "@/components/unlock-event-listener";
-import { PointsHUD } from "@/components/points-hud";
 import { ArcadeAmbient } from "@/components/arcade-ambient";
 import { XpEngine } from "@/components/xp-engine";
 import { OnboardingTutorial } from "@/components/onboarding-tutorial";
 import { daysLeft, isExpired } from "@/lib/utils";
-import { LogOut, Shield } from "lucide-react";
-import Link from "next/link";
-import { ResetTutorialButton } from "@/components/reset-tutorial-button";
-import { ResetDashboardButton } from "@/components/reset-dashboard-button";
 import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
 import { ComboBar } from "@/components/combo-bar";
-import { AdButton } from "@/components/ad-button";
-import { ProfileButton } from "@/components/profile-button";
+import { SidebarNav } from "@/components/sidebar-nav";
+import { DayTabs } from "@/components/day-tabs";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -56,20 +50,24 @@ async function getLayoutData(userId: string) {
   const [{ data: user }, { data: progress }] = await Promise.all([
     supabase
       .from("users")
-      // hotmart_transaction_id included so the paywall gate below can verify
-      // that this user has a real Hotmart purchase on record.
       .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id, combo_progress, last_ad_watched_at, avatar_url")
       .eq("id", userId)
       .single(),
     supabase
       .from("day_progress")
-      .select("day_number, is_completed")
+      .select("day_number, is_unlocked, is_completed")
       .eq("user_id", userId),
   ]);
 
   const completedDays = progress?.filter((p) => p.is_completed).length ?? 0;
 
-  return { user, completedDays };
+  // Build a map { [dayNumber]: { is_unlocked, is_completed } }
+  const progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }> =
+    Object.fromEntries(
+      (progress ?? []).map((p) => [p.day_number, { is_unlocked: p.is_unlocked, is_completed: p.is_completed }])
+    );
+
+  return { user, completedDays, progressMap };
 }
 
 export default async function DashboardLayout({
@@ -85,11 +83,16 @@ export default async function DashboardLayout({
   let profile: typeof DEV_PROFILE | null = devMode ? DEV_PROFILE : null;
   let completedDays = 0;
   let userEmail = "";
+  let progressMapFromLayout: Record<number, { is_unlocked: boolean; is_completed: boolean }> = {};
 
   if (devMode) {
     const cookieStore = await cookies();
     const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
-    completedDays = devCompleted.split(",").filter(Boolean).length;
+    const completedSet = new Set(devCompleted.split(",").filter(Boolean));
+    completedDays = completedSet.size;
+    for (let d = 1; d <= 4; d++) {
+      progressMapFromLayout[d] = { is_unlocked: true, is_completed: completedSet.has(String(d)) };
+    }
   } else {
     const supabase = await createClient();
     let user = null;
@@ -109,6 +112,17 @@ export default async function DashboardLayout({
     // never accidentally get is_admin: true
     profile = layoutData.user ?? SAFE_EMPTY_PROFILE;
     completedDays = layoutData.completedDays;
+    progressMapFromLayout = layoutData.progressMap;
+
+    // Admins see all days unlocked
+    if (profile?.is_admin) {
+      for (let d = 1; d <= 4; d++) {
+        progressMapFromLayout[d] = {
+          is_unlocked: true,
+          is_completed: progressMapFromLayout[d]?.is_completed ?? false,
+        };
+      }
+    }
   }
 
   if (profile && isExpired(profile.access_expires_at)) {
@@ -134,142 +148,105 @@ export default async function DashboardLayout({
   const remaining = daysLeft(profile?.access_expires_at ?? null);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#0A2540" }}>
-      {/* Global overlays & ambient effects */}
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        background: "#0A2540",
+      }}
+    >
+      {/* Invisible global effects */}
       <ParticleBackground />
       <ArcadeAmbient />
       <BootSequence />
       <UnlockEventListener />
-      {/* XP Engine: invisible heartbeat + avatar XP listener */}
       {!devMode && <XpEngine />}
-      {/* Header */}
-      <header
-        className="sticky top-0 z-50 px-4 py-4 shadow-xl"
+
+      {/* ── PROGRESS BAR — full width, nada encima ── */}
+      <div
+        data-tour-id="progress-bar"
         style={{
           background: "linear-gradient(180deg, #0A2540 0%, #143A6B 100%)",
           borderBottom: "1px solid #1E3A5C",
+          padding: "8px 20px",
+          flexShrink: 0,
+          zIndex: 40,
         }}
       >
-        <div className="max-w-5xl mx-auto">
-          {/* Top row */}
-          <div className="flex items-center justify-between mb-4">
-            {/* Logo */}
-            <Link href="/dashboard" className="hover:opacity-80 transition-opacity shrink-0">
-              <div
-                style={{
-                  background: "#fff",
-                  borderRadius: "10px",
-                  padding: "5px 10px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
-                }}
-              >
-                <img
-                  src="/halcon.png"
-                  alt="Govbidder Challenge"
-                  style={{ height: "46px", width: "auto", display: "block" }}
-                />
-              </div>
-            </Link>
-
-            {/* Right: countdown + admin + xp + user + logout */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Countdown to next unlock */}
-              <div className="hidden md:block">
-                <CountdownTimer />
-              </div>
-
-              {profile?.is_admin && (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/admin"
-                    className="flex items-center gap-1 text-xs text-[#D7263D] hover:text-[#ff4d6d] transition-colors"
-                  >
-                    <Shield className="w-3.5 h-3.5" />
-                    Admin
-                  </Link>
-                  <ResetTutorialButton />
-                  <ResetDashboardButton />
-                </div>
-              )}
-
-              {/* Ad button — +20 XP por ver un anuncio, cooldown 10 min */}
-              {!devMode && (
-                <AdButton
-                  initialLastAdAt={
-                    (profile as { last_ad_watched_at?: string | null })?.last_ad_watched_at ?? null
-                  }
-                />
-              )}
-
-              {/* XP level + points (client component with 3D flip) */}
-              <div data-tour-id="xp-pill">
-                <PointsHUD points={profile?.total_points ?? 0} />
-              </div>
-
-              <ProfileButton
-                fullName={profile?.full_name ?? "Usuario"}
-                email={userEmail}
-                avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
-              />
-
-              <form action="/api/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  className="p-2 rounded-lg text-[#A8B5CC] hover:text-white hover:bg-white/10 transition-colors"
-                  title="Cerrar sesión"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div data-tour-id="progress-bar">
-            <ProgressBar
-            completedDays={completedDays}
-            isAdmin={profile?.is_admin ?? false}
-            avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
+        <ProgressBar
+          completedDays={completedDays}
+          isAdmin={profile?.is_admin ?? false}
+          avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
+        />
+        {!devMode && (
+          <ComboBar
+            initialProgress={(profile as { combo_progress?: number })?.combo_progress ?? 0}
           />
-          </div>
-
-          {/* Combo bar — thin fill bar below progress bar */}
-          {!devMode && (
-            <ComboBar
-              initialProgress={(profile as { combo_progress?: number })?.combo_progress ?? 0}
-            />
-          )}
-        </div>
-      </header>
+        )}
+      </div>
 
       {/* Expiry banner */}
       {remaining <= 3 && remaining > 0 && (
         <div
-          className="px-4 py-2 text-center text-sm font-medium"
-          style={{ background: "#A11D2E", color: "#FFFFFF" }}
+          style={{
+            padding: "6px 20px",
+            textAlign: "center",
+            fontSize: "13px",
+            fontWeight: 600,
+            background: "#A11D2E",
+            color: "#FFFFFF",
+            flexShrink: 0,
+          }}
         >
           ⏳ Te quedan <strong>{remaining} día{remaining !== 1 ? "s" : ""}</strong> de acceso.
         </div>
       )}
 
-      {/* Main content */}
-      <main
-        className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 relative"
-        style={{ background: "#0A2540" }}
-      >
-        {children}
-      </main>
+      {/* ── TABS debajo del combo ── */}
+      <DayTabs progressMap={progressMapFromLayout} />
 
-      {/* Onboarding tutorial — only on first visit */}
+      {/* ── BODY: sidebar + main ── */}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+
+        {/* Sidebar */}
+        <SidebarNav
+          profile={{
+            full_name:               profile?.full_name ?? "Usuario",
+            total_points:            profile?.total_points ?? 0,
+            is_admin:                profile?.is_admin ?? false,
+            access_expires_at:       profile?.access_expires_at ?? null,
+            has_seen_onboarding:     profile?.has_seen_onboarding ?? false,
+            last_ad_watched_at:      (profile as { last_ad_watched_at?: string | null })?.last_ad_watched_at ?? null,
+            avatar_url:              (profile as { avatar_url?: string | null })?.avatar_url ?? null,
+            hotmart_transaction_id:  (profile as { hotmart_transaction_id?: string | null })?.hotmart_transaction_id ?? null,
+            combo_progress:          (profile as { combo_progress?: number })?.combo_progress ?? 0,
+          }}
+          email={userEmail}
+          progressMap={progressMapFromLayout}
+          completedDays={completedDays}
+          devMode={devMode}
+        />
+
+        {/* Main content */}
+        <main
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            background: "#0A2540",
+            padding: "28px 24px",
+          }}
+        >
+          {children}
+        </main>
+      </div>
+
+      {/* Onboarding tutorial */}
       {!devMode && (
         <OnboardingTutorial
           hasSeenOnboarding={profile?.has_seen_onboarding ?? false}
         />
       )}
-
-      {/* Dashboard lock overlay — polling every 20s, appears automatically during live calls */}
       {!devMode && <DashboardLockOverlay />}
     </div>
   );
