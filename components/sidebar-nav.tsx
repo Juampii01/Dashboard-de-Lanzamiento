@@ -260,52 +260,50 @@ export function SidebarNav({
           height: "100%",
         }}
       >
-        {/* ── Logo + User ── */}
-        <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid #1E3A5C", flexShrink: 0 }}>
+        {/* ── Marca ── */}
+        <div style={{ padding: "14px 14px 10px", borderBottom: "1px solid #1E3A5C", flexShrink: 0 }}>
 
-          {/* Fila 1: Logo + nombre + avatar + logout */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-            {/* Logo */}
-            <Link href="/dashboard" style={{ textDecoration: "none", flexShrink: 0 }}>
-              <div style={{ background: "#fff", borderRadius: "8px", padding: "4px 7px", display: "inline-flex", alignItems: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.25)" }}>
-                <img src="/halcon.png" alt="Govbidder" style={{ height: "32px", width: "auto", display: "block" }} />
-              </div>
-            </Link>
-
-            {/* Nombre del producto */}
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 900, color: "#FFFFFF", lineHeight: 1.2 }}>
+          {/* Fila 1: Logo + producto */}
+          <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+            <div style={{ background: "#fff", borderRadius: "8px", padding: "4px 8px", display: "inline-flex", alignItems: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.25)", flexShrink: 0 }}>
+              <img src="/halcon.png" alt="Govbidder" style={{ height: "32px", width: "auto", display: "block" }} />
+            </div>
+            <div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 900, color: "#FFFFFF", lineHeight: 1.2 }}>
                 Govbidder
               </div>
               <div style={{ fontSize: "7px", color: "#5A6B85", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
                 Code Challenge
               </div>
             </div>
+          </Link>
 
-            {/* Avatar + logout */}
-            <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
-              <ProfileButton
-                fullName={profile.full_name}
-                email={email}
-                avatarUrl={profile.avatar_url ?? null}
-              />
-              <form action="/api/auth/signout" method="POST">
-                <button type="submit" title="Cerrar sesión"
-                  style={{ width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", borderRadius: "6px", color: "#5A6B85", cursor: "pointer" }}>
-                  <LogOut style={{ width: "13px", height: "13px" }} />
-                </button>
-              </form>
+          {/* Fila 2: Avatar + nombre + logout */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <ProfileButton
+              fullName={profile.full_name}
+              email={email}
+              avatarUrl={profile.avatar_url ?? null}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.3 }}>
+                {profile.full_name}
+              </div>
+              <div style={{ fontSize: "9px", color: "#5A6B85" }}>
+                {email}
+              </div>
             </div>
+            <form action="/api/auth/signout" method="POST" style={{ flexShrink: 0 }}>
+              <button type="submit" title="Cerrar sesión"
+                style={{ width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", borderRadius: "6px", color: "#5A6B85", cursor: "pointer" }}>
+                <LogOut style={{ width: "13px", height: "13px" }} />
+              </button>
+            </form>
           </div>
 
-          {/* Fila 2: Nombre del usuario */}
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "#FFFFFF", marginBottom: "8px", paddingLeft: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {profile.full_name}
-          </div>
-
-          {/* Admin controls — solo si es admin, compacto */}
+          {/* Fila 3: Admin controls — solo si es admin, todo en una línea */}
           {profile.is_admin && (
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #1E3A5C" }}>
               <Link href="/admin" style={{ fontSize: "10px", fontWeight: 600, color: "#D7263D", display: "flex", alignItems: "center", gap: "3px", textDecoration: "none" }}>
                 <Shield style={{ width: "10px", height: "10px" }} /> Admin
               </Link>
