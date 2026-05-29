@@ -12,11 +12,11 @@ export default function ExpiradoPage() {
               <Lock className="w-8 h-8 text-muted-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Tu acceso al Challenge expiró</CardTitle>
+          <CardTitle className="text-2xl">Tu acceso expiró</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-muted-foreground">
-            La ventana de 7 días del Govbidder Challenge terminó. Pero lo que
+            La ventana de 7 días de Govbidder terminó. Pero lo que
             aprendiste es tuyo para siempre.
           </p>
 

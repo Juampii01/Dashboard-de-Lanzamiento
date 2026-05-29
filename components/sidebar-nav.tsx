@@ -270,7 +270,7 @@ export function SidebarNav({
                 Govbidder
               </div>
               <div style={{ fontSize: "7px", color: "#5A6B85", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                Code Challenge
+                Programa Federal
               </div>
             </div>
           </Link>
@@ -423,7 +423,7 @@ export function SidebarNav({
             padding: "0 14px 5px",
           }}
         >
-          Fases del Challenge
+          Fases del Programa
         </div>
 
         {[1, 2, 3, 4].map((day) => {

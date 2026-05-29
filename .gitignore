@@ -43,3 +43,5 @@ yarn-error.log*
 next-env.d.ts
 .claude/
 backups/
+supabase/.temp/
+.claude/settings.local.json

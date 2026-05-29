@@ -100,7 +100,7 @@ export function CertificatePDF({ fullName, completedAt }: CertificatePDFProps) {
           <View style={styles.innerBorder}>
             <Text style={styles.govbidder}>Govbidder</Text>
             <Text style={styles.certTitle}>Certificado de Finalización</Text>
-            <Text style={styles.certSub}>Govbidder Challenge — Aprende a Venderle al Gobierno</Text>
+            <Text style={styles.certSub}>Govbidder — Aprende a Venderle al Gobierno Federal</Text>
 
             <View style={styles.goldLine} />
 
