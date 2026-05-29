@@ -16,6 +16,7 @@ interface DayTabsProps {
 }
 
 const TABS = [
+  { day: 0, label: "Inicio",    href: "/dashboard" },
   { day: 1, label: "Perfil",    href: "/dashboard/dia-1" },
   { day: 2, label: "NAICS",     href: "/dashboard/dia-2" },
   { day: 3, label: "Portales",  href: "/dashboard/dia-3" },
@@ -51,9 +52,9 @@ export function DayTabs({ progressMap }: DayTabsProps) {
       ref={tabRef}
       style={{
         display: "flex",
-        alignItems: "flex-end",
-        padding: "0 20px",
-        gap: "3px",
+        alignItems: "stretch",
+        padding: "0",
+        gap: "0",
         background: "#0A2540",
         borderBottom: "1px solid #1E3A5C",
         flexShrink: 0,
@@ -61,10 +62,14 @@ export function DayTabs({ progressMap }: DayTabsProps) {
       }}
     >
       {TABS.map(({ day, label, href }) => {
-        const prog      = progressMap[day];
-        const isActive  = pathname === href || pathname.startsWith(href + "/");
+        const isHome      = day === 0;
+        const prog        = progressMap[day];
+        const isActive    = isHome
+          ? pathname === "/dashboard"
+          : pathname === href || pathname.startsWith(href + "/");
         const isCompleted = prog?.is_completed ?? false;
-        const isUnlocked  = prog?.is_unlocked  ?? false;
+        // Inicio y días desbloqueados son siempre clickeables
+        const isUnlocked  = isHome ? true : (prog?.is_unlocked ?? false);
         const isLocked    = !isUnlocked;
 
         return (
@@ -72,94 +77,93 @@ export function DayTabs({ progressMap }: DayTabsProps) {
             key={day}
             onClick={(e) => handleTabClick(e, href, isUnlocked)}
             style={{
+              flex: 1,                        /* ocupa el ancho completo equitativamente */
               display: "flex",
               alignItems: "center",
-              gap: "7px",
-              padding: "7px 18px",
-              borderRadius: "8px 8px 0 0",
-              border: "1px solid transparent",
-              borderBottom: "none",
-              height: "36px",
+              justifyContent: "center",
+              gap: "6px",
+              padding: "0 8px",
+              borderRight: "1px solid #1E3A5C",
+              height: "100%",
               position: "relative",
               cursor: isLocked ? "not-allowed" : "pointer",
-              transition: "all 0.18s",
+              transition: "background 0.18s, color 0.18s",
               fontFamily: "var(--font-sans)",
               fontSize: "12px",
-              fontWeight: isActive ? 700 : 600,
+              fontWeight: isActive ? 700 : 500,
               color: isActive ? "#FFFFFF" : isLocked ? "#3D4E6B" : "#5A6B85",
               background: isActive ? "#0E2D4A" : "transparent",
-              borderColor: isActive ? "#1E3A5C" : "transparent",
               userSelect: "none",
-              // Hover solo si está desbloqueado
-              ...(isLocked ? {} : { ["--tab-hover" as string]: "1" }),
             }}
             onMouseEnter={(e) => {
               if (!isLocked && !isActive) {
-                (e.currentTarget as HTMLDivElement).style.color   = "#A8B5CC";
-                (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.03)";
+                (e.currentTarget as HTMLDivElement).style.background = "rgba(255,255,255,0.04)";
+                (e.currentTarget as HTMLDivElement).style.color = "#A8B5CC";
               }
             }}
             onMouseLeave={(e) => {
               if (!isLocked && !isActive) {
-                (e.currentTarget as HTMLDivElement).style.color   = "#5A6B85";
                 (e.currentTarget as HTMLDivElement).style.background = "transparent";
+                (e.currentTarget as HTMLDivElement).style.color = "#5A6B85";
               }
             }}
           >
-            {/* Línea de fondo cuando está activa (oculta el borde inferior) */}
+            {/* Línea roja en el fondo cuando está activa */}
             {isActive && (
               <span
                 style={{
                   position: "absolute",
-                  bottom: -1,
+                  bottom: 0,
                   left: 0,
                   right: 0,
-                  height: 1,
-                  background: "#0E2D4A",
+                  height: "2px",
+                  background: "#D7263D",
                   pointerEvents: "none",
                 }}
               />
             )}
 
-            {/* Número */}
-            <span
-              style={{
-                width: "20px",
-                height: "20px",
-                borderRadius: "5px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: "var(--font-arcade)",
-                fontSize: "10px",
-                fontWeight: 900,
-                flexShrink: 0,
-                background: isActive
-                  ? "#D7263D"
-                  : isCompleted
-                  ? "rgba(0,214,122,0.15)"
-                  : "rgba(255,255,255,0.07)",
-                color: isActive
-                  ? "#fff"
-                  : isCompleted
-                  ? "#00D67A"
-                  : "inherit",
-                boxShadow: isActive
-                  ? "0 0 8px rgba(215,38,61,0.5)"
-                  : "none",
-              }}
-            >
-              {isLocked ? "🔒" : day}
-            </span>
+            {/* Número / Ícono */}
+            {/* Badge numérico — solo para días 1-4, no para Inicio */}
+            {!isHome && (
+              <span
+                style={{
+                  width: "18px",
+                  height: "18px",
+                  borderRadius: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: "var(--font-arcade)",
+                  fontSize: "9px",
+                  fontWeight: 900,
+                  flexShrink: 0,
+                  background: isActive
+                    ? "#D7263D"
+                    : isCompleted
+                    ? "rgba(0,214,122,0.18)"
+                    : isLocked
+                    ? "rgba(255,255,255,0.04)"
+                    : "rgba(255,255,255,0.07)",
+                  color: isActive ? "#fff" : isCompleted ? "#00D67A" : "inherit",
+                  boxShadow: isActive ? "0 0 6px rgba(215,38,61,0.5)" : "none",
+                }}
+              >
+                {isLocked ? "🔒" : day}
+              </span>
+            )}
+
+            {/* Ícono para Inicio */}
+            {isHome && (
+              <span style={{ fontSize: "13px", lineHeight: 1 }}>🏠</span>
+            )}
 
             {/* Label */}
-            <span>{label}</span>
+            <span style={{ whiteSpace: "nowrap" }}>{label}</span>
 
             {/* Check si completado */}
-            {isCompleted && (
-              <span style={{ fontSize: "10px", color: "#00D67A", marginLeft: "-3px" }}>
-                ✓
-              </span>
+            {isCompleted && !isHome && (
+              <span style={{ fontSize: "9px", color: "#00D67A" }}>✓</span>
             )}
           </div>
         );
