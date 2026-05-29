@@ -46,7 +46,6 @@ function UserResetButton({ userId, userEmail }: { userId: string; userEmail: str
     </button>
   );
 }
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -383,18 +382,13 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
 
   async function toggleDay(dayNumber: number, value: boolean) {
     setUpdatingDay(dayNumber);
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("admin_toggles")
-      .update({
-        is_globally_unlocked: value,
-        unlocked_at: value ? new Date().toISOString() : null,
-      })
-      .eq("day_number", dayNumber);
-
-    if (error) {
-      toast.error("Error al actualizar. Recargá la página.");
-    } else {
+    try {
+      const res = await fetch("/api/admin/day-toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day_number: dayNumber, value }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "error");
       setToggles((prev) =>
         prev.map((t) =>
           t.day_number === dayNumber
@@ -403,6 +397,8 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         )
       );
       toast.success(value ? `Día ${dayNumber} desbloqueado para todos.` : `Día ${dayNumber} bloqueado.`);
+    } catch {
+      toast.error("Error al actualizar. Recargá la página.");
     }
     setUpdatingDay(null);
   }
@@ -410,17 +406,16 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
   async function overrideUserDay(userId: string, dayNumber: number, unlock: boolean) {
     const key = `${userId}-${dayNumber}`;
     setOverrideLoading(key);
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("day_progress")
-      .update({ is_unlocked: unlock })
-      .eq("user_id", userId)
-      .eq("day_number", dayNumber);
-
-    if (error) {
-      toast.error("Error al aplicar override.");
-    } else {
+    try {
+      const res = await fetch("/api/admin/day-override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, day_number: dayNumber, unlock }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "error");
       toast.success(`Día ${dayNumber} ${unlock ? "desbloqueado" : "bloqueado"} para el usuario.`);
+    } catch {
+      toast.error("Error al aplicar override.");
     }
     setOverrideLoading(null);
   }
