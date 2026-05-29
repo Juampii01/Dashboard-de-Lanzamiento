@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { flyPoints } from "@/lib/wow-effects";
 
 interface AdminForceCompleteProps {
@@ -10,6 +11,7 @@ interface AdminForceCompleteProps {
 }
 
 export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceCompleteProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(isCompleted);
 
@@ -38,7 +40,8 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
             detail: { delta: data.pointsAwarded, total: data.total, source: "day" },
           }));
         }
-        setTimeout(() => window.location.reload(), 800);
+        // router.refresh() en lugar de reload — no desmonta el ProgressBar
+        setTimeout(() => router.refresh(), 600);
       }
     } catch {
       // silently fail
@@ -58,12 +61,14 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
       const data = await res.json();
       if (data.ok) {
         setDone(false);
-        if (data.pointsRemoved > 0) {
+        // data.xpRemoved (no data.pointsRemoved — era typo)
+        if (data.xpRemoved > 0) {
           window.dispatchEvent(new CustomEvent("xp-gained", {
-            detail: { delta: -data.pointsRemoved, total: data.total, source: "day" },
+            detail: { delta: -data.xpRemoved, total: data.newTotal, source: "day" },
           }));
         }
-        setTimeout(() => window.location.reload(), 400);
+        // router.refresh() en lugar de reload — preserva el estado del ProgressBar
+        setTimeout(() => router.refresh(), 400);
       }
     } catch {
       // silently fail

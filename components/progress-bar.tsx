@@ -252,9 +252,11 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
   const isEmpty = targetPct === 0;
   const isFull = targetPct === 100;
 
-  // Cinematic entrance: bar starts at 0 and fills slowly on mount
-  const [displayPct, setDisplayPct] = useState(0);
-  const [mounted, setMounted] = useState(false);
+  // Cinematic entrance solo si el usuario está en 0%. Si ya tiene días completados,
+  // arranca directo en la posición correcta para no hacer el viaje desde 0.
+  const isFirstRender = useRef(true);
+  const [displayPct, setDisplayPct] = useState(() => targetPct > 0 ? targetPct : 0);
+  const [mounted, setMounted] = useState(() => targetPct > 0);
 
   // Avatar upload state
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(initialAvatarUrl ?? null);
@@ -262,9 +264,19 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setMounted(true), 120);
-    const t2 = setTimeout(() => setDisplayPct(targetPct), 400);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (targetPct === 0) {
+        // Usuario en 0%: animación de entrada desde 0 (experiencia de primer día)
+        const t1 = setTimeout(() => setMounted(true), 120);
+        return () => clearTimeout(t1);
+      }
+      // Ya tiene progreso: posición correcta desde el inicio, sin animación de entrada
+      return;
+    }
+    // Cambio posterior (completó un día): animar suavemente de posición actual a nueva
+    const t = setTimeout(() => setDisplayPct(targetPct), 200);
+    return () => clearTimeout(t);
   }, [targetPct]);
 
   const handleAvatarClick = useCallback((cx: number, cy: number) => {

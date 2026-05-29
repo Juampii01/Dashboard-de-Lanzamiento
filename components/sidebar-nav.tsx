@@ -275,21 +275,32 @@ export function SidebarNav({
             </div>
           </Link>
 
-          {/* Fila 2: usuario + logout en una fila, ProfileButton ocupa el espacio disponible */}
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
-            {/* ProfileButton se encarga del avatar + nombre — le damos todo el ancho disponible */}
-            <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+          {/* Fila 2: avatar (igual que barra) + nombre + logout */}
+          <div style={{ display: "flex", alignItems: "center", gap: "9px", minWidth: 0 }}>
+            {/* Avatar — misma imagen que usa el ProgressBar: avatar_url || /aguila.png */}
+            <div style={{ flexShrink: 0, position: "relative" }}>
               <ProfileButton
                 fullName={profile.full_name}
                 email={email}
                 avatarUrl={profile.avatar_url ?? null}
               />
             </div>
+
+            {/* Nombre truncado */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {profile.full_name}
+              </div>
+              <div style={{ fontSize: "9px", color: "#5A6B85", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {email}
+              </div>
+            </div>
+
             {/* Logout */}
             <form action="/api/auth/signout" method="POST" style={{ flexShrink: 0 }}>
               <button type="submit" title="Cerrar sesión"
-                style={{ width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", borderRadius: "6px", color: "#5A6B85", cursor: "pointer" }}>
-                <LogOut style={{ width: "14px", height: "14px" }} />
+                style={{ width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", borderRadius: "6px", color: "#5A6B85", cursor: "pointer" }}>
+                <LogOut style={{ width: "13px", height: "13px" }} />
               </button>
             </form>
           </div>

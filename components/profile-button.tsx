@@ -152,9 +152,9 @@ export function ProfileButton({
             position: "relative",
           }}
         >
-          {/* Eagle logo fallback — shown when no avatar (or while avatar loads) */}
+          {/* Fallback — misma imagen que usa el ProgressBar para consistencia */}
           <img
-            src="/halcon.png"
+            src="/aguila.png"
             alt=""
             style={{
               position: "absolute",
@@ -162,10 +162,10 @@ export function ProfileButton({
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              objectPosition: "center",
+              objectPosition: "center top",
               opacity: avatarVisible && !avatarError ? 0 : 1,
               transition: "opacity 0.2s",
-              background: "#fff",
+              background: "#0A2540",
             }}
           />
 
