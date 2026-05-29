@@ -1,12 +1,9 @@
 import Link from "next/link";
 import { Shield, LogOut } from "lucide-react";
 import { LeaderboardMini } from "@/components/leaderboard-mini";
-import { CountdownTimer } from "@/components/countdown-timer";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 import { ResetDashboardButton } from "@/components/reset-dashboard-button";
-import { AdButton } from "@/components/ad-button";
 import { ProfileButton } from "@/components/profile-button";
-import { PointsHUD } from "@/components/points-hud";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Width exported as CSS variable so DayTabs can offset itself
@@ -263,133 +260,59 @@ export function SidebarNav({
           height: "100%",
         }}
       >
-        {/* ── Logo + User Controls ── */}
-        <div
-          style={{
-            padding: "12px 12px 10px",
-            borderBottom: "1px solid #1E3A5C",
-            flexShrink: 0,
-          }}
-        >
-          {/* Logo row */}
-          <div style={{ display: "flex", alignItems: "center", gap: "9px", marginBottom: "10px" }}>
-            <Link href="/dashboard" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-              <div
-                style={{
-                  background: "#fff",
-                  borderRadius: "8px",
-                  padding: "4px 8px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
-                }}
-              >
-                <img
-                  src="/halcon.png"
-                  alt="Govbidder"
-                  style={{ height: "34px", width: "auto", display: "block" }}
-                />
+        {/* ── Logo + User ── */}
+        <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid #1E3A5C", flexShrink: 0 }}>
+
+          {/* Fila 1: Logo + nombre + avatar + logout */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+            {/* Logo */}
+            <Link href="/dashboard" style={{ textDecoration: "none", flexShrink: 0 }}>
+              <div style={{ background: "#fff", borderRadius: "8px", padding: "4px 7px", display: "inline-flex", alignItems: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.25)" }}>
+                <img src="/halcon.png" alt="Govbidder" style={{ height: "32px", width: "auto", display: "block" }} />
               </div>
             </Link>
-            <div>
-              <div
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "13px",
-                  fontWeight: 900,
-                  color: "#FFFFFF",
-                  lineHeight: 1.2,
-                }}
-              >
+
+            {/* Nombre del producto */}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 900, color: "#FFFFFF", lineHeight: 1.2 }}>
                 Govbidder
               </div>
-              <div
-                style={{
-                  fontSize: "7.5px",
-                  color: "#5A6B85",
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                }}
-              >
+              <div style={{ fontSize: "7px", color: "#5A6B85", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
                 Code Challenge
               </div>
             </div>
-          </div>
 
-          {/* XP + avatar row */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "6px",
-              marginBottom: "8px",
-            }}
-          >
-            <PointsHUD points={profile.total_points} />
-
-            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              {!devMode && (
-                <AdButton
-                  initialLastAdAt={profile.last_ad_watched_at ?? null}
-                />
-              )}
+            {/* Avatar + logout */}
+            <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
               <ProfileButton
                 fullName={profile.full_name}
                 email={email}
                 avatarUrl={profile.avatar_url ?? null}
               />
               <form action="/api/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  style={{
-                    width: "28px",
-                    height: "28px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "transparent",
-                    border: "none",
-                    borderRadius: "7px",
-                    color: "#A8B5CC",
-                    cursor: "pointer",
-                  }}
-                  title="Cerrar sesión"
-                >
-                  <LogOut style={{ width: "14px", height: "14px" }} />
+                <button type="submit" title="Cerrar sesión"
+                  style={{ width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", borderRadius: "6px", color: "#5A6B85", cursor: "pointer" }}>
+                  <LogOut style={{ width: "13px", height: "13px" }} />
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Admin controls */}
+          {/* Fila 2: Nombre del usuario */}
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#FFFFFF", marginBottom: "8px", paddingLeft: "2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {profile.full_name}
+          </div>
+
+          {/* Admin controls — solo si es admin, compacto */}
           {profile.is_admin && (
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-              <Link
-                href="/admin"
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 600,
-                  color: "#D7263D",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "3px",
-                  textDecoration: "none",
-                }}
-              >
-                <Shield style={{ width: "11px", height: "11px" }} />
-                Admin
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <Link href="/admin" style={{ fontSize: "10px", fontWeight: 600, color: "#D7263D", display: "flex", alignItems: "center", gap: "3px", textDecoration: "none" }}>
+                <Shield style={{ width: "10px", height: "10px" }} /> Admin
               </Link>
               <ResetTutorialButton />
               <ResetDashboardButton />
             </div>
           )}
-
-          {/* Countdown */}
-          <div style={{ marginTop: "8px" }}>
-            <CountdownTimer />
-          </div>
         </div>
 
         {/* ── Stat card: posición + puntos ── */}

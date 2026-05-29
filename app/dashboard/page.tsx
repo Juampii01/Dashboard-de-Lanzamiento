@@ -2,11 +2,9 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAllAdminToggles } from "@/lib/supabase/helpers";
-import { DayCard } from "@/components/day-card";
 import { SamContractsWidget } from "@/components/sam-contracts-widget";
 import { SocialProof } from "@/components/social-proof";
 import { CertificatePreview } from "@/components/certificate-preview";
-import { Leaderboard } from "@/components/leaderboard";
 
 const DAY_META = [
   {
@@ -147,73 +145,105 @@ export default async function DashboardPage() {
       {/* SAM.gov live contracts widget */}
       <SamContractsWidget />
 
-      {/* Grid de retos */}
-      <div data-tour-id="day-cards" className="grid gap-5 sm:grid-cols-2 stagger-children">
-        {DAY_META.map(({ day, title, description, href }) => {
-          const dayToggle = toggleMap[day];
-          const dayProgress = progressMap[day];
-          const prevDayProgress = progressMap[day - 1];
+      {/* Progreso por fase — reemplaza las cards grandes (ya están en sidebar + tabs) */}
+      <div>
+        <p
+          className="text-xs uppercase tracking-widest font-bold mb-3"
+          style={{ color: "#5A6B85", fontFamily: "var(--font-arcade)" }}
+        >
+          Tu progreso
+        </p>
+        <div className="flex flex-col gap-2" data-tour-id="day-cards">
+          {DAY_META.map(({ day, title, href }) => {
+            const dayToggle    = toggleMap[day];
+            const dayProgress  = progressMap[day];
+            const prevProgress = progressMap[day - 1];
 
-          const globallyUnlocked = dayToggle?.is_globally_unlocked ?? (day === 1);
-          const prevCompleted = day === 1 || prevDayProgress?.is_completed === true;
-          const userUnlocked = dayProgress?.is_unlocked ?? false;
+            const globallyUnlocked = dayToggle?.is_globally_unlocked ?? (day === 1);
+            const prevCompleted     = day === 1 || prevProgress?.is_completed === true;
+            const userUnlocked      = dayProgress?.is_unlocked ?? false;
+            const isUnlocked        = (globallyUnlocked && prevCompleted) || userUnlocked;
+            const isCompleted       = dayProgress?.is_completed ?? false;
 
-          const isUnlocked = (globallyUnlocked && prevCompleted) || userUnlocked;
-          const isCompleted = dayProgress?.is_completed ?? false;
+            return (
+              <a
+                key={day}
+                href={isUnlocked ? href : undefined}
+                style={{ textDecoration: "none", cursor: isUnlocked ? "pointer" : "not-allowed" }}
+                {...(day === 1 ? { "data-tour-id": "day-card-1" } : {})}
+              >
+                <div
+                  className="flex items-center gap-4 rounded-xl px-5 py-4 border transition-all"
+                  style={{
+                    background: isCompleted
+                      ? "rgba(0,30,20,0.7)"
+                      : isUnlocked
+                      ? "rgba(20,58,107,0.7)"
+                      : "rgba(10,37,64,0.5)",
+                    borderColor: isCompleted
+                      ? "rgba(0,214,122,0.35)"
+                      : isUnlocked
+                      ? "#D7263D"
+                      : "#1E3A5C",
+                    opacity: isUnlocked ? 1 : 0.5,
+                  }}
+                >
+                  {/* Day number */}
+                  <div
+                    className="text-5xl font-bold leading-none tabular-nums select-none"
+                    style={{
+                      fontFamily: "var(--font-display)",
+                      color: isCompleted ? "#00D67A" : isUnlocked ? "#FFFFFF" : "#3D4E6B",
+                      width: "56px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {String(day).padStart(2, "0")}
+                  </div>
 
-          return (
-            <div key={day} {...(day === 1 ? { "data-tour-id": "day-card-1" } : {})}>
-              <DayCard
-                day={day}
-                title={title}
-                description={description}
-                isUnlocked={isUnlocked}
-                isCompleted={isCompleted}
-                href={href}
-              />
-            </div>
-          );
-        })}
+                  {/* Title + status */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="font-bold text-sm text-white mb-0.5" style={{ fontFamily: "var(--font-display)" }}>
+                      {title}
+                    </div>
+                    <div className="text-xs" style={{ color: isCompleted ? "#00D67A" : isUnlocked ? "#A8B5CC" : "#5A6B85" }}>
+                      {isCompleted ? "✓ Completado" : isUnlocked ? "En progreso →" : "🔒 Se desbloquea en vivo"}
+                    </div>
+                  </div>
+
+                  {/* Badge */}
+                  {isCompleted ? (
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(0,214,122,0.18)", color: "#00D67A", fontFamily: "var(--font-arcade)" }}>
+                      LISTO
+                    </span>
+                  ) : isUnlocked ? (
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse" style={{ background: "#D7263D", color: "#fff", fontFamily: "var(--font-arcade)" }}>
+                      ACTIVO
+                    </span>
+                  ) : null}
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
-
-      {/* Leaderboard — only when Supabase is configured (requires real auth) */}
-      {isSupabaseConfigured() && <Leaderboard />}
 
       {/* Bottom row: sorteo + certificate */}
       <div className="grid gap-5 sm:grid-cols-2">
-        {/* Sorteo final */}
         <div
           className="rounded-xl p-6 border"
-          style={{
-            background: "linear-gradient(135deg, rgba(20,58,107,0.55) 0%, rgba(10,37,64,0.7) 100%)",
-            borderColor: "#FFD60A33",
-            backdropFilter: "blur(12px)",
-          }}
+          style={{ background: "linear-gradient(135deg, rgba(20,58,107,0.55) 0%, rgba(10,37,64,0.7) 100%)", borderColor: "#FFD60A33" }}
         >
           <div className="flex items-start gap-4">
-            <div
-              className="text-3xl select-none"
-              style={{ filter: "drop-shadow(0 2px 8px rgba(255,214,10,0.4))" }}
-            >
-              🏆
-            </div>
+            <div className="text-3xl select-none" style={{ filter: "drop-shadow(0 2px 8px rgba(255,214,10,0.4))" }}>🏆</div>
             <div>
-              <h2
-                className="font-bold text-lg text-white mb-1"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Sorteo final
-              </h2>
+              <h2 className="font-bold text-lg text-white mb-1" style={{ fontFamily: "var(--font-display)" }}>Sorteo final</h2>
               <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC" }}>
-                Completá los 4 retos y subí tus entregables para participar del
-                sorteo. Los puntos acumulados en las mini-cápsulas de video
-                determinan tu ranking de elegibilidad.
+                Completá los 4 retos y subí tus entregables para participar del sorteo. Los puntos acumulados determinan tu ranking de elegibilidad.
               </p>
             </div>
           </div>
         </div>
-
-        {/* Certificate preview */}
         <CertificatePreview completedDays={completedDays} userName={userName} />
       </div>
     </div>
