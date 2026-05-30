@@ -258,8 +258,12 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
   const [displayPct, setDisplayPct] = useState(() => targetPct > 0 ? targetPct : 0);
   const [mounted, setMounted] = useState(() => targetPct > 0);
 
-  // Avatar upload state
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(initialAvatarUrl ?? null);
+  // Avatar upload state — seed from server prop, fall back to localStorage on reload
+  const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
+  const resolvedInitial = initialAvatarUrl
+    ?? (typeof window !== "undefined" ? localStorage.getItem(LS_AVATAR_KEY) : null)
+    ?? null;
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(resolvedInitial);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -267,11 +271,14 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
   useEffect(() => {
     const handler = (e: Event) => {
       const url = (e as CustomEvent<{ url: string }>).detail?.url;
-      if (url) setCurrentAvatarUrl(url);
+      if (url) {
+        setCurrentAvatarUrl(url);
+        localStorage.setItem(LS_AVATAR_KEY, url);
+      }
     };
     window.addEventListener("avatar-updated", handler);
     return () => window.removeEventListener("avatar-updated", handler);
-  }, []);
+  }, [LS_AVATAR_KEY]);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -307,7 +314,9 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
   const handleAvatarUploaded = useCallback((url: string) => {
     setCurrentAvatarUrl(url);
     setCropFile(null);
-    // Notify HeaderAvatar (and any other listener) so they refresh without a page reload
+    // Persist in localStorage so avatar survives page reloads even if DB lags
+    localStorage.setItem("govbidder_avatar_url_v1", url);
+    // Notify all other components
     window.dispatchEvent(new CustomEvent("avatar-updated", { detail: { url } }));
   }, []);
 

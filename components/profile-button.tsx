@@ -25,15 +25,19 @@ export function ProfileButton({
   avatarUrl: string | null;
 }) {
   // ── Display state (shown in the header chip) ─────────────────────────────
+  const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
+  const resolvedAvatar = avatarUrl
+    ?? (typeof window !== "undefined" ? localStorage.getItem(LS_AVATAR_KEY) : null)
+    ?? null;
   const [displayName,   setDisplayName]   = useState(fullName);
-  const [headerAvatar,  setHeaderAvatar]  = useState(avatarUrl);
+  const [headerAvatar,  setHeaderAvatar]  = useState(resolvedAvatar);
   const [avatarError,   setAvatarError]   = useState(false);
   const [avatarVisible, setAvatarVisible] = useState(false);
 
   // ── Modal state ───────────────────────────────────────────────────────────
   const [open,       setOpen]       = useState(false);
   const [editName,   setEditName]   = useState(fullName);
-  const [modalAvatar, setModalAvatar] = useState(avatarUrl);
+  const [modalAvatar, setModalAvatar] = useState(resolvedAvatar);
 
   // ── Name-save state ───────────────────────────────────────────────────────
   const [nameSaving,  setNameSaving]  = useState(false);
@@ -71,6 +75,8 @@ export function ProfileButton({
     setModalAvatar(url);
     setAvatarError(false);
     setAvatarVisible(false);
+    // Persist in localStorage so avatar survives page reloads
+    localStorage.setItem("govbidder_avatar_url_v1", url);
     // Notify progress-bar avatar + HeaderAvatar (if still mounted elsewhere)
     window.dispatchEvent(new CustomEvent("avatar-updated", { detail: { url } }));
   }, []);

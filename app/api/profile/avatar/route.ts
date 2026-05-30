@@ -86,10 +86,11 @@ export async function POST(req: NextRequest) {
   const avatarUrl = `${publicUrl}?t=${Date.now()}`;
 
   // Update users table via service client (bypasses RLS — user already verified above)
+  // Cast as Record<string, unknown> to work around Supabase `never` generated types
   const service = createServiceClient();
   const { error: updateError } = await service
     .from("users")
-    .update({ avatar_url: avatarUrl })
+    .update({ avatar_url: avatarUrl } as Record<string, unknown>)
     .eq("id", user.id);
 
   if (updateError) {
