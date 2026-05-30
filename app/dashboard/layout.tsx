@@ -10,7 +10,6 @@ import { XpEngine } from "@/components/xp-engine";
 import { OnboardingTutorial } from "@/components/onboarding-tutorial";
 import { daysLeft, isExpired } from "@/lib/utils";
 import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
-import { ComboBar } from "@/components/combo-bar";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { DayTabs } from "@/components/day-tabs";
 
@@ -225,11 +224,6 @@ export default async function DashboardLayout({
               isAdmin={profile?.is_admin ?? false}
               avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
             />
-            {!devMode && (
-              <ComboBar
-                initialProgress={(profile as { combo_progress?: number })?.combo_progress ?? 0}
-              />
-            )}
           </div>
 
           {/* Expiry banner */}
