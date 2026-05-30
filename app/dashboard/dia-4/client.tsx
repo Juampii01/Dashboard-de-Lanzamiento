@@ -190,8 +190,8 @@ export function Dia4Client({
       setSorteoEligible(!sorteoExpired);
       toast.success(
         sorteoExpired
-          ? "Entregable subido (fuera del plazo, no elegible para el sorteo)."
-          : "¡Entregable subido! Ya estás participando del sorteo."
+          ? "Entregable subido (fuera del plazo, no elegible para los premios)."
+          : "¡Entregable subido! Ya estás compitiendo por los premios."
       );
     } catch {
       toast.error("Error al subir el archivo. Intentá de nuevo.");
@@ -214,7 +214,7 @@ export function Dia4Client({
         </div>
         <h1 className="text-2xl font-bold text-primary">Capability Statement + Cierre</h1>
         <p className="text-muted-foreground mt-1">
-          Generá tu Capability Statement profesional y participá del sorteo final.
+          Generá tu Capability Statement profesional y competí por los premios finales.
         </p>
       </div>
 
@@ -368,13 +368,13 @@ export function Dia4Client({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-500" />
-            Participar del Sorteo
+            Competir por Premios
           </CardTitle>
           <CardDescription>
             Subí tus entregables (PDFs de los 4 días o screenshots) para participar.
             {sorteoExpired && (
               <span className="text-destructive ml-1">
-                El plazo de 7 días expiró — podés subir pero no serás elegible.
+                El plazo de 7 días expiró — podés subir pero no serás elegible para los premios.
               </span>
             )}
           </CardDescription>
@@ -384,7 +384,7 @@ export function Dia4Client({
             <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
               <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-green-800">¡Estás participando del sorteo!</p>
+                <p className="font-semibold text-green-800">¡Estás compitiendo por los premios!</p>
                 <p className="text-sm text-green-700">Tu entregable fue recibido. Buena suerte.</p>
               </div>
             </div>

@@ -27,7 +27,7 @@ interface Step {
 const STEPS: Step[] = [
   {
     title: "¡Bienvenido a Govbidder! 🎮",
-    body: "Soy Santo, tu guía en esta misión. En los próximos 4 días vas a construir tu presencia en el mercado federal. Cada acción suma puntos — y los puntos deciden quién gana el sorteo.",
+    body: "Soy Santo, tu guía en esta misión. En los próximos 4 días vas a construir tu presencia en el mercado federal. Cada acción suma puntos — y los puntos determinan quién gana los premios finales.",
     santoMood: "wave",
   },
   {
@@ -45,8 +45,8 @@ const STEPS: Step[] = [
     highlightPadding: 10,
   },
   {
-    title: "Tu rango y el sorteo 🏆",
-    body: "Cada 10 puntos = 1 entrada al sorteo final. Más XP acumulás, más chances tenés de ganar. Mirá la tabla de líderes para ver tu posición.",
+    title: "Tu rango y los premios 🏆",
+    body: "Los mejores ranqueados ganan premios reales. Más XP acumulás, mejor tu posición. Mirá el ranking para ver dónde estás.",
     targetId: "xp-pill",
     santoMood: "star",
     highlightPadding: 12,

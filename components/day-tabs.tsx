@@ -14,6 +14,7 @@ const TABS = [
   { day: 2, label: "Día 2",     sub: "Mapa de Códigos",       href: "/dashboard/dia-2" },
   { day: 3, label: "Día 3",     sub: "Web + Portales",        href: "/dashboard/dia-3" },
   { day: 4, label: "Día 4",     sub: "Cap. Statement",        href: "/dashboard/dia-4" },
+  { day: 5, label: "Ranking",   sub: "Premios y Posiciones",  href: "/dashboard/ranking" },
 ];
 
 export function DayTabs({ progressMap }: DayTabsProps) {
@@ -44,12 +45,13 @@ export function DayTabs({ progressMap }: DayTabsProps) {
     >
       {TABS.map(({ day, label, sub, href }) => {
         const isHome      = day === 0;
+        const isRanking   = day === 5;
         const prog        = progressMap[day];
         const isActive    = isHome
           ? pathname === "/dashboard"
           : pathname === href || pathname.startsWith(href + "/");
         const isCompleted = prog?.is_completed ?? false;
-        const isUnlocked  = isHome ? true : (prog?.is_unlocked ?? false);
+        const isUnlocked  = isHome || isRanking ? true : (prog?.is_unlocked ?? false);
         const isLocked    = !isUnlocked;
 
         return (
@@ -105,6 +107,8 @@ export function DayTabs({ progressMap }: DayTabsProps) {
             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
               {isHome ? (
                 <span style={{ fontSize: "12px" }}>🏠</span>
+              ) : isRanking ? (
+                <span style={{ fontSize: "12px" }}>🏆</span>
               ) : (
                 <span
                   style={{

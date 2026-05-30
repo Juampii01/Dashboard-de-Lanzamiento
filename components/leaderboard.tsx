@@ -29,6 +29,72 @@ const TOP_COLORS: Record<number, string> = {
   3: "#CD7F32",  // bronze
 };
 
+// ─── PrizeBadge ──────────────────────────────────────────────────────────────
+
+function PrizeBadge({ rank }: { rank: number }) {
+  if (rank === 1) {
+    return (
+      <span
+        style={{
+          fontSize: "9px",
+          fontWeight: 700,
+          color: "#FFD60A",
+          background: "rgba(255,214,10,0.12)",
+          border: "1px solid rgba(255,214,10,0.3)",
+          borderRadius: "4px",
+          padding: "1px 5px",
+          whiteSpace: "nowrap",
+          fontFamily: "var(--font-mono)",
+          flexShrink: 0,
+        }}
+      >
+        🥇 $12K Consultoría
+      </span>
+    );
+  }
+  if (rank === 2) {
+    return (
+      <span
+        style={{
+          fontSize: "9px",
+          fontWeight: 700,
+          color: "#C0C0C0",
+          background: "rgba(192,192,192,0.08)",
+          border: "1px solid rgba(192,192,192,0.25)",
+          borderRadius: "4px",
+          padding: "1px 5px",
+          whiteSpace: "nowrap",
+          fontFamily: "var(--font-mono)",
+          flexShrink: 0,
+        }}
+      >
+        🥈 Premio
+      </span>
+    );
+  }
+  if (rank >= 3 && rank <= 12) {
+    return (
+      <span
+        style={{
+          fontSize: "9px",
+          fontWeight: 700,
+          color: "#00D67A",
+          background: "rgba(0,214,122,0.06)",
+          border: "1px solid rgba(0,214,122,0.2)",
+          borderRadius: "4px",
+          padding: "1px 5px",
+          whiteSpace: "nowrap",
+          fontFamily: "var(--font-mono)",
+          flexShrink: 0,
+        }}
+      >
+        🏆 Premio
+      </span>
+    );
+  }
+  return null;
+}
+
 // ─── RankBadge ───────────────────────────────────────────────────────────────
 
 function RankBadge({ rank, small = false }: { rank: number; small?: boolean }) {
@@ -59,10 +125,9 @@ function LeaderRow({
   rank,
   display_name,
   total_points,
-  raffle_entries,
   is_current_user,
   onClick,
-}: LeaderEntry & { onClick?: (e: React.MouseEvent) => void }) {
+}: Omit<LeaderEntry, "raffle_entries"> & { onClick?: (e: React.MouseEvent) => void }) {
   const isTop3 = rank <= 3;
   const rankColor = TOP_COLORS[rank] ?? "#5A6B85";
   const ptColor   = isTop3 ? rankColor : "#A8B5CC";
@@ -94,15 +159,13 @@ function LeaderRow({
         )}
       </span>
 
-      <div className="text-right shrink-0">
+      <div className="flex items-center gap-2">
+        <PrizeBadge rank={rank} />
         <p
           className="text-xs font-bold tabular-nums"
           style={{ color: ptColor, fontFamily: "var(--font-mono)" }}
         >
           {total_points} pts
-        </p>
-        <p className="text-[9px]" style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}>
-          {raffle_entries} entr.
         </p>
       </div>
     </div>
@@ -132,8 +195,6 @@ export function Leaderboard() {
     const t = setInterval(load, 60_000);
     return () => clearInterval(t);
   }, [load]);
-
-  // A7 fix: no re-fetch on xp-gained (60 s poll is enough for ranking)
 
   const handleRowClick = (e: React.MouseEvent) => {
     const el = e.currentTarget as HTMLElement;
@@ -221,7 +282,10 @@ export function Leaderboard() {
         {!loading && top.map((entry) => (
           <LeaderRow
             key={entry.rank}
-            {...entry}
+            rank={entry.rank}
+            display_name={entry.display_name}
+            total_points={entry.total_points}
+            is_current_user={entry.is_current_user}
             onClick={entry.is_current_user ? handleRowClick : undefined}
           />
         ))}
@@ -229,7 +293,7 @@ export function Leaderboard() {
         {/* Divider + user row when outside top 20 */}
         {!loading && !inTop && meEntry && (
           <>
-            {/* Divider — dots separator, no text */}
+            {/* Divider — dots separator */}
             <div
               className="flex items-center justify-center py-2"
               style={{ background: "rgba(0,0,0,0.2)" }}
@@ -247,7 +311,13 @@ export function Leaderboard() {
             </div>
 
             {/* User's real position */}
-            <LeaderRow {...meEntry} onClick={handleRowClick} />
+            <LeaderRow
+              rank={meEntry.rank}
+              display_name={meEntry.display_name}
+              total_points={meEntry.total_points}
+              is_current_user={meEntry.is_current_user}
+              onClick={handleRowClick}
+            />
           </>
         )}
       </div>
@@ -263,7 +333,7 @@ export function Leaderboard() {
           </p>
         )}
         <p className="text-[9px]" style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}>
-          Cada 10 pts = 1 entrada al sorteo · Se actualiza cada 60s
+          Los mejores ranqueados al final del challenge ganan premios reales · Se actualiza cada 60s
         </p>
       </div>
     </div>

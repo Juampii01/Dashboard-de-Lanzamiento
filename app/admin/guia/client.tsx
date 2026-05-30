@@ -147,14 +147,14 @@ function TabUsuario() {
             <ul className="list-disc list-inside ml-2 space-y-1">
               <li><strong>Día 2 — Mapa de Códigos:</strong> AI expande los códigos NAICS relacionados, genera PDF</li>
               <li><strong>Día 3 — Web + Portales:</strong> preview de web gubernamental, información de portales de registro</li>
-              <li><strong>Día 4 — Capability Statement:</strong> genera el documento oficial del negocio, habilita el sorteo</li>
+              <li><strong>Día 4 — Capability Statement:</strong> genera el documento oficial del negocio, habilita los premios finales</li>
             </ul>
             <p className="mt-1">Cada día que se completa llena un segmento de la barra inferior.</p>
           </Step>
 
-          <Step n={5} title="Participa en el Sorteo">
-            <p>Al completar el Día 4, puede enviar su candidatura al sorteo. Cada <strong>10 puntos</strong> de XP
-              acumulados = 1 entrada al sorteo. Más activo en el challenge → más chances de ganar.</p>
+          <Step n={5} title="Sistema de Premios">
+            <p>Al completar el Día 4, puede subir sus entregables y competir por los premios finales. Más XP acumulados
+              = mejor posición en el ranking. Los mejores ranqueados al cierre del challenge ganan premios reales.</p>
           </Step>
         </div>
       </Section>
@@ -745,31 +745,31 @@ function TabXP() {
         </div>
       </Section>
 
-      <Section title="Sistema de Sorteo" icon="🎰">
+      <Section title="Sistema de Premios" icon="🏆">
         <p className="text-sm text-muted-foreground mb-3">
-          El sorteo es el incentivo final del challenge. Se basa en el XP acumulado por cada participante.
+          Los premios se otorgan a los mejores ranqueados al final del challenge.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border rounded-lg p-4 text-center space-y-2">
-            <p className="text-2xl font-bold">10 pts</p>
-            <p className="text-xs text-muted-foreground">= 1 entrada al sorteo</p>
+            <p className="text-2xl font-bold">🥇 #1</p>
+            <p className="text-xs text-muted-foreground">Consultoría de $12,000</p>
           </div>
           <div className="border rounded-lg p-4 text-center space-y-2">
-            <p className="text-2xl font-bold">200 pts</p>
-            <p className="text-xs text-muted-foreground">= 20 entradas</p>
+            <p className="text-2xl font-bold">🥈 #2</p>
+            <p className="text-xs text-muted-foreground">Premio por anunciar</p>
           </div>
           <div className="border rounded-lg p-4 text-center space-y-2">
-            <p className="text-2xl font-bold">500 pts</p>
-            <p className="text-xs text-muted-foreground">= 50 entradas</p>
+            <p className="text-2xl font-bold">🏆 #3–12</p>
+            <p className="text-xs text-muted-foreground">Premio por anunciar</p>
           </div>
         </div>
         <InfoBox type="tip">
-          Para participar en el sorteo el usuario debe completar el Día 4. Una vez completado,
-          puede enviar su candidatura desde la pantalla del Día 4.
+          Para competir por los premios el usuario debe completar el Día 4. Una vez completado,
+          puede subir sus entregables desde la pantalla del Día 4.
         </InfoBox>
         <p className="text-sm text-muted-foreground">
-          La cantidad de entradas de cada usuario se muestra en la columna &quot;entr.&quot; de la tabla de líderes.
-          Los participantes más activos (más XP) tienen más chances de ganar.
+          Más XP acumulados = mejor posición en el ranking. Los participantes más activos tienen
+          mejor posición para ganar los premios finales.
         </p>
       </Section>
 
@@ -805,7 +805,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "barra",   label: "Barra Inferior",   icon: "📊" },
   { id: "videos",  label: "Videos",           icon: "📹" },
   { id: "quiz",    label: "Quiz",             icon: "🧠" },
-  { id: "xp",      label: "XP y Sorteo",      icon: "⚡" },
+  { id: "xp",      label: "XP y Premios",      icon: "⚡" },
 ];
 
 export function GuiaClient() {
