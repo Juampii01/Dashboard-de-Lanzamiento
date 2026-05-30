@@ -344,9 +344,10 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
           borderRadius: "20px",
           padding: "4px 10px",
           flexShrink: 0,
+          fontStyle: "italic",
         }}
       >
-        EN VIVO
+        puede tardar unos segundos
       </div>
     </div>
   );
@@ -1129,8 +1130,8 @@ function LeaderboardHome() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 60_000);
-    return () => clearInterval(t);
+
+
   }, [load]);
 
   const top     = (board?.top ?? []).slice(0, 12);
@@ -1173,7 +1174,7 @@ function LeaderboardHome() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#00D67A", display: "inline-block" }} />
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "8px", color: "#5A6B85" }}>EN VIVO</span>
+          <span style={{ fontFamily: "var(--font-sans)", fontSize: "9px", color: "#5A6B85", fontStyle: "italic" }}>puede tardar unos segundos</span>
         </div>
       </div>
 
@@ -1330,7 +1331,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl }: HomeClientProp
               fontSize: "20px", fontWeight: 900,
               color: "#FFFFFF",
             }}>
-              Leaderboard en vivo
+              Ranking de premios
             </h2>
           </div>
           <LeaderboardHome />

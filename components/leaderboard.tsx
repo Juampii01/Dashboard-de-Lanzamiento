@@ -192,8 +192,6 @@ export function Leaderboard() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 60_000);
-    return () => clearInterval(t);
   }, [load]);
 
   const handleRowClick = (e: React.MouseEvent) => {
@@ -246,15 +244,9 @@ export function Leaderboard() {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
-          <span
-            className="w-1.5 h-1.5 rounded-full bg-[#00D67A] animate-pulse inline-block"
-            style={{ verticalAlign: "middle" }}
-          />
-          <span className="text-[9px]" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
-            EN VIVO
-          </span>
-        </div>
+        <span className="text-[9px]" style={{ color: "#5A6B85", fontFamily: "var(--font-sans)", fontStyle: "italic" }}>
+          puede tardar unos segundos en actualizarse
+        </span>
       </div>
 
       {/* Table */}

@@ -8,18 +8,13 @@ interface LockState {
   message: string | null;
 }
 
-const POLL_INTERVAL_MS = 20_000;
-
 export function DashboardLockOverlay() {
   const [lock, setLock] = useState<LockState>({
     is_locked: false,
     call_url: null,
     message: null,
   });
-  const [countdown, setCountdown] = useState(POLL_INTERVAL_MS / 1000);
   const [visible, setVisible] = useState(false); // animate in
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function fetchLock() {
     try {
@@ -32,23 +27,11 @@ export function DashboardLockOverlay() {
     } catch {
       // red caída — mantener estado
     }
-    // Reset countdown
-    setCountdown(POLL_INTERVAL_MS / 1000);
   }
 
   useEffect(() => {
     fetchLock();
-    intervalRef.current = setInterval(fetchLock, POLL_INTERVAL_MS);
-
-    // Tick countdown every second
-    countdownRef.current = setInterval(() => {
-      setCountdown((c) => Math.max(0, c - 1));
-    }, 1000);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
-    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!lock.is_locked) return null;
@@ -290,20 +273,17 @@ export function DashboardLockOverlay() {
           </div>
         )}
 
-        {/* Poll countdown */}
+        {/* Status note */}
         <p
           style={{
-            fontFamily: "var(--font-mono)",
+            fontFamily: "var(--font-sans)",
             fontSize: "11px",
             color: "#3A5070",
             margin: 0,
+            fontStyle: "italic",
           }}
         >
-          Verificando estado en{" "}
-          <span style={{ color: "#5A6B85", fontVariantNumeric: "tabular-nums" }}>
-            {countdown}s
-          </span>
-          {" "}· Se desbloqueará automáticamente
+          Puede tardar unos segundos en actualizarse · Recargá la página cuando termine
         </p>
       </div>
 

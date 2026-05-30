@@ -95,8 +95,8 @@ export function RankingClient() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 60_000);
-    return () => clearInterval(t);
+
+
   }, [load]);
 
   const top    = board?.top ?? [];
@@ -246,7 +246,7 @@ export function RankingClient() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#00D67A", display: "inline-block", animation: "pulse 2s infinite" }} />
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#5A6B85" }}>EN VIVO</span>
+            <span style={{ fontFamily: "var(--font-sans)", fontSize: "9px", color: "#5A6B85", fontStyle: "italic" }}>puede tardar unos segundos</span>
           </div>
         </div>
 
