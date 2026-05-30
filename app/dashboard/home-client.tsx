@@ -10,6 +10,7 @@ interface HomeClientProps {
   initialPoints: number;
   fullName: string;
   devMode: boolean;
+  avatarUrl?: string | null;
 }
 
 interface Comment {
@@ -212,8 +213,31 @@ const NICHES: Niche[] = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function PointsCard({ initial }: { initial: number }) {
+function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: string | null }) {
+  const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
   const [points, setPoints] = useState(initial);
+  const [currentAvatar, setCurrentAvatar] = useState(avatarUrl ?? null);
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
+
+  // localStorage fallback after mount
+  useEffect(() => {
+    if (!avatarUrl) {
+      const stored = localStorage.getItem(LS_AVATAR_KEY);
+      if (stored) setCurrentAvatar(stored);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep in sync with uploads/deletions
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const url = (e as CustomEvent<{ url: string | null }>).detail?.url;
+      if (url) { setCurrentAvatar(url); setAvatarLoaded(false); }
+      else setCurrentAvatar(null);
+    };
+    window.addEventListener("avatar-updated", handler);
+    return () => window.removeEventListener("avatar-updated", handler);
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -257,8 +281,34 @@ function PointsCard({ initial }: { initial: number }) {
         />
       ))}
 
-      {/* Trophy icon */}
-      <div style={{ fontSize: "32px", flexShrink: 0 }}>🏆</div>
+      {/* Avatar or trophy */}
+      <div style={{ flexShrink: 0, position: "relative" }}>
+        {currentAvatar ? (
+          <div style={{
+            width: "52px", height: "52px", borderRadius: "50%",
+            overflow: "hidden", position: "relative",
+            border: "2px solid rgba(255,214,10,0.5)",
+            boxShadow: "0 0 16px rgba(255,214,10,0.25)",
+          }}>
+            <img
+              key={currentAvatar}
+              src={currentAvatar}
+              alt=""
+              onLoad={() => setAvatarLoaded(true)}
+              onError={() => setCurrentAvatar(null)}
+              style={{ width: "100%", height: "100%", objectFit: "cover",
+                objectPosition: "center top",
+                opacity: avatarLoaded ? 1 : 0, transition: "opacity 0.25s" }}
+            />
+            {!avatarLoaded && (
+              <span style={{ position: "absolute", inset: 0, display: "flex",
+                alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🏆</span>
+            )}
+          </div>
+        ) : (
+          <div style={{ fontSize: "40px" }}>🏆</div>
+        )}
+      </div>
 
       <div style={{ flex: 1 }}>
         <div style={{
@@ -587,6 +637,102 @@ function CommentsSection() {
   );
 }
 
+// ─── Certificate Modal ────────────────────────────────────────────────────────
+
+function CertificateModal({ onClose }: { onClose: () => void }) {
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+  return (
+    <div
+      onClick={handleBackdrop}
+      style={{
+        position: "fixed", inset: 0, zIndex: 99990,
+        background: "rgba(6,13,26,0.88)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "16px", backdropFilter: "blur(4px)",
+      }}
+    >
+      <div style={{
+        background: "#FFFFFF", borderRadius: "8px",
+        maxWidth: "520px", width: "100%",
+        fontFamily: "Times New Roman, serif",
+        boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+        overflow: "hidden",
+      }}>
+        {/* Header bar */}
+        <div style={{
+          background: "#1a365d", padding: "12px 16px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, fontFamily: "sans-serif", letterSpacing: "0.05em" }}>
+            📜 CERTIFICADO DE PARTICIPACIÓN — GOVBIDDER CHALLENGE
+          </span>
+          <button
+            onClick={onClose}
+            style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "4px", padding: "4px 6px", color: "#FFFFFF", cursor: "pointer" }}
+          >
+            <X style={{ width: "14px", height: "14px" }} />
+          </button>
+        </div>
+
+        {/* Certificate body */}
+        <div style={{ padding: "32px 40px", color: "#1a1a1a", lineHeight: 1.6 }}>
+          {/* Seal */}
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+            <div style={{ width: "64px", height: "64px", borderRadius: "50%", border: "3px solid #1a365d", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px", fontSize: "28px" }}>🦅</div>
+            <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", color: "#1a365d", textTransform: "uppercase" }}>Govbidder Academy</p>
+          </div>
+
+          {/* Title */}
+          <h1 style={{ textAlign: "center", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", borderTop: "2px solid #1a365d", borderBottom: "2px solid #1a365d", padding: "10px 0", margin: "0 0 24px", color: "#1a365d" }}>
+            Certificado de Participación
+          </h1>
+
+          {/* Content */}
+          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "10px" }}>
+            <p style={{ fontSize: "12px", color: "#666" }}>Este certificado se otorga a</p>
+            <p style={{ fontSize: "20px", fontWeight: 700, color: "#1a365d", letterSpacing: "0.05em" }}>[Tu nombre completo]</p>
+            <p style={{ fontSize: "12px", color: "#666" }}>por su participación en el programa</p>
+            <p style={{ fontSize: "16px", fontWeight: 700, color: "#D7263D" }}>Govbidder Challenge</p>
+            <p style={{ fontSize: "11px", color: "#666" }}>Programa de capacitación en contratos gubernamentales</p>
+
+            {/* Day badges */}
+            <div style={{ display: "flex", justifyContent: "center", gap: "16px", margin: "8px 0" }}>
+              {[1,2,3,4].map(d => (
+                <div key={d} style={{ textAlign: "center" }}>
+                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", border: "2px solid #1a365d", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, color: "#1a365d", margin: "0 auto 3px" }}>D{d}</div>
+                  <span style={{ fontSize: "8px", color: "#999" }}>Reto</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Signature */}
+            <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ height: "1px", width: "120px", background: "#1a1a1a", margin: "0 auto 4px" }} />
+                <p style={{ fontSize: "9px", color: "#666" }}>Govbidder Academy · Director</p>
+              </div>
+            </div>
+          </div>
+
+          {/* BOCETO notice */}
+          <div style={{ marginTop: "20px", padding: "10px 14px", background: "#FFF3CD", border: "1px solid #FFD60A", borderRadius: "6px", textAlign: "center" }}>
+            <p style={{ fontSize: "11px", fontWeight: 600, color: "#856404", margin: 0 }}>
+              ⚠️ Este certificado será entregado al finalizar el challenge. Completá los 4 días para recibirlo.
+            </p>
+          </div>
+
+          {/* Watermark BOCETO */}
+          <p style={{ textAlign: "center", marginTop: "12px", fontSize: "9px", color: "#CCC", textTransform: "uppercase", letterSpacing: "0.2em", fontStyle: "italic" }}>
+            Vista previa — Boceto
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Contract Models ──────────────────────────────────────────────────────────
 
 function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }) {
@@ -781,6 +927,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
 
 function ContractModels() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [certOpen, setCertOpen] = useState(false);
   const selectedNiche = NICHES.find((n) => n.id === selected) ?? null;
 
   return (
@@ -799,10 +946,10 @@ function ContractModels() {
           fontSize: "22px", fontWeight: 900,
           color: "#FFFFFF",
         }}>
-          ¡Mirá contratos federales ganados!
+          ¡Mirá contratos gubernamentales ganados!
         </h2>
         <p style={{ fontSize: "13px", color: "#A8B5CC", marginTop: "4px" }}>
-          Estos son contratos reales adjudicados a pequeñas empresas como la tuya. Seleccioná tu nicho.
+          Estos son contratos reales adjudicados a pequeñas empresas como la tuya. Seleccioná tu sector.
         </p>
       </div>
 
@@ -860,9 +1007,45 @@ function ContractModels() {
         ))}
       </div>
 
+      {/* Certificado de participación button */}
+      <button
+        onClick={() => setCertOpen(true)}
+        style={{
+          marginTop: "4px",
+          width: "100%",
+          padding: "12px 16px",
+          borderRadius: "10px",
+          border: "1.5px solid rgba(255,214,10,0.35)",
+          background: "rgba(255,214,10,0.06)",
+          cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
+          transition: "all 0.15s",
+          color: "#FFD60A",
+          fontSize: "13px", fontWeight: 700,
+          fontFamily: "var(--font-display)",
+        }}
+        onMouseEnter={(e) => {
+          const el = e.currentTarget as HTMLButtonElement;
+          el.style.background = "rgba(255,214,10,0.12)";
+          el.style.borderColor = "rgba(255,214,10,0.6)";
+        }}
+        onMouseLeave={(e) => {
+          const el = e.currentTarget as HTMLButtonElement;
+          el.style.background = "rgba(255,214,10,0.06)";
+          el.style.borderColor = "rgba(255,214,10,0.35)";
+        }}
+      >
+        <span style={{ fontSize: "18px" }}>📜</span>
+        Ver Certificado de Participación
+        <span style={{ fontSize: "11px", color: "#A8B5CC", fontWeight: 400, fontFamily: "var(--font-sans)" }}>
+          — boceto
+        </span>
+      </button>
+
       {selectedNiche && (
         <ContractModal niche={selectedNiche} onClose={() => setSelected(null)} />
       )}
+      {certOpen && <CertificateModal onClose={() => setCertOpen(false)} />}
     </div>
   );
 }
@@ -1115,11 +1298,11 @@ function LeaderboardHome() {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl }: HomeClientProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
       {/* 1. Points card */}
-      {!devMode && <PointsCard initial={initialPoints} />}
+      {!devMode && <PointsCard initial={initialPoints} avatarUrl={avatarUrl} />}
 
       {/* 2. Loom tutorial video */}
       <VideoTutorial />

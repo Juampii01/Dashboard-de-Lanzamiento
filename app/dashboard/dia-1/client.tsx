@@ -223,7 +223,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           </h1>
           <p className="text-muted-foreground mt-1">
             Completá el perfil de tu empresa para identificar tu oportunidad en
-            el mercado federal.
+            el mercado gubernamental.
           </p>
         </div>
       </div>

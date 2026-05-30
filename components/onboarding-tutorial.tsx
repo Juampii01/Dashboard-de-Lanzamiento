@@ -27,7 +27,7 @@ interface Step {
 const STEPS: Step[] = [
   {
     title: "¡Bienvenido a Govbidder! 🎮",
-    body: "Soy Santo, tu guía en esta misión. En los próximos 4 días vas a construir tu presencia en el mercado federal. Cada acción suma puntos — y los puntos determinan quién gana los premios finales.",
+    body: "Soy Santo, tu guía en esta misión. En los próximos 4 días vas a construir tu presencia en el mercado gubernamental. Cada acción suma puntos — y los puntos determinan quién gana los premios finales.",
     santoMood: "wave",
   },
   {

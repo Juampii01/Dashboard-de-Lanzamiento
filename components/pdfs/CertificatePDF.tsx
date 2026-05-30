@@ -100,7 +100,7 @@ export function CertificatePDF({ fullName, completedAt }: CertificatePDFProps) {
           <View style={styles.innerBorder}>
             <Text style={styles.govbidder}>Govbidder</Text>
             <Text style={styles.certTitle}>Certificado de Finalización</Text>
-            <Text style={styles.certSub}>Govbidder — Aprende a Venderle al Gobierno Federal</Text>
+            <Text style={styles.certSub}>Govbidder — Aprende a Venderle al Gobierno</Text>
 
             <View style={styles.goldLine} />
 
@@ -110,7 +110,7 @@ export function CertificatePDF({ fullName, completedAt }: CertificatePDFProps) {
             <Text style={styles.description}>
               Por haber completado exitosamente los 4 días del Govbidder Challenge,
               demostrando dedicación y aprendiendo las bases del mercado de contratación
-              federal de los Estados Unidos de América.
+              gubernamental de los Estados Unidos de América.
             </Text>
 
             <View style={styles.goldLine} />

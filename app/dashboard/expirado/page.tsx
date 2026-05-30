@@ -25,7 +25,7 @@ export default function ExpiradoPage() {
             <p className="text-muted-foreground text-sm">
               En la mentoría premium{" "}
               <strong>"Tu Primer Contrato"</strong> trabajás uno a uno con el
-              equipo de Govbidder para conseguir tu primer contrato federal real.
+              equipo de Govbidder para conseguir tu primer contrato gubernamental real.
             </p>
             <ul className="text-sm space-y-1 text-muted-foreground">
               <li>✅ Número 1-800 profesional</li>
@@ -40,7 +40,7 @@ export default function ExpiradoPage() {
             asChild
           >
             <a href="https://govbidder.com/mentoria" target="_blank" rel="noopener noreferrer">
-              Quiero mi primer contrato federal →
+              Quiero mi primer contrato gubernamental →
             </a>
           </Button>
         </CardContent>

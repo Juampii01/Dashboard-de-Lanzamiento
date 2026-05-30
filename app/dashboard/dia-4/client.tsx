@@ -425,7 +425,7 @@ export function Dia4Client({
             <h2 className="text-2xl font-bold">¡Completaste el Programa! 🎉</h2>
             <p className="text-primary-foreground/80">
               Hola <strong>{fullName}</strong>, completaste los 4 días del programa.
-              Ya tenés las herramientas para empezar a venderle al gobierno federal.
+              Ya tenés las herramientas para empezar a venderle al gobierno.
             </p>
             <Button
               onClick={handleDownloadCertificate}

@@ -20,11 +20,11 @@ interface WebResult {
 }
 
 const PORTALS = [
-  { name: "SAM.gov", url: "https://sam.gov", description: "Sistema principal de registro y licitaciones federales" },
-  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Base de datos de contratos federales activos" },
-  { name: "Grants.gov", url: "https://grants.gov", description: "Convocatorias de grants y subvenciones federales" },
+  { name: "SAM.gov", url: "https://sam.gov", description: "Sistema principal de registro y licitaciones gubernamentales" },
+  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Base de datos de contratos gubernamentales activos" },
+  { name: "Grants.gov", url: "https://grants.gov", description: "Convocatorias de grants y subvenciones gubernamentales" },
   { name: "GovBid", url: "https://govbid.com", description: "Plataforma de licitaciones gubernamentales" },
-  { name: "FedBizOpps (beta.SAM)", url: "https://sam.gov/search/", description: "Oportunidades de negocios federales" },
+  { name: "FedBizOpps (beta.SAM)", url: "https://sam.gov/search/", description: "Oportunidades de negocios gubernamentales" },
   { name: "SBA.gov", url: "https://sba.gov", description: "Contratos para pequeñas empresas y certificaciones" },
   { name: "GSA Advantage", url: "https://gsaadvantage.gov", description: "Catálogo de compras gubernamentales pre-aprobadas" },
 ];
@@ -178,7 +178,7 @@ ${webResult.html}
           </CardTitle>
           <CardDescription>
             Basado en tu Perfil Estratégico, la IA genera una landing page profesional
-            orientada a contratos federales.
+            orientada a contratos gubernamentales.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -268,7 +268,7 @@ ${webResult.html}
           <CardTitle>🏛️ Portales de Licitaciones Gubernamentales</CardTitle>
           <CardDescription>
             Registrate en estos portales para acceder a oportunidades de contratos
-            federales.
+            gubernamentales.
           </CardDescription>
         </CardHeader>
         <CardContent>

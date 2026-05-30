@@ -16,6 +16,7 @@ export default async function DashboardPage() {
 
   let initialPoints = 0;
   let fullName = "Usuario";
+  let avatarUrl: string | null = null;
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -35,12 +36,13 @@ export default async function DashboardPage() {
 
     const { data: profile } = await createServiceClient()
       .from("users")
-      .select("full_name, total_points")
+      .select("full_name, total_points, avatar_url")
       .eq("id", user.id)
       .maybeSingle();
 
     fullName = profile?.full_name ?? "Usuario";
     initialPoints = (profile?.total_points as number | null) ?? 0;
+    avatarUrl = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
   }
 
   return (
@@ -48,6 +50,7 @@ export default async function DashboardPage() {
       initialPoints={initialPoints}
       fullName={fullName}
       devMode={devMode}
+      avatarUrl={avatarUrl}
     />
   );
 }

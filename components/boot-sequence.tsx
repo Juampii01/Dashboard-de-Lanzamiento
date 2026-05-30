@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const LINES = [
   { text: "> Inicializando sistema Govbidder...", color: "#A8B5CC" },
-  { text: "> Verificando credenciales federales...", color: "#A8B5CC" },
+  { text: "> Verificando credenciales gubernamentales...", color: "#A8B5CC" },
   { text: "> Conectando con SAM.gov...", color: "#A8B5CC" },
   { text: "> Cargando oportunidades de contratos...", color: "#A8B5CC" },
   { text: "> [OK] Perfil de contratista: VERIFICADO", color: "#00D67A" },
