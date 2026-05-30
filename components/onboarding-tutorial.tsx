@@ -38,11 +38,11 @@ const STEPS: Step[] = [
     highlightPadding: 16,
   },
   {
-    title: "Tus fases de entrenamiento 🗓️",
-    body: "Empezá por el Día 1 — completá el formulario y desbloqueás el Día 2. Cada fase completada suma +25 XP y te acerca al sorteo.",
-    targetId: "day-card-1",
+    title: "Tus fases del programa 🗓️",
+    body: "Usá los botones de arriba para navegar entre los días. Empezá por Día 1 — completá el formulario y desbloqueás el siguiente. Cada fase suma +25 XP.",
+    targetId: "day-tab-1",
     santoMood: "thumbs",
-    highlightPadding: 16,
+    highlightPadding: 10,
   },
   {
     title: "Tu rango y el sorteo 🏆",

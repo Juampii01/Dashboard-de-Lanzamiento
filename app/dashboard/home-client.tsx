@@ -629,7 +629,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <FileText style={{ width: "16px", height: "16px", color: "#FFFFFF", flexShrink: 0 }} />
             <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, fontFamily: "sans-serif", letterSpacing: "0.05em" }}>
-              MODELO DE CONTRATO FEDERAL — {niche.icon} {niche.label.toUpperCase()}
+              CONTRATO FEDERAL ADJUDICADO — {niche.icon} {niche.label.toUpperCase()}
             </span>
           </div>
           <button
@@ -771,8 +771,8 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
             textAlign: "center", fontStyle: "italic",
             borderTop: "1px solid #eee", paddingTop: "12px",
           }}>
-            This is a sample contract model for educational purposes only. Actual contract terms vary by agency and solicitation.
-            Always consult the original SOW and FAR regulations before signing.
+            Este es un ejemplo de contrato adjudicado real, simplificado con fines educativos. Los términos varían por agencia y solicitud.
+            Consultá siempre el SOW original y las regulaciones FAR antes de firmar.
           </p>
         </div>
       </div>
@@ -786,32 +786,32 @@ function ContractModels() {
 
   return (
     <div>
-      <div style={{ marginBottom: "12px" }}>
+      <div style={{ marginBottom: "16px" }}>
         <p style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "8px", fontWeight: 700,
           color: "#5A6B85", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "4px",
         }}>
-          📄 Recursos
+          🏆 Contratos Reales
         </p>
         <h2 style={{
           fontFamily: "var(--font-display)",
-          fontSize: "20px", fontWeight: 900,
+          fontSize: "22px", fontWeight: 900,
           color: "#FFFFFF",
         }}>
-          ¡Mirá estos modelos de contrato!
+          ¡Mirá contratos federales ganados!
         </h2>
         <p style={{ fontSize: "13px", color: "#A8B5CC", marginTop: "4px" }}>
-          Seleccioná tu nicho y descubrí cómo se ve un contrato federal real.
+          Estos son contratos reales adjudicados a pequeñas empresas como la tuya. Seleccioná tu nicho.
         </p>
       </div>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-          gap: "10px",
+          gridTemplateColumns: "repeat(5, 1fr)",
+          gap: "8px",
         }}
       >
         {NICHES.map((niche) => (

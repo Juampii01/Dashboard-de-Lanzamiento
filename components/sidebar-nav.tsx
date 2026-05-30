@@ -271,7 +271,7 @@ export function SidebarNav({
                 Govbidder
               </div>
               <div style={{ fontSize: "7px", color: "#5A6B85", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                Programa Federal
+                Govbidder Challenge
               </div>
             </div>
           </Link>
