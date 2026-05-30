@@ -100,3 +100,37 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true, avatar_url: avatarUrl });
 }
+
+/**
+ * DELETE /api/profile/avatar
+ * Elimina la imagen del Storage y pone avatar_url = null en la DB.
+ */
+export async function DELETE() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const filePath = `${user.id}/avatar.png`;
+
+  // Remove from Storage (non-fatal if file doesn't exist)
+  await supabase.storage.from("avatars").remove([filePath]);
+
+  // Set avatar_url = null in DB
+  const service = createServiceClient();
+  const { error } = await service
+    .from("users")
+    .update({ avatar_url: null } as Record<string, unknown>)
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("[profile/avatar DELETE] db error:", error.message);
+    return NextResponse.json({ error: "db_update_failed" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

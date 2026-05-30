@@ -273,13 +273,17 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sync with avatar uploads from other sources (e.g. ProfileButton modal)
+  // Sync with avatar uploads/deletions from other sources (e.g. ProfileButton modal)
   useEffect(() => {
     const handler = (e: Event) => {
-      const url = (e as CustomEvent<{ url: string }>).detail?.url;
+      const url = (e as CustomEvent<{ url: string | null }>).detail?.url;
       if (url) {
         setCurrentAvatarUrl(url);
         localStorage.setItem(LS_AVATAR_KEY, url);
+      } else {
+        // url is null → avatar was deleted
+        setCurrentAvatarUrl(null);
+        localStorage.removeItem(LS_AVATAR_KEY);
       }
     };
     window.addEventListener("avatar-updated", handler);

@@ -48,6 +48,28 @@ export function ProfileButton({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Avatar-delete state ───────────────────────────────────────────────────
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAvatar = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/profile/avatar", { method: "DELETE" });
+      if (!res.ok) throw new Error("failed");
+      setHeaderAvatar(null);
+      setModalAvatar(null);
+      setAvatarError(false);
+      setAvatarVisible(false);
+      localStorage.removeItem(LS_AVATAR_KEY);
+      window.dispatchEvent(new CustomEvent("avatar-updated", { detail: { url: null } }));
+    } catch {
+      // silent — non-critical
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // ── Name-save state ───────────────────────────────────────────────────────
   const [nameSaving,  setNameSaving]  = useState(false);
   const [nameStatus,  setNameStatus]  = useState<"idle" | "saved" | "error">("idle");
@@ -374,6 +396,43 @@ export function ProfileButton({
                   </div>
                 </div>
               </div>
+
+              {/* ── Delete avatar button (only shown when avatar exists) ── */}
+              {modalAvatar && (
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "4px", marginTop: "-12px" }}>
+                  <button
+                    onClick={handleDeleteAvatar}
+                    disabled={deleting}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      padding: "4px 12px",
+                      borderRadius: "20px",
+                      border: "1px solid rgba(215,38,61,0.3)",
+                      background: "rgba(215,38,61,0.08)",
+                      color: "#D7263D",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      cursor: deleting ? "not-allowed" : "pointer",
+                      opacity: deleting ? 0.5 : 1,
+                      transition: "background 0.15s, border-color 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!deleting) {
+                        (e.currentTarget as HTMLButtonElement).style.background = "rgba(215,38,61,0.18)";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(215,38,61,0.6)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background = "rgba(215,38,61,0.08)";
+                      (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(215,38,61,0.3)";
+                    }}
+                  >
+                    {deleting ? "Eliminando..." : "🗑 Eliminar foto"}
+                  </button>
+                </div>
+              )}
 
               {/* ── Form fields ──────────────────────────────────────────── */}
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
