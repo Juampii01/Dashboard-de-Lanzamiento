@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Shield, LogOut } from "lucide-react";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
