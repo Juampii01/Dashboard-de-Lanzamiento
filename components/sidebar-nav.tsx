@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Shield, LogOut } from "lucide-react";
-import { LeaderboardMini } from "@/components/leaderboard-mini";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 import { ResetDashboardButton } from "@/components/reset-dashboard-button";
 import { ProfileButton } from "@/components/profile-button";
@@ -275,32 +274,93 @@ export function SidebarNav({
             </div>
           </Link>
 
-          {/* Fila 2: avatar (igual que barra) + nombre + logout */}
-          <div style={{ display: "flex", alignItems: "center", gap: "9px", minWidth: 0 }}>
-            {/* Avatar — misma imagen que usa el ProgressBar: avatar_url || /aguila.png */}
-            <div style={{ flexShrink: 0, position: "relative" }}>
+          {/* Tarjeta de usuario — prominente, clickeable, affordance claro */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+
+            {/* Card clickeable (ProfileButton maneja el modal) */}
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid #1E3A5C",
+                borderRadius: "10px",
+                padding: "8px 10px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                transition: "background 0.15s, border-color 0.15s",
+                cursor: "pointer",
+                position: "relative",
+                overflow: "hidden",
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLDivElement;
+                el.style.background = "rgba(255,255,255,0.09)";
+                el.style.borderColor = "#3A5070";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLDivElement;
+                el.style.background = "rgba(255,255,255,0.05)";
+                el.style.borderColor = "#1E3A5C";
+              }}
+            >
+              {/* ProfileButton: avatar circle + modal handler */}
               <ProfileButton
                 fullName={profile.full_name}
                 email={email}
                 avatarUrl={profile.avatar_url ?? null}
               />
+
+              {/* Texto del usuario */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: "13px", fontWeight: 800, color: "#FFFFFF",
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  lineHeight: 1.3,
+                }}>
+                  {profile.full_name}
+                </div>
+                <div style={{
+                  fontSize: "9.5px", color: "#5A6B85",
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}>
+                  {email}
+                </div>
+              </div>
+
+              {/* Ícono de editar */}
+              <span style={{ fontSize: "11px", color: "#3A5070", flexShrink: 0 }}>✏️</span>
             </div>
 
-            {/* Nombre truncado */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "12px", fontWeight: 700, color: "#FFFFFF", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {profile.full_name}
-              </div>
-              <div style={{ fontSize: "9px", color: "#5A6B85", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {email}
-              </div>
-            </div>
-
-            {/* Logout */}
+            {/* Logout separado del card */}
             <form action="/api/auth/signout" method="POST" style={{ flexShrink: 0 }}>
-              <button type="submit" title="Cerrar sesión"
-                style={{ width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", borderRadius: "6px", color: "#5A6B85", cursor: "pointer" }}>
-                <LogOut style={{ width: "13px", height: "13px" }} />
+              <button
+                type="submit"
+                title="Cerrar sesión"
+                style={{
+                  width: "34px", height: "34px",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid #1E3A5C",
+                  borderRadius: "8px",
+                  color: "#5A6B85", cursor: "pointer",
+                  transition: "background 0.15s, color 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  const b = e.currentTarget as HTMLButtonElement;
+                  b.style.background = "rgba(215,38,61,0.12)";
+                  b.style.color = "#D7263D";
+                  b.style.borderColor = "rgba(215,38,61,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  const b = e.currentTarget as HTMLButtonElement;
+                  b.style.background = "rgba(255,255,255,0.04)";
+                  b.style.color = "#5A6B85";
+                  b.style.borderColor = "#1E3A5C";
+                }}
+              >
+                <LogOut style={{ width: "14px", height: "14px" }} />
               </button>
             </form>
           </div>
@@ -315,97 +375,6 @@ export function SidebarNav({
               <ResetDashboardButton />
             </div>
           )}
-        </div>
-
-        {/* ── Stat card: posición + puntos ── */}
-        <div
-          style={{
-            margin: "10px 12px 0",
-            background: "#143A6B",
-            border: "1px solid #1E3A5C",
-            borderRadius: "10px",
-            padding: "11px 13px",
-            position: "relative",
-            overflow: "hidden",
-            flexShrink: 0,
-          }}
-        >
-          {/* HUD corner brackets */}
-          {(["tl","tr","bl","br"] as const).map((pos) => (
-            <div
-              key={pos}
-              style={{
-                position: "absolute",
-                width: "10px",
-                height: "10px",
-                top:    pos.startsWith("t") ? 0 : "auto",
-                bottom: pos.startsWith("b") ? 0 : "auto",
-                left:   pos.endsWith("l")   ? 0 : "auto",
-                right:  pos.endsWith("r")   ? 0 : "auto",
-                borderTop:    pos.startsWith("t") ? "2px solid rgba(255,214,10,0.45)" : "none",
-                borderBottom: pos.startsWith("b") ? "2px solid rgba(255,214,10,0.45)" : "none",
-                borderLeft:   pos.endsWith("l")   ? "2px solid rgba(255,214,10,0.45)" : "none",
-                borderRight:  pos.endsWith("r")   ? "2px solid rgba(255,214,10,0.45)" : "none",
-              }}
-            />
-          ))}
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "6px",
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "var(--font-arcade)",
-                fontSize: "8px",
-                fontWeight: 700,
-                color: "#A8B5CC",
-                letterSpacing: "0.06em",
-              }}
-            >
-              TU PROGRESO
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--font-arcade)",
-                fontSize: "8px",
-                fontWeight: 700,
-                color: "#00D67A",
-              }}
-            >
-              {completedDays} / 4 retos ✓
-            </span>
-          </div>
-
-          {/* Points */}
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "24px",
-              fontWeight: 900,
-              color: "#FFD60A",
-              letterSpacing: "-1px",
-              lineHeight: 1,
-              marginBottom: "2px",
-            }}
-          >
-            {profile.total_points}
-          </div>
-          <div
-            style={{
-              fontSize: "9px",
-              color: "#5A6B85",
-              fontWeight: 600,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
-            Puntos totales
-          </div>
         </div>
 
         {/* ── Divider ── */}
@@ -442,12 +411,6 @@ export function SidebarNav({
             />
           );
         })}
-
-        {/* ── Divider ── */}
-        <div style={{ height: "1px", background: "#1E3A5C", margin: "8px 12px" }} />
-
-        {/* ── Leaderboard mini ── */}
-        {!devMode && <LeaderboardMini />}
 
         {/* ── Divider ── */}
         <div style={{ height: "1px", background: "#1E3A5C", margin: "8px 12px" }} />

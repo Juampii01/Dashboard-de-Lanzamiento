@@ -1,64 +1,7 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getAllAdminToggles } from "@/lib/supabase/helpers";
-import { SamContractsWidget } from "@/components/sam-contracts-widget";
-import { SocialProof } from "@/components/social-proof";
-import { CertificatePreview } from "@/components/certificate-preview";
-
-const DAY_META = [
-  {
-    day: 1,
-    title: "Oportunidad + Perfil Estratégico",
-    description:
-      "Descubrí cómo tu empresa encaja en el mercado federal y completá tu Perfil Estratégico para obtener tu primer código NAICS.",
-    href: "/dashboard/dia-1",
-  },
-  {
-    day: 2,
-    title: "Mapa de Código Gubernamental",
-    description:
-      "Expandí tus códigos NAICS, PSC y SIC. La IA genera el mapa completo de cómo el gobierno busca lo que vos vendés.",
-    href: "/dashboard/dia-2",
-  },
-  {
-    day: 3,
-    title: "Web + 1-800 + Portales",
-    description:
-      "Generá el preview de tu web orientada al gobierno, conocé los portales donde publicar y cómo usar un 1-800 para cerrar contratos.",
-    href: "/dashboard/dia-3",
-  },
-  {
-    day: 4,
-    title: "Capability Statement + Cierre",
-    description:
-      "Tu Capability Statement profesional generado con toda tu data. Participá del sorteo y obtené tu certificado de finalización.",
-    href: "/dashboard/dia-4",
-  },
-];
-
-async function getDashboardData(userId: string) {
-  // Use service client so RLS doesn't silently return empty data (same reason as layout.tsx)
-  const supabase = createServiceClient();
-  const anonSupabase = await createClient(); // toggles use anon client (public data)
-
-  const [{ data: progress }, toggles] = await Promise.all([
-    supabase
-      .from("day_progress")
-      .select("day_number, is_unlocked, is_completed")
-      .eq("user_id", userId),
-    getAllAdminToggles(anonSupabase),
-  ]);
-
-  const progressMap = Object.fromEntries(
-    (progress ?? []).map((p) => [p.day_number, p])
-  );
-  const toggleMap = Object.fromEntries(
-    toggles.map((t) => [t.day_number, t])
-  );
-
-  return { progressMap, toggleMap };
-}
+import { HomeClient } from "./home-client";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -69,22 +12,16 @@ function isSupabaseConfigured() {
 }
 
 export default async function DashboardPage() {
-  let progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }> = {};
-  let toggleMap: Record<number, { is_globally_unlocked: boolean }> = {};
-  let userName = "Tu nombre";
-  let completedDays = 0;
+  const devMode = !isSupabaseConfigured();
 
-  if (!isSupabaseConfigured()) {
-    // Dev/preview mode — treat as admin: all days visible, read completion from cookie
-    const cookieStore = await cookies();
-    const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
-    const completedSet = new Set(devCompleted.split(",").filter(Boolean));
-    for (let d = 1; d <= 4; d++) {
-      const isDone = completedSet.has(String(d));
-      toggleMap[d] = { is_globally_unlocked: true };
-      progressMap[d] = { is_unlocked: true, is_completed: isDone };
-    }
-    completedDays = completedSet.size;
+  let initialPoints = 0;
+  let fullName = "Usuario";
+
+  if (devMode) {
+    // Dev mode — use cookie-based completed days, no real auth
+    await cookies(); // satisfy dynamic rendering
+    fullName = "Dev Preview";
+    initialPoints = 0;
   } else {
     const supabase = await createClient();
     let user = null;
@@ -92,160 +29,25 @@ export default async function DashboardPage() {
       const { data } = await supabase.auth.getUser();
       user = data.user;
     } catch {
-      // Red inaccesible
+      // Network unreachable
     }
-
     if (!user) redirect("/login");
 
-    const data = await getDashboardData(user.id);
-    progressMap = data.progressMap;
-    toggleMap = data.toggleMap;
-
-    // Grab user name, admin flag — use service client so RLS doesn't silently block
     const { data: profile } = await createServiceClient()
       .from("users")
-      .select("full_name, is_admin")
+      .select("full_name, total_points")
       .eq("id", user.id)
       .maybeSingle();
-    userName = profile?.full_name ?? "Tu nombre";
-    completedDays = Object.values(progressMap).filter((p) => p.is_completed).length;
 
-    if (profile?.is_admin) {
-      // Admins see all days unlocked regardless of global toggles or prior completion
-      for (let d = 1; d <= 4; d++) {
-        progressMap[d] = { ...progressMap[d], is_unlocked: true, is_completed: progressMap[d]?.is_completed ?? false };
-        toggleMap[d] = { is_globally_unlocked: true };
-      }
-    }
+    fullName = profile?.full_name ?? "Usuario";
+    initialPoints = (profile?.total_points as number | null) ?? 0;
   }
 
   return (
-    <div className="space-y-8 page-enter">
-      {/* Hero welcome */}
-      <div className="pt-2">
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-          <h1
-            className="text-4xl font-bold text-white leading-tight"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Bienvenido al Programa
-            <span className="ml-2">🚀</span>
-          </h1>
-          <SocialProof />
-        </div>
-        <p
-          className="text-lg"
-          style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
-        >
-          4 días para aprender a venderle al gobierno federal.
-          Completá cada reto para desbloquear el siguiente.
-        </p>
-      </div>
-
-      {/* SAM.gov live contracts widget */}
-      <SamContractsWidget />
-
-      {/* Progreso por fase — reemplaza las cards grandes (ya están en sidebar + tabs) */}
-      <div>
-        <p
-          className="text-xs uppercase tracking-widest font-bold mb-3"
-          style={{ color: "#5A6B85", fontFamily: "var(--font-arcade)" }}
-        >
-          Tu progreso
-        </p>
-        <div className="flex flex-col gap-2" data-tour-id="day-cards">
-          {DAY_META.map(({ day, title, href }) => {
-            const dayToggle    = toggleMap[day];
-            const dayProgress  = progressMap[day];
-            const prevProgress = progressMap[day - 1];
-
-            const globallyUnlocked = dayToggle?.is_globally_unlocked ?? (day === 1);
-            const prevCompleted     = day === 1 || prevProgress?.is_completed === true;
-            const userUnlocked      = dayProgress?.is_unlocked ?? false;
-            const isUnlocked        = (globallyUnlocked && prevCompleted) || userUnlocked;
-            const isCompleted       = dayProgress?.is_completed ?? false;
-
-            return (
-              <a
-                key={day}
-                href={isUnlocked ? href : undefined}
-                style={{ textDecoration: "none", cursor: isUnlocked ? "pointer" : "not-allowed" }}
-                {...(day === 1 ? { "data-tour-id": "day-card-1" } : {})}
-              >
-                <div
-                  className="flex items-center gap-4 rounded-xl px-5 py-4 border transition-all"
-                  style={{
-                    background: isCompleted
-                      ? "rgba(0,30,20,0.7)"
-                      : isUnlocked
-                      ? "rgba(20,58,107,0.7)"
-                      : "rgba(10,37,64,0.5)",
-                    borderColor: isCompleted
-                      ? "rgba(0,214,122,0.35)"
-                      : isUnlocked
-                      ? "#D7263D"
-                      : "#1E3A5C",
-                    opacity: isUnlocked ? 1 : 0.5,
-                  }}
-                >
-                  {/* Day number */}
-                  <div
-                    className="text-5xl font-bold leading-none tabular-nums select-none"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      color: isCompleted ? "#00D67A" : isUnlocked ? "#FFFFFF" : "#3D4E6B",
-                      width: "56px",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {String(day).padStart(2, "0")}
-                  </div>
-
-                  {/* Title + status */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="font-bold text-sm text-white mb-0.5" style={{ fontFamily: "var(--font-display)" }}>
-                      {title}
-                    </div>
-                    <div className="text-xs" style={{ color: isCompleted ? "#00D67A" : isUnlocked ? "#A8B5CC" : "#5A6B85" }}>
-                      {isCompleted ? "✓ Completado" : isUnlocked ? "En progreso →" : "🔒 Se desbloquea en vivo"}
-                    </div>
-                  </div>
-
-                  {/* Badge */}
-                  {isCompleted ? (
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(0,214,122,0.18)", color: "#00D67A", fontFamily: "var(--font-arcade)" }}>
-                      LISTO
-                    </span>
-                  ) : isUnlocked ? (
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse" style={{ background: "#D7263D", color: "#fff", fontFamily: "var(--font-arcade)" }}>
-                      ACTIVO
-                    </span>
-                  ) : null}
-                </div>
-              </a>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Bottom row: sorteo + certificate */}
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div
-          className="rounded-xl p-6 border"
-          style={{ background: "linear-gradient(135deg, rgba(20,58,107,0.55) 0%, rgba(10,37,64,0.7) 100%)", borderColor: "#FFD60A33" }}
-        >
-          <div className="flex items-start gap-4">
-            <div className="text-3xl select-none" style={{ filter: "drop-shadow(0 2px 8px rgba(255,214,10,0.4))" }}>🏆</div>
-            <div>
-              <h2 className="font-bold text-lg text-white mb-1" style={{ fontFamily: "var(--font-display)" }}>Sorteo final</h2>
-              <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC" }}>
-                Completá los 4 retos y subí tus entregables para participar del sorteo. Los puntos acumulados determinan tu ranking de elegibilidad.
-              </p>
-            </div>
-          </div>
-        </div>
-        <CertificatePreview completedDays={completedDays} userName={userName} />
-      </div>
-    </div>
+    <HomeClient
+      initialPoints={initialPoints}
+      fullName={fullName}
+      devMode={devMode}
+    />
   );
 }
