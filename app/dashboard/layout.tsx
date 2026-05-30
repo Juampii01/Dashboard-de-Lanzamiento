@@ -47,7 +47,7 @@ async function getLayoutData(userId: string) {
   // Use service client so RLS never blocks reading the user's own profile/progress
   const supabase = createServiceClient();
 
-  const [{ data: user }, { data: progress }] = await Promise.all([
+  const [{ data: user }, { data: progress }, { data: toggles }] = await Promise.all([
     supabase
       .from("users")
       .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id, combo_progress, last_ad_watched_at, avatar_url")
@@ -57,15 +57,39 @@ async function getLayoutData(userId: string) {
       .from("day_progress")
       .select("day_number, is_unlocked, is_completed")
       .eq("user_id", userId),
+    supabase
+      .from("admin_toggles")
+      .select("day_number, is_globally_unlocked"),
   ]);
 
   const completedDays = progress?.filter((p) => p.is_completed).length ?? 0;
 
+  // Build toggle map { [dayNumber]: is_globally_unlocked }
+  const toggleMap: Record<number, boolean> = Object.fromEntries(
+    (toggles ?? []).map((t) => [
+      (t as { day_number: number; is_globally_unlocked: boolean }).day_number,
+      (t as { day_number: number; is_globally_unlocked: boolean }).is_globally_unlocked,
+    ])
+  );
+
   // Build a map { [dayNumber]: { is_unlocked, is_completed } }
+  // A day is unlocked if: the user's own day_progress says so OR
+  // the admin enabled the global toggle for that day.
   const progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }> =
     Object.fromEntries(
-      (progress ?? []).map((p) => [p.day_number, { is_unlocked: p.is_unlocked, is_completed: p.is_completed }])
+      (progress ?? []).map((p) => [
+        p.day_number,
+        {
+          is_unlocked: p.is_unlocked || (toggleMap[p.day_number] ?? false),
+          is_completed: p.is_completed,
+        },
+      ])
     );
+
+  // Day 1 is always unlocked
+  if (progressMap[1]) {
+    progressMap[1] = { ...progressMap[1], is_unlocked: true };
+  }
 
   return { user, completedDays, progressMap };
 }
