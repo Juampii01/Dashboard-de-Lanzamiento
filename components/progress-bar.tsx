@@ -258,14 +258,20 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
   const [displayPct, setDisplayPct] = useState(() => targetPct > 0 ? targetPct : 0);
   const [mounted, setMounted] = useState(() => targetPct > 0);
 
-  // Avatar upload state — seed from server prop, fall back to localStorage on reload
+  // Avatar upload state
   const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
-  const resolvedInitial = initialAvatarUrl
-    ?? (typeof window !== "undefined" ? localStorage.getItem(LS_AVATAR_KEY) : null)
-    ?? null;
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(resolvedInitial);
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(initialAvatarUrl ?? null);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // After client mount: if server gave no avatar, try localStorage fallback
+  useEffect(() => {
+    if (!initialAvatarUrl) {
+      const stored = localStorage.getItem(LS_AVATAR_KEY);
+      if (stored) setCurrentAvatarUrl(stored);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync with avatar uploads from other sources (e.g. ProfileButton modal)
   useEffect(() => {

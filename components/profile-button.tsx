@@ -26,18 +26,27 @@ export function ProfileButton({
 }) {
   // ── Display state (shown in the header chip) ─────────────────────────────
   const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
-  const resolvedAvatar = avatarUrl
-    ?? (typeof window !== "undefined" ? localStorage.getItem(LS_AVATAR_KEY) : null)
-    ?? null;
   const [displayName,   setDisplayName]   = useState(fullName);
-  const [headerAvatar,  setHeaderAvatar]  = useState(resolvedAvatar);
+  const [headerAvatar,  setHeaderAvatar]  = useState(avatarUrl);
   const [avatarError,   setAvatarError]   = useState(false);
   const [avatarVisible, setAvatarVisible] = useState(false);
 
   // ── Modal state ───────────────────────────────────────────────────────────
   const [open,       setOpen]       = useState(false);
   const [editName,   setEditName]   = useState(fullName);
-  const [modalAvatar, setModalAvatar] = useState(resolvedAvatar);
+  const [modalAvatar, setModalAvatar] = useState(avatarUrl);
+
+  // After client mount: if server gave no avatar, try localStorage fallback
+  useEffect(() => {
+    if (!avatarUrl) {
+      const stored = localStorage.getItem(LS_AVATAR_KEY);
+      if (stored) {
+        setHeaderAvatar(stored);
+        setModalAvatar(stored);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Name-save state ───────────────────────────────────────────────────────
   const [nameSaving,  setNameSaving]  = useState(false);
