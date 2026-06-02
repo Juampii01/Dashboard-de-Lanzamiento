@@ -82,8 +82,27 @@ export async function POST(request: Request) {
     console.error("[quiz/submit] fetch day_progress error:", dayErr);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
+
   if (!dayAccess?.is_unlocked) {
-    return NextResponse.json({ error: "day_locked" }, { status: 403 });
+    // Fallback 1: day globally unlocked via admin toggle
+    const { data: toggleRaw } = await service
+      .from("admin_toggles")
+      .select("is_globally_unlocked")
+      .eq("day_number", capsule.day_number)
+      .maybeSingle();
+    const toggle = toggleRaw as { is_globally_unlocked: boolean } | null;
+
+    // Fallback 2: user is admin
+    const { data: profileRaw } = await service
+      .from("users")
+      .select("is_admin")
+      .eq("id", user.id)
+      .maybeSingle();
+    const profile = profileRaw as { is_admin: boolean } | null;
+
+    if (!toggle?.is_globally_unlocked && !profile?.is_admin) {
+      return NextResponse.json({ error: "day_locked" }, { status: 403 });
+    }
   }
   // ───────────────────────────────────────────────────────────────────────────
 

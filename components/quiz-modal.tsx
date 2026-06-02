@@ -172,14 +172,9 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
     }
   }, [questions, qIndex, phase, advance]);
 
-  // ── Retry after wrong ───────────────────────────────────────────────────────
+  // ── Advance after wrong (no retry — one shot per question) ────────────────
 
-  const handleRetry = useCallback(() => {
-    setPhase("idle");
-    setSelected(null);
-    setRevealedIdx(null);
-    setExplanation(null);
-  }, []);
+  const handleWrongNext = useCallback(() => advance(), [advance]);
 
   if (!isOpen) return null;
 
@@ -532,18 +527,23 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
               )}
 
               {phase === "wrong" && (
-                <button
-                  onClick={handleRetry}
-                  className="w-full py-3 rounded-xl font-bold text-sm"
-                  style={{
-                    background: "rgba(215,38,61,0.08)",
-                    border:     "1.5px solid rgba(215,38,61,0.28)",
-                    color:      "#D7263D",
-                    fontFamily: "var(--font-sans)",
-                  }}
-                >
-                  ↩ Intentar de nuevo
-                </button>
+                <div className="space-y-2">
+                  <p className="text-center text-xs" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
+                    Sin XP esta vez — la respuesta correcta está marcada en verde
+                  </p>
+                  <button
+                    onClick={handleWrongNext}
+                    className="w-full py-3 rounded-xl font-bold text-sm"
+                    style={{
+                      background: "rgba(255,255,255,0.06)",
+                      border:     "1.5px solid rgba(255,255,255,0.12)",
+                      color:      "#A8B5CC",
+                      fontFamily: "var(--font-sans)",
+                    }}
+                  >
+                    Siguiente →
+                  </button>
+                </div>
               )}
             </>
           )}
