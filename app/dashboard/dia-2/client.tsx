@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +79,7 @@ export function Dia2Client({
   usState,
   devMode,
 }: Dia2ClientProps) {
+  const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [naicsInput, setNaicsInput] = useState(primaryNaics);
   const [keywords, setKeywords] = useState<string[]>(
@@ -201,6 +203,7 @@ export function Dia2Client({
       }
 
       setIsCompleted(true);
+      router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Mapa de códigos generado!");
     } catch {
       toast.error("Estamos teniendo un problema. Intentá de nuevo.");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ interface Dia1ClientProps {
 }
 
 export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile, devMode }: Dia1ClientProps) {
+  const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [saving, setSaving] = useState(false);
   const [naicsResult, setNaicsResult] = useState<NAICSResult | null>(null);
@@ -187,6 +189,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       }
 
       setIsCompleted(true);
+      router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Perfil Estratégico guardado! Ya podés descargar tu análisis.");
 
       // Celebración arcade

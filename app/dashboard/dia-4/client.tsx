@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -50,6 +51,7 @@ export function Dia4Client({
   accessExpiresAt,
   devMode,
 }: Dia4ClientProps) {
+  const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [generating, setGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -137,6 +139,7 @@ export function Dia4Client({
       }
 
       setIsCompleted(true);
+      router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Capability Statement generado!");
     } catch {
       toast.error("Estamos teniendo un problema. Intentá de nuevo.");

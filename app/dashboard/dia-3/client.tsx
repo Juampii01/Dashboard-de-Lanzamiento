@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -74,6 +75,7 @@ export function Dia3Client({
   keywordsExpanded,
   devMode,
 }: Dia3ClientProps) {
+  const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [generating, setGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -183,6 +185,7 @@ ${webResult.html}
       }
 
       setIsCompleted(true);
+      router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Preview de tu web generada!");
     } catch {
       toast.error("Estamos teniendo un problema. Intentá de nuevo.");
