@@ -47,9 +47,9 @@ interface VideoCapsulesProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COOLDOWN_SECONDS = 5 * 60; // 5 minutes
-// Minimum time (seconds) that must pass before "mark as watched" unlocks
-// when no IFrame API / duration_seconds is available.
-const FALLBACK_LOCK_SECS = 30;
+// Emergency fallback: unlock button if YouTube API never fires (e.g. API blocked).
+// Set high so the intended flow is always "video ends → button unlocks".
+const FALLBACK_LOCK_SECS = 60 * 60; // 1 hour — effectively "API only"
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

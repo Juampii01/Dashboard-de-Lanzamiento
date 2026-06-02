@@ -45,6 +45,7 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
   const [result, setResult]       = useState<SubmitResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [allDone, setAllDone]     = useState(false);
+  const [apiError, setApiError]   = useState<string | null>(null);
 
   // Reset state on open
   useEffect(() => {
@@ -54,6 +55,7 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
     setResult(null);
     setQIndex(0);
     setAllDone(false);
+    setApiError(null);
     setLoading(true);
 
     const supabase = createClient();
@@ -89,7 +91,19 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({ quiz_id: currentQ.id, selected_option_index: optionIndex }),
       });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        const code = (errBody as { error?: string }).error ?? `HTTP ${res.status}`;
+        console.error("[QuizModal] submit failed:", res.status, code);
+        setApiError(code);
+        setSelected(null);
+        setSubmitting(false);
+        return;
+      }
+
       const data: SubmitResult = await res.json();
+      setApiError(null);
       setResult(data);
 
       if (data.correct) {
@@ -220,6 +234,33 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
 
         <div className="px-5 py-5 space-y-5">
 
+          {/* API error */}
+          {!loading && !allDone && apiError && (
+            <div className="space-y-4">
+              <div className="text-center space-y-2 py-2">
+                <p className="text-2xl">⚠️</p>
+                <p className="font-bold text-sm" style={{ color: "#D7263D", fontFamily: "var(--font-display)" }}>
+                  Error al enviar respuesta
+                </p>
+                <p className="text-xs" style={{ color: "#A8B5CC" }}>
+                  {apiError === "day_locked" ? "Este día aún no está desbloqueado." : "Algo salió mal. Intentá de nuevo."}
+                </p>
+              </div>
+              <button
+                onClick={() => setApiError(null)}
+                className="w-full py-3 rounded-xl font-bold text-sm transition-all"
+                style={{
+                  background: "rgba(215,38,61,0.12)",
+                  border: "1.5px solid rgba(215,38,61,0.3)",
+                  color: "#D7263D",
+                  fontFamily: "var(--font-sans)",
+                }}
+              >
+                ↩ Intentar de nuevo
+              </button>
+            </div>
+          )}
+
           {/* Loading */}
           {loading && (
             <div className="text-center py-8 space-y-2">
@@ -279,7 +320,7 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
           )}
 
           {/* Question + options */}
-          {!loading && !allDone && currentQ && !isAnswered && (
+          {!loading && !allDone && !apiError && currentQ && !isAnswered && (
             <>
               <p
                 className="text-sm leading-relaxed font-medium text-white"
@@ -337,7 +378,7 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
           )}
 
           {/* Wrong answer — retry */}
-          {!loading && !allDone && isWrong && currentQ && (
+          {!loading && !allDone && !apiError && isWrong && currentQ && (
             <div className="space-y-4">
               <div className="text-center space-y-2 py-2">
                 <p className="text-2xl">❌</p>
