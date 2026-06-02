@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { flyPoints, createParticleBurst } from "@/lib/wow-effects";
 
@@ -15,9 +15,17 @@ interface QuizRow {
   question_order: number;
 }
 
-type SubmitResult =
-  | { correct: true;  xp_awarded: number; total_points: number; already_correct?: boolean }
-  | { correct: false; xp_awarded: 0 };
+interface SubmitResponse {
+  correct: boolean;
+  xp_awarded: number;
+  total_points?: number | null;
+  already_correct?: boolean;
+  correct_option_index?: number;
+  explanation?: string | null;
+  error?: string;
+}
+
+type Phase = "idle" | "submitting" | "correct" | "already_correct" | "wrong";
 
 interface QuizModalProps {
   capsuleId: string;
@@ -25,38 +33,50 @@ interface QuizModalProps {
   onClose: () => void;
 }
 
+// ─── QuizModal ────────────────────────────────────────────────────────────────
+
 /**
- * QuizModal — multi-question sequential quiz after watching a video capsule.
+ * Multi-question sequential quiz.
  *
- * Flow:
- *  1. Fetch all questions for the capsule from video_quizzes_public (ordered by question_order)
- *  2. Show questions one by one — user cannot close until all are answered correctly
- *  3. Wrong answer: red state + retry (unlimited attempts)
- *  4. Correct: XP flyPoints dispatched, advance to next question
- *  5. Already correct server-side: skip (counts as done), advance
- *  6. All done: celebrate + auto-close in 2 s
- *  7. No quiz for this capsule: silently close
+ * Flow per question:
+ *  idle → user picks option → submitting → correct / wrong / already_correct
+ *  correct:         options highlight green, explanation shown, auto-advance 2.2s
+ *  already_correct: fast auto-advance 1s (no XP, no celebration)
+ *  wrong:           selected turns red, correct turns green, explanation shown,
+ *                   "Intentar de nuevo" resets to idle (server re-reveals correct
+ *                   on next wrong attempt)
+ *
+ * correct_option_index and explanation come from the server on every submit
+ * response — never pre-loaded (client never sees correct answer before submitting).
  */
 export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
-  const [questions, setQuestions] = useState<QuizRow[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [qIndex, setQIndex]       = useState(0);          // current question index
-  const [selected, setSelected]   = useState<number | null>(null);
-  const [result, setResult]       = useState<SubmitResult | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [allDone, setAllDone]     = useState(false);
-  const [apiError, setApiError]   = useState<string | null>(null);
+  const [questions,   setQuestions]   = useState<QuizRow[]>([]);
+  const [loading,     setLoading]     = useState(true);
+  const [qIndex,      setQIndex]      = useState(0);
+  const [phase,       setPhase]       = useState<Phase>("idle");
+  const [selected,    setSelected]    = useState<number | null>(null);
+  const [revealedIdx, setRevealedIdx] = useState<number | null>(null);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [xpThisQ,     setXpThisQ]    = useState(0);
+  const [allDone,     setAllDone]     = useState(false);
+  const [apiError,    setApiError]    = useState<string | null>(null);
+  const totalXpRef                   = useRef(0);
 
-  // Reset state on open
+  // ── Reset on open ───────────────────────────────────────────────────────────
+
   useEffect(() => {
     if (!isOpen || !capsuleId) return;
     setQuestions([]);
-    setSelected(null);
-    setResult(null);
+    setLoading(true);
     setQIndex(0);
+    setPhase("idle");
+    setSelected(null);
+    setRevealedIdx(null);
+    setExplanation(null);
+    setXpThisQ(0);
     setAllDone(false);
     setApiError(null);
-    setLoading(true);
+    totalXpRef.current = 0;
 
     const supabase = createClient();
     supabase
@@ -65,124 +85,142 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
       .eq("capsule_id", capsuleId)
       .order("question_order", { ascending: true })
       .then(({ data, error }) => {
-        if (error) console.error("[QuizModal] fetch error:", error);
+        if (error) console.error("[QuizModal] fetch:", error);
         setQuestions((data as QuizRow[] | null) ?? []);
         setLoading(false);
       });
   }, [isOpen, capsuleId]);
 
-  // No quiz for this capsule → close immediately
+  // ── Auto-close when no questions ─────────────────────────────────────────────
+
   useEffect(() => {
-    if (!loading && questions.length === 0 && isOpen) {
-      onClose();
-    }
+    if (!loading && questions.length === 0 && isOpen) onClose();
   }, [loading, questions, isOpen, onClose]);
 
-  const currentQ = questions[qIndex] ?? null;
+  // ── Advance to next question (or close) ────────────────────────────────────
 
-  const handleSubmit = useCallback(async (optionIndex: number) => {
-    if (!currentQ || submitting) return;
-    setSelected(optionIndex);
-    setSubmitting(true);
+  const advance = useCallback(() => {
+    const next = qIndex + 1;
+    if (next >= questions.length) {
+      setAllDone(true);
+      setTimeout(onClose, 3200);
+    } else {
+      setQIndex(next);
+      setPhase("idle");
+      setSelected(null);
+      setRevealedIdx(null);
+      setExplanation(null);
+      setXpThisQ(0);
+    }
+  }, [qIndex, questions.length, onClose]);
+
+  // ── Submit answer ───────────────────────────────────────────────────────────
+
+  const handleSelect = useCallback(async (optIdx: number) => {
+    if (!questions[qIndex] || phase !== "idle") return;
+    const q = questions[qIndex];
+    setSelected(optIdx);
+    setPhase("submitting");
+    setApiError(null);
 
     try {
-      const res  = await fetch("/api/quiz/submit", {
+      const res = await fetch("/api/quiz/submit", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ quiz_id: currentQ.id, selected_option_index: optionIndex }),
+        body:    JSON.stringify({ quiz_id: q.id, selected_option_index: optIdx }),
       });
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        const code = (errBody as { error?: string }).error ?? `HTTP ${res.status}`;
-        console.error("[QuizModal] submit failed:", res.status, code);
-        setApiError(code);
+        const body = await res.json().catch(() => ({}));
+        setApiError((body as { error?: string }).error ?? `HTTP ${res.status}`);
+        setPhase("idle");
         setSelected(null);
-        setSubmitting(false);
         return;
       }
 
-      const data: SubmitResult = await res.json();
-      setApiError(null);
-      setResult(data);
+      const data = await res.json() as SubmitResponse;
+      if (data.correct_option_index != null) setRevealedIdx(data.correct_option_index);
+      if (data.explanation)                  setExplanation(data.explanation);
 
-      if (data.correct) {
-        // XP effect only on first correct answer (not already_correct)
-        if (data.xp_awarded > 0 && "total_points" in data && data.total_points != null) {
-          window.dispatchEvent(
-            new CustomEvent("xp-gained", {
-              detail: { delta: data.xp_awarded, total: data.total_points, source: "quiz" },
-            })
-          );
-          const cx = window.innerWidth  / 2;
+      if (data.correct && !data.already_correct) {
+        setXpThisQ(data.xp_awarded);
+        totalXpRef.current += data.xp_awarded;
+        setPhase("correct");
+
+        if (data.xp_awarded > 0 && data.total_points != null) {
+          window.dispatchEvent(new CustomEvent("xp-gained", {
+            detail: { delta: data.xp_awarded, total: data.total_points, source: "quiz" },
+          }));
+          const cx = window.innerWidth / 2;
           const cy = window.innerHeight / 2;
           createParticleBurst(cx, cy, "gold", 18);
           flyPoints(cx, cy, cx, cy - 100, `+${data.xp_awarded} XP 🎯`);
         }
+        setTimeout(advance, 2200);
 
-        // Advance after a short pause
-        setTimeout(() => {
-          const nextIdx = qIndex + 1;
-          if (nextIdx >= questions.length) {
-            setAllDone(true);
-            setTimeout(onClose, 2500);
-          } else {
-            setQIndex(nextIdx);
-            setSelected(null);
-            setResult(null);
-          }
-        }, 1200);
+      } else if (data.already_correct) {
+        setPhase("already_correct");
+        setTimeout(advance, 900);
+
+      } else {
+        setPhase("wrong");
       }
     } catch (err) {
-      console.error("[QuizModal] submit error:", err);
-      setSubmitting(false);
-      return;
+      console.error("[QuizModal]", err);
+      setPhase("idle");
+      setSelected(null);
     }
-    setSubmitting(false);
-  }, [currentQ, submitting, qIndex, questions.length, onClose]);
+  }, [questions, qIndex, phase, advance]);
+
+  // ── Retry after wrong ───────────────────────────────────────────────────────
 
   const handleRetry = useCallback(() => {
+    setPhase("idle");
     setSelected(null);
-    setResult(null);
+    setRevealedIdx(null);
+    setExplanation(null);
   }, []);
 
   if (!isOpen) return null;
 
-  const total      = questions.length;
-  const progress   = allDone ? total : qIndex;
-  const isAnswered = result !== null;
-  const isCorrect  = result?.correct === true;
-  const isWrong    = result?.correct === false;
+  const total    = questions.length;
+  const doneCount = allDone ? total : qIndex;
+  const currentQ = questions[qIndex] ?? null;
 
-  // Border / glow colour based on state
-  const borderColor = allDone || isCorrect
-    ? "rgba(0,214,122,0.5)"
-    : isWrong
-    ? "rgba(215,38,61,0.4)"
-    : "rgba(255,214,10,0.35)";
-  const glowColor = allDone || isCorrect
-    ? "rgba(0,214,122,0.2)"
-    : isWrong
-    ? "rgba(215,38,61,0.15)"
-    : "rgba(255,214,10,0.12)";
+  const showFeedback = phase === "correct" || phase === "wrong";
+
+  const borderColor =
+    allDone || phase === "correct"   ? "rgba(0,214,122,0.55)"  :
+    phase === "wrong"                ? "rgba(215,38,61,0.45)"   :
+                                       "rgba(255,214,10,0.28)";
+  const glowShadow =
+    allDone || phase === "correct"   ? "0 0 48px rgba(0,214,122,0.2)"  :
+    phase === "wrong"                ? "0 0 48px rgba(215,38,61,0.15)" :
+                                       "0 0 32px rgba(255,214,10,0.06)";
+
+  // ── Render ───────────────────────────────────────────────────────────────────
 
   return (
     <div
       className="fixed inset-0 z-[9995] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(10px)" }}
+      style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(14px)" }}
     >
       <div
         className="relative w-full max-w-lg rounded-2xl overflow-hidden"
         style={{
-          background: "#0A2540",
-          border: `2px solid ${borderColor}`,
-          boxShadow: `0 0 40px ${glowColor}`,
-          transition: "border-color 0.4s, box-shadow 0.4s",
+          background: "linear-gradient(160deg, #0D2E50 0%, #0A2540 100%)",
+          border:     `2px solid ${borderColor}`,
+          boxShadow:  glowShadow,
+          transition: "border-color 0.4s ease, box-shadow 0.4s ease",
         }}
       >
-        {/* Header */}
-        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #1E3A5C" }}>
-          <div className="flex items-center gap-2">
+        {/* ── Header ──────────────────────────────────────────────────────────── */}
+        <div
+          className="px-5 pt-4 pb-3.5 flex items-center gap-3"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        >
+          {/* Icon + title */}
+          <div className="flex items-center gap-2 shrink-0">
             <span className="text-lg">🎯</span>
             <span
               className="text-xs font-bold uppercase tracking-widest"
@@ -190,83 +228,70 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
             >
               Quiz Rápido
             </span>
-            {!loading && total > 0 && !allDone && (
-              <span
-                className="text-[10px] tabular-nums"
-                style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}
+          </div>
+
+          {/* Progress dots — centered */}
+          <div className="flex items-center gap-1.5 flex-1 justify-center">
+            {!loading && total > 0 && !allDone && questions.map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width:        i === qIndex ? "24px" : "8px",
+                  height:       "8px",
+                  borderRadius: "4px",
+                  background:
+                    i < qIndex  ? "#00D67A" :
+                    i === qIndex ? "#FFD60A" :
+                                  "rgba(255,255,255,0.1)",
+                  transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)",
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Lock / Close */}
+          <div className="shrink-0">
+            {allDone ? (
+              <button
+                onClick={onClose}
+                style={{ color: "#5A6B85", fontSize: "16px", lineHeight: 1 }}
               >
-                {progress + 1}/{total}
+                ✕
+              </button>
+            ) : (
+              <span
+                title="Completá el quiz para cerrar"
+                style={{ fontSize: "13px", color: "#3A5070", cursor: "default" }}
+              >
+                🔒
               </span>
             )}
           </div>
-          {/* Close is locked until all questions are done */}
-          {allDone ? (
-            <button
-              onClick={onClose}
-              className="text-[#5A6B85] hover:text-white transition-colors"
-              style={{ fontSize: "16px", lineHeight: 1 }}
-            >
-              ✕
-            </button>
-          ) : (
-            <span
-              title="Completá el quiz para cerrar"
-              style={{ fontSize: "12px", color: "#3A5070", cursor: "default" }}
-            >
-              🔒
-            </span>
-          )}
         </div>
 
-        {/* Progress bar */}
-        {!loading && total > 1 && (
-          <div style={{ height: "3px", background: "#0F1E30" }}>
+        {/* ── Progress bar ────────────────────────────────────────────────────── */}
+        {!loading && total > 0 && (
+          <div style={{ height: "3px", background: "#071728" }}>
             <div
               style={{
-                height: "100%",
-                width: `${((allDone ? total : qIndex) / total) * 100}%`,
+                height:     "100%",
+                width:      `${(doneCount / total) * 100}%`,
                 background: "linear-gradient(90deg, #FFD60A, #FF9500)",
-                transition: "width 0.5s cubic-bezier(0.22,1,0.36,1)",
+                transition: "width 0.6s cubic-bezier(0.22,1,0.36,1)",
               }}
             />
           </div>
         )}
 
-        <div className="px-5 py-5 space-y-5">
+        {/* ── Body ────────────────────────────────────────────────────────────── */}
+        <div className="px-5 py-5 space-y-4">
 
-          {/* API error */}
-          {!loading && !allDone && apiError && (
-            <div className="space-y-4">
-              <div className="text-center space-y-2 py-2">
-                <p className="text-2xl">⚠️</p>
-                <p className="font-bold text-sm" style={{ color: "#D7263D", fontFamily: "var(--font-display)" }}>
-                  Error al enviar respuesta
-                </p>
-                <p className="text-xs" style={{ color: "#A8B5CC" }}>
-                  {apiError === "day_locked" ? "Este día aún no está desbloqueado." : "Algo salió mal. Intentá de nuevo."}
-                </p>
-              </div>
-              <button
-                onClick={() => setApiError(null)}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all"
-                style={{
-                  background: "rgba(215,38,61,0.12)",
-                  border: "1.5px solid rgba(215,38,61,0.3)",
-                  color: "#D7263D",
-                  fontFamily: "var(--font-sans)",
-                }}
-              >
-                ↩ Intentar de nuevo
-              </button>
-            </div>
-          )}
-
-          {/* Loading */}
+          {/* ── Loading ── */}
           {loading && (
-            <div className="text-center py-8 space-y-2">
+            <div className="text-center py-12 space-y-3">
               <div
-                className="w-8 h-8 rounded-full border-4 border-t-transparent animate-spin mx-auto"
-                style={{ borderColor: "rgba(255,214,10,0.3)", borderTopColor: "#FFD60A" }}
+                className="w-8 h-8 rounded-full border-4 animate-spin mx-auto"
+                style={{ borderColor: "rgba(255,214,10,0.15)", borderTopColor: "#FFD60A" }}
               />
               <p className="text-xs" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
                 Cargando preguntas…
@@ -274,134 +299,253 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
             </div>
           )}
 
-          {/* All done celebration */}
+          {/* ── All done ── */}
           {allDone && (
-            <div className="text-center py-6 space-y-3">
-              <p className="text-4xl">🏆</p>
-              <p className="font-bold text-xl" style={{ color: "#00D67A", fontFamily: "var(--font-display)" }}>
-                ¡Quiz completado!
-              </p>
-              <p className="text-sm" style={{ color: "#A8B5CC" }}>
-                Respondiste {total} pregunta{total !== 1 ? "s" : ""} correctamente.
-              </p>
-              <p className="text-xs" style={{ color: "#5A6B85" }}>Cerrando en 2 s…</p>
-            </div>
-          )}
-
-          {/* After answering correctly — transitioning to next */}
-          {!loading && !allDone && isCorrect && !result?.already_correct && (
-            <div className="text-center py-4 space-y-2">
-              <p className="text-3xl">✅</p>
-              <p className="font-bold text-base" style={{ color: "#00D67A", fontFamily: "var(--font-display)" }}>
-                ¡Correcto!
-              </p>
-              {result.xp_awarded > 0 && (
+            <div className="text-center py-8 space-y-3">
+              <p className="text-5xl">🏆</p>
+              <div className="space-y-1">
                 <p
-                  className="text-xl font-bold"
-                  style={{ color: "#FFD60A", fontFamily: "var(--font-arcade)", textShadow: "0 0 20px rgba(255,214,10,0.6)" }}
+                  className="font-bold text-2xl"
+                  style={{ color: "#00D67A", fontFamily: "var(--font-display)" }}
                 >
-                  +{result.xp_awarded} XP
+                  ¡Quiz completado!
+                </p>
+                <p className="text-sm" style={{ color: "#A8B5CC" }}>
+                  {total} pregunta{total !== 1 ? "s" : ""} respondidas correctamente
+                </p>
+              </div>
+              {totalXpRef.current > 0 && (
+                <p
+                  className="text-2xl font-bold"
+                  style={{
+                    color: "#FFD60A",
+                    fontFamily: "var(--font-arcade)",
+                    textShadow: "0 0 24px rgba(255,214,10,0.55)",
+                  }}
+                >
+                  +{totalXpRef.current} XP
                 </p>
               )}
-              {qIndex + 1 < questions.length && (
-                <p className="text-xs" style={{ color: "#5A6B85" }}>Siguiente pregunta…</p>
-              )}
+              <p className="text-xs pt-1" style={{ color: "#5A6B85" }}>Cerrando…</p>
             </div>
           )}
 
-          {/* Already correct — skip to next */}
-          {!loading && !allDone && isCorrect && result?.already_correct && (
-            <div className="text-center py-4 space-y-2">
-              <p className="text-2xl">✅</p>
-              <p className="text-sm" style={{ color: "#A8B5CC" }}>
-                Ya respondiste esta correctamente.
-              </p>
-            </div>
-          )}
-
-          {/* Question + options */}
-          {!loading && !allDone && !apiError && currentQ && !isAnswered && (
-            <>
-              <p
-                className="text-sm leading-relaxed font-medium text-white"
-                style={{ fontFamily: "var(--font-sans)" }}
-              >
-                {currentQ.question}
-              </p>
-
-              <div className="space-y-2.5">
-                {(currentQ.options as string[]).map((opt, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSubmit(idx)}
-                    disabled={submitting}
-                    className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-50"
-                    style={{
-                      background: selected === idx && submitting
-                        ? "rgba(255,214,10,0.15)"
-                        : "rgba(255,255,255,0.04)",
-                      border: `1.5px solid ${selected === idx && submitting ? "#FFD60A" : "rgba(255,255,255,0.08)"}`,
-                      color: selected === idx && submitting ? "#FFD60A" : "#C8D6E8",
-                      fontFamily: "var(--font-sans)",
-                      cursor: submitting ? "wait" : "pointer",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!submitting) {
-                        (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,214,10,0.08)";
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,214,10,0.4)";
-                        (e.currentTarget as HTMLButtonElement).style.color = "#FFD60A";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!submitting || selected !== idx) {
-                        (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)";
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.08)";
-                        (e.currentTarget as HTMLButtonElement).style.color = "#C8D6E8";
-                      }
-                    }}
-                  >
-                    <span
-                      className="inline-block w-5 h-5 rounded-full text-[10px] font-bold mr-2.5 text-center leading-5 shrink-0"
-                      style={{ background: "rgba(255,214,10,0.12)", color: "#FFD60A" }}
-                    >
-                      {String.fromCharCode(65 + idx)}
-                    </span>
-                    {opt}
-                  </button>
-                ))}
-              </div>
-
-              <p className="text-[10px] text-center" style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}>
-                Respuesta correcta = +{currentQ.xp_reward} XP · No hay límite de intentos
-              </p>
-            </>
-          )}
-
-          {/* Wrong answer — retry */}
-          {!loading && !allDone && !apiError && isWrong && currentQ && (
-            <div className="space-y-4">
-              <div className="text-center space-y-2 py-2">
-                <p className="text-2xl">❌</p>
-                <p className="font-bold text-sm" style={{ color: "#D7263D", fontFamily: "var(--font-display)" }}>
-                  Respuesta incorrecta
+          {/* ── API error ── */}
+          {!loading && !allDone && apiError && (
+            <div className="space-y-4 py-2">
+              <div className="text-center space-y-1.5">
+                <p className="text-3xl">⚠️</p>
+                <p
+                  className="font-bold text-sm"
+                  style={{ color: "#D7263D", fontFamily: "var(--font-display)" }}
+                >
+                  Error al enviar respuesta
                 </p>
                 <p className="text-xs" style={{ color: "#A8B5CC" }}>
-                  Revisá el video y volvé a intentarlo.
+                  {apiError === "day_locked"
+                    ? "Este día aún no está desbloqueado."
+                    : "Algo salió mal. Intentá de nuevo."}
                 </p>
               </div>
               <button
-                onClick={handleRetry}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all"
+                onClick={() => setApiError(null)}
+                className="w-full py-3 rounded-xl font-bold text-sm"
                 style={{
-                  background: "rgba(215,38,61,0.12)",
-                  border: "1.5px solid rgba(215,38,61,0.3)",
-                  color: "#D7263D",
+                  background: "rgba(215,38,61,0.08)",
+                  border:     "1.5px solid rgba(215,38,61,0.28)",
+                  color:      "#D7263D",
                   fontFamily: "var(--font-sans)",
                 }}
               >
                 ↩ Intentar de nuevo
               </button>
             </div>
+          )}
+
+          {/* ── Question + Options ── */}
+          {!loading && !allDone && !apiError && currentQ && (
+            <>
+              {/* Question */}
+              <div className="space-y-1.5">
+                <p
+                  className="text-[10px] font-semibold uppercase tracking-widest"
+                  style={{ color: "rgba(255,214,10,0.45)", fontFamily: "var(--font-mono)" }}
+                >
+                  Pregunta {qIndex + 1} de {total}
+                </p>
+                <p
+                  className="text-sm leading-relaxed font-semibold text-white"
+                  style={{ fontFamily: "var(--font-sans)", letterSpacing: "0.01em" }}
+                >
+                  {currentQ.question}
+                </p>
+              </div>
+
+              {/* Options */}
+              <div className="space-y-2.5">
+                {(currentQ.options as string[]).map((opt, idx) => {
+                  const isSelected  = selected === idx;
+                  const isWrong     = showFeedback && phase === "wrong"    && isSelected;
+                  const isGreen     = showFeedback && (
+                    (phase === "wrong"    && revealedIdx === idx) ||
+                    (phase === "correct"  && isSelected)
+                  );
+                  const isDimmed    = showFeedback && !isSelected && revealedIdx !== idx;
+                  const isPending   = phase === "submitting" && isSelected;
+
+                  let bg        = "rgba(255,255,255,0.04)";
+                  let brd       = "rgba(255,255,255,0.08)";
+                  let clr       = "#C8D6E8";
+                  let iconLabel = String.fromCharCode(65 + idx);
+                  let iconBg    = "rgba(255,214,10,0.1)";
+                  let iconClr   = "#FFD60A88";
+
+                  if (isGreen) {
+                    bg = "rgba(0,214,122,0.12)"; brd = "#00D67A"; clr = "#00D67A";
+                    iconLabel = "✓"; iconBg = "rgba(0,214,122,0.25)"; iconClr = "#00D67A";
+                  } else if (isWrong) {
+                    bg = "rgba(215,38,61,0.12)"; brd = "#D7263D"; clr = "#D7263D";
+                    iconLabel = "✗"; iconBg = "rgba(215,38,61,0.25)"; iconClr = "#D7263D";
+                  } else if (isPending) {
+                    bg = "rgba(255,214,10,0.08)"; brd = "#FFD60A"; clr = "#FFD60A";
+                    iconBg = "rgba(255,214,10,0.2)"; iconClr = "#FFD60A";
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelect(idx)}
+                      disabled={phase !== "idle"}
+                      style={{
+                        width: "100%", textAlign: "left",
+                        display: "flex", alignItems: "center", gap: "12px",
+                        padding: "11px 15px",
+                        borderRadius: "12px",
+                        background: bg,
+                        border: `1.5px solid ${brd}`,
+                        color: clr,
+                        opacity: isDimmed ? 0.28 : 1,
+                        fontFamily: "var(--font-sans)",
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        cursor: phase === "idle" ? "pointer" : "default",
+                        transition: "background 0.2s, border-color 0.2s, color 0.2s, opacity 0.3s",
+                        outline: "none",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (phase !== "idle") return;
+                        const t = e.currentTarget;
+                        t.style.background   = "rgba(255,214,10,0.08)";
+                        t.style.borderColor  = "rgba(255,214,10,0.55)";
+                        t.style.color        = "#FFD60A";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (phase !== "idle") return;
+                        const t = e.currentTarget;
+                        t.style.background   = "rgba(255,255,255,0.04)";
+                        t.style.borderColor  = "rgba(255,255,255,0.08)";
+                        t.style.color        = "#C8D6E8";
+                      }}
+                    >
+                      {/* Letter / icon badge */}
+                      <span
+                        style={{
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          width: "22px", height: "22px", borderRadius: "50%",
+                          background: iconBg, color: iconClr,
+                          fontSize: (isGreen || isWrong) ? "13px" : "10px",
+                          fontWeight: 800, flexShrink: 0,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {iconLabel}
+                      </span>
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Explanation box */}
+              {explanation && (phase === "correct" || phase === "wrong") && (
+                <div
+                  className="rounded-xl px-4 py-3"
+                  style={{
+                    background: phase === "correct"
+                      ? "rgba(0,214,122,0.05)"
+                      : "rgba(255,214,10,0.04)",
+                    border: `1px solid ${phase === "correct"
+                      ? "rgba(0,214,122,0.18)"
+                      : "rgba(255,214,10,0.18)"}`,
+                  }}
+                >
+                  <p
+                    className="text-xs leading-relaxed"
+                    style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+                  >
+                    <span style={{ marginRight: "6px" }}>💡</span>
+                    {explanation}
+                  </p>
+                </div>
+              )}
+
+              {/* XP earned */}
+              {phase === "correct" && xpThisQ > 0 && (
+                <p
+                  className="text-center text-xl font-bold"
+                  style={{
+                    color: "#FFD60A",
+                    fontFamily: "var(--font-arcade)",
+                    textShadow: "0 0 20px rgba(255,214,10,0.5)",
+                  }}
+                >
+                  +{xpThisQ} XP
+                </p>
+              )}
+
+              {/* Status / action */}
+              {phase === "idle" && (
+                <p
+                  className="text-[10px] text-center"
+                  style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}
+                >
+                  +{currentQ.xp_reward} XP por responder correctamente · Sin límite de intentos
+                </p>
+              )}
+
+              {phase === "submitting" && (
+                <p
+                  className="text-[10px] text-center"
+                  style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}
+                >
+                  Verificando…
+                </p>
+              )}
+
+              {phase === "correct" && (
+                <p
+                  className="text-center text-sm font-bold"
+                  style={{ color: "#00D67A" }}
+                >
+                  ✓ ¡Correcto!{qIndex + 1 < total ? " Siguiente pregunta…" : ""}
+                </p>
+              )}
+
+              {phase === "wrong" && (
+                <button
+                  onClick={handleRetry}
+                  className="w-full py-3 rounded-xl font-bold text-sm"
+                  style={{
+                    background: "rgba(215,38,61,0.08)",
+                    border:     "1.5px solid rgba(215,38,61,0.28)",
+                    color:      "#D7263D",
+                    fontFamily: "var(--font-sans)",
+                  }}
+                >
+                  ↩ Intentar de nuevo
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

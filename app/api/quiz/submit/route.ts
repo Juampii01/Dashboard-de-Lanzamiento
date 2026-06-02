@@ -36,11 +36,18 @@ export async function POST(request: Request) {
 
   // ── Fetch quiz (service client — correct_option_index is not in the public view) ──
   const service = createServiceClient();
-  const { data: quiz, error: quizErr } = await service
+  const { data: quizRaw, error: quizErr } = await service
     .from("video_quizzes")
-    .select("id, correct_option_index, xp_reward, capsule_id")
+    .select("id, correct_option_index, xp_reward, capsule_id, explanation")
     .eq("id", quiz_id)
     .maybeSingle();
+  const quiz = quizRaw as {
+    id: string;
+    correct_option_index: number;
+    xp_reward: number;
+    capsule_id: string;
+    explanation: string | null;
+  } | null;
 
   if (quizErr) {
     console.error("[quiz/submit] fetch quiz error:", quizErr);
@@ -51,23 +58,25 @@ export async function POST(request: Request) {
   // ── Day-unlock gate ─────────────────────────────────────────────────────────
   // Derive day_number from the capsule, then verify the user has that day unlocked.
   // One extra query per submit — acceptable; prevents XP farming on locked days.
-  const { data: capsule, error: capsuleErr } = await service
+  const { data: capsuleRaw, error: capsuleErr } = await service
     .from("video_capsules")
     .select("day_number")
     .eq("id", quiz.capsule_id)
     .maybeSingle();
+  const capsule = capsuleRaw as { day_number: number } | null;
 
   if (capsuleErr || !capsule) {
     console.error("[quiz/submit] fetch capsule error:", capsuleErr);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 
-  const { data: dayAccess, error: dayErr } = await service
+  const { data: dayAccessRaw, error: dayErr } = await service
     .from("day_progress")
     .select("is_unlocked")
     .eq("user_id", user.id)
     .eq("day_number", capsule.day_number)
     .maybeSingle();
+  const dayAccess = dayAccessRaw as { is_unlocked: boolean } | null;
 
   if (dayErr) {
     console.error("[quiz/submit] fetch day_progress error:", dayErr);
@@ -92,20 +101,28 @@ export async function POST(request: Request) {
   if (prevCorrect) {
     // Already answered correctly in a previous attempt — no XP awarded again.
     // Still record this attempt so analytics are complete.
-    await service.from("video_quiz_attempts").insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (service.from("video_quiz_attempts") as any).insert({
       user_id: user.id,
       quiz_id,
       selected_option_index,
       is_correct: true,
       xp_awarded: 0,
     });
-    return NextResponse.json({ correct: true, xp_awarded: 0, already_correct: true });
+    return NextResponse.json({
+      correct: true,
+      xp_awarded: 0,
+      already_correct: true,
+      correct_option_index: quiz.correct_option_index,
+      explanation: quiz.explanation ?? null,
+    });
   }
 
   // ── Record the attempt ───────────────────────────────────────────────────────
   const xp_to_award = is_correct ? quiz.xp_reward : 0;
 
-  const { error: insertErr } = await service.from("video_quiz_attempts").insert({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error: insertErr } = await (service.from("video_quiz_attempts") as any).insert({
     user_id: user.id,
     quiz_id,
     selected_option_index,
@@ -120,10 +137,16 @@ export async function POST(request: Request) {
 
   // ── Award XP atomically if correct ──────────────────────────────────────────
   if (!is_correct) {
-    return NextResponse.json({ correct: false, xp_awarded: 0 });
+    return NextResponse.json({
+      correct: false,
+      xp_awarded: 0,
+      correct_option_index: quiz.correct_option_index,
+      explanation: quiz.explanation ?? null,
+    });
   }
 
-  const { data: newTotal, error: xpErr } = await service.rpc("add_points", {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: newTotal, error: xpErr } = await (service as any).rpc("add_points", {
     p_user_id: user.id,
     p_delta: quiz.xp_reward,
   });
@@ -134,10 +157,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ correct: true, xp_awarded: 0, total_points: null });
   }
 
-  // Broadcast XP event so PointsHUD updates without a page reload
   return NextResponse.json({
     correct: true,
     xp_awarded: quiz.xp_reward,
     total_points: newTotal,
+    correct_option_index: quiz.correct_option_index,
+    explanation: quiz.explanation ?? null,
   });
 }
