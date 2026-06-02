@@ -99,10 +99,26 @@ export async function callClaudeJSON<T>(
   maxTokens = 2000
 ): Promise<T> {
   const text = await callClaude(systemPrompt, userPrompt, maxTokens);
+  return JSON.parse(extractJson(text)) as T;
+}
 
-  // Extract JSON from code block if wrapped in ```
-  const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) ?? null;
-  const rawJson = jsonMatch ? jsonMatch[1] : text;
-
-  return JSON.parse(rawJson.trim()) as T;
+/**
+ * Robustly pull a JSON object out of an LLM response.
+ * Handles: markdown code fences (```json ... ```), missing closing fence
+ * (truncated responses), and leading/trailing prose. Falls back to slicing
+ * from the first "{" to the last "}".
+ */
+export function extractJson(text: string): string {
+  let s = text.trim();
+  // Strip a leading code fence even if the closing one is missing/truncated
+  s = s.replace(/^```(?:json)?\s*/i, "");
+  s = s.replace(/\s*```$/i, "");
+  s = s.trim();
+  // Slice to the outermost object braces — removes any stray prose around it
+  const first = s.indexOf("{");
+  const last = s.lastIndexOf("}");
+  if (first !== -1 && last !== -1 && last > first) {
+    return s.slice(first, last + 1);
+  }
+  return s;
 }

@@ -93,7 +93,7 @@ ${keywords?.length ? `Keywords clave: ${keywords.slice(0, 5).join(", ")}` : ""}
 ${usState ? `Estado de operación: ${usState} — mencioná la cobertura geográfica regional en el copy (ej: "serving government agencies across ${usState}").` : ""}
 
 Genera la landing page orientada a contratos gubernamentales.`
-    , 4000);
+    , 8000);
 
     return NextResponse.json(result);
   } catch (err) {
