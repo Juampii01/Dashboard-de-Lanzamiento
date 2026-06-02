@@ -130,6 +130,16 @@ ${webResult.html}
     toast.success("HTML copiado — pegalo en tu editor web");
   }
 
+  function handleOpenFullscreen() {
+    const html = buildFullHtml();
+    if (!html) return;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    // Revoke after the tab has had time to load
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+
   async function handleGenerateWeb() {
     if (!profile?.company_name) {
       toast.error("Completá el Día 1 primero para tener tu perfil de empresa.");
@@ -297,10 +307,17 @@ ${webResult.html}
               <span className="text-xs text-muted-foreground ml-2 font-mono">
                 {profile?.company_name?.toLowerCase().replace(/\s/g, "")}.com (preview)
               </span>
+              <button
+                onClick={handleOpenFullscreen}
+                className="ml-auto flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                title="Abrir en pantalla completa"
+              >
+                <ExternalLink className="w-3 h-3" /> Pantalla completa
+              </button>
             </div>
             <iframe
               srcDoc={buildFullHtml()}
-              className="w-full h-[500px] bg-white"
+              className="w-full h-[640px] bg-white"
               sandbox="allow-same-origin"
               title="Website preview"
             />

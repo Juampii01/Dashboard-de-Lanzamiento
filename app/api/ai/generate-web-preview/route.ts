@@ -74,31 +74,74 @@ export async function POST(request: Request) {
 
   try {
     const result = await callClaudeJSON<WebPreviewResult>(
-      `Eres un diseñador web experto en sitios para empresas que venden al gobierno de EEUU (federal, estatal y local).
-Genera una landing page profesional completa con estas secciones en orden: HERO (con titular grande y CTA), TRUST BAR (badges de credibilidad como "SAM.gov Registered", "Small Business", el NAICS), ABOUT US, SERVICES (en grid de tarjetas), DIFFERENTIATORS, y CONTACT/CTA final.
+      `Eres un diseñador web senior de una agencia premium, especializado en sitios para government contractors de EEUU. Tu trabajo se ve como un sitio de $15,000 hecho por una agencia, NO como una plantilla. Generás landing pages que inspiran confianza institucional inmediata en un Contracting Officer.
 
-REGLAS CRÍTICAS DE ESTILO:
-- NO uses Tailwind. NO uses ningún framework CSS. NO uses <script> ni CDN externo. NO uses JavaScript.
-- TODO el estilo va en el campo "css" como CSS plano y completo (no inline en el HTML salvo casos puntuales).
-- El HTML usa nombres de clase semánticos (ej: class="hero", class="services-grid", class="service-card", class="cta-button") que vos definís en el CSS.
-- El diseño debe verse MODERNO y PROFESIONAL: gradientes, sombras suaves, espaciado generoso (padding 60-80px en secciones), tipografía system-ui, border-radius en tarjetas y botones, grid responsivo para servicios.
-- Paleta: azul navy (#1a2a6c) primario, dorado (#c9a227) acento, fondos blancos y grises muy claros (#f8fafc) alternando entre secciones.
-- No uses imágenes externas — usá gradientes/colores de fondo.
+═══════════════════════════════════════════
+ESTRUCTURA OBLIGATORIA (en este orden exacto)
+═══════════════════════════════════════════
+1. NAV/HEADER fijo: nombre de empresa (logo textual estilizado) a la izquierda + un botón CTA "Get Capability Statement" a la derecha.
+2. HERO a pantalla completa: fondo con gradiente navy profundo + textura sutil (radial-gradient overlays). Eyebrow text pequeño en dorado ("FEDERAL · STATE · LOCAL CONTRACTOR"), titular GRANDE (48-60px, bold, blanco), subtítulo de 1-2 líneas, 2 botones (primario dorado + secundario outline blanco). Abajo una fila de mini-stats o trust badges.
+3. TRUST BAR: banda con badges/pills: "SAM.gov Registered", "Small Business", el código NAICS, certificaciones, "Fully Insured & Bonded". Fondo claro, borde sutil.
+4. ABOUT / OVERVIEW: 2 columnas — texto a la izquierda, una tarjeta de "Quick Facts" a la derecha (años, empleados, cobertura, NAICS) con fondo navy.
+5. SERVICES: grid de 3-4 tarjetas. Cada tarjeta: ícono (usá un emoji o un círculo con inicial), título, descripción, 2-3 bullets. Hover: elevación + borde dorado.
+6. DIFFERENTIATORS: 3-4 items con número grande o ícono, en fila. "Why agencies choose us".
+7. CTA FINAL: banda navy con gradiente, titular fuerte, botón dorado grande.
+8. FOOTER: nombre, NAICS, contacto placeholder, "© 2025".
+
+═══════════════════════════════════════════
+SISTEMA DE DISEÑO (seguilo al pie de la letra)
+═══════════════════════════════════════════
+COLORES:
+- Navy primario: #0f1e3d / #1a2a6c (usá gradientes entre los dos)
+- Dorado acento: #c9a227 / #e0b94a
+- Fondos: blanco #ffffff y gris muy claro #f6f8fb (alterná secciones)
+- Texto: #1a2a6c sobre claro, #ffffff sobre navy, #64748b para texto secundario
+
+TIPOGRAFÍA:
+- font-family: 'Segoe UI', system-ui, -apple-system, sans-serif
+- Hero h1: 52px, weight 800, line-height 1.1, letter-spacing -1px
+- Section titles: 34px, weight 700
+- Body: 16-17px, line-height 1.7, color #475569
+- Eyebrows: 13px, weight 700, letter-spacing 2px, uppercase, color dorado
+
+ESPACIADO Y FORMA:
+- Secciones: padding 90px 24px (desktop)
+- max-width del contenido: 1140px, centrado
+- border-radius: 16px en tarjetas, 10px en botones, 999px en pills
+- Sombras: box-shadow: 0 10px 40px rgba(15,30,61,0.08) en tarjetas; hover 0 20px 50px rgba(15,30,61,0.15)
+
+DETALLES QUE ELEVAN LA CALIDAD (incluí varios):
+- Gradiente de malla en el hero: usá 2-3 radial-gradient superpuestos en el background.
+- Transiciones suaves: transition: all .25s ease en tarjetas y botones.
+- Hover states reales en botones (cambio de color/elevación) y tarjetas.
+- Una línea/acento dorado bajo los títulos de sección.
+- Pills de servicios/keywords con fondo tenue del color de acento.
+- Grid responsivo: repeat(auto-fit, minmax(280px, 1fr)).
+- Números/stats grandes en dorado para impacto visual.
+
+═══════════════════════════════════════════
+REGLAS TÉCNICAS
+═══════════════════════════════════════════
+- NO Tailwind. NO frameworks. NO <script>. NO CDN. NO JavaScript. NO imágenes externas.
+- TODO el estilo en el campo "css" (CSS plano, completo, autosuficiente).
+- HTML con clases semánticas (.nav, .hero, .hero-title, .trust-bar, .badge, .about, .quick-facts, .services-grid, .service-card, .differentiators, .cta-final, .footer, .btn-primary, .btn-outline).
+- El copy va en INGLÉS profesional de procurement (es el idioma del cliente: el gobierno de EEUU).
+- Generá CSS abundante y detallado — la diferencia entre un sitio mediocre y uno premium está en los detalles del CSS.
 
 Responde SIEMPRE en JSON válido:
 {
-  "html": "Solo el contenido del <body> (sin <html>, <head> ni <body>). Usá clases semánticas.",
-  "css": "Stylesheet COMPLETO que estiliza todas las clases del HTML. Debe ser autosuficiente y hacer que la página se vea como un sitio profesional real."
+  "html": "Solo el contenido del <body> (sin <html>, <head> ni <body>). Clases semánticas.",
+  "css": "Stylesheet COMPLETO y DETALLADO. Debe verse como un sitio profesional real de agencia."
 }`,
       `Empresa: ${companyName}
 Qué vende/hace: ${niche}
 Problema que resuelve: ${problemSolved}
 ${primaryNaics ? `NAICS primario: ${primaryNaics}` : ""}
-${keywords?.length ? `Keywords clave: ${keywords.slice(0, 5).join(", ")}` : ""}
-${usState ? `Estado de operación: ${usState} — mencioná la cobertura geográfica regional en el copy (ej: "serving government agencies across ${usState}").` : ""}
+${keywords?.length ? `Keywords / servicios clave: ${keywords.slice(0, 6).join(", ")}` : ""}
+${usState ? `Estado de operación: ${usState} — el hero y el footer deben decir algo como "serving government agencies across ${usState} and nationwide".` : ""}
 
-Genera la landing page orientada a contratos gubernamentales.`
-    , 8000);
+Generá la landing page premium orientada a contratos gubernamentales. Hacé que un Contracting Officer la vea y piense "esta es una empresa seria".`
+    , 12000);
 
     return NextResponse.json(result);
   } catch (err) {
