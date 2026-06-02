@@ -583,12 +583,25 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
                     {/* Per-capsule action button */}
                     {c.completed ? (
-                      <span
-                        className="text-[10px] shrink-0 px-2 py-1 rounded"
-                        style={{ color: "#00D67A", background: "rgba(0,214,122,0.1)", fontFamily: "var(--font-mono)" }}
+                      <button
+                        onClick={() => handleWatchCapsule(c.id)}
+                        className="shrink-0 flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold transition-all"
+                        style={{
+                          color: "#00D67A",
+                          background: "rgba(0,214,122,0.08)",
+                          border: "1px solid rgba(0,214,122,0.2)",
+                          fontFamily: "var(--font-mono)",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget).style.background = "rgba(0,214,122,0.18)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget).style.background = "rgba(0,214,122,0.08)";
+                        }}
                       >
-                        ✓ Hecha
-                      </span>
+                        ✓ Ver de nuevo
+                      </button>
                     ) : (
                       <button
                         onClick={() => handleWatchCapsule(c.id)}
