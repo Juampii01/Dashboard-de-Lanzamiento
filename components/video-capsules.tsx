@@ -395,7 +395,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
               {videoId ? (
                 <iframe
                   ref={iframeRef}
-                  src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`}
+                  src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&controls=0&iv_load_policy=3&cc_load_policy=0`}
                   allow="autoplay; encrypted-media"
                   allowFullScreen
                   className="absolute inset-0 w-full h-full"
