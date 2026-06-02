@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
@@ -27,6 +28,10 @@ const styles = StyleSheet.create({
   serviceCats: { fontSize: 7, fontFamily: "Helvetica-Bold", color: "#FFFFFF", marginTop: 7, letterSpacing: 1 },
   idLine: { fontSize: 6.5, color: GOLD, marginTop: 4, letterSpacing: 0.5 },
   goldBar: { backgroundColor: GOLD, height: 3 },
+
+  // ── Images ──
+  bannerImg: { width: "100%", height: 74, objectFit: "cover" },
+  accentImg: { width: "100%", height: 86, objectFit: "cover", borderRadius: 6, marginBottom: 4 },
 
   // ── Body grid ──
   body: { flexDirection: "row", paddingHorizontal: 34, paddingTop: 13, paddingBottom: 8, gap: 18, flex: 1 },
@@ -101,6 +106,7 @@ interface CapabilityStatementPDFProps {
   companyData: CapabilityCompanyData;
   data: CapabilityStatementData;
   generatedAt: string;
+  images?: string[];
 }
 
 function SectionTitle({ children }: { children: string }) {
@@ -125,8 +131,11 @@ export function CapabilityStatementPDF({
   companyData,
   data,
   generatedAt,
+  images = [],
 }: CapabilityStatementPDFProps) {
   const cd = companyData;
+  const bannerImg = images[0] ?? null;
+  const accentImg = images[1] ?? null;
 
   // Back-compat fallbacks + hard caps so it always fits one page
   const serviceCats = (data.service_categories?.length
@@ -172,6 +181,9 @@ export function CapabilityStatementPDF({
           <Text style={styles.idLine}>{idParts.join("      ")}</Text>
         </View>
         <View style={styles.goldBar} />
+
+        {/* ── Banner image (sector photo) ── */}
+        {bannerImg ? <Image src={bannerImg} style={styles.bannerImg} /> : null}
 
         {/* ── Body ── */}
         <View style={styles.body}>
@@ -233,6 +245,9 @@ export function CapabilityStatementPDF({
 
           {/* RIGHT */}
           <View style={styles.rightCol}>
+            {/* Accent sector photo */}
+            {accentImg ? <Image src={accentImg} style={styles.accentImg} /> : null}
+
             {/* Company data card */}
             <View style={styles.dataCard}>
               <Text style={styles.dataTitle}>COMPANY DATA</Text>

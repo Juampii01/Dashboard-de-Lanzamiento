@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { CapabilityStatementPDF } from "@/components/pdfs/CapabilityStatementPDF";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
+import { fetchCapabilityImages } from "@/lib/unsplash";
 import { createElement } from "react";
 
 export async function GET() {
@@ -27,8 +28,14 @@ export async function GET() {
   });
 
   const p = (profile ?? {}) as Record<string, unknown>;
+  const statementData = statement.statement_data as CapabilityStatementData;
+
+  // Fetch sector photos from Unsplash (degrades to [] if no key / failure)
+  const images = await fetchCapabilityImages(statementData.image_keywords ?? [], 2);
+
   const buffer = await renderToBuffer(
     createElement(CapabilityStatementPDF, {
+      images,
       companyData: {
         companyName: (p.company_name as string) ?? "Mi Empresa",
         legalStructure: (p.legal_structure as string | null) ?? null,
@@ -41,7 +48,7 @@ export async function GET() {
         usState: (p.us_state as string | null) ?? null,
         certifications: (p.existing_certifications as string[] | null) ?? null,
       },
-      data: statement.statement_data as CapabilityStatementData,
+      data: statementData,
       generatedAt,
     })
   );

@@ -40,6 +40,7 @@ export interface CapabilityStatementData {
   primary_markets: string[];             // e.g. ["Federal", "State", "Local", "Commercial"]
   naics_with_desc: CodeWithDesc[];
   psc_with_desc: CodeWithDesc[];
+  image_keywords: string[];              // 2-3 visual search terms for the sector (Unsplash)
   // Legacy fields kept for back-compat with previously saved statements + preview
   naics_codes: string[];
   psc_codes: string[];
@@ -128,6 +129,7 @@ Responde SIEMPRE en JSON válido con esta estructura EXACTA:
   "primary_markets": ["niveles de gobierno + comercial que la empresa puede servir, ej: Federal", "State", "Local", "Commercial"],
   "naics_with_desc": [{"code": "561720", "description": "Janitorial Services"}],
   "psc_with_desc": [{"code": "S201", "description": "Custodial/Janitorial Services"}],
+  "image_keywords": ["2-3 términos visuales en inglés para buscar fotos profesionales del sector, ej: commercial cleaning", "office janitorial", "facility maintenance"],
   "naics_codes": ["561720", "561210"],
   "psc_codes": ["S201"],
   "contact_placeholder": "Contact information block"
@@ -142,6 +144,7 @@ REGLAS DE LONGITUD (el documento DEBE entrar en 1 sola página — sé conciso):
 - service_categories: 3-4 categorías en MAYÚSCULAS, derivadas de lo que hace la empresa.
 - naics_with_desc: máximo 5 códigos. psc_with_desc: máximo 4 códigos. Usá los provistos abajo CON su descripción real (acortala a máximo 5 palabras). Si no hay PSC, inferí 3 relevantes.
 - primary_markets: máximo 4.
+- image_keywords: exactamente 2-3 términos de búsqueda en INGLÉS que devuelvan fotos profesionales y limpias del sector de la empresa (no logos, no texto). Pensá en qué foto representa visualmente el trabajo (ej. limpieza → "commercial cleaning", "office janitorial"; IT → "data center", "server room"; construcción → "construction site", "commercial building").
 - Todo en inglés profesional de procurement. Cada línea debe sonar a una empresa real y seria, sin relleno genérico.`,
       `Empresa: ${data.companyName}
 ${data.legalStructure ? `Estructura legal: ${data.legalStructure}` : ""}
