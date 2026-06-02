@@ -290,7 +290,13 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
         alreadyWatched?: boolean; combo?: number;
       };
 
-      if (data.ok && data.points && data.total != null) {
+      if (data.ok && data.alreadyWatched) {
+        // Admin re-watch: close modal and reopen quiz (no XP)
+        const watchedId = activeId;
+        setActiveId(null);
+        setVideoUnlocked(false);
+        if (watchedId) setQuizCapsuleId(watchedId);
+      } else if (data.ok && data.points && data.total != null) {
         window.dispatchEvent(new CustomEvent("xp-gained", {
           detail: { delta: data.points, total: data.total, source: "capsule" },
         }));

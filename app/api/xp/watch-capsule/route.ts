@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (existing) {
+    // Admins can "re-watch" to reopen the quiz — no new XP
+    if (isAdmin) {
+      return NextResponse.json({ ok: true, alreadyWatched: true, points: 0, total: null });
+    }
     return NextResponse.json({ ok: false, alreadyWatched: true });
   }
 
