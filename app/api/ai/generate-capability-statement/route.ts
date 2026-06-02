@@ -133,12 +133,16 @@ Responde SIEMPRE en JSON válido con esta estructura EXACTA:
   "contact_placeholder": "Contact information block"
 }
 
-REGLAS:
-- core_competencies: exactamente 6 items, frases nominales (no oraciones).
-- differentiators: exactamente 4 items.
-- naics_with_desc / psc_with_desc: usá los códigos provistos abajo CON su descripción real. Si no hay PSC, inferí 2-3 PSC relevantes al rubro.
-- service_categories: derivá de lo que hace la empresa, en MAYÚSCULAS.
-- Todo en inglés profesional. Sin relleno genérico — cada línea debe sonar a una empresa real y seria.`,
+REGLAS DE LONGITUD (el documento DEBE entrar en 1 sola página — sé conciso):
+- company_overview: máximo 50 palabras. Denso pero compacto.
+- core_competencies: exactamente 6 items, frases nominales de máximo 8 palabras cada una (NO oraciones).
+- differentiators: exactamente 4 items, máximo 16 palabras cada uno. Directos, con evidencia, sin relleno.
+- quality_commitment: máximo 28 palabras.
+- past_performance: máximo 32 palabras.
+- service_categories: 3-4 categorías en MAYÚSCULAS, derivadas de lo que hace la empresa.
+- naics_with_desc: máximo 5 códigos. psc_with_desc: máximo 4 códigos. Usá los provistos abajo CON su descripción real (acortala a máximo 5 palabras). Si no hay PSC, inferí 3 relevantes.
+- primary_markets: máximo 4.
+- Todo en inglés profesional de procurement. Cada línea debe sonar a una empresa real y seria, sin relleno genérico.`,
       `Empresa: ${data.companyName}
 ${data.legalStructure ? `Estructura legal: ${data.legalStructure}` : ""}
 ${data.yearFounded ? `Año de fundación: ${data.yearFounded}` : ""}
