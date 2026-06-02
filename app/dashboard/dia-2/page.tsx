@@ -56,6 +56,7 @@ export default async function Dia2Page() {
       existingExpansion={expansion}
       primaryNaics={profile?.primary_naics ?? ""}
       companyNiche={profile?.niche ?? ""}
+      usState={(profile as { us_state?: string | null } | null)?.us_state ?? ""}
     />
       <VideoCapsules day={2} isAdmin={isAdmin} />
     </div>

@@ -46,7 +46,12 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
     target_avatar: existingProfile?.target_avatar ?? "",
     previous_acquisition_methods: existingProfile?.previous_acquisition_methods ?? "",
     primary_naics: existingProfile?.primary_naics ?? "",
+    us_state: (existingProfile as { us_state?: string | null } | null)?.us_state ?? "",
+    legal_structure: (existingProfile as { legal_structure?: string | null } | null)?.legal_structure ?? "",
   });
+  const [certifications, setCertifications] = useState<string[]>(
+    (existingProfile as { existing_certifications?: string[] | null } | null)?.existing_certifications ?? []
+  );
 
   function setField(field: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -116,6 +121,8 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             niche: form.niche,
             problemSolved: form.problem_solved,
             targetAvatar: form.target_avatar,
+            usState: form.us_state,
+            legalStructure: form.legal_structure,
           }),
         });
 
@@ -139,6 +146,9 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
         target_avatar: form.target_avatar,
         previous_acquisition_methods: form.previous_acquisition_methods,
         primary_naics: primaryNaics || null,
+        us_state: form.us_state || null,
+        legal_structure: form.legal_structure || null,
+        existing_certifications: certifications.length > 0 ? certifications : null,
       };
 
       const { error: profileError } = await supabase
@@ -279,16 +289,86 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
               </div>
             </div>
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="employee_count">Cantidad de empleados</Label>
+                <Input
+                  id="employee_count"
+                  type="number"
+                  value={form.employee_count}
+                  onChange={setField("employee_count")}
+                  placeholder="Ej: 5"
+                  min={1}
+                />
+              </div>
+
+              {/* Estado de operación */}
+              <div className="space-y-2">
+                <Label htmlFor="us_state">Estado donde operás</Label>
+                <select
+                  id="us_state"
+                  value={form.us_state}
+                  onChange={(e) => setForm((p) => ({ ...p, us_state: e.target.value }))}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="">Seleccioná un estado</option>
+                  {["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","Washington D.C.","Puerto Rico"].map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">Mejora la precisión del análisis de mercado</p>
+              </div>
+            </div>
+
+            {/* Estructura legal */}
             <div className="space-y-2">
-              <Label htmlFor="employee_count">Cantidad de empleados</Label>
-              <Input
-                id="employee_count"
-                type="number"
-                value={form.employee_count}
-                onChange={setField("employee_count")}
-                placeholder="Ej: 5"
-                min={1}
-              />
+              <Label htmlFor="legal_structure">Estructura legal de la empresa</Label>
+              <select
+                id="legal_structure"
+                value={form.legal_structure}
+                onChange={(e) => setForm((p) => ({ ...p, legal_structure: e.target.value }))}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">Seleccioná una opción</option>
+                <option value="LLC">LLC (Limited Liability Company)</option>
+                <option value="S-Corp">S-Corporation</option>
+                <option value="C-Corp">C-Corporation</option>
+                <option value="Sole Proprietor">Sole Proprietor (Autónomo)</option>
+                <option value="Partnership">Partnership</option>
+                <option value="Nonprofit">Nonprofit / 501(c)(3)</option>
+                <option value="Other">Otro</option>
+              </select>
+              <p className="text-xs text-muted-foreground">Determina a qué tipos de contratos podés acceder</p>
+            </div>
+
+            {/* Certificaciones actuales */}
+            <div className="space-y-2">
+              <Label>Certificaciones que ya tenés (opcional)</Label>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {[
+                  { id: "SAM.gov", label: "SAM.gov activo" },
+                  { id: "WOSB", label: "WOSB" },
+                  { id: "SDVOSB", label: "SDVOSB" },
+                  { id: "HUBZone", label: "HUBZone" },
+                  { id: "8(a)", label: "8(a) SBA" },
+                  { id: "MBE", label: "MBE" },
+                ].map((cert) => (
+                  <label key={cert.id} className="flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={certifications.includes(cert.id)}
+                      onChange={(e) =>
+                        setCertifications((prev) =>
+                          e.target.checked ? [...prev, cert.id] : prev.filter((c) => c !== cert.id)
+                        )
+                      }
+                      className="accent-primary"
+                    />
+                    {cert.label}
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Evitamos recomendarte lo que ya tenés</p>
             </div>
 
             <div className="space-y-2">

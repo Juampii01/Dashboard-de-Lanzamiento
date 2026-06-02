@@ -9,6 +9,8 @@ const bodySchema = z.object({
   niche: z.string(),
   problemSolved: z.string(),
   targetAvatar: z.string().optional(),
+  usState: z.string().optional(),
+  legalStructure: z.string().optional(),
 });
 
 interface NAICSResult {
@@ -64,10 +66,12 @@ export async function POST(request: Request) {
   }
 
   // A6: sanitize all user-supplied fields before passing to the model
-  const companyName   = sanitizeInput(parsed.data.companyName);
-  const niche         = sanitizeInput(parsed.data.niche);
-  const problemSolved = sanitizeInput(parsed.data.problemSolved);
-  const targetAvatar  = parsed.data.targetAvatar ? sanitizeInput(parsed.data.targetAvatar) : undefined;
+  const companyName      = sanitizeInput(parsed.data.companyName);
+  const niche            = sanitizeInput(parsed.data.niche);
+  const problemSolved    = sanitizeInput(parsed.data.problemSolved);
+  const targetAvatar     = parsed.data.targetAvatar ? sanitizeInput(parsed.data.targetAvatar) : undefined;
+  const usState          = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
+  const legalStructure   = parsed.data.legalStructure ? sanitizeInput(parsed.data.legalStructure) : undefined;
 
   try {
     const result = await callClaudeJSON<NAICSResult>(
@@ -83,8 +87,15 @@ Responde SIEMPRE en JSON con esta estructura exacta:
 Nicho / qué vende: ${niche}
 Problema que resuelve: ${problemSolved}
 ${targetAvatar ? `Cliente objetivo: ${targetAvatar}` : ""}
+${usState ? `Estado de operación: ${usState}` : ""}
+${legalStructure ? `Estructura legal: ${legalStructure}` : ""}
 
-Sugiere el código NAICS primario más apropiado para que esta empresa pueda registrarse en SAM.gov y competir por contratos federales.`
+Consideraciones importantes:
+- Si la estructura legal es "Sole Proprietor", prioriza códigos NAICS con contratos menores a $250K (micro-purchase threshold).
+- Sugiere el NAICS donde hay mayor volumen de contratos activos para small businesses en el estado indicado.
+- El NAICS debe ser de 6 dígitos.
+
+Sugiere el código NAICS primario más apropiado para que esta empresa pueda registrarse en SAM.gov y competir por contratos gubernamentales.`
     );
 
     return NextResponse.json(result);

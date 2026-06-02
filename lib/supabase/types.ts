@@ -59,6 +59,9 @@ export interface Database {
           target_avatar: string | null;
           previous_acquisition_methods: string | null;
           primary_naics: string | null;
+          us_state: string | null;
+          legal_structure: string | null;
+          existing_certifications: string[] | null;
           created_at: string;
           updated_at: string;
         };
@@ -73,6 +76,9 @@ export interface Database {
           target_avatar?: string | null;
           previous_acquisition_methods?: string | null;
           primary_naics?: string | null;
+          us_state?: string | null;
+          legal_structure?: string | null;
+          existing_certifications?: string[] | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -85,6 +91,9 @@ export interface Database {
           target_avatar?: string | null;
           previous_acquisition_methods?: string | null;
           primary_naics?: string | null;
+          us_state?: string | null;
+          legal_structure?: string | null;
+          existing_certifications?: string[] | null;
           updated_at?: string;
         };
       };

@@ -8,6 +8,7 @@ const bodySchema = z.object({
   primaryNaics: z.string(),
   keywords: z.array(z.string()),
   niche: z.string().optional(),
+  usState: z.string().optional(),
 });
 
 interface RelatedCode {
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
   const primaryNaics = sanitizeInput(parsed.data.primaryNaics);
   const keywords     = parsed.data.keywords.map(sanitizeInput);
   const niche        = parsed.data.niche ? sanitizeInput(parsed.data.niche) : undefined;
+  const usState      = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
 
   try {
     const result = await callClaudeJSON<ExpandCodesResult>(
@@ -87,6 +89,7 @@ Incluye al menos 3 NAICS relacionados, 4-6 PSC codes relevantes, y 2-3 SIC codes
 Para keywords_expanded incluye 15-20 términos que el gobierno federal usa para buscar estos servicios.`,
       `NAICS primario: ${primaryNaics}
 ${niche ? `Nicho/servicio: ${niche}` : ""}
+${usState ? `Estado de operación: ${usState} — priorizá agencias y contratos activos en ese estado.` : ""}
 Keywords del usuario: ${keywords.join(", ")}
 
 Genera el mapa completo de códigos relacionados y expande las keywords con terminología gubernamental.`

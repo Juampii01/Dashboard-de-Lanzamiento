@@ -38,6 +38,7 @@ interface Dia2ClientProps {
   existingExpansion: NaicsExpansion | null;
   primaryNaics: string;
   companyNiche: string;
+  usState?: string;
   devMode?: boolean;
 }
 
@@ -47,6 +48,7 @@ export function Dia2Client({
   existingExpansion,
   primaryNaics,
   companyNiche,
+  usState,
   devMode,
 }: Dia2ClientProps) {
   const [isCompleted, setIsCompleted] = useState(initCompleted);
@@ -93,6 +95,7 @@ export function Dia2Client({
           primaryNaics: naicsInput,
           keywords,
           niche: companyNiche,
+          usState: usState || undefined,
         }),
       });
 
