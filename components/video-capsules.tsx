@@ -210,8 +210,8 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
   const handleWatchCapsule = useCallback((id: string) => {
     setActiveId(id);
-    setVideoUnlocked(false);
-  }, []);
+    setVideoUnlocked(!!isAdmin); // admins skip the watch gate
+  }, [isAdmin]);
 
   // ── YouTube IFrame API + fallback timer when modal opens ─────────────────────
 
