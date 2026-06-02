@@ -324,7 +324,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
           {/* Acciones */}
           <div className="px-6 pt-4 pb-5 flex items-center justify-between gap-3">
             <button
-              onClick={complete}
+              onClick={() => complete()}
               className="text-xs transition-colors"
               style={{ color: "#3A5070", fontFamily: "var(--font-sans)" }}
             >
