@@ -146,6 +146,7 @@ ${webResult.html}
           problemSolved: profile.problem_solved ?? "",
           primaryNaics: profile.primary_naics ?? "",
           keywords: keywordsExpanded.slice(0, 5),
+          usState: usState || undefined,
         }),
       });
 

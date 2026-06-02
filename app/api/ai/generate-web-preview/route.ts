@@ -10,6 +10,7 @@ const bodySchema = z.object({
   problemSolved: z.string(),
   primaryNaics: z.string().optional(),
   keywords: z.array(z.string()).optional(),
+  usState: z.string().optional(),
 });
 
 interface WebPreviewResult {
@@ -69,10 +70,11 @@ export async function POST(request: Request) {
   const problemSolved = sanitizeInput(parsed.data.problemSolved);
   const primaryNaics  = parsed.data.primaryNaics;
   const keywords      = parsed.data.keywords?.map(sanitizeInput);
+  const usState       = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
 
   try {
     const result = await callClaudeJSON<WebPreviewResult>(
-      `Eres un diseñador web experto en sitios para empresas que venden al gobierno federal de EEUU.
+      `Eres un diseñador web experto en sitios para empresas que venden al gobierno de EEUU (federal, estatal y local).
 Genera el HTML y CSS de una landing page profesional de una sola sección (hero + about + services + contact CTA).
 Usa un diseño moderno, limpio y confiable que genere credibilidad ante oficiales de compras del gobierno.
 Responde SIEMPRE en JSON:
@@ -88,8 +90,9 @@ Qué vende/hace: ${niche}
 Problema que resuelve: ${problemSolved}
 ${primaryNaics ? `NAICS primario: ${primaryNaics}` : ""}
 ${keywords?.length ? `Keywords clave: ${keywords.slice(0, 5).join(", ")}` : ""}
+${usState ? `Estado de operación: ${usState} — mencioná la cobertura geográfica regional en el copy (ej: "serving government agencies across ${usState}").` : ""}
 
-Genera la landing page orientada a contratos federales.`
+Genera la landing page orientada a contratos gubernamentales.`
     , 4000);
 
     return NextResponse.json(result);
