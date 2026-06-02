@@ -41,6 +41,8 @@ export interface CapabilityStatementData {
   naics_with_desc: CodeWithDesc[];
   psc_with_desc: CodeWithDesc[];
   image_keywords: string[];              // 2-3 visual search terms for the sector (Unsplash)
+  key_promises: string[];                // 3 punchy value props for the cover page
+  value_proposition: string;             // one strong sentence for the cover
   // Legacy fields kept for back-compat with previously saved statements + preview
   naics_codes: string[];
   psc_codes: string[];
@@ -130,6 +132,8 @@ Responde SIEMPRE en JSON válido con esta estructura EXACTA:
   "naics_with_desc": [{"code": "561720", "description": "Janitorial Services"}],
   "psc_with_desc": [{"code": "S201", "description": "Custodial/Janitorial Services"}],
   "image_keywords": ["2-3 términos visuales en inglés para buscar fotos profesionales del sector, ej: commercial cleaning", "office janitorial", "facility maintenance"],
+  "key_promises": ["3 promesas/beneficios CORTOS para la portada, en MAYÚSCULAS, 2-4 palabras, ej: OSHA-COMPLIANT OPERATIONS", "RAPID EMERGENCY RESPONSE", "DOCUMENTED PERFORMANCE TRAIL"],
+  "value_proposition": "una sola oración potente para la portada que resuma por qué una agencia debería elegir a esta empresa (máx 20 palabras)",
   "naics_codes": ["561720", "561210"],
   "psc_codes": ["S201"],
   "contact_placeholder": "Contact information block"
@@ -145,6 +149,8 @@ REGLAS DE LONGITUD (el documento DEBE entrar en 1 sola página — sé conciso):
 - naics_with_desc: máximo 5 códigos. psc_with_desc: máximo 4 códigos. Usá los provistos abajo CON su descripción real (acortala a máximo 5 palabras). Si no hay PSC, inferí 3 relevantes.
 - primary_markets: máximo 4.
 - image_keywords: exactamente 2-3 términos de búsqueda en INGLÉS que devuelvan fotos profesionales y limpias del sector de la empresa (no logos, no texto). Pensá en qué foto representa visualmente el trabajo (ej. limpieza → "commercial cleaning", "office janitorial"; IT → "data center", "server room"; construcción → "construction site", "commercial building").
+- key_promises: exactamente 3 promesas en MAYÚSCULAS, 2-4 palabras cada una, que comuniquen el valor central al gobierno (van en la portada con checkmarks).
+- value_proposition: una oración de máximo 20 palabras, potente, para la portada.
 - Todo en inglés profesional de procurement. Cada línea debe sonar a una empresa real y seria, sin relleno genérico.`,
       `Empresa: ${data.companyName}
 ${data.legalStructure ? `Estructura legal: ${data.legalStructure}` : ""}

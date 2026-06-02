@@ -42,7 +42,7 @@ async function toDataUri(imageUrl: string): Promise<string | null> {
 
 /**
  * Fetch up to `count` images for the given keywords, returned as data URIs.
- * The first image is landscape (banner), the rest squarish (accents).
+ * Index 0 = cover hero (landscape), 1+ = squarish accents.
  */
 export async function fetchCapabilityImages(
   keywords: string[],
@@ -51,9 +51,8 @@ export async function fetchCapabilityImages(
   const key = process.env.UNSPLASH_ACCESS_KEY?.trim();
   if (!key || keywords.length === 0) return [];
 
-  const queries = keywords.slice(0, count);
-  // Pad with the first keyword if we have fewer keywords than count
-  while (queries.length < count) queries.push(keywords[0]);
+  const queries: string[] = [];
+  for (let i = 0; i < count; i++) queries.push(keywords[i % keywords.length]);
 
   const out: string[] = [];
   for (let i = 0; i < count; i++) {

@@ -87,6 +87,35 @@ const styles = StyleSheet.create({
   },
   footerName: { fontSize: 8, fontFamily: "Helvetica-Bold", color: "#FFFFFF" },
   footerContact: { fontSize: 7.5, color: GOLD, textAlign: "right" },
+
+  // ── COVER PAGE ──
+  cover: { backgroundColor: NAVY_DARK, flex: 1, position: "relative" },
+  coverTop: { paddingTop: 38, paddingHorizontal: 46, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  coverEyebrow: { fontSize: 9, fontFamily: "Helvetica-Bold", color: GOLD, letterSpacing: 3 },
+  coverEyebrowRight: { fontSize: 7.5, color: "rgba(255,255,255,0.55)", letterSpacing: 1.5, textAlign: "right" },
+  coverHeroWrap: { marginTop: 26, marginHorizontal: 46, borderRadius: 10, overflow: "hidden", border: `1 solid rgba(201,162,39,0.4)` },
+  coverHero: { width: "100%", height: 250, objectFit: "cover" },
+  coverHeadingWrap: { paddingHorizontal: 46, marginTop: 30 },
+  coverCompany: { fontSize: 34, fontFamily: "Helvetica-Bold", color: "#FFFFFF", lineHeight: 1.05, letterSpacing: -0.5 },
+  coverTagline: { fontSize: 11, color: GOLD, marginTop: 8, fontStyle: "italic" },
+  coverValueProp: { fontSize: 11.5, color: "rgba(255,255,255,0.82)", marginTop: 14, lineHeight: 1.5, maxWidth: "88%" },
+  coverPromises: { paddingHorizontal: 46, marginTop: 26, flexDirection: "column", gap: 9 },
+  promiseRow: { flexDirection: "row", alignItems: "center" },
+  promiseDot: { width: 16, height: 16, borderRadius: 8, backgroundColor: GOLD, marginRight: 11, alignItems: "center", justifyContent: "center" },
+  promiseDotInner: { width: 6, height: 6, borderRadius: 3, backgroundColor: NAVY_DARK },
+  promiseText: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#FFFFFF", letterSpacing: 1 },
+  coverFooter: { position: "absolute", bottom: 0, left: 0, right: 0, borderTop: `1 solid rgba(255,255,255,0.12)`, paddingVertical: 16, paddingHorizontal: 46 },
+  coverFooterGold: { height: 3, backgroundColor: GOLD, marginBottom: 14, width: 54 },
+  coverContactRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
+  coverContactItem: { fontSize: 8, color: "rgba(255,255,255,0.75)" },
+  coverContactSep: { fontSize: 8, color: GOLD, marginHorizontal: 4 },
+
+  // ── Stats band (page 2) ──
+  statsBand: { flexDirection: "row", backgroundColor: LIGHT, borderRadius: 6, marginHorizontal: 34, marginTop: 12, paddingVertical: 9, border: `0.5 solid ${LINE}` },
+  statItem: { flex: 1, alignItems: "center", borderRight: `0.5 solid ${LINE}` },
+  statItemLast: { flex: 1, alignItems: "center" },
+  statNum: { fontSize: 16, fontFamily: "Helvetica-Bold", color: NAVY },
+  statLabel: { fontSize: 6.5, color: MUTED, letterSpacing: 0.5, marginTop: 2, textTransform: "uppercase" },
 });
 
 export interface CapabilityCompanyData {
@@ -100,6 +129,8 @@ export interface CapabilityCompanyData {
   cageCode?: string | null;
   usState?: string | null;
   certifications?: string[] | null;
+  yearFounded?: number | null;
+  employeeCount?: number | null;
 }
 
 interface CapabilityStatementPDFProps {
@@ -134,8 +165,8 @@ export function CapabilityStatementPDF({
   images = [],
 }: CapabilityStatementPDFProps) {
   const cd = companyData;
-  const bannerImg = images[0] ?? null;
-  const accentImg = images[1] ?? null;
+  const heroImg = images[0] ?? null;                 // cover hero
+  const accentImg = images[1] ?? images[0] ?? null;  // page 2 right-column accent
 
   // Back-compat fallbacks + hard caps so it always fits one page
   const serviceCats = (data.service_categories?.length
@@ -163,8 +194,62 @@ export function CapabilityStatementPDF({
     setAsides.length ? setAsides.join(" / ") : null,
   ].filter(Boolean);
 
+  const promises = (data.key_promises?.length ? data.key_promises : data.differentiators ?? []).slice(0, 3);
+  const contactItems = [
+    cd.cageCode ? `CAGE ${cd.cageCode}` : null,
+    cd.uei ? `UEI ${cd.uei}` : null,
+    cd.email, cd.phone, cd.website,
+    cd.usState,
+  ].filter(Boolean) as string[];
+
   return (
     <Document>
+      {/* ════════════ PAGE 1 — COVER ════════════ */}
+      <Page size="LETTER" style={styles.cover}>
+        <View style={styles.coverTop}>
+          <Text style={styles.coverEyebrow}>CAPABILITY STATEMENT</Text>
+          <Text style={styles.coverEyebrowRight}>
+            {setAsides.length ? setAsides.join("  ·  ") : "GOVERNMENT CONTRACTOR"}
+          </Text>
+        </View>
+
+        {heroImg ? (
+          <View style={styles.coverHeroWrap}>
+            <Image src={heroImg} style={styles.coverHero} />
+          </View>
+        ) : null}
+
+        <View style={styles.coverHeadingWrap}>
+          <Text style={styles.coverCompany}>{cd.companyName}</Text>
+          {data.tagline ? <Text style={styles.coverTagline}>{data.tagline}</Text> : null}
+          {data.value_proposition ? <Text style={styles.coverValueProp}>{data.value_proposition}</Text> : null}
+        </View>
+
+        {promises.length ? (
+          <View style={styles.coverPromises}>
+            {promises.map((pr, i) => (
+              <View key={i} style={styles.promiseRow}>
+                <View style={styles.promiseDot}><View style={styles.promiseDotInner} /></View>
+                <Text style={styles.promiseText}>{pr}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        <View style={styles.coverFooter}>
+          <View style={styles.coverFooterGold} />
+          <View style={styles.coverContactRow}>
+            {contactItems.map((c, i) => (
+              <View key={i} style={{ flexDirection: "row" }}>
+                {i > 0 ? <Text style={styles.coverContactSep}>|</Text> : null}
+                <Text style={styles.coverContactItem}>{c}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </Page>
+
+      {/* ════════════ PAGE 2 — DETAIL ════════════ */}
       <Page size="LETTER" style={styles.page}>
         {/* ── Header ── */}
         <View style={styles.header}>
@@ -182,8 +267,25 @@ export function CapabilityStatementPDF({
         </View>
         <View style={styles.goldBar} />
 
-        {/* ── Banner image (sector photo) ── */}
-        {bannerImg ? <Image src={bannerImg} style={styles.bannerImg} /> : null}
+        {/* ── Stats band ── */}
+        <View style={styles.statsBand}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNum}>{cd.yearFounded ? `'${String(cd.yearFounded).slice(2)}` : "—"}</Text>
+            <Text style={styles.statLabel}>Established</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNum}>{cd.employeeCount ?? "—"}</Text>
+            <Text style={styles.statLabel}>Team Members</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNum}>{markets.length}</Text>
+            <Text style={styles.statLabel}>Markets Served</Text>
+          </View>
+          <View style={styles.statItemLast}>
+            <Text style={styles.statNum}>{naicsList.length + pscList.length}</Text>
+            <Text style={styles.statLabel}>Codes Registered</Text>
+          </View>
+        </View>
 
         {/* ── Body ── */}
         <View style={styles.body}>

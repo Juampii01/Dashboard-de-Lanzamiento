@@ -47,6 +47,8 @@ export async function GET() {
         cageCode: (p.cage_code as string | null) ?? null,
         usState: (p.us_state as string | null) ?? null,
         certifications: (p.existing_certifications as string[] | null) ?? null,
+        yearFounded: (p.year_founded as number | null) ?? null,
+        employeeCount: (p.employee_count as number | null) ?? null,
       },
       data: statementData,
       generatedAt,
