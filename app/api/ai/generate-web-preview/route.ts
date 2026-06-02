@@ -75,16 +75,21 @@ export async function POST(request: Request) {
   try {
     const result = await callClaudeJSON<WebPreviewResult>(
       `Eres un diseñador web experto en sitios para empresas que venden al gobierno de EEUU (federal, estatal y local).
-Genera el HTML y CSS de una landing page profesional de una sola sección (hero + about + services + contact CTA).
-Usa un diseño moderno, limpio y confiable que genere credibilidad ante oficiales de compras del gobierno.
-Responde SIEMPRE en JSON:
+Genera una landing page profesional completa con estas secciones en orden: HERO (con titular grande y CTA), TRUST BAR (badges de credibilidad como "SAM.gov Registered", "Small Business", el NAICS), ABOUT US, SERVICES (en grid de tarjetas), DIFFERENTIATORS, y CONTACT/CTA final.
+
+REGLAS CRÍTICAS DE ESTILO:
+- NO uses Tailwind. NO uses ningún framework CSS. NO uses <script> ni CDN externo. NO uses JavaScript.
+- TODO el estilo va en el campo "css" como CSS plano y completo (no inline en el HTML salvo casos puntuales).
+- El HTML usa nombres de clase semánticos (ej: class="hero", class="services-grid", class="service-card", class="cta-button") que vos definís en el CSS.
+- El diseño debe verse MODERNO y PROFESIONAL: gradientes, sombras suaves, espaciado generoso (padding 60-80px en secciones), tipografía system-ui, border-radius en tarjetas y botones, grid responsivo para servicios.
+- Paleta: azul navy (#1a2a6c) primario, dorado (#c9a227) acento, fondos blancos y grises muy claros (#f8fafc) alternando entre secciones.
+- No uses imágenes externas — usá gradientes/colores de fondo.
+
+Responde SIEMPRE en JSON válido:
 {
-  "html": "HTML completo del body (sin <html> ni <head>). Usa clases de Tailwind CSS inline con CDN.",
-  "css": "CSS adicional si necesitás algo que Tailwind no cubre, sino string vacío."
-}
-El HTML debe ser autocontenido, funcionar en un iframe, e incluir el CDN de Tailwind en un <script> tag.
-No uses JavaScript interactivo. No uses imágenes externas (usa colores/gradientes de fondo).
-Paleta: azul navy (#1a2a6c) como primario, dorado (#c9a227) como acento.`,
+  "html": "Solo el contenido del <body> (sin <html>, <head> ni <body>). Usá clases semánticas.",
+  "css": "Stylesheet COMPLETO que estiliza todas las clases del HTML. Debe ser autosuficiente y hacer que la página se vea como un sitio profesional real."
+}`,
       `Empresa: ${companyName}
 Qué vende/hace: ${niche}
 Problema que resuelve: ${problemSolved}

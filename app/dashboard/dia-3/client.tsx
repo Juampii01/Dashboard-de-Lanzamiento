@@ -299,7 +299,7 @@ ${webResult.html}
               </span>
             </div>
             <iframe
-              srcDoc={webResult.html}
+              srcDoc={buildFullHtml()}
               className="w-full h-[500px] bg-white"
               sandbox="allow-same-origin"
               title="Website preview"
