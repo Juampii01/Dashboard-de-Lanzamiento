@@ -62,6 +62,10 @@ export interface Database {
           us_state: string | null;
           legal_structure: string | null;
           existing_certifications: string[] | null;
+          uei: string | null;
+          cage_code: string | null;
+          phone: string | null;
+          website: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -79,6 +83,10 @@ export interface Database {
           us_state?: string | null;
           legal_structure?: string | null;
           existing_certifications?: string[] | null;
+          uei?: string | null;
+          cage_code?: string | null;
+          phone?: string | null;
+          website?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -94,6 +102,10 @@ export interface Database {
           us_state?: string | null;
           legal_structure?: string | null;
           existing_certifications?: string[] | null;
+          uei?: string | null;
+          cage_code?: string | null;
+          phone?: string | null;
+          website?: string | null;
           updated_at?: string;
         };
       };

@@ -18,17 +18,32 @@ const bodySchema = z.object({
   keywordsExpanded: z.array(z.string()).optional(),
   yearFounded: z.number().optional(),
   employeeCount: z.number().optional(),
+  usState: z.string().optional(),
+  legalStructure: z.string().optional(),
+  certifications: z.array(z.string()).optional(),
+  hasGovernmentContracts: z.boolean().optional(),
 });
 
+interface CodeWithDesc {
+  code: string;
+  description: string;
+}
+
 export interface CapabilityStatementData {
+  tagline: string;
+  service_categories: string[];          // header pills, e.g. ["JANITORIAL", "FACILITY MAINTENANCE"]
   company_overview: string;
   core_competencies: string[];
   differentiators: string[];
+  quality_commitment: string;
   past_performance: string;
-  contact_placeholder: string;
+  primary_markets: string[];             // e.g. ["Federal", "State", "Local", "Commercial"]
+  naics_with_desc: CodeWithDesc[];
+  psc_with_desc: CodeWithDesc[];
+  // Legacy fields kept for back-compat with previously saved statements + preview
   naics_codes: string[];
   psc_codes: string[];
-  tagline: string;
+  contact_placeholder: string;
 }
 
 export async function POST(request: Request) {
@@ -84,38 +99,65 @@ export async function POST(request: Request) {
     niche:         sanitizeInput(parsed.data.niche),
     problemSolved: sanitizeInput(parsed.data.problemSolved),
     targetAvatar:  parsed.data.targetAvatar ? sanitizeInput(parsed.data.targetAvatar) : undefined,
+    usState:       parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined,
+    legalStructure: parsed.data.legalStructure ? sanitizeInput(parsed.data.legalStructure) : undefined,
   };
   const naicsCodes = [data.primaryNaics, ...(data.relatedCodes?.filter(c => c.type === "NAICS").map(c => c.code) ?? [])].filter(Boolean);
   const pscCodes = data.relatedCodes?.filter(c => c.type === "PSC").map(c => c.code) ?? [];
+  // Pass codes WITH descriptions so the AI can echo them back accurately
+  const naicsRef = data.relatedCodes?.filter(c => c.type === "NAICS") ?? [];
+  const pscRef   = data.relatedCodes?.filter(c => c.type === "PSC") ?? [];
+  const certs = data.certifications ?? [];
+  const hasGovContracts = data.hasGovernmentContracts === true;
 
   try {
     const result = await callClaudeJSON<CapabilityStatementData>(
-      `Eres un experto en redacción de Capability Statements para empresas que buscan contratos federales en EEUU.
-Un Capability Statement es un documento de una sola página que presenta la empresa ante oficiales de compras del gobierno.
-Debe ser profesional, directo y resaltar las fortalezas únicas de la empresa.
-Responde SIEMPRE en JSON con esta estructura exacta:
+      `Eres un consultor experto en government contracting de EEUU que redacta Capability Statements de nivel profesional — el documento de una página que un Contracting Officer lee en 60 segundos para decidir si trabaja con una empresa.
+
+Tu output debe ser RICO y COMPLETO, al nivel de un Capability Statement preparado por un consultor de $1,000. Todo en INGLÉS profesional de procurement.
+
+Responde SIEMPRE en JSON válido con esta estructura EXACTA:
 {
-  "company_overview": "párrafo de 2-3 oraciones en inglés describiendo la empresa",
-  "core_competencies": ["competencia 1", "competencia 2", "competencia 3", "competencia 4", "competencia 5"],
-  "differentiators": ["diferenciador 1", "diferenciador 2", "diferenciador 3"],
-  "past_performance": "placeholder en inglés: 'Available upon request. References from satisfied clients provided on demand.'",
-  "contact_placeholder": "Contact us at: [Phone] | [Email] | [Website]",
-  "naics_codes": ["código1", "código2"],
-  "psc_codes": ["código1", "código2"],
-  "tagline": "slogan corto en inglés (máximo 10 palabras)"
+  "tagline": "tagline corto y potente (máx 8 palabras), ej: 'Federal-Grade Facility Solutions, Delivered'",
+  "service_categories": ["3-4 categorías de servicio en MAYÚSCULAS para el header, ej: JANITORIAL", "FACILITY MAINTENANCE", "CUSTODIAL"],
+  "company_overview": "párrafo sólido de 3-4 oraciones. Quién es la empresa, qué hace, para quién, y su foco. Incluí estructura legal y años si están disponibles.",
+  "core_competencies": ["6 competencias en lenguaje de procurement, cada una con un qualifier federal cuando aplique (OSHA-compliant, GSA-ready, etc.)"],
+  "differentiators": ["4 diferenciadores que atacan los riesgos que evalúa un CO (performance, compliance, disponibilidad). Cada uno con evidencia concreta."],
+  "quality_commitment": "párrafo de 2-3 oraciones sobre el compromiso de calidad y los procesos de control (QA, documentación, follow-through).",
+  "past_performance": "${hasGovContracts ? "instrucción: la empresa SÍ tiene experiencia con gobierno; redactá un párrafo que invite a solicitar referencias documentadas de contratos previos." : "instrucción: la empresa es NUEVA en gobierno; usá 'bridge mode' — redactá un párrafo que referencie su experiencia comercial transferible (clientes del sector privado en entornos regulados) y mencione que las referencias comerciales están disponibles. NO escribas solo 'available upon request'."}",
+  "primary_markets": ["niveles de gobierno + comercial que la empresa puede servir, ej: Federal", "State", "Local", "Commercial"],
+  "naics_with_desc": [{"code": "561720", "description": "Janitorial Services"}],
+  "psc_with_desc": [{"code": "S201", "description": "Custodial/Janitorial Services"}],
+  "naics_codes": ["561720", "561210"],
+  "psc_codes": ["S201"],
+  "contact_placeholder": "Contact information block"
 }
-Escribe todo en INGLÉS (es el idioma del gobierno federal de EEUU).`,
+
+REGLAS:
+- core_competencies: exactamente 6 items, frases nominales (no oraciones).
+- differentiators: exactamente 4 items.
+- naics_with_desc / psc_with_desc: usá los códigos provistos abajo CON su descripción real. Si no hay PSC, inferí 2-3 PSC relevantes al rubro.
+- service_categories: derivá de lo que hace la empresa, en MAYÚSCULAS.
+- Todo en inglés profesional. Sin relleno genérico — cada línea debe sonar a una empresa real y seria.`,
       `Empresa: ${data.companyName}
+${data.legalStructure ? `Estructura legal: ${data.legalStructure}` : ""}
 ${data.yearFounded ? `Año de fundación: ${data.yearFounded}` : ""}
 ${data.employeeCount ? `Empleados: ${data.employeeCount}` : ""}
+${data.usState ? `Estado de operación: ${data.usState}` : ""}
 Qué vende/hace: ${data.niche}
 Problema que resuelve: ${data.problemSolved}
 ${data.targetAvatar ? `Cliente objetivo: ${data.targetAvatar}` : ""}
-NAICS codes: ${naicsCodes.join(", ")}
-PSC codes: ${pscCodes.join(", ")}
+${certs.length ? `Certificaciones / set-asides que ya tiene: ${certs.join(", ")}` : "Sin certificaciones formales todavía."}
+Experiencia con contratos gubernamentales previos: ${hasGovContracts ? "Sí" : "No (empresa nueva en el mercado gubernamental)"}
 
-Genera el Capability Statement completo para esta empresa.`
-    , 3000);
+NAICS codes con descripción:
+${naicsRef.length ? naicsRef.map(c => `- ${c.code}: ${c.description}`).join("\n") : `- ${data.primaryNaics ?? "(inferir)"}`}
+
+PSC codes con descripción:
+${pscRef.length ? pscRef.map(c => `- ${c.code}: ${c.description}`).join("\n") : "(inferir 2-3 PSC relevantes)"}
+
+Generá el Capability Statement completo, rico y profesional para esta empresa.`
+    , 4000);
 
     return NextResponse.json(result);
   } catch (err) {

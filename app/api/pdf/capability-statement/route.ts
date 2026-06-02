@@ -10,9 +10,10 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [{ data: profile }, { data: statement }] = await Promise.all([
-    supabase.from("company_profiles").select("company_name").eq("user_id", user.id).single(),
+  const [{ data: profile }, { data: statement }, { data: userRow }] = await Promise.all([
+    supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
     supabase.from("capability_statements").select("*").eq("user_id", user.id).single(),
+    supabase.from("users").select("full_name").eq("id", user.id).single(),
   ]);
 
   if (!statement) {
@@ -25,9 +26,21 @@ export async function GET() {
     day: "numeric",
   });
 
+  const p = (profile ?? {}) as Record<string, unknown>;
   const buffer = await renderToBuffer(
     createElement(CapabilityStatementPDF, {
-      companyName: profile?.company_name ?? "Mi Empresa",
+      companyData: {
+        companyName: (p.company_name as string) ?? "Mi Empresa",
+        legalStructure: (p.legal_structure as string | null) ?? null,
+        contactName: (userRow?.full_name as string | null) ?? null,
+        email: user.email ?? null,
+        phone: (p.phone as string | null) ?? null,
+        website: (p.website as string | null) ?? null,
+        uei: (p.uei as string | null) ?? null,
+        cageCode: (p.cage_code as string | null) ?? null,
+        usState: (p.us_state as string | null) ?? null,
+        certifications: (p.existing_certifications as string[] | null) ?? null,
+      },
       data: statement.statement_data as CapabilityStatementData,
       generatedAt,
     })

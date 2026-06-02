@@ -67,6 +67,20 @@ export function Dia4Client({
 
   const primaryNaics = profile?.primary_naics ?? "";
 
+  // Company registration data for a complete Capability Statement
+  const p = (profile ?? {}) as Record<string, unknown>;
+  const [companyForm, setCompanyForm] = useState({
+    uei: (p.uei as string) ?? "",
+    cage_code: (p.cage_code as string) ?? "",
+    phone: (p.phone as string) ?? "",
+    website: (p.website as string) ?? "",
+  });
+  const [hasGovContracts, setHasGovContracts] = useState(false);
+  const [showCompanyForm, setShowCompanyForm] = useState(false);
+  const setCompanyField = (field: keyof typeof companyForm) =>
+    (e: React.ChangeEvent<HTMLInputElement>) =>
+      setCompanyForm((prev) => ({ ...prev, [field]: e.target.value }));
+
   useEffect(() => () => { if (loadingRef.current) clearInterval(loadingRef.current); }, []);
 
   function startLoadingCycle() {
@@ -92,6 +106,16 @@ export function Dia4Client({
     startLoadingCycle();
 
     try {
+      const supabase = createClient();
+
+      // Persist the registration data so it shows on the PDF and survives reloads
+      await supabase.from("company_profiles").update({
+        uei: companyForm.uei.trim() || null,
+        cage_code: companyForm.cage_code.trim() || null,
+        phone: companyForm.phone.trim() || null,
+        website: companyForm.website.trim() || null,
+      } as Record<string, unknown>).eq("user_id", userId);
+
       const relatedCodes = (expansion?.related_codes as Array<{ code: string; description: string; type: string }>) ?? [];
       const res = await fetch("/api/ai/generate-capability-statement", {
         method: "POST",
@@ -106,6 +130,10 @@ export function Dia4Client({
           keywordsExpanded: expansion?.keywords_expanded ?? [],
           yearFounded: profile.year_founded,
           employeeCount: profile.employee_count,
+          usState: (p.us_state as string) ?? undefined,
+          legalStructure: (p.legal_structure as string) ?? undefined,
+          certifications: (p.existing_certifications as string[]) ?? undefined,
+          hasGovernmentContracts: hasGovContracts,
         }),
       });
 
@@ -113,7 +141,6 @@ export function Dia4Client({
       const data: CapabilityStatementData = await res.json();
       setStatement(data);
 
-      const supabase = createClient();
       const { error } = await supabase.from("capability_statements").upsert(
         { user_id: userId, statement_data: data },
         { onConflict: "user_id" }
@@ -268,6 +295,53 @@ export function Dia4Client({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Datos de registro — opcional pero recomendado */}
+          <div className="border rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowCompanyForm((v) => !v)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/40 transition-colors"
+            >
+              <div>
+                <p className="text-sm font-semibold">Datos de tu empresa (para el documento)</p>
+                <p className="text-xs text-muted-foreground">
+                  Sin estos datos los Contracting Officers no pueden verificar tu registro. Opcional pero recomendado.
+                </p>
+              </div>
+              <span className="text-xs text-muted-foreground">{showCompanyForm ? "▲" : "▼"}</span>
+            </button>
+            {showCompanyForm && (
+              <div className="px-4 pb-4 pt-1 space-y-3 border-t bg-muted/20">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">UEI (SAM.gov)</label>
+                    <input value={companyForm.uei} onChange={setCompanyField("uei")} placeholder="Ej: ABC123DEF456" maxLength={12}
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">CAGE Code</label>
+                    <input value={companyForm.cage_code} onChange={setCompanyField("cage_code")} placeholder="Ej: 1A2B3" maxLength={5}
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Teléfono de negocio</label>
+                    <input value={companyForm.phone} onChange={setCompanyField("phone")} placeholder="Ej: (844) 555-0100"
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Website</label>
+                    <input value={companyForm.website} onChange={setCompanyField("website")} placeholder="www.tuempresa.com"
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                </div>
+                <label className="flex items-center gap-2 text-sm cursor-pointer pt-1">
+                  <input type="checkbox" checked={hasGovContracts} onChange={(e) => setHasGovContracts(e.target.checked)} className="accent-primary" />
+                  Ya tuve contratos con el gobierno (mejora la sección Past Performance)
+                </label>
+              </div>
+            )}
+          </div>
+
           <Button
             onClick={handleGenerate}
             className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90"
@@ -305,6 +379,11 @@ export function Dia4Client({
               <div className="border-b pb-3">
                 <p className="text-xl font-bold text-primary">{profile?.company_name ?? "Your Company"}</p>
                 <p className="text-accent font-medium italic">{statement.tagline}</p>
+                {statement.service_categories?.length ? (
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mt-1">
+                    {statement.service_categories.join("  |  ")}
+                  </p>
+                ) : null}
               </div>
 
               {/* Company Overview */}
@@ -339,27 +418,61 @@ export function Dia4Client({
                 </div>
               </div>
 
-              {/* NAICS & PSC */}
-              <div className="border-t pt-3 grid sm:grid-cols-2 gap-3">
+              {/* Quality Commitment */}
+              {statement.quality_commitment ? (
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">NAICS Codes</p>
-                  <div className="flex flex-wrap gap-1">
-                    {statement.naics_codes.map((c) => (
-                      <Badge key={c} className="bg-blue-100 text-blue-700 text-xs">{c}</Badge>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Quality Commitment</p>
+                  <p className="text-sm">{statement.quality_commitment}</p>
+                </div>
+              ) : null}
+
+              {/* Past Performance */}
+              {statement.past_performance ? (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Past Performance</p>
+                  <p className="text-sm">{statement.past_performance}</p>
+                </div>
+              ) : null}
+
+              {/* NAICS & PSC with descriptions */}
+              <div className="border-t pt-3 grid sm:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">NAICS Codes</p>
+                  <ul className="space-y-1.5">
+                    {(statement.naics_with_desc?.length
+                      ? statement.naics_with_desc
+                      : statement.naics_codes.map((c) => ({ code: c, description: "" }))
+                    ).map((c, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs">
+                        <Badge className="bg-blue-100 text-blue-700 text-[10px] tabular-nums shrink-0">{c.code}</Badge>
+                        {c.description ? <span className="text-muted-foreground">{c.description}</span> : null}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">PSC Codes</p>
-                  <div className="flex flex-wrap gap-1">
-                    {statement.psc_codes.map((c) => (
-                      <Badge key={c} className="bg-purple-100 text-purple-700 text-xs">{c}</Badge>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">PSC Codes</p>
+                  <ul className="space-y-1.5">
+                    {(statement.psc_with_desc?.length
+                      ? statement.psc_with_desc
+                      : statement.psc_codes.map((c) => ({ code: c, description: "" }))
+                    ).map((c, i) => (
+                      <li key={i} className="flex items-start gap-2 text-xs">
+                        <Badge className="bg-purple-100 text-purple-700 text-[10px] shrink-0">{c.code}</Badge>
+                        {c.description ? <span className="text-muted-foreground">{c.description}</span> : null}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground border-t pt-2">{statement.contact_placeholder}</p>
+              {/* Primary markets */}
+              {statement.primary_markets?.length ? (
+                <div className="border-t pt-3">
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Primary Markets</p>
+                  <p className="text-sm font-semibold text-primary">{statement.primary_markets.join("  |  ")}</p>
+                </div>
+              ) : null}
             </div>
           )}
 
