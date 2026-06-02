@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, ExternalLink, Globe, Loader2, PlayCircle } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, PlayCircle, ArrowRight } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
@@ -19,14 +19,42 @@ interface WebResult {
   css: string;
 }
 
-const PORTALS = [
-  { name: "SAM.gov", url: "https://sam.gov", description: "Sistema principal de registro y licitaciones gubernamentales" },
-  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Base de datos de contratos gubernamentales activos" },
-  { name: "Grants.gov", url: "https://grants.gov", description: "Convocatorias de grants y subvenciones gubernamentales" },
-  { name: "GovBid", url: "https://govbid.com", description: "Plataforma de licitaciones gubernamentales" },
-  { name: "FedBizOpps (beta.SAM)", url: "https://sam.gov/search/", description: "Oportunidades de negocios gubernamentales" },
-  { name: "SBA.gov", url: "https://sba.gov", description: "Contratos para pequeñas empresas y certificaciones" },
-  { name: "GSA Advantage", url: "https://gsaadvantage.gov", description: "Catálogo de compras gubernamentales pre-aprobadas" },
+type PortalTier = "obligatorio" | "alto" | "oportunista";
+
+interface Portal {
+  name: string;
+  url: string;
+  description: string;
+  tier: PortalTier;
+  prereq?: string;
+}
+
+const PORTALS: Portal[] = [
+  // ── Tier 1: Obligatorios — sin esto no podés contratar ──
+  { name: "SAM.gov", url: "https://sam.gov", description: "Registro federal obligatorio. Tu UEI y CAGE Code salen de acá.", tier: "obligatorio", prereq: "EIN / Tax ID + datos bancarios (ACH)" },
+  { name: "SBA Dynamic Small Business Search", url: "https://dsbs.sba.gov/search/dsp_dsbs.cfm", description: "Directorio donde los Contracting Officers buscan small businesses.", tier: "obligatorio", prereq: "Registro activo en SAM.gov" },
+  // ── Tier 2: Alto ROI ──
+  { name: "GSA eBuy", url: "https://www.ebuy.gsa.gov", description: "RFQs de agencias buscando proveedores. Alto volumen de servicios.", tier: "alto", prereq: "Registro en SAM.gov" },
+  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Investigá quién gana contratos en tu NAICS y por cuánto.", tier: "alto" },
+  { name: "GSA Advantage", url: "https://gsaadvantage.gov", description: "Catálogo de compras pre-aprobadas del gobierno.", tier: "alto" },
+  // ── Tier 3: Oportunistas ──
+  { name: "Grants.gov", url: "https://grants.gov", description: "Subvenciones federales (proceso distinto a contratos).", tier: "oportunista" },
+  { name: "SBA.gov", url: "https://sba.gov", description: "Certificaciones (8a, WOSB, HUBZone) y recursos para small business.", tier: "oportunista" },
+];
+
+const TIER_META: Record<PortalTier, { label: string; color: string; bg: string; border: string; desc: string }> = {
+  obligatorio: { label: "OBLIGATORIO", color: "#D7263D", bg: "rgba(215,38,61,0.08)", border: "rgba(215,38,61,0.3)", desc: "Sin estos registros no podés recibir un contrato. Empezá por acá." },
+  alto:        { label: "ALTO ROI",    color: "#0056D6", bg: "rgba(0,86,214,0.06)",  border: "rgba(0,86,214,0.25)",  desc: "Donde están las oportunidades reales para tu perfil." },
+  oportunista: { label: "OPORTUNISTA", color: "#5A6B85", bg: "rgba(90,107,133,0.06)", border: "rgba(90,107,133,0.25)", desc: "Útiles según tu situación específica." },
+};
+
+const LOADING_STEPS = [
+  "Analizando tu Perfil Estratégico...",
+  "Traduciendo tus servicios a lenguaje de procurement...",
+  "Redactando el Hero en tono gubernamental...",
+  "Generando About Us orientado a Contracting Officers...",
+  "Construyendo la estructura de tu landing page...",
+  "Finalizando tu presencia profesional...",
 ];
 
 interface Dia3ClientProps {
@@ -48,11 +76,57 @@ export function Dia3Client({
 }: Dia3ClientProps) {
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [generating, setGenerating] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [copiedHtml, setCopiedHtml] = useState(false);
+  const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [webResult, setWebResult] = useState<WebResult | null>(
     existingPreview
       ? { html: existingPreview.generated_html ?? "", css: existingPreview.generated_css ?? "" }
       : null
   );
+
+  const usState = (profile as { us_state?: string | null } | null)?.us_state ?? "";
+
+  useEffect(() => () => { if (loadingRef.current) clearInterval(loadingRef.current); }, []);
+
+  function startLoadingCycle() {
+    setLoadingStep(0);
+    let step = 0;
+    loadingRef.current = setInterval(() => {
+      step = (step + 1) % LOADING_STEPS.length;
+      setLoadingStep(step);
+    }, 1800);
+  }
+
+  function stopLoadingCycle() {
+    if (loadingRef.current) { clearInterval(loadingRef.current); loadingRef.current = null; }
+    setLoadingStep(0);
+  }
+
+  function buildFullHtml(): string {
+    if (!webResult) return "";
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${profile?.company_name ?? "My Company"}</title>
+  <style>${webResult.css}</style>
+</head>
+<body>
+${webResult.html}
+</body>
+</html>`;
+  }
+
+  async function handleCopyHtml() {
+    const html = buildFullHtml();
+    if (!html) return;
+    await navigator.clipboard.writeText(html);
+    setCopiedHtml(true);
+    setTimeout(() => setCopiedHtml(false), 2000);
+    toast.success("HTML copiado — pegalo en tu editor web");
+  }
 
   async function handleGenerateWeb() {
     if (!profile?.company_name) {
@@ -60,6 +134,7 @@ export function Dia3Client({
       return;
     }
     setGenerating(true);
+    startLoadingCycle();
 
     try {
       const res = await fetch("/api/ai/generate-web-preview", {
@@ -111,24 +186,14 @@ export function Dia3Client({
     } catch {
       toast.error("Estamos teniendo un problema. Intentá de nuevo.");
     } finally {
+      stopLoadingCycle();
       setGenerating(false);
     }
   }
 
   function handleDownloadWeb() {
     if (!webResult) return;
-    const content = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${profile?.company_name ?? "My Company"}</title>
-  <style>${webResult.css}</style>
-</head>
-<body>
-${webResult.html}
-</body>
-</html>`;
+    const content = buildFullHtml();
     const blob = new Blob([content], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -190,7 +255,7 @@ ${webResult.html}
             {generating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generando tu web con IA...
+                {LOADING_STEPS[loadingStep]}
               </>
             ) : webResult ? (
               "Regenerar Web"
@@ -198,6 +263,20 @@ ${webResult.html}
               "Generar Preview de mi Web →"
             )}
           </Button>
+          {generating && (
+            <div className="flex gap-1.5 justify-center">
+              {LOADING_STEPS.map((_, i) => (
+                <div
+                  key={i}
+                  className="h-1 rounded-full transition-all duration-300"
+                  style={{
+                    width: i === loadingStep ? "24px" : "8px",
+                    background: i <= loadingStep ? "#D7263D" : "#1E3A5C",
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -224,19 +303,40 @@ ${webResult.html}
           </div>
 
           <Card className="border-accent/30 bg-accent/5">
-            <CardContent className="flex items-center justify-between py-5">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 py-5">
               <div>
-                <p className="font-semibold">💾 Descargá tu web</p>
+                <p className="font-semibold">💾 Usá tu web</p>
                 <p className="text-sm text-muted-foreground">
-                  Archivo HTML listo para usar con un dominio.
+                  Descargá el archivo o copiá el HTML para pegarlo en tu editor (Wix, Squarespace, WordPress).
                 </p>
               </div>
-              <Button onClick={handleDownloadWeb} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                <Download className="w-4 h-4 mr-2" />
-                Descargar HTML
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={handleCopyHtml} variant="outline">
+                  {copiedHtml ? (
+                    <><CheckCircle2 className="w-4 h-4 mr-2 text-green-600" /> Copiado</>
+                  ) : (
+                    <><Copy className="w-4 h-4 mr-2" /> Copiar HTML</>
+                  )}
+                </Button>
+                <Button onClick={handleDownloadWeb} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                  <Download className="w-4 h-4 mr-2" />
+                  Descargar
+                </Button>
+              </div>
             </CardContent>
           </Card>
+
+          {/* Conexión con el Capability Statement */}
+          <div
+            className="flex items-center gap-3 rounded-xl p-4"
+            style={{ background: "rgba(255,214,10,0.06)", border: "1px solid rgba(255,214,10,0.3)" }}
+          >
+            <ArrowRight className="w-5 h-5 flex-shrink-0" style={{ color: "#FFD60A" }} />
+            <p className="text-sm" style={{ color: "#A8B5CC" }}>
+              Este copy es la base de tu <strong style={{ color: "#FFD60A" }}>Capability Statement</strong> del Día 4 —
+              el documento que un Contracting Officer lee en 60 segundos para decidir si trabaja con vos.
+            </p>
+          </div>
         </div>
       )}
 
@@ -262,34 +362,58 @@ ${webResult.html}
         </CardContent>
       </Card>
 
-      {/* Portales */}
+      {/* Portales — priorizados por tier */}
       <Card>
         <CardHeader>
-          <CardTitle>🏛️ Portales de Licitaciones Gubernamentales</CardTitle>
+          <CardTitle>🏛️ Dónde Registrarte — En Orden de Prioridad</CardTitle>
           <CardDescription>
-            Registrate en estos portales para acceder a oportunidades de contratos
-            gubernamentales.
+            No todos los portales valen lo mismo. Empezá por los obligatorios y bajá desde ahí.
+            {usState && <> Las oportunidades de tu NAICS en <strong>{usState}</strong> aparecen en estos portales.</>}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {PORTALS.map((portal) => (
-              <div
-                key={portal.name}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div>
-                  <p className="font-semibold text-sm">{portal.name}</p>
-                  <p className="text-xs text-muted-foreground">{portal.description}</p>
+        <CardContent className="space-y-6">
+          {(["obligatorio", "alto", "oportunista"] as const).map((tier) => {
+            const portals = PORTALS.filter((p) => p.tier === tier);
+            if (portals.length === 0) return null;
+            const meta = TIER_META[tier];
+            return (
+              <div key={tier}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ color: meta.color, background: meta.bg, border: `1px solid ${meta.border}` }}
+                  >
+                    {meta.label}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{meta.desc}</span>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <a href={portal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                    Ir <ExternalLink className="w-3 h-3" />
-                  </a>
-                </Button>
+                <div className="space-y-2">
+                  {portals.map((portal) => (
+                    <div
+                      key={portal.name}
+                      className="flex items-center justify-between gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      style={{ borderColor: meta.border }}
+                    >
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm">{portal.name}</p>
+                        <p className="text-xs text-muted-foreground">{portal.description}</p>
+                        {portal.prereq && (
+                          <p className="text-[11px] mt-1" style={{ color: meta.color }}>
+                            📋 Tené listo: {portal.prereq}
+                          </p>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" asChild className="flex-shrink-0">
+                        <a href={portal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                          Ir <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </CardContent>
       </Card>
     </div>
