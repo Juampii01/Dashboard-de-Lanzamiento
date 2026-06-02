@@ -2,6 +2,11 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// Resolve the model once. `.trim()` strips trailing newlines/spaces that can
+// sneak into the CLAUDE_MODEL env var when pasted in the Vercel dashboard —
+// a stray "\n" produces a 404 not_found_error from the Anthropic API.
+const CLAUDE_MODEL = (process.env.CLAUDE_MODEL?.trim() || "claude-sonnet-4-5");
+
 // ── A6: Prompt-injection guard ──────────────────────────────────────────────
 // All AI endpoints pass user-supplied strings (company name, niche, etc.)
 // directly into the user prompt.  An attacker can embed instructions that
@@ -78,7 +83,7 @@ export async function callClaude(
   const guardedUser = `<user_data>\n${userPrompt}\n</user_data>`;
 
   const response = await client.messages.create({
-    model: process.env.CLAUDE_MODEL ?? "claude-sonnet-4-5",
+    model: CLAUDE_MODEL,
     max_tokens: maxTokens,
     system: guardedSystem,
     messages: [{ role: "user", content: guardedUser }],

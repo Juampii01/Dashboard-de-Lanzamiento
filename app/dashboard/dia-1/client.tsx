@@ -131,6 +131,14 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           primaryNaics = data.naics_code;
           setNaicsResult(data);
           setForm((prev) => ({ ...prev, primary_naics: data.naics_code }));
+        } else {
+          // Surface the failure instead of completing the day with no analysis
+          let msg = "No pudimos generar tu análisis con IA. Intentá de nuevo.";
+          try {
+            const err = await res.json();
+            if (err?.message) msg = err.message;
+          } catch { /* keep default */ }
+          throw new Error(msg);
         }
       }
 
@@ -188,7 +196,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       setTimeout(() => confetti({ particleCount: 60, spread: 60, origin: { x: 0.8, y: 0.6 }, colors }), 450);
     } catch (err) {
       console.error(err);
-      toast.error("Estamos teniendo un problema. Intentá de nuevo.");
+      toast.error(err instanceof Error ? err.message : "Estamos teniendo un problema. Intentá de nuevo.");
     } finally {
       setSaving(false);
     }
