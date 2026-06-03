@@ -63,7 +63,8 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
   const [allDone,     setAllDone]     = useState(false);
   const [apiError,    setApiError]    = useState<string | null>(null);
   const [podcastState, setPodcastState] = useState<"idle" | "claiming" | "done">("idle");
-  const totalXpRef                   = useRef(0);
+  const totalXpRef                   = useRef(0); // XP newly awarded this session
+  const correctXpRef                 = useRef(0); // XP value of all correct answers (incl. already-earned)
 
   // ── Claim podcast XP + open the podcast link (once) ──────────────────────────
   const handlePodcast = useCallback(async () => {
@@ -109,6 +110,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
     setApiError(null);
     setPodcastState("idle");
     totalXpRef.current = 0;
+    correctXpRef.current = 0;
 
     const supabase = createClient();
     supabase
@@ -177,6 +179,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
       if (data.correct && !data.already_correct) {
         setXpThisQ(data.xp_awarded);
         totalXpRef.current += data.xp_awarded;
+        correctXpRef.current += data.xp_awarded;
         setPhase("correct");
 
         if (data.xp_awarded > 0 && data.total_points != null) {
@@ -191,6 +194,8 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
         setTimeout(advance, 2200);
 
       } else if (data.already_correct) {
+        // Already earned before — count its value so the summary shows total XP
+        correctXpRef.current += q.xp_reward;
         setPhase("already_correct");
         setTimeout(advance, 900);
 
@@ -341,7 +346,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                   {total} pregunta{total !== 1 ? "s" : ""} respondidas correctamente
                 </p>
               </div>
-              {totalXpRef.current > 0 && (
+              {totalXpRef.current > 0 ? (
                 <p
                   className="text-2xl font-bold"
                   style={{
@@ -352,7 +357,14 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                 >
                   +{totalXpRef.current} XP por las respuestas
                 </p>
-              )}
+              ) : correctXpRef.current > 0 ? (
+                <p
+                  className="text-base font-bold"
+                  style={{ color: "#00D67A", fontFamily: "var(--font-arcade)" }}
+                >
+                  ✓ Ya ganaste +{correctXpRef.current} XP en estas preguntas
+                </p>
+              ) : null}
 
               {/* Podcast CTA — below the result */}
               {podcastUrl && (
