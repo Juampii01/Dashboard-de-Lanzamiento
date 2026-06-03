@@ -229,7 +229,7 @@ ${webResult.html}
             </Badge>
           )}
         </div>
-        <h1 className="text-2xl font-bold text-primary">Web + 1-800 + Portales</h1>
+        <h1 className="text-2xl font-bold text-primary">Web + Portales</h1>
         <p className="text-muted-foreground mt-1">
           Generá el preview de tu web orientada al gobierno y conocé los portales donde publicar.
         </p>
@@ -360,28 +360,6 @@ ${webResult.html}
           </div>
         </div>
       )}
-
-      {/* 1-800 */}
-      <Card className="border-blue-100 bg-blue-50/50">
-        <CardHeader>
-          <CardTitle>📞 Número 1-800 Profesional</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-muted-foreground">
-            Un número 1-800 dedicado para contratos gubernamentales genera credibilidad
-            ante oficiales de compras. Es un requisito implícito para muchas licitaciones.
-          </p>
-          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
-            <p className="font-semibold text-primary">
-              Esta funcionalidad está incluida en la mentoría premium
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              "Tu Primer Contrato" incluye la configuración completa de tu número 1-800
-              con enrutamiento inteligente y grabación de llamadas.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Portales — priorizados por tier */}
       <Card>

@@ -357,7 +357,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
               <div className="flex items-center justify-between">
                 <p className="text-xs" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
                   {videoUnlocked
-                    ? "Video visto — marcá para ganar XP"
+                    ? "Video visto — respondé el quiz para ganar XP"
                     : "⏳ Mirá el video completo para desbloquear"}
                 </p>
                 <button
@@ -375,7 +375,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     transition: "background 0.4s, box-shadow 0.4s, color 0.3s",
                   }}
                 >
-                  {marking ? "Guardando..." : `✓ Visto → +${activeCap.points_reward} XP`}
+                  {marking ? "Guardando..." : `Responder quiz → +${activeCap.points_reward} XP`}
                 </button>
               </div>
 
