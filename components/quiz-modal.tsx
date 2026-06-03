@@ -33,6 +33,9 @@ interface QuizModalProps {
   onClose: () => void;
   podcastUrl?: string | null;
   podcastCapsuleId?: string | null;
+  /** When set, replaces the podcast CTA with a "continue to next mission" button */
+  continueLabel?: string | null;
+  onContinue?: (() => void) | null;
 }
 
 // ─── QuizModal ────────────────────────────────────────────────────────────────
@@ -51,7 +54,7 @@ interface QuizModalProps {
  * correct_option_index and explanation come from the server on every submit
  * response — never pre-loaded (client never sees correct answer before submitting).
  */
-export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsuleId }: QuizModalProps) {
+export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsuleId, continueLabel, onContinue }: QuizModalProps) {
   const [questions,   setQuestions]   = useState<QuizRow[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [qIndex,      setQIndex]      = useState(0);
@@ -286,14 +289,14 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
             {allDone ? (
               <button
                 onClick={onClose}
-                style={{ color: "#5A6B85", fontSize: "16px", lineHeight: 1 }}
+                style={{ color: "#8DA2C4", fontSize: "16px", lineHeight: 1 }}
               >
                 ✕
               </button>
             ) : (
               <span
                 title="Completá el quiz para cerrar"
-                style={{ fontSize: "13px", color: "#3A5070", cursor: "default" }}
+                style={{ fontSize: "13px", color: "#647FA8", cursor: "default" }}
               >
                 🔒
               </span>
@@ -325,7 +328,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                 className="w-8 h-8 rounded-full border-4 animate-spin mx-auto"
                 style={{ borderColor: "rgba(255,214,10,0.15)", borderTopColor: "#FFD60A" }}
               />
-              <p className="text-xs" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
+              <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
                 Cargando preguntas…
               </p>
             </div>
@@ -342,7 +345,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                 >
                   ¡Quiz completado!
                 </p>
-                <p className="text-sm" style={{ color: "#A8B5CC" }}>
+                <p className="text-sm" style={{ color: "#C9D6EC" }}>
                   {total} pregunta{total !== 1 ? "s" : ""} respondidas correctamente
                 </p>
               </div>
@@ -366,44 +369,68 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                 </p>
               ) : null}
 
-              {/* Podcast CTA — below the result */}
-              {podcastUrl && (
-                <div className="pt-3 space-y-2">
-                  <div style={{ height: "1px", background: "rgba(255,255,255,0.08)", margin: "0 auto", width: "70%" }} />
-                  <p className="text-xs pt-1" style={{ color: "#A8B5CC" }}>
-                    Escuchá el podcast completo de esta misión:
+              <div style={{ height: "1px", background: "rgba(255,255,255,0.08)", margin: "8px auto 0", width: "70%" }} />
+
+              {/* ── Continue to next mission (Mission 1 → Mission 2) ── */}
+              {continueLabel && onContinue ? (
+                <div className="pt-2 space-y-2">
+                  <p className="text-xs" style={{ color: "#C9D6EC" }}>
+                    ¡Ahora completá la siguiente misión para desbloquear el podcast!
                   </p>
                   <button
-                    onClick={handlePodcast}
-                    disabled={podcastState === "claiming"}
-                    className="w-full py-3 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2"
+                    onClick={onContinue}
+                    className="w-full py-3.5 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2"
                     style={{
-                      background: podcastState === "done"
-                        ? "rgba(0,214,122,0.1)"
-                        : "linear-gradient(135deg, #FF9500, #FF6B00)",
-                      border: podcastState === "done" ? "1.5px solid rgba(0,214,122,0.4)" : "none",
-                      color: podcastState === "done" ? "#00D67A" : "#fff",
+                      background: "linear-gradient(135deg, #00D4FF, #0099CC)",
+                      color: "#000",
                       fontFamily: "var(--font-sans)",
-                      boxShadow: podcastState === "done" ? "none" : "0 0 16px rgba(255,149,0,0.4)",
-                      cursor: podcastState === "claiming" ? "wait" : "pointer",
+                      boxShadow: "0 0 20px rgba(0,212,255,0.45)",
                     }}
                   >
-                    {podcastState === "done"
-                      ? "✓ Podcast abierto · +30 XP"
-                      : podcastState === "claiming"
-                      ? "..."
-                      : "🎙 Ver podcast → +30 XP ↗"}
+                    {continueLabel}
                   </button>
                 </div>
-              )}
+              ) : (
+                <>
+                  {/* ── Podcast CTA (shown after Mission 2 completes) ── */}
+                  {podcastUrl && (
+                    <div className="pt-2 space-y-2">
+                      <p className="text-xs pt-1" style={{ color: "#C9D6EC" }}>
+                        ¡Completaste ambas misiones! Ahora podés escuchar el podcast:
+                      </p>
+                      <button
+                        onClick={handlePodcast}
+                        disabled={podcastState === "claiming"}
+                        className="w-full py-3 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2"
+                        style={{
+                          background: podcastState === "done"
+                            ? "rgba(0,214,122,0.1)"
+                            : "linear-gradient(135deg, #FF9500, #FF6B00)",
+                          border: podcastState === "done" ? "1.5px solid rgba(0,214,122,0.4)" : "none",
+                          color: podcastState === "done" ? "#00D67A" : "#fff",
+                          fontFamily: "var(--font-sans)",
+                          boxShadow: podcastState === "done" ? "none" : "0 0 16px rgba(255,149,0,0.4)",
+                          cursor: podcastState === "claiming" ? "wait" : "pointer",
+                        }}
+                      >
+                        {podcastState === "done"
+                          ? "✓ Podcast abierto · +30 XP"
+                          : podcastState === "claiming"
+                          ? "..."
+                          : "🎙 Ver podcast → +30 XP ↗"}
+                      </button>
+                    </div>
+                  )}
 
-              <button
-                onClick={onClose}
-                className="text-xs pt-1"
-                style={{ color: "#5A6B85", fontFamily: "var(--font-sans)", textDecoration: "underline" }}
-              >
-                Cerrar
-              </button>
+                  <button
+                    onClick={onClose}
+                    className="text-xs pt-1"
+                    style={{ color: "#8DA2C4", fontFamily: "var(--font-sans)", textDecoration: "underline" }}
+                  >
+                    Cerrar
+                  </button>
+                </>
+              )}
             </div>
           )}
 
@@ -418,7 +445,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                 >
                   Error al enviar respuesta
                 </p>
-                <p className="text-xs" style={{ color: "#A8B5CC" }}>
+                <p className="text-xs" style={{ color: "#C9D6EC" }}>
                   {apiError === "day_locked"
                     ? "Este día aún no está desbloqueado."
                     : "Algo salió mal. Intentá de nuevo."}
@@ -558,7 +585,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                 >
                   <p
                     className="text-xs leading-relaxed"
-                    style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+                    style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}
                   >
                     <span style={{ marginRight: "6px" }}>💡</span>
                     {explanation}
@@ -584,7 +611,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
               {phase === "idle" && (
                 <p
                   className="text-[10px] text-center"
-                  style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}
+                  style={{ color: "#647FA8", fontFamily: "var(--font-mono)" }}
                 >
                   +{currentQ.xp_reward} XP por responder correctamente · Sin límite de intentos
                 </p>
@@ -593,7 +620,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
               {phase === "submitting" && (
                 <p
                   className="text-[10px] text-center"
-                  style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}
+                  style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}
                 >
                   Verificando…
                 </p>
@@ -610,7 +637,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
 
               {phase === "wrong" && (
                 <div className="space-y-2">
-                  <p className="text-center text-xs" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
+                  <p className="text-center text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
                     Sin XP esta vez — la respuesta correcta está marcada en verde
                   </p>
                   <button
@@ -619,7 +646,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                     style={{
                       background: "rgba(255,255,255,0.06)",
                       border:     "1.5px solid rgba(255,255,255,0.12)",
-                      color:      "#A8B5CC",
+                      color:      "#C9D6EC",
                       fontFamily: "var(--font-sans)",
                     }}
                   >

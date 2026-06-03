@@ -266,7 +266,23 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
   const activeCap   = capsules.find((c) => c.id === activeId);
   const videoId   = activeCap ? getYoutubeId(activeCap.youtube_url) : null;
   const isVertical = activeCap?.orientation === "vertical";
-  const podcastCap = capsules.find((c) => c.video_type === "podcast");
+  const podcastCap  = capsules.find((c) => c.video_type === "podcast");
+  // First non-podcast capsule (Mission 2)
+  const mission2Cap = capsules.find((c) => c.video_type !== "podcast");
+
+  // Is the currently-open quiz for Mission 1 (the podcast capsule)?
+  const isQuizForPodcast = quizCapsuleId === podcastCap?.id;
+  // Does Mission 2 still need to be completed?
+  const mission2Pending  = mission2Cap != null && !mission2Cap.completed;
+
+  // Handler: close quiz and open Mission 2 video directly
+  const handleContinueToMission2 = useCallback(() => {
+    setQuizCapsuleId(null);
+    if (mission2Cap) {
+      // Small delay so the quiz modal has time to close before the video modal opens
+      setTimeout(() => handleWatchCapsule(mission2Cap.id), 180);
+    }
+  }, [mission2Cap, handleWatchCapsule]);
 
   if (loading) {
     return (
@@ -389,8 +405,10 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
         capsuleId={quizCapsuleId ?? ""}
         isOpen={!!quizCapsuleId}
         onClose={() => setQuizCapsuleId(null)}
-        podcastUrl={quizCapsuleId === podcastCap?.id ? (podcastCap?.podcast_url ?? podcastCap?.youtube_url ?? null) : null}
-        podcastCapsuleId={quizCapsuleId === podcastCap?.id ? (podcastCap?.id ?? null) : null}
+        podcastUrl={!isQuizForPodcast && podcastCap ? (podcastCap.podcast_url ?? podcastCap.youtube_url ?? null) : null}
+        podcastCapsuleId={!isQuizForPodcast && podcastCap ? podcastCap.id : null}
+        continueLabel={isQuizForPodcast && mission2Pending ? "Continuar a Misión 2 →" : null}
+        onContinue={isQuizForPodcast && mission2Pending ? handleContinueToMission2 : null}
       />
 
       {/* ── Widget ──────────────────────────────────────────────────────────── */}
