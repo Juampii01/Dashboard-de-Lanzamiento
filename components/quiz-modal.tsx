@@ -31,6 +31,8 @@ interface QuizModalProps {
   capsuleId: string;
   isOpen: boolean;
   onClose: () => void;
+  podcastUrl?: string | null;
+  podcastCapsuleId?: string | null;
 }
 
 // ─── QuizModal ────────────────────────────────────────────────────────────────
@@ -49,7 +51,7 @@ interface QuizModalProps {
  * correct_option_index and explanation come from the server on every submit
  * response — never pre-loaded (client never sees correct answer before submitting).
  */
-export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
+export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsuleId }: QuizModalProps) {
   const [questions,   setQuestions]   = useState<QuizRow[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [qIndex,      setQIndex]      = useState(0);
@@ -60,7 +62,36 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
   const [xpThisQ,     setXpThisQ]    = useState(0);
   const [allDone,     setAllDone]     = useState(false);
   const [apiError,    setApiError]    = useState<string | null>(null);
+  const [podcastState, setPodcastState] = useState<"idle" | "claiming" | "done">("idle");
   const totalXpRef                   = useRef(0);
+
+  // ── Claim podcast XP + open the podcast link (once) ──────────────────────────
+  const handlePodcast = useCallback(async () => {
+    if (podcastUrl) window.open(podcastUrl, "_blank", "noopener,noreferrer");
+    if (podcastState !== "idle" || !podcastCapsuleId) {
+      setPodcastState((s) => (s === "idle" ? "done" : s));
+      return;
+    }
+    setPodcastState("claiming");
+    try {
+      const res = await fetch("/api/xp/claim-podcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ capsuleId: podcastCapsuleId }),
+      });
+      const data = (await res.json()) as { ok?: boolean; points?: number; total?: number; alreadyClaimed?: boolean };
+      if (data.ok && !data.alreadyClaimed && data.points && data.total != null) {
+        window.dispatchEvent(new CustomEvent("xp-gained", {
+          detail: { delta: data.points, total: data.total, source: "podcast" },
+        }));
+        const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+        createParticleBurst(cx, cy, "gold", 16);
+        flyPoints(cx, cy, cx, cy - 90, `+${data.points} XP 🎙`);
+      }
+    } catch { /* non-critical — link already opened */ } finally {
+      setPodcastState("done");
+    }
+  }, [podcastUrl, podcastCapsuleId, podcastState]);
 
   // ── Reset on open ───────────────────────────────────────────────────────────
 
@@ -76,6 +107,7 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
     setXpThisQ(0);
     setAllDone(false);
     setApiError(null);
+    setPodcastState("idle");
     totalXpRef.current = 0;
 
     const supabase = createClient();
@@ -103,7 +135,7 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
     const next = qIndex + 1;
     if (next >= questions.length) {
       setAllDone(true);
-      setTimeout(onClose, 3200);
+      // No auto-close — the user closes manually after seeing the podcast CTA
     } else {
       setQIndex(next);
       setPhase("idle");
@@ -318,10 +350,48 @@ export function QuizModal({ capsuleId, isOpen, onClose }: QuizModalProps) {
                     textShadow: "0 0 24px rgba(255,214,10,0.55)",
                   }}
                 >
-                  +{totalXpRef.current} XP
+                  +{totalXpRef.current} XP por las respuestas
                 </p>
               )}
-              <p className="text-xs pt-1" style={{ color: "#5A6B85" }}>Cerrando…</p>
+
+              {/* Podcast CTA — below the result */}
+              {podcastUrl && (
+                <div className="pt-3 space-y-2">
+                  <div style={{ height: "1px", background: "rgba(255,255,255,0.08)", margin: "0 auto", width: "70%" }} />
+                  <p className="text-xs pt-1" style={{ color: "#A8B5CC" }}>
+                    Escuchá el podcast completo de esta misión:
+                  </p>
+                  <button
+                    onClick={handlePodcast}
+                    disabled={podcastState === "claiming"}
+                    className="w-full py-3 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2"
+                    style={{
+                      background: podcastState === "done"
+                        ? "rgba(0,214,122,0.1)"
+                        : "linear-gradient(135deg, #FF9500, #FF6B00)",
+                      border: podcastState === "done" ? "1.5px solid rgba(0,214,122,0.4)" : "none",
+                      color: podcastState === "done" ? "#00D67A" : "#fff",
+                      fontFamily: "var(--font-sans)",
+                      boxShadow: podcastState === "done" ? "none" : "0 0 16px rgba(255,149,0,0.4)",
+                      cursor: podcastState === "claiming" ? "wait" : "pointer",
+                    }}
+                  >
+                    {podcastState === "done"
+                      ? "✓ Podcast abierto · +30 XP"
+                      : podcastState === "claiming"
+                      ? "..."
+                      : "🎙 Ver podcast → +30 XP ↗"}
+                  </button>
+                </div>
+              )}
+
+              <button
+                onClick={onClose}
+                className="text-xs pt-1"
+                style={{ color: "#5A6B85", fontFamily: "var(--font-sans)", textDecoration: "underline" }}
+              >
+                Cerrar
+              </button>
             </div>
           )}
 

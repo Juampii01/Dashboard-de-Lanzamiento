@@ -92,77 +92,6 @@ function CooldownBadge({ seconds }: { seconds: number }) {
   );
 }
 
-// ─── PodcastClaimButton ───────────────────────────────────────────────────────
-
-function PodcastClaimButton({ capsuleId, btnRef }: { capsuleId: string; btnRef: React.RefObject<HTMLButtonElement | null> }) {
-  const [state, setState] = useState<"idle" | "claiming" | "claimed">("idle");
-
-  const claim = useCallback(async () => {
-    if (state !== "idle") return;
-    setState("claiming");
-    try {
-      const res  = await fetch("/api/xp/claim-podcast", {
-        method:  "POST",
-        headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ capsuleId }),
-      });
-      const data = await res.json() as { ok?: boolean; points?: number; total?: number; alreadyClaimed?: boolean };
-      if (data.ok) {
-        setState("claimed");
-        if (!data.alreadyClaimed && data.points && data.total != null) {
-          window.dispatchEvent(new CustomEvent("xp-gained", {
-            detail: { delta: data.points, total: data.total, source: "podcast" },
-          }));
-          if (btnRef.current) {
-            const rect = btnRef.current.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top  + rect.height / 2;
-            createParticleBurst(cx, cy, "gold", 14);
-            flyPoints(cx, cy, cx, cy - 80, `+${data.points} XP 🎙`);
-          }
-        }
-      }
-    } catch (err) {
-      console.error("[podcast-claim]", err);
-      setState("idle");
-    }
-  }, [capsuleId, state, btnRef]);
-
-  if (state === "claimed") {
-    return (
-      <span style={{ fontSize: "11px", color: "#00D67A", fontFamily: "var(--font-mono)" }}>
-        ✓ +30 XP reclamados
-      </span>
-    );
-  }
-
-  return (
-    <button
-      ref={btnRef}
-      onClick={claim}
-      disabled={state === "claiming"}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "6px",
-        padding: "6px 14px",
-        borderRadius: "8px",
-        border: "none",
-        background: "linear-gradient(135deg, #FF9500, #FF6B00)",
-        color: "#fff",
-        fontFamily: "var(--font-sans)",
-        fontSize: "12px",
-        fontWeight: 700,
-        cursor: state === "claiming" ? "wait" : "pointer",
-        boxShadow: "0 0 14px rgba(255,149,0,0.4)",
-        opacity: state === "claiming" ? 0.7 : 1,
-      }}
-    >
-      {state === "claiming" ? "..." : "🎙 Escuché el podcast completo → +30 XP"}
-    </button>
-  );
-}
-
 // ─── VideoCapsules ────────────────────────────────────────────────────────────
 
 export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
@@ -179,7 +108,6 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
   const iframeRef    = useRef<HTMLIFrameElement>(null);
   const fallbackRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const markBtnRef   = useRef<HTMLButtonElement>(null);
-  const podcastBtnRef = useRef<HTMLButtonElement>(null);
 
   // ── Load capsules ────────────────────────────────────────────────────────────
 
@@ -338,6 +266,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
   const activeCap   = capsules.find((c) => c.id === activeId);
   const videoId   = activeCap ? getYoutubeId(activeCap.youtube_url) : null;
   const isVertical = activeCap?.orientation === "vertical";
+  const podcastCap = capsules.find((c) => c.video_type === "podcast");
 
   if (loading) {
     return (
@@ -450,15 +379,6 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                 </button>
               </div>
 
-              {/* Podcast claim button (only for podcast type) */}
-              {activeCap.video_type === "podcast" && (
-                <div className="flex justify-end">
-                  <PodcastClaimButton
-                    capsuleId={activeCap.id}
-                    btnRef={podcastBtnRef}
-                  />
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -469,6 +389,8 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
         capsuleId={quizCapsuleId ?? ""}
         isOpen={!!quizCapsuleId}
         onClose={() => setQuizCapsuleId(null)}
+        podcastUrl={podcastCap?.podcast_url ?? podcastCap?.youtube_url ?? null}
+        podcastCapsuleId={podcastCap?.id ?? null}
       />
 
       {/* ── Widget ──────────────────────────────────────────────────────────── */}
