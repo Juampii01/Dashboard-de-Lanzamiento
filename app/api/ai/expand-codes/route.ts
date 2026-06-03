@@ -14,7 +14,7 @@ const bodySchema = z.object({
 interface RelatedCode {
   code: string;
   description: string;
-  type: "NAICS" | "PSC" | "SIC";
+  type: "NAICS" | "PSC" | "SIC" | "UNSPSC" | "NIGP";
 }
 
 interface ExpandCodesResult {
@@ -76,17 +76,23 @@ export async function POST(request: Request) {
 
   try {
     const result = await callClaudeJSON<ExpandCodesResult>(
-      `Eres un experto en contratación federal de EEUU especializado en codes de clasificación: NAICS, PSC (Product Service Codes) y SIC.
-Tu tarea es expandir el mapa de códigos de una empresa para maximizar sus oportunidades de licitación.
+      `Eres un experto en contratación gubernamental de EEUU especializado en todos los sistemas de clasificación: NAICS, PSC (Product Service Codes), SIC, UNSPSC y NIGP.
+Tu tarea es generar el mapa COMPLETO de códigos de una empresa en los 5 formatos que usa el gobierno para comprar servicios.
 Responde SIEMPRE en JSON con esta estructura exacta:
 {
   "related_codes": [
-    { "code": "string", "description": "descripción oficial en inglés", "type": "NAICS" | "PSC" | "SIC" }
+    { "code": "string", "description": "descripción oficial en inglés", "type": "NAICS" | "PSC" | "SIC" | "UNSPSC" | "NIGP" }
   ],
   "keywords_expanded": ["keyword1", "keyword2", ...]
 }
-Incluye al menos 3 NAICS relacionados, 4-6 PSC codes relevantes, y 2-3 SIC codes.
-Para keywords_expanded incluye 15-20 términos que el gobierno federal usa para buscar estos servicios.`,
+
+REGLAS:
+- NAICS: incluí el código primario + 2-3 relacionados (6 dígitos)
+- PSC: 4-6 códigos de Product & Service Code usados por DoD y agencias federales (formato alfanumérico, ej: S201)
+- SIC: 2-3 códigos legacy de 4 dígitos que algunos sistemas todavía usan
+- UNSPSC: 2-3 códigos UN Standard Products & Services Code (formato XXXXXXXX, ej: 76111501)
+- NIGP: 1-2 códigos del National Institute of Governmental Purchasing usados por estados/counties/school districts (formato NNN-NN, ej: 910-39)
+- keywords_expanded: 15-20 términos que el gobierno federal y estatal usa para buscar estos servicios`,
       `NAICS primario: ${primaryNaics}
 ${niche ? `Nicho/servicio: ${niche}` : ""}
 ${usState ? `Estado de operación: ${usState} — priorizá agencias y contratos activos en ese estado.` : ""}

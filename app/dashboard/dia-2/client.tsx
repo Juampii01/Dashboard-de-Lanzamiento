@@ -19,7 +19,7 @@ type NaicsExpansion = Database["public"]["Tables"]["naics_expansions"]["Row"];
 interface RelatedCode {
   code: string;
   description: string;
-  type: "NAICS" | "PSC" | "SIC";
+  type: "NAICS" | "PSC" | "SIC" | "UNSPSC" | "NIGP";
 }
 
 interface ExpandResult {
@@ -27,37 +27,76 @@ interface ExpandResult {
   keywords_expanded: string[];
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  NAICS: "bg-blue-100 text-blue-700",
-  PSC: "bg-purple-100 text-purple-700",
-  SIC: "bg-emerald-100 text-emerald-700",
-};
-
-const TYPE_INFO: Record<string, { label: string; desc: string; samUrl: (code: string) => string }> = {
+// ── GovBidder-style type definitions ─────────────────────────────────────────
+const TYPE_META: Record<string, {
+  abbr: string;
+  fullLabel: string;
+  desc: string;
+  color: string;       // vivid bg color for the header band
+  lightBg: string;     // subtle bg for the code card body
+  textColor: string;   // color for the code number
+  samUrl: (code: string) => string;
+  externalLabel: string;
+}> = {
   NAICS: {
-    label: "NAICS",
-    desc: "El gobierno te busca por este código. Registrálo en SAM.gov.",
+    abbr: "NAICS",
+    fullLabel: "North American Industry Classification",
+    desc: "Código primario — así el gobierno federal te identifica. Registrálo en SAM.gov.",
+    color: "#1E3A8A",
+    lightBg: "rgba(30,58,138,0.12)",
+    textColor: "#60A5FA",
     samUrl: (code) => `https://sam.gov/search/?index=opp&naicsCode=${code}`,
+    externalLabel: "SAM.gov",
   },
   PSC: {
-    label: "PSC",
-    desc: "Product & Service Code. Usado por DoD y agencias de defensa.",
+    abbr: "PSC",
+    fullLabel: "Product Service Code — Federal",
+    desc: "Usado por DoD y agencias federales para categorizar cada compra.",
+    color: "#065F46",
+    lightBg: "rgba(6,95,70,0.12)",
+    textColor: "#34D399",
     samUrl: (code) => `https://sam.gov/search/?index=opp&pscCode=${code}`,
+    externalLabel: "SAM.gov",
   },
   SIC: {
-    label: "SIC",
-    desc: "Código legacy. Algunos sistemas del gobierno todavía lo usan.",
+    abbr: "SIC",
+    fullLabel: "Standard Industrial Classification",
+    desc: "Código legacy. Muchos sistemas estatales y de counties todavía lo usan.",
+    color: "#92400E",
+    lightBg: "rgba(146,64,14,0.12)",
+    textColor: "#FBBF24",
     samUrl: (code) => `https://sam.gov/search/?index=opp&q=${code}`,
+    externalLabel: "SAM.gov",
+  },
+  UNSPSC: {
+    abbr: "UNSPSC",
+    fullLabel: "UN Standard Products & Services Code",
+    desc: "Estándar internacional — compras multinacionales y organizaciones de Naciones Unidas.",
+    color: "#4C1D95",
+    lightBg: "rgba(76,29,149,0.12)",
+    textColor: "#C084FC",
+    samUrl: (code) => `https://www.ungm.org/UNSPSCCodes?q=${code}`,
+    externalLabel: "UNGM",
+  },
+  NIGP: {
+    abbr: "NIGP",
+    fullLabel: "National Institute of Governmental Purchasing",
+    desc: "Usado por estados, counties, school districts y universidades.",
+    color: "#881337",
+    lightBg: "rgba(136,19,55,0.12)",
+    textColor: "#FB7185",
+    samUrl: (code) => `https://www.nigp.org/home/commodity-code/commodity-code-details?code=${code}`,
+    externalLabel: "NIGP",
   },
 };
 
 const LOADING_STEPS = [
   "Analizando tu código NAICS principal...",
   "Buscando códigos PSC relacionados en contratos activos...",
-  "Identificando equivalentes SIC...",
+  "Identificando equivalentes SIC y UNSPSC...",
+  "Mapeando códigos NIGP para estados y counties...",
   "Expandiendo keywords con terminología de procurement...",
-  "Mapeando agencias gubernamentales compradoras...",
-  "Generando tu mapa completo...",
+  "Generando tu mapa completo de los 5 formatos...",
 ];
 
 interface Dia2ClientProps {
@@ -342,62 +381,128 @@ export function Dia2Client({
 
       {/* Resultados */}
       {result && (
-        <div className="space-y-6">
-          {/* Códigos relacionados — agrupados por tipo */}
-          {(["NAICS", "PSC", "SIC"] as const).map((type) => {
+        <div className="space-y-5">
+          {/* ── Header "CÓDIGOS EQUIVALENTES EN TODOS LOS FORMATOS" ── */}
+          <div
+            className="rounded-xl px-4 py-3"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            <p
+              className="text-xs font-bold uppercase tracking-widest text-center"
+              style={{ color: "#BDC9DC", letterSpacing: "0.15em" }}
+            >
+              Códigos Equivalentes en Todos los Formatos Gubernamentales
+            </p>
+          </div>
+
+          {/* ── One section per code type ── */}
+          {(["NAICS", "PSC", "SIC", "UNSPSC", "NIGP"] as const).map((type) => {
             const codes = result.related_codes.filter((c) => c.type === type);
             if (codes.length === 0) return null;
-            const info = TYPE_INFO[type];
+            const meta = TYPE_META[type];
             return (
-              <Card key={type}>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Badge className={TYPE_COLORS[type]}>{info.label}</Badge>
-                    <CardTitle className="text-base">
-                      {type === "NAICS" ? "Códigos NAICS" : type === "PSC" ? "Códigos PSC (Product & Service)" : "Códigos SIC (legacy)"}
-                    </CardTitle>
-                    <span className="text-xs text-muted-foreground ml-auto">{codes.length} códigos</span>
+              <div
+                key={type}
+                className="rounded-xl overflow-hidden"
+                style={{ border: `1px solid ${meta.color}55` }}
+              >
+                {/* Type header band */}
+                <div
+                  className="flex items-center justify-between px-4 py-2.5"
+                  style={{ background: meta.color }}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="text-xs font-black uppercase tracking-widest px-2 py-0.5 rounded"
+                      style={{ background: "rgba(0,0,0,0.25)", color: "#fff" }}
+                    >
+                      {meta.abbr}
+                    </span>
+                    <span className="text-xs font-semibold text-white/80">{meta.fullLabel}</span>
                   </div>
-                  <CardDescription>{info.desc}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {codes.map((code) => (
-                      <div
-                        key={`${code.type}-${code.code}`}
-                        className="flex items-center gap-2 p-3 border rounded-lg bg-card group"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-bold text-primary tabular-nums">{code.code}</p>
-                            <button
-                              onClick={() => copyCode(code.code)}
-                              title="Copiar código"
-                              className="text-muted-foreground hover:text-primary transition-colors"
-                            >
-                              {copiedCode === code.code ? (
-                                <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5" />
-                              )}
-                            </button>
-                          </div>
-                          <p className="text-xs text-muted-foreground truncate">{code.description}</p>
-                        </div>
-                        <a
-                          href={info.samUrl(code.code)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Ver contratos activos en SAM.gov"
-                          className="flex items-center gap-1 text-xs font-medium text-primary hover:underline flex-shrink-0"
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: "rgba(0,0,0,0.25)", color: "#fff" }}
+                  >
+                    {codes.length} {codes.length === 1 ? "código" : "códigos"}
+                  </span>
+                </div>
+
+                {/* Desc row */}
+                <div
+                  className="px-4 py-2 text-xs"
+                  style={{ background: "rgba(255,255,255,0.03)", color: "#BDC9DC", borderBottom: `1px solid ${meta.color}33` }}
+                >
+                  {meta.desc}
+                </div>
+
+                {/* Code cards grid */}
+                <div
+                  className="grid gap-2 p-3 sm:grid-cols-2"
+                  style={{ background: meta.lightBg }}
+                >
+                  {codes.map((code) => (
+                    <div
+                      key={`${code.type}-${code.code}`}
+                      className="rounded-lg p-3 flex flex-col gap-1"
+                      style={{
+                        background: "rgba(0,0,0,0.35)",
+                        border: `1px solid ${meta.color}44`,
+                      }}
+                    >
+                      {/* Code number + actions */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className="font-black tabular-nums"
+                          style={{
+                            fontSize: "22px",
+                            color: meta.textColor,
+                            fontFamily: "var(--font-mono)",
+                            lineHeight: 1,
+                          }}
                         >
-                          SAM.gov <ExternalLink className="w-3 h-3" />
-                        </a>
+                          {code.code}
+                        </span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => copyCode(code.code)}
+                            title="Copiar código"
+                            className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded transition-all"
+                            style={{
+                              background: "rgba(255,255,255,0.08)",
+                              color: "#fff",
+                              border: "1px solid rgba(255,255,255,0.12)",
+                            }}
+                          >
+                            {copiedCode === code.code ? (
+                              <><CheckCircle2 className="w-3 h-3 text-green-400" /> Copiado</>
+                            ) : (
+                              <><Copy className="w-3 h-3" /> Copiar</>
+                            )}
+                          </button>
+                          <a
+                            href={meta.samUrl(code.code)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded transition-all"
+                            style={{
+                              background: `${meta.color}33`,
+                              color: meta.textColor,
+                              border: `1px solid ${meta.color}55`,
+                            }}
+                          >
+                            {meta.externalLabel} <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      {/* Description */}
+                      <p className="text-xs leading-relaxed" style={{ color: "#BDC9DC" }}>
+                        {code.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             );
           })}
 

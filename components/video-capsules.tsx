@@ -86,7 +86,7 @@ function CooldownBadge({ seconds }: { seconds: number }) {
   if (remaining <= 0) return null;
 
   return (
-    <span className="text-[10px] tabular-nums" style={{ color: "#A8B5CC", fontFamily: "var(--font-mono)" }}>
+    <span className="text-[10px] tabular-nums" style={{ color: "#C9D6EC", fontFamily: "var(--font-mono)" }}>
       ⏳ {m}:{String(s).padStart(2, "0")}
     </span>
   );
@@ -310,12 +310,12 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                   {activeCap.title}
                 </h3>
                 {activeCap.description && (
-                  <p className="text-xs mt-1" style={{ color: "#A8B5CC" }}>{activeCap.description}</p>
+                  <p className="text-xs mt-1" style={{ color: "#C9D6EC" }}>{activeCap.description}</p>
                 )}
               </div>
               <button
                 onClick={() => setActiveId(null)}
-                className="text-[#5A6B85] hover:text-white transition-colors ml-4 mt-0.5"
+                className="text-[#8DA2C4] hover:text-white transition-colors ml-4 mt-0.5"
                 style={{ fontSize: "18px", lineHeight: 1 }}
               >
                 ✕
@@ -341,7 +341,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                   style={{ background: "#061528" }}
                 >
                   <span className="text-4xl">🎬</span>
-                  <p className="text-sm" style={{ color: "#5A6B85" }}>
+                  <p className="text-sm" style={{ color: "#8DA2C4" }}>
                     Video próximamente — el admin está subiendo el contenido
                   </p>
                 </div>
@@ -355,7 +355,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
             >
               {/* Mark as watched row */}
               <div className="flex items-center justify-between">
-                <p className="text-xs" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
+                <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
                   {videoUnlocked
                     ? "Video visto — respondé el quiz para ganar XP"
                     : "⏳ Mirá el video completo para desbloquear"}
@@ -369,7 +369,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     background: videoUnlocked
                       ? "linear-gradient(135deg, #00D67A, #00B865)"
                       : "rgba(0,214,122,0.1)",
-                    color: videoUnlocked ? "#000" : "#3A5070",
+                    color: videoUnlocked ? "#000" : "#647FA8",
                     fontFamily: "var(--font-sans)",
                     boxShadow: videoUnlocked ? "0 0 16px rgba(0,214,122,0.4)" : "none",
                     transition: "background 0.4s, box-shadow 0.4s, color 0.3s",
@@ -389,8 +389,8 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
         capsuleId={quizCapsuleId ?? ""}
         isOpen={!!quizCapsuleId}
         onClose={() => setQuizCapsuleId(null)}
-        podcastUrl={podcastCap?.podcast_url ?? podcastCap?.youtube_url ?? null}
-        podcastCapsuleId={podcastCap?.id ?? null}
+        podcastUrl={quizCapsuleId === podcastCap?.id ? (podcastCap?.podcast_url ?? podcastCap?.youtube_url ?? null) : null}
+        podcastCapsuleId={quizCapsuleId === podcastCap?.id ? (podcastCap?.id ?? null) : null}
       />
 
       {/* ── Widget ──────────────────────────────────────────────────────────── */}
@@ -414,7 +414,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
               <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#00D4FF", fontFamily: "var(--font-arcade)" }}>
                 Misiones en video
               </p>
-              <p className="text-[10px] mt-0.5" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
+              <p className="text-[10px] mt-0.5" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
                 {completed}/{total} completadas · {capsules.filter(c => !c.completed).reduce((sum, c) => sum + c.points_reward, 0)} XP disponibles
               </p>
             </div>
@@ -432,7 +432,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     style={{
                       background: c.completed ? "rgba(0,214,122,0.2)" : "rgba(0,212,255,0.1)",
                       border: `1px solid ${c.completed ? "#00D67A" : "rgba(0,212,255,0.3)"}`,
-                      color: c.completed ? "#00D67A" : "#5A6B85",
+                      color: c.completed ? "#00D67A" : "#8DA2C4",
                     }}
                   >
                     {c.completed ? "✓" : "●"}
@@ -440,7 +440,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                 );
               })}
             </div>
-            <span style={{ color: "#5A6B85", fontSize: "12px" }}>{expanded ? "▲" : "▼"}</span>
+            <span style={{ color: "#8DA2C4", fontSize: "12px" }}>{expanded ? "▲" : "▼"}</span>
           </div>
         </div>
 
@@ -456,7 +456,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
             )}
             {!allDone && onCooldown && (
               <div className="flex items-center gap-2 mb-3 pb-3" style={{ borderBottom: "1px solid rgba(0,212,255,0.08)" }}>
-                <p className="text-xs" style={{ color: "#5A6B85" }}>Próxima misión en</p>
+                <p className="text-xs" style={{ color: "#8DA2C4" }}>Próxima misión en</p>
                 <CooldownBadge seconds={cooldownSecs} />
               </div>
             )}
@@ -476,7 +476,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     }}
                   >
                     {/* Completion dot */}
-                    <span className="text-xs shrink-0" style={{ color: c.completed ? "#00D67A" : "#3A5070" }}>
+                    <span className="text-xs shrink-0" style={{ color: c.completed ? "#00D67A" : "#647FA8" }}>
                       {c.completed ? "✓" : "○"}
                     </span>
 
@@ -496,7 +496,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     {/* Title */}
                     <span
                       className="flex-1 text-xs truncate"
-                      style={{ color: c.completed ? "#00D67A" : "#A8B5CC", fontFamily: "var(--font-sans)" }}
+                      style={{ color: c.completed ? "#00D67A" : "#C9D6EC", fontFamily: "var(--font-sans)" }}
                     >
                       {c.title}
                     </span>
@@ -504,7 +504,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     {/* XP reward */}
                     <span
                       className="text-[10px] shrink-0"
-                      style={{ color: c.completed ? "#00D67A" : "#3A5070", fontFamily: "var(--font-mono)" }}
+                      style={{ color: c.completed ? "#00D67A" : "#647FA8", fontFamily: "var(--font-mono)" }}
                     >
                       +{c.points_reward} XP
                     </span>
@@ -539,7 +539,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                           background: canDoThis
                             ? "linear-gradient(135deg, #00D4FF, #0099CC)"
                             : "rgba(0,212,255,0.08)",
-                          color: canDoThis ? "#000" : "#3A5070",
+                          color: canDoThis ? "#000" : "#647FA8",
                           fontFamily: "var(--font-sans)",
                           boxShadow: canDoThis ? "0 0 10px rgba(0,212,255,0.3)" : "none",
                           whiteSpace: "nowrap",

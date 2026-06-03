@@ -73,7 +73,10 @@ export async function POST(request: Request) {
   const usState       = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
 
   // Fetch real photos for the site (degrades to [] without UNSPLASH_ACCESS_KEY)
-  const imgQueries = (keywords && keywords.length ? keywords : [niche]).slice(0, 4);
+  // Always lead with `niche` so the hero image matches the actual business type,
+  // not the procurement keywords from Day 2 (which are often industry-specific
+  // and would pull images from the wrong sector for different niches).
+  const imgQueries = [niche, ...(keywords ?? [])].filter(Boolean).slice(0, 4);
   const images = await fetchWebImageUrls(imgQueries, 4);
   const imageBlock = images.length
     ? `\n\nFOTOS REALES DISPONIBLES (usá EXACTAMENTE estas URLs en <img src="..."> — son fotos profesionales del sector):\n${images.map((u, i) => `IMG${i + 1}: ${u}`).join("\n")}\nUsá IMG1 como imagen del hero (de fondo o lateral), IMG2 en About, IMG3 e IMG4 en Servicios o galería. Si necesitás menos, está bien.`
