@@ -4,9 +4,13 @@ import {
   Text,
   View,
   Image,
+  Font,
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
+
+// Never break words mid-character (no "Solu-tions"); wrap only at spaces.
+Font.registerHyphenationCallback((word) => [word]);
 
 const NAVY = "#1a2a6c";
 const NAVY_DARK = "#0f1e3d";
@@ -22,8 +26,8 @@ const styles = StyleSheet.create({
   // ── Header ──
   header: { backgroundColor: NAVY, paddingTop: 16, paddingBottom: 11, paddingHorizontal: 34 },
   headerTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  companyName: { fontSize: 17, fontFamily: "Helvetica-Bold", color: "#FFFFFF", maxWidth: "60%", lineHeight: 1.1 },
-  csTitle: { fontSize: 14, fontFamily: "Helvetica-Bold", color: "#FFFFFF", letterSpacing: 1.5, textAlign: "right", lineHeight: 1.15 },
+  companyName: { fontSize: 15, fontFamily: "Helvetica-Bold", color: "#FFFFFF", maxWidth: "66%", lineHeight: 1.12 },
+  csTitle: { fontSize: 12, fontFamily: "Helvetica-Bold", color: "#FFFFFF", letterSpacing: 1.5, textAlign: "right", lineHeight: 1.2 },
   tagline: { fontSize: 8.5, color: GOLD, marginTop: 3, fontStyle: "italic" },
   serviceCats: { fontSize: 7, fontFamily: "Helvetica-Bold", color: "#FFFFFF", marginTop: 7, letterSpacing: 1 },
   idLine: { fontSize: 6.5, color: GOLD, marginTop: 4, letterSpacing: 0.5 },
@@ -254,7 +258,7 @@ export function CapabilityStatementPDF({
         {/* ── Header ── */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View style={{ maxWidth: "60%" }}>
+            <View style={{ maxWidth: "66%" }}>
               <Text style={styles.companyName}>{cd.companyName}</Text>
               {data.tagline ? <Text style={styles.tagline}>{data.tagline}</Text> : null}
             </View>
