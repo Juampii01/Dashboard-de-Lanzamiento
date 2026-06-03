@@ -6,6 +6,7 @@ interface LockState {
   is_locked: boolean;
   call_url: string | null;
   message: string | null;
+  locked_at: string | null;
 }
 
 export function DashboardLockOverlay() {
@@ -13,6 +14,7 @@ export function DashboardLockOverlay() {
     is_locked: false,
     call_url: null,
     message: null,
+    locked_at: null,
   });
   const [visible, setVisible] = useState(false); // animate in
 
@@ -33,6 +35,29 @@ export function DashboardLockOverlay() {
     fetchLock();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Award join points the first time this call's button is pressed
+  async function handleJoinClick() {
+    const callId = lock.locked_at;
+    if (!callId) return;
+    try {
+      const res = await fetch("/api/xp/live-call-join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId }),
+      });
+      const data: { awarded?: boolean; delta?: number; total?: number } = await res.json();
+      if (data.awarded && data.delta && data.total != null) {
+        window.dispatchEvent(
+          new CustomEvent("xp-gained", {
+            detail: { delta: data.delta, total: data.total, source: "join" },
+          })
+        );
+      }
+    } catch {
+      // non-critical — the call link still opens via the anchor
+    }
+  }
 
   if (!lock.is_locked) return null;
 
@@ -189,6 +214,7 @@ export function DashboardLockOverlay() {
             href={lock.call_url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleJoinClick}
             style={{
               display: "inline-flex",
               alignItems: "center",
