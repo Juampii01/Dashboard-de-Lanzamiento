@@ -48,7 +48,7 @@ function PrizeBadge({ rank }: { rank: number }) {
           flexShrink: 0,
         }}
       >
-        🥇 $12K Consultoría
+        🥇 $15K Consultoría
       </span>
     );
   }

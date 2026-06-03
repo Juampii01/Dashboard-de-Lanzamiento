@@ -752,7 +752,7 @@ function TabXP() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border rounded-lg p-4 text-center space-y-2">
             <p className="text-2xl font-bold">🥇 #1</p>
-            <p className="text-xs text-muted-foreground">Consultoría de $12,000</p>
+            <p className="text-xs text-muted-foreground">Consultoría de $15,000</p>
           </div>
           <div className="border rounded-lg p-4 text-center space-y-2">
             <p className="text-2xl font-bold">🥈 #2</p>

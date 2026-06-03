@@ -48,7 +48,7 @@ function PrizeBadge({ rank }: { rank: number }) {
         border: "1px solid rgba(255,214,10,0.4)",
         borderRadius: "5px", padding: "2px 7px",
         whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🥇 Consultoría $12K</span>
+      }}>🥇 Consultoría $15K</span>
     );
   }
   if (rank === 2) {
@@ -162,14 +162,14 @@ export function RankingClient() {
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#FFD60A", marginBottom: "2px" }}>
               1er lugar
             </p>
-            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>Consultoría de $12,000</p>
+            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>Consultoría de $15,000</p>
           </div>
           <span style={{
             fontFamily: "var(--font-arcade)", fontSize: "9px", fontWeight: 700,
             color: "#FFD60A", background: "rgba(255,214,10,0.12)",
             border: "1px solid rgba(255,214,10,0.3)",
             borderRadius: "5px", padding: "4px 10px",
-          }}>$12,000</span>
+          }}>$15,000</span>
         </div>
 
         {/* 2nd place */}

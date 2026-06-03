@@ -11,6 +11,22 @@
 
 const UNSPLASH_API = "https://api.unsplash.com/search/photos";
 
+/**
+ * Fetch plain image URLs (not data URIs) for use in <img src> in a web page
+ * rendered in the browser. Returns up to `count` Unsplash URLs.
+ */
+export async function fetchWebImageUrls(keywords: string[], count = 4): Promise<string[]> {
+  const key = process.env.UNSPLASH_ACCESS_KEY?.trim();
+  if (!key || keywords.length === 0) return [];
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const orientation = i === 0 ? "landscape" : i === 1 ? "landscape" : "squarish";
+    const url = await searchOne(keywords[i % keywords.length], key, orientation);
+    if (url) out.push(url);
+  }
+  return out;
+}
+
 async function searchOne(query: string, key: string, orientation: "landscape" | "squarish"): Promise<string | null> {
   try {
     const url = `${UNSPLASH_API}?query=${encodeURIComponent(query)}&per_page=1&orientation=${orientation}&content_filter=high`;
@@ -22,7 +38,7 @@ async function searchOne(query: string, key: string, orientation: "landscape" | 
     if (!res.ok) return null;
     const json = (await res.json()) as { results?: Array<{ urls?: { regular?: string; small?: string } }> };
     const photo = json.results?.[0];
-    return photo?.urls?.small ?? photo?.urls?.regular ?? null;
+    return photo?.urls?.regular ?? photo?.urls?.small ?? null;
   } catch {
     return null;
   }

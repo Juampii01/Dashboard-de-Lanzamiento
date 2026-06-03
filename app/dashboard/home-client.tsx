@@ -1085,7 +1085,7 @@ function HomePrizeBadge({ rank }: { rank: number }) {
         border: "1px solid rgba(255,214,10,0.3)",
         borderRadius: "4px", padding: "1px 4px",
         whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🥇 $12K</span>
+      }}>🥇 $15K</span>
     );
   }
   if (rank === 2) {
