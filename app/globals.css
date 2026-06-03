@@ -45,12 +45,12 @@
 
 :root {
   /* ── Govbidder brand (dark arcade — VIVID) ─── */
-  --background:           #091E3C;  /* navy saturado, no apagado */
+  --background:           #0C2648;  /* navy saturado, legible */
   --foreground:           #FFFFFF;
 
-  --card:                 #1245A8;  /* azul vivido — pop notorio contra el fondo */
+  --card:                 #183D80;  /* azul más vivo que el bg, pero no eléctrico */
   --card-foreground:      #FFFFFF;
-  --popover:              #1245A8;
+  --popover:              #183D80;
   --popover-foreground:   #FFFFFF;
 
   /* Primary: Rojo USA — máxima saturación */
@@ -67,11 +67,11 @@
 
   /* Accent: dorado arcade */
   --accent:               #FFD60A;
-  --accent-foreground:    #091E3C;
+  --accent-foreground:    #0C2648;
 
   --destructive:          #FF1030;
-  --border:               #1E55B5;
-  --input:                #091E3C;
+  --border:               #2258C0;
+  --input:                #0C2648;
   --ring:                 rgba(255, 16, 48, 0.50);
 
   /* Charts */
@@ -85,20 +85,20 @@
   --radius: 0.75rem;
 
   /* Sidebar */
-  --sidebar:                   #091E3C;
+  --sidebar:                   #0C2648;
   --sidebar-foreground:        #FFFFFF;
   --sidebar-primary:           #FF1030;
   --sidebar-primary-foreground:#FFFFFF;
   --sidebar-accent:            rgba(255,255,255,0.10);
   --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border:            #1E55B5;
+  --sidebar-border:            #2258C0;
   --sidebar-ring:              #FF1030;
 }
 
 /* ── Custom tokens (no Tailwind mapping needed) ─ */
 :root {
-  --govbidder-blue:       #091E3C;
-  --govbidder-blue-mid:   #1245A8;
+  --govbidder-blue:       #0C2648;
+  --govbidder-blue-mid:   #183D80;
   --govbidder-blue-light: #3385FF;
   --govbidder-red:        #FF1030;
   --govbidder-red-deep:   #CC0022;
@@ -107,7 +107,7 @@
   --locked-gray:          #1A3E82;
   --text-secondary-color: #C8D8F8;
   --text-muted-color:     #7090C0;
-  --border-default:       #1E55B5;
+  --border-default:       #2258C0;
   --border-active:        #FF1030;
 }
 
@@ -194,7 +194,7 @@
   font-family: var(--font-arcade);
   font-size: 14px;
   color: #FFD60A;
-  text-shadow: 0 0 14px rgba(255,214,10,0.9), 2px 2px 0 #091E3C;
+  text-shadow: 0 0 14px rgba(255,214,10,0.9), 2px 2px 0 #0C2648;
   pointer-events: none;
   white-space: nowrap;
 }
@@ -292,7 +292,7 @@
   100% { background-position:  400px 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #1245A8 25%, #3385FF 50%, #1245A8 75%);
+  background: linear-gradient(90deg, #183D80 25%, #3385FF 50%, #183D80 75%);
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.6s ease-in-out infinite;
   border-radius: 8px;
@@ -366,11 +366,11 @@
 
 /* ── Scrollbar ───────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #091E3C; }
+::-webkit-scrollbar-track { background: #0C2648; }
 ::-webkit-scrollbar-thumb {
-  background: #1E55B5;
+  background: #2258C0;
   border-radius: 999px;
-  border: 2px solid #091E3C;
+  border: 2px solid #0C2648;
 }
 ::-webkit-scrollbar-thumb:hover { background: #3385FF; }
 
@@ -415,8 +415,8 @@
 
 /* Outer bar glow pulse */
 @keyframes bar-outer-glow {
-  0%, 100% { box-shadow: 0 0 0 1px #091E3C, 0 0 12px rgba(255,214,10,0.15), inset 0 0 0 1px rgba(0,0,0,0.8); }
-  50%       { box-shadow: 0 0 0 1px #091E3C, 0 0 24px rgba(255,214,10,0.30), inset 0 0 0 1px rgba(0,0,0,0.8); }
+  0%, 100% { box-shadow: 0 0 0 1px #0C2648, 0 0 12px rgba(255,214,10,0.15), inset 0 0 0 1px rgba(0,0,0,0.8); }
+  50%       { box-shadow: 0 0 0 1px #0C2648, 0 0 24px rgba(255,214,10,0.30), inset 0 0 0 1px rgba(0,0,0,0.8); }
 }
 .bar-frame-pulse {
   animation: bar-outer-glow 3s ease-in-out infinite;
