@@ -44,71 +44,71 @@
 }
 
 :root {
-  /* ── Govbidder brand (dark arcade — vivid) ─── */
-  --background:           #071D38;  /* deeper navy for contrast */
+  /* ── Govbidder brand (dark arcade — VIVID) ─── */
+  --background:           #091E3C;  /* navy saturado, no apagado */
   --foreground:           #FFFFFF;
 
-  --card:                 #0F2E52;  /* clearly distinct from bg */
+  --card:                 #1245A8;  /* azul vivido — pop notorio contra el fondo */
   --card-foreground:      #FFFFFF;
-  --popover:              #0F2E52;
+  --popover:              #1245A8;
   --popover-foreground:   #FFFFFF;
 
-  /* Primary: Rojo USA — más vivido */
-  --primary:              #F01535;
+  /* Primary: Rojo USA — máxima saturación */
+  --primary:              #FF1030;
   --primary-foreground:   #FFFFFF;
 
-  /* Secondary: Azul eléctrico */
-  --secondary:            #2166C4;
+  /* Secondary: azul eléctrico */
+  --secondary:            #3385FF;
   --secondary-foreground: #FFFFFF;
 
   /* Muted */
-  --muted:                #1D3A5E;
-  --muted-foreground:     #BDC9DC;
+  --muted:                #1A3E82;
+  --muted-foreground:     #C8D8F8;
 
   /* Accent: dorado arcade */
   --accent:               #FFD60A;
-  --accent-foreground:    #071D38;
+  --accent-foreground:    #091E3C;
 
-  --destructive:          #F01535;
-  --border:               #1E4070;
-  --input:                #071D38;
-  --ring:                 rgba(240, 21, 53, 0.45);
+  --destructive:          #FF1030;
+  --border:               #1E55B5;
+  --input:                #091E3C;
+  --ring:                 rgba(255, 16, 48, 0.50);
 
   /* Charts */
-  --chart-1: #F01535;
+  --chart-1: #FF1030;
   --chart-2: #FFD60A;
-  --chart-3: #00E882;
-  --chart-4: #2166C4;
-  --chart-5: #BDC9DC;
+  --chart-3: #00F090;
+  --chart-4: #3385FF;
+  --chart-5: #C8D8F8;
 
   /* Radius — 12px base */
   --radius: 0.75rem;
 
   /* Sidebar */
-  --sidebar:                   #071D38;
+  --sidebar:                   #091E3C;
   --sidebar-foreground:        #FFFFFF;
-  --sidebar-primary:           #F01535;
+  --sidebar-primary:           #FF1030;
   --sidebar-primary-foreground:#FFFFFF;
-  --sidebar-accent:            rgba(255,255,255,0.09);
+  --sidebar-accent:            rgba(255,255,255,0.10);
   --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border:            #1E4070;
-  --sidebar-ring:              #F01535;
+  --sidebar-border:            #1E55B5;
+  --sidebar-ring:              #FF1030;
 }
 
 /* ── Custom tokens (no Tailwind mapping needed) ─ */
 :root {
-  --govbidder-blue:       #071D38;
-  --govbidder-blue-mid:   #0F2E52;
-  --govbidder-blue-light: #2166C4;
-  --govbidder-red:        #F01535;
-  --govbidder-red-deep:   #B80E27;
+  --govbidder-blue:       #091E3C;
+  --govbidder-blue-mid:   #1245A8;
+  --govbidder-blue-light: #3385FF;
+  --govbidder-red:        #FF1030;
+  --govbidder-red-deep:   #CC0022;
   --arcade-gold:          #FFD60A;
-  --arcade-green:         #00E882;
-  --locked-gray:          #1D3A5E;
-  --text-secondary-color: #BDC9DC;
-  --text-muted-color:     #6A80A0;
-  --border-default:       #1E4070;
-  --border-active:        #F01535;
+  --arcade-green:         #00F090;
+  --locked-gray:          #1A3E82;
+  --text-secondary-color: #C8D8F8;
+  --text-muted-color:     #7090C0;
+  --border-default:       #1E55B5;
+  --border-active:        #FF1030;
 }
 
 @layer base {
@@ -194,7 +194,7 @@
   font-family: var(--font-arcade);
   font-size: 14px;
   color: #FFD60A;
-  text-shadow: 0 0 14px rgba(255,214,10,0.9), 2px 2px 0 #071D38;
+  text-shadow: 0 0 14px rgba(255,214,10,0.9), 2px 2px 0 #091E3C;
   pointer-events: none;
   white-space: nowrap;
 }
@@ -281,7 +281,7 @@
   100% { background-position:  200% center; }
 }
 .progress-shimmer {
-  background: linear-gradient(90deg, #F01535 0%, #ff6b6a 40%, #F01535 60%, #A11D2E 100%);
+  background: linear-gradient(90deg, #FF1030 0%, #ff6b6a 40%, #FF1030 60%, #A11D2E 100%);
   background-size: 200% auto;
   animation: progress-shimmer 1.2s linear infinite;
 }
@@ -292,7 +292,7 @@
   100% { background-position:  400px 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #0F2E52 25%, #2166C4 50%, #0F2E52 75%);
+  background: linear-gradient(90deg, #1245A8 25%, #3385FF 50%, #1245A8 75%);
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.6s ease-in-out infinite;
   border-radius: 8px;
@@ -366,13 +366,13 @@
 
 /* ── Scrollbar ───────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #071D38; }
+::-webkit-scrollbar-track { background: #091E3C; }
 ::-webkit-scrollbar-thumb {
-  background: #1E4070;
+  background: #1E55B5;
   border-radius: 999px;
-  border: 2px solid #071D38;
+  border: 2px solid #091E3C;
 }
-::-webkit-scrollbar-thumb:hover { background: #2166C4; }
+::-webkit-scrollbar-thumb:hover { background: #3385FF; }
 
 /* ── Cinematic Health Bar ────────────────────── */
 
@@ -415,8 +415,8 @@
 
 /* Outer bar glow pulse */
 @keyframes bar-outer-glow {
-  0%, 100% { box-shadow: 0 0 0 1px #071D38, 0 0 12px rgba(255,214,10,0.15), inset 0 0 0 1px rgba(0,0,0,0.8); }
-  50%       { box-shadow: 0 0 0 1px #071D38, 0 0 24px rgba(255,214,10,0.30), inset 0 0 0 1px rgba(0,0,0,0.8); }
+  0%, 100% { box-shadow: 0 0 0 1px #091E3C, 0 0 12px rgba(255,214,10,0.15), inset 0 0 0 1px rgba(0,0,0,0.8); }
+  50%       { box-shadow: 0 0 0 1px #091E3C, 0 0 24px rgba(255,214,10,0.30), inset 0 0 0 1px rgba(0,0,0,0.8); }
 }
 .bar-frame-pulse {
   animation: bar-outer-glow 3s ease-in-out infinite;
