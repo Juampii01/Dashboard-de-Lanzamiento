@@ -142,6 +142,7 @@ interface CapabilityStatementPDFProps {
   data: CapabilityStatementData;
   generatedAt: string;
   images?: string[];
+  logoDataUri?: string | null;
 }
 
 function SectionTitle({ children }: { children: string }) {
@@ -167,6 +168,7 @@ export function CapabilityStatementPDF({
   data,
   generatedAt,
   images = [],
+  logoDataUri,
 }: CapabilityStatementPDFProps) {
   const cd = companyData;
   const heroImg = images[0] ?? null;                 // cover hero
@@ -224,6 +226,14 @@ export function CapabilityStatementPDF({
         ) : null}
 
         <View style={styles.coverHeadingWrap}>
+          {logoDataUri ? (
+            <View style={{ marginBottom: 14 }}>
+              <Image
+                src={logoDataUri}
+                style={{ width: 64, height: 64, objectFit: "contain", borderRadius: 8, backgroundColor: "rgba(255,255,255,0.92)", padding: 4 }}
+              />
+            </View>
+          ) : null}
           <Text style={styles.coverCompany}>{cd.companyName}</Text>
           {data.tagline ? <Text style={styles.coverTagline}>{data.tagline}</Text> : null}
           {data.value_proposition ? <Text style={styles.coverValueProp}>{data.value_proposition}</Text> : null}
@@ -258,9 +268,17 @@ export function CapabilityStatementPDF({
         {/* ── Header ── */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View style={{ maxWidth: "66%" }}>
-              <Text style={styles.companyName}>{cd.companyName}</Text>
-              {data.tagline ? <Text style={styles.tagline}>{data.tagline}</Text> : null}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, maxWidth: "66%" }}>
+              {logoDataUri ? (
+                <Image
+                  src={logoDataUri}
+                  style={{ width: 36, height: 36, objectFit: "contain", borderRadius: 4, backgroundColor: "rgba(255,255,255,0.9)", padding: 2, flexShrink: 0 }}
+                />
+              ) : null}
+              <View>
+                <Text style={styles.companyName}>{cd.companyName}</Text>
+                {data.tagline ? <Text style={styles.tagline}>{data.tagline}</Text> : null}
+              </View>
             </View>
             <Text style={styles.csTitle}>CAPABILITY{"\n"}STATEMENT</Text>
           </View>

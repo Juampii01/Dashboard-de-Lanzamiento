@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
@@ -90,6 +91,7 @@ interface Day1PDFProps {
   naicsDescription?: string;
   naicsReasoning?: string;
   generatedAt: string;
+  logoDataUri?: string | null;
 }
 
 function SectionTitle({ children }: { children: string }) {
@@ -121,6 +123,7 @@ export function Day1AnalysisPDF({
   naicsDescription,
   naicsReasoning,
   generatedAt,
+  logoDataUri,
 }: Day1PDFProps) {
   return (
     <Document>
@@ -128,9 +131,17 @@ export function Day1AnalysisPDF({
         {/* ── Header ── */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View style={{ maxWidth: "66%" }}>
-              <Text style={styles.companyName}>{companyName}</Text>
-              <Text style={styles.tagline}>Govbidder Challenge — Perfil Estratégico Día 1</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, maxWidth: "66%" }}>
+              {logoDataUri ? (
+                <Image
+                  src={logoDataUri}
+                  style={{ width: 38, height: 38, objectFit: "contain", borderRadius: 4, backgroundColor: "#fff", padding: 2 }}
+                />
+              ) : null}
+              <View>
+                <Text style={styles.companyName}>{companyName}</Text>
+                <Text style={styles.tagline}>Govbidder Challenge — Perfil Estratégico Día 1</Text>
+              </View>
             </View>
             <Text style={styles.docTitle}>STRATEGIC{"\n"}PROFILE{"\n"}DAY 1</Text>
           </View>

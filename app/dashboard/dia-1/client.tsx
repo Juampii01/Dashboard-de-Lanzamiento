@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import { createClient } from "@/lib/supabase/client";
@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
-import { CheckCircle2, Download, Loader2, PlayCircle } from "lucide-react";
+import { CheckCircle2, Download, Loader2, PlayCircle, ImagePlus, Trash2 } from "lucide-react";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 import { JoinCallButton } from "@/components/join-call-button";
@@ -38,6 +38,60 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   const [saving, setSaving] = useState(false);
   const [naicsResult, setNaicsResult] = useState<NAICSResult | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  // ── Logo state ──────────────────────────────────────────────────────────────
+  const [logoUrl, setLogoUrl] = useState<string | null>(
+    (existingProfile as Record<string, unknown> | null)?.logo_url as string | null ?? null
+  );
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("El logo no puede superar 3MB.");
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const res = await fetch("/api/profile/logo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ base64 }),
+      });
+      const data = await res.json() as { ok?: boolean; logo_url?: string; error?: string };
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "upload_failed");
+
+      setLogoUrl(data.logo_url ?? null);
+      toast.success("¡Logo subido! Aparecerá en todos tus documentos.");
+    } catch {
+      toast.error("Error al subir el logo. Intentá de nuevo.");
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  }
+
+  async function handleLogoRemove() {
+    setUploadingLogo(true);
+    try {
+      await fetch("/api/profile/logo", { method: "DELETE" });
+      setLogoUrl(null);
+      toast.success("Logo eliminado.");
+    } catch {
+      toast.error("Error al eliminar el logo.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
 
   const [form, setForm] = useState({
     company_name: existingProfile?.company_name ?? "",
@@ -262,6 +316,84 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             </p>
           </div>
           <JoinCallButton day={1} />
+        </CardContent>
+      </Card>
+
+      {/* ── Logo de empresa ─────────────────────────────────────────────────── */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Logo de tu Empresa</CardTitle>
+          <CardDescription>
+            Opcional — si lo subís, aparecerá en todos tus documentos PDF
+            (Análisis Día 1, Mapa de Códigos y Capability Statement).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-5">
+            {/* Preview */}
+            <div
+              className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center"
+              style={{
+                background: logoUrl ? "#fff" : "rgba(255,255,255,0.04)",
+                border: logoUrl
+                  ? "2px solid rgba(59,130,246,0.35)"
+                  : "2px dashed rgba(255,255,255,0.15)",
+              }}
+            >
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoUrl}
+                  alt="Logo empresa"
+                  className="w-full h-full object-contain p-1"
+                />
+              ) : (
+                <ImagePlus className="w-7 h-7" style={{ color: "rgba(255,255,255,0.25)" }} />
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2">
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handleLogoUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploadingLogo}
+                onClick={() => logoInputRef.current?.click()}
+                className="gap-2"
+              >
+                {uploadingLogo ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <ImagePlus className="w-3.5 h-3.5" />
+                )}
+                {logoUrl ? "Cambiar logo" : "Subir logo"}
+              </Button>
+              {logoUrl && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={uploadingLogo}
+                  onClick={handleLogoRemove}
+                  className="gap-2 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Quitar logo
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">
+                PNG, JPG o WebP · Máx 3MB
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 

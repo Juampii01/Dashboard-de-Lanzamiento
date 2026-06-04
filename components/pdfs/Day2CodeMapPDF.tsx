@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
@@ -116,6 +117,7 @@ interface Day2PDFProps {
   relatedCodes: RelatedCode[];
   keywordsExpanded: string[];
   generatedAt: string;
+  logoDataUri?: string | null;
 }
 
 const TYPE_ORDER = ["NAICS", "PSC", "SIC", "UNSPSC", "NIGP"];
@@ -143,6 +145,7 @@ export function Day2CodeMapPDF({
   relatedCodes,
   keywordsExpanded,
   generatedAt,
+  logoDataUri,
 }: Day2PDFProps) {
   const byType = TYPE_ORDER.map((t) => ({
     type: t,
@@ -162,9 +165,17 @@ export function Day2CodeMapPDF({
         {/* ── Header ── */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View style={{ maxWidth: "66%" }}>
-              <Text style={styles.companyName}>{companyName}</Text>
-              <Text style={styles.tagline}>Govbidder Challenge — Mapa de Códigos Día 2</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10, maxWidth: "66%" }}>
+              {logoDataUri ? (
+                <Image
+                  src={logoDataUri}
+                  style={{ width: 38, height: 38, objectFit: "contain", borderRadius: 4, backgroundColor: "#fff", padding: 2 }}
+                />
+              ) : null}
+              <View>
+                <Text style={styles.companyName}>{companyName}</Text>
+                <Text style={styles.tagline}>Govbidder Challenge — Mapa de Códigos Día 2</Text>
+              </View>
             </View>
             <Text style={styles.docTitle}>CODE MAP{"\n"}DAY 2</Text>
           </View>
