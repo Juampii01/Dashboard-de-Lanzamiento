@@ -15,7 +15,7 @@ WHERE capsule_id IN (
 -- DÍA 1 — MISIÓN 1 · Podcast: Nayo Escobar
 -- ══════════════════════════════════════════════════════════════════════════
 DO $$
-DECLARE cap uuid;
+DECLARE cap text;
 BEGIN
   SELECT id INTO cap FROM video_capsules
   WHERE day_number = 1 AND video_type = 'podcast' LIMIT 1;
@@ -50,7 +50,7 @@ END $$;
 -- DÍA 1 — MISIÓN 2 · Video: Mirna - Caso de Éxito
 -- ══════════════════════════════════════════════════════════════════════════
 DO $$
-DECLARE cap uuid;
+DECLARE cap text;
 BEGIN
   SELECT id INTO cap FROM video_capsules
   WHERE day_number = 1 AND video_type != 'podcast' LIMIT 1;
@@ -93,7 +93,7 @@ END $$;
 -- DÍA 2 — MISIÓN 1 · Podcast: Sinergéticos
 -- ══════════════════════════════════════════════════════════════════════════
 DO $$
-DECLARE cap uuid;
+DECLARE cap text;
 BEGIN
   SELECT id INTO cap FROM video_capsules
   WHERE day_number = 2 AND video_type = 'podcast' LIMIT 1;
@@ -128,7 +128,7 @@ END $$;
 -- DÍA 2 — MISIÓN 2 · Video: Eriafna - Caso de Éxito
 -- ══════════════════════════════════════════════════════════════════════════
 DO $$
-DECLARE cap uuid;
+DECLARE cap text;
 BEGIN
   SELECT id INTO cap FROM video_capsules
   WHERE day_number = 2 AND video_type != 'podcast' LIMIT 1;
@@ -155,7 +155,7 @@ END $$;
 -- DÍA 3 — MISIÓN 1 · Podcast: Vladimir Jaquez
 -- ══════════════════════════════════════════════════════════════════════════
 DO $$
-DECLARE cap uuid;
+DECLARE cap text;
 BEGIN
   SELECT id INTO cap FROM video_capsules
   WHERE day_number = 3 AND video_type = 'podcast' LIMIT 1;
@@ -194,7 +194,7 @@ END $$;
 -- DÍA 3 — MISIÓN 2 · Video: Sandy Tavares - Caso de Éxito
 -- ══════════════════════════════════════════════════════════════════════════
 DO $$
-DECLARE cap uuid;
+DECLARE cap text;
 BEGIN
   SELECT id INTO cap FROM video_capsules
   WHERE day_number = 3 AND video_type != 'podcast' LIMIT 1;
@@ -229,7 +229,7 @@ END $$;
 -- DÍA 4 — MISIÓN 1 · Podcast: Diana González
 -- ══════════════════════════════════════════════════════════════════════════
 DO $$
-DECLARE cap uuid;
+DECLARE cap text;
 BEGIN
   SELECT id INTO cap FROM video_capsules
   WHERE day_number = 4 AND video_type = 'podcast' LIMIT 1;
@@ -264,7 +264,7 @@ END $$;
 -- DÍA 4 — MISIÓN 2 · Video: Carlos Suárez - Caso de Éxito
 -- ══════════════════════════════════════════════════════════════════════════
 DO $$
-DECLARE cap uuid;
+DECLARE cap text;
 BEGIN
   SELECT id INTO cap FROM video_capsules
   WHERE day_number = 4 AND video_type != 'podcast' LIMIT 1;
