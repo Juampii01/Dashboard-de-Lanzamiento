@@ -1,4 +1,3 @@
-\set ON_ERROR_STOP on
 BEGIN;
 
 -- ─── get_leaderboard() v3 — exclude admins ───────────────────────────────────
