@@ -284,23 +284,14 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
             ))}
           </div>
 
-          {/* Lock / Close */}
+          {/* Lock — always locked until the required action is completed */}
           <div className="shrink-0">
-            {allDone ? (
-              <button
-                onClick={onClose}
-                style={{ color: "#8DA2C4", fontSize: "16px", lineHeight: 1 }}
-              >
-                ✕
-              </button>
-            ) : (
-              <span
-                title="Completá el quiz para cerrar"
-                style={{ fontSize: "13px", color: "#647FA8", cursor: "default" }}
-              >
-                🔒
-              </span>
-            )}
+            <span
+              title="Completá la misión para continuar"
+              style={{ fontSize: "13px", color: "#647FA8", cursor: "default" }}
+            >
+              🔒
+            </span>
           </div>
         </div>
 
@@ -393,10 +384,10 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
               ) : (
                 <>
                   {/* ── Podcast CTA (shown after Mission 2 completes) ── */}
-                  {podcastUrl && (
+                  {podcastUrl ? (
                     <div className="pt-2 space-y-2">
                       <p className="text-xs pt-1" style={{ color: "#C9D6EC" }}>
-                        ¡Completaste ambas misiones! Ahora podés escuchar el podcast:
+                        ¡Completaste ambas misiones! Abrí el podcast para terminar:
                       </p>
                       <button
                         onClick={handlePodcast}
@@ -419,16 +410,32 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                           ? "..."
                           : "🎙 Ver podcast → +30 XP ↗"}
                       </button>
+                      {/* Cerrar solo aparece después de abrir el podcast */}
+                      {podcastState === "done" && (
+                        <button
+                          onClick={onClose}
+                          className="w-full py-2.5 rounded-xl font-bold text-sm"
+                          style={{
+                            background: "rgba(0,214,122,0.08)",
+                            border: "1.5px solid rgba(0,214,122,0.25)",
+                            color: "#00D67A",
+                            fontFamily: "var(--font-sans)",
+                          }}
+                        >
+                          ✓ Listo — Cerrar
+                        </button>
+                      )}
                     </div>
+                  ) : (
+                    /* Sin podcast URL: cerrar directo */
+                    <button
+                      onClick={onClose}
+                      className="text-xs pt-1"
+                      style={{ color: "#8DA2C4", fontFamily: "var(--font-sans)", textDecoration: "underline" }}
+                    >
+                      Cerrar
+                    </button>
                   )}
-
-                  <button
-                    onClick={onClose}
-                    className="text-xs pt-1"
-                    style={{ color: "#8DA2C4", fontFamily: "var(--font-sans)", textDecoration: "underline" }}
-                  >
-                    Cerrar
-                  </button>
                 </>
               )}
             </div>
