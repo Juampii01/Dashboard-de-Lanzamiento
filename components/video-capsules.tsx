@@ -215,7 +215,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
       const data = await res.json() as {
         ok: boolean; points?: number; total?: number;
         cooldown?: boolean; nextInSeconds?: number;
-        alreadyWatched?: boolean; combo?: number;
+        alreadyWatched?: boolean;
       };
 
       if (data.ok && data.alreadyWatched) {
@@ -228,10 +228,6 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
         window.dispatchEvent(new CustomEvent("xp-gained", {
           detail: { delta: data.points, total: data.total, source: "capsule" },
         }));
-
-        if (data.combo != null) {
-          window.dispatchEvent(new CustomEvent("combo-progress", { detail: { progress: data.combo } }));
-        }
 
         if (markBtnRef.current) {
           const rect = markBtnRef.current.getBoundingClientRect();

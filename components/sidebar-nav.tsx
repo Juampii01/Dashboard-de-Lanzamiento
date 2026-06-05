@@ -21,7 +21,6 @@ interface SidebarNavProps {
     last_ad_watched_at?: string | null;
     avatar_url?: string | null;
     hotmart_transaction_id?: string | null;
-    combo_progress?: number;
   };
   email: string;
   progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }>;
@@ -93,7 +92,7 @@ function DayNavItem({
             ? "#00D67A"
             : isUnlocked
             ? "#fff"
-            : "#5A6B85",
+            : "#8DA2C4",
           border: isCompleted
             ? "1px solid rgba(0,214,122,0.3)"
             : isUnlocked
@@ -110,7 +109,7 @@ function DayNavItem({
           style={{
             fontSize: "11.5px",
             fontWeight: 700,
-            color: isLocked ? "#5A6B85" : "#FFFFFF",
+            color: isLocked ? "#8DA2C4" : "#FFFFFF",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -122,7 +121,7 @@ function DayNavItem({
         <div
           style={{
             fontSize: "9.5px",
-            color: isCompleted ? "#00D67A" : isUnlocked ? "#D7263D" : "#5A6B85",
+            color: isCompleted ? "#00D67A" : isUnlocked ? "#D7263D" : "#8DA2C4",
             marginTop: "1px",
           }}
         >
@@ -199,9 +198,9 @@ function EntregableRow({
         <div style={{ fontSize: "11px", fontWeight: 600, color: "#FFFFFF", lineHeight: 1.2 }}>
           {name}
         </div>
-        <div style={{ fontSize: "9px", color: "#5A6B85" }}>{sub}</div>
+        <div style={{ fontSize: "9px", color: "#8DA2C4" }}>{sub}</div>
       </div>
-      <span style={{ fontSize: available ? "11px" : "9px", color: "#5A6B85", flexShrink: 0 }}>
+      <span style={{ fontSize: available ? "11px" : "9px", color: "#8DA2C4", flexShrink: 0 }}>
         {available ? "↓" : "🔒"}
       </span>
     </div>
@@ -270,7 +269,7 @@ export function SidebarNav({
               <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 900, color: "#FFFFFF", lineHeight: 1.2 }}>
                 Govbidder
               </div>
-              <div style={{ fontSize: "7px", color: "#5A6B85", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+              <div style={{ fontSize: "7px", color: "#8DA2C4", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
                 Govbidder Challenge
               </div>
             </div>
@@ -299,7 +298,7 @@ export function SidebarNav({
               onMouseEnter={(e) => {
                 const el = e.currentTarget as HTMLDivElement;
                 el.style.background = "rgba(255,255,255,0.09)";
-                el.style.borderColor = "#3A5070";
+                el.style.borderColor = "#647FA8";
               }}
               onMouseLeave={(e) => {
                 const el = e.currentTarget as HTMLDivElement;
@@ -324,7 +323,7 @@ export function SidebarNav({
                   {profile.full_name}
                 </div>
                 <div style={{
-                  fontSize: "9.5px", color: "#5A6B85",
+                  fontSize: "9.5px", color: "#8DA2C4",
                   whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                 }}>
                   {email}
@@ -332,7 +331,7 @@ export function SidebarNav({
               </div>
 
               {/* Ícono de editar */}
-              <span style={{ fontSize: "11px", color: "#3A5070", flexShrink: 0 }}>✏️</span>
+              <span style={{ fontSize: "11px", color: "#647FA8", flexShrink: 0 }}>✏️</span>
             </div>
 
             {/* Logout separado del card */}
@@ -346,7 +345,7 @@ export function SidebarNav({
                   background: "rgba(255,255,255,0.04)",
                   border: "1px solid #1E3A5C",
                   borderRadius: "8px",
-                  color: "#5A6B85", cursor: "pointer",
+                  color: "#8DA2C4", cursor: "pointer",
                   transition: "background 0.15s, color 0.15s",
                 }}
                 onMouseEnter={(e) => {
@@ -358,7 +357,7 @@ export function SidebarNav({
                 onMouseLeave={(e) => {
                   const b = e.currentTarget as HTMLButtonElement;
                   b.style.background = "rgba(255,255,255,0.04)";
-                  b.style.color = "#5A6B85";
+                  b.style.color = "#8DA2C4";
                   b.style.borderColor = "#1E3A5C";
                 }}
               >
@@ -387,7 +386,7 @@ export function SidebarNav({
           style={{
             fontSize: "8px",
             fontWeight: 700,
-            color: "#5A6B85",
+            color: "#8DA2C4",
             textTransform: "uppercase",
             letterSpacing: "0.14em",
             fontFamily: "var(--font-arcade)",
@@ -422,7 +421,7 @@ export function SidebarNav({
           style={{
             fontSize: "8px",
             fontWeight: 700,
-            color: "#5A6B85",
+            color: "#8DA2C4",
             textTransform: "uppercase",
             letterSpacing: "0.14em",
             fontFamily: "var(--font-arcade)",

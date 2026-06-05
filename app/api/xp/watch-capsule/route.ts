@@ -103,11 +103,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, points, total: null });
   }
 
-  // Combo progress — video da el mayor incremento
-  const { data: comboVal } = await supabase.rpc("add_combo_progress", {
-    p_user_id: user.id,
-    p_delta: 20,
-  });
-
-  return NextResponse.json({ ok: true, points, total: newTotal, combo: comboVal ?? undefined });
+  return NextResponse.json({ ok: true, points, total: newTotal });
 }

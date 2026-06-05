@@ -61,7 +61,6 @@ export function XpEngine() {
           total?: number;
           nextInSeconds?: number;
           capped?: boolean;
-          combo?: number;
         };
 
         if (data.awarded && data.points && data.total != null) {
@@ -70,11 +69,6 @@ export function XpEngine() {
               detail: { delta: data.points, total: data.total, source: "time" },
             })
           );
-          if (data.combo != null) {
-            window.dispatchEvent(
-              new CustomEvent("combo-progress", { detail: { progress: data.combo } })
-            );
-          }
         }
 
         // Schedule next ping: server tells us exactly when cooldown expires,
@@ -112,12 +106,6 @@ export function XpEngine() {
               detail: { delta: data.points, total: data.total, source: "avatar" },
             })
           );
-          const combo = (data as { combo?: number }).combo;
-          if (combo != null) {
-            window.dispatchEvent(
-              new CustomEvent("combo-progress", { detail: { progress: combo } })
-            );
-          }
         }
       } catch {
         // silent — easter egg, not critical

@@ -30,16 +30,6 @@ export async function POST() {
     return NextResponse.json({ awarded: false }, { status: 500 });
   }
 
-  // Incrementar combo en paralelo (non-blocking, non-critical)
-  let combo: number | undefined;
-  if (data?.awarded) {
-    const { data: comboVal } = await supabase.rpc("add_combo_progress", {
-      p_user_id: user.id,
-      p_delta: 10,
-    });
-    combo = comboVal ?? undefined;
-  }
-
   // data shape: { awarded, points?, total?, nextInSeconds?, capped?, error? }
-  return NextResponse.json({ ...data, combo });
+  return NextResponse.json(data);
 }

@@ -49,7 +49,7 @@ async function getLayoutData(userId: string) {
   const [{ data: user }, { data: progress }, { data: toggles }] = await Promise.all([
     supabase
       .from("users")
-      .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id, combo_progress, last_ad_watched_at, avatar_url")
+      .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id, last_ad_watched_at, avatar_url")
       .eq("id", userId)
       .single(),
     supabase
@@ -198,7 +198,6 @@ export default async function DashboardLayout({
             last_ad_watched_at:      (profile as { last_ad_watched_at?: string | null })?.last_ad_watched_at ?? null,
             avatar_url:              (profile as { avatar_url?: string | null })?.avatar_url ?? null,
             hotmart_transaction_id:  (profile as { hotmart_transaction_id?: string | null })?.hotmart_transaction_id ?? null,
-            combo_progress:          (profile as { combo_progress?: number })?.combo_progress ?? 0,
           }}
           email={userEmail}
           progressMap={progressMapFromLayout}
