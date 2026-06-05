@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { isDayUnlocked } from "@/lib/supabase/day-access";
 
 const COOLDOWN_MINUTES = 5;
 
@@ -54,14 +55,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Get capsule points
+  // Get capsule metadata (points + day_number for the unlock gate)
   const { data: capsule } = await supabase
     .from("video_capsules")
-    .select("points_reward")
+    .select("points_reward, day_number")
     .eq("id", capsuleId)
     .single();
 
   const points = capsule?.points_reward ?? 10;
+
+  // ── Day-unlock gate ───────────────────────────────────────────────────────
+  // Derive day_number from the capsule and verify the user (or a global toggle)
+  // has that day unlocked — same logic as /api/quiz/submit.
+  // Admins skip this check via isDayUnlocked's third pass.
+  if (capsule?.day_number != null) {
+    const unlocked = await isDayUnlocked(user.id, capsule.day_number);
+    if (!unlocked) {
+      return NextResponse.json({ ok: false, error: "day_locked" }, { status: 403 });
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // Record completion — unique constraint prevents double-award on concurrent requests
   const { error: insertError } = await supabase.from("video_capsule_completions").insert({

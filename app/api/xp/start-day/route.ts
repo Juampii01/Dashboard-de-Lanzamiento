@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { isDayUnlocked } from "@/lib/supabase/day-access";
 
 const POINTS = 25;
 
@@ -12,6 +13,15 @@ export async function POST(req: NextRequest) {
   if (!day || day < 1 || day > 4) {
     return NextResponse.json({ awarded: false, error: "invalid_day" }, { status: 400 });
   }
+
+  // ── Day-unlock gate ───────────────────────────────────────────────────────
+  // Mirrors the gate in /api/quiz/submit: checks day_progress, admin_toggles,
+  // and users.is_admin before allowing XP to be awarded.
+  const unlocked = await isDayUnlocked(user.id, day);
+  if (!unlocked) {
+    return NextResponse.json({ awarded: false, error: "day_locked" }, { status: 403 });
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // Idempotent: if a day_progress row already exists, the day was already started
   const { data: existing } = await supabase
