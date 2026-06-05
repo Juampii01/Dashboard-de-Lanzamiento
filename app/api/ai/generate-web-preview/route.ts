@@ -12,6 +12,7 @@ const bodySchema = z.object({
   primaryNaics: z.string().optional(),
   keywords: z.array(z.string()).optional(),
   usState: z.string().optional(),
+  logoUrl: z.string().url().optional(),
 });
 
 interface WebPreviewResult {
@@ -71,6 +72,7 @@ export async function POST(request: Request) {
   const problemSolved = sanitizeInput(parsed.data.problemSolved);
   const keywords      = parsed.data.keywords?.map(sanitizeInput);
   const usState       = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
+  const logoUrl       = parsed.data.logoUrl ?? null;  // already validated as URL by zod
 
   // Fetch real photos for the site (degrades to [] without UNSPLASH_ACCESS_KEY)
   // Always lead with `niche` so the hero image matches the actual business type,
@@ -125,10 +127,22 @@ IMÁGENES${imageBlock}
 ═══════════════════════════════════════════
 
 ═══════════════════════════════════════════
+LOGO DE LA EMPRESA
+═══════════════════════════════════════════
+${logoUrl
+  ? `El cliente subió su logo. Usá EXACTAMENTE esta URL como <img> en la barra de navegación y en el footer:
+LOGO_URL: ${logoUrl}
+OBLIGATORIO:
+- En la nav, reemplazá el texto del logo por: <img src="${logoUrl}" alt="${companyName}" style="height:48px;width:auto;object-fit:contain;max-width:180px;display:block;">
+- En el footer, igual: <img src="${logoUrl}" alt="${companyName}" style="height:40px;width:auto;object-fit:contain;max-width:160px;display:block;margin-bottom:12px;">
+- NO agregues texto del nombre de la empresa junto al logo en la nav — el logo ya lo comunica.`
+  : `No hay logo — usá el nombre de la empresa como texto en la nav y en el footer.`}
+
+═══════════════════════════════════════════
 REGLAS TÉCNICAS
 ═══════════════════════════════════════════
 - NO Tailwind, NO frameworks, NO <script>, NO CDN, NO JavaScript.
-- Las ÚNICAS imágenes permitidas son las URLs provistas arriba (<img src="...">) o gradientes/colores. No inventes otras URLs.
+- Las ÚNICAS URLs de imagen permitidas son: (1) las URLs de Unsplash provistas arriba, (2) la LOGO_URL del cliente si fue provista. No inventes otras URLs.
 - TODO el estilo en el campo "css" (CSS plano, completo, abundante y detallado).
 - HTML con clases semánticas claras.
 - Copy en INGLÉS, cálido y profesional, orientado a vender al cliente. Sin relleno genérico — específico al negocio.

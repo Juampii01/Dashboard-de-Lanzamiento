@@ -46,7 +46,7 @@ const PORTALS: Portal[] = [
 const TIER_META: Record<PortalTier, { label: string; color: string; bg: string; border: string; desc: string }> = {
   obligatorio: { label: "OBLIGATORIO", color: "#D7263D", bg: "rgba(215,38,61,0.08)", border: "rgba(215,38,61,0.3)", desc: "Sin estos registros no podés recibir un contrato. Empezá por acá." },
   alto:        { label: "ALTO ROI",    color: "#0056D6", bg: "rgba(0,86,214,0.06)",  border: "rgba(0,86,214,0.25)",  desc: "Donde están las oportunidades reales para tu perfil." },
-  oportunista: { label: "OPORTUNISTA", color: "#5A6B85", bg: "rgba(90,107,133,0.06)", border: "rgba(90,107,133,0.25)", desc: "Útiles según tu situación específica." },
+  oportunista: { label: "OPORTUNISTA", color: "#8DA2C4", bg: "rgba(90,107,133,0.06)", border: "rgba(90,107,133,0.25)", desc: "Útiles según tu situación específica." },
 };
 
 const LOADING_STEPS = [
@@ -159,6 +159,7 @@ ${webResult.html}
           primaryNaics: profile.primary_naics ?? "",
           keywords: keywordsExpanded.slice(0, 5),
           usState: usState || undefined,
+          logoUrl: (profile as Record<string, unknown>).logo_url as string | undefined || undefined,
         }),
       });
 
@@ -353,7 +354,7 @@ ${webResult.html}
             style={{ background: "rgba(255,214,10,0.06)", border: "1px solid rgba(255,214,10,0.3)" }}
           >
             <ArrowRight className="w-5 h-5 flex-shrink-0" style={{ color: "#FFD60A" }} />
-            <p className="text-sm" style={{ color: "#A8B5CC" }}>
+            <p className="text-sm" style={{ color: "#C9D6EC" }}>
               Este copy es la base de tu <strong style={{ color: "#FFD60A" }}>Capability Statement</strong> del Día 4 —
               el documento que un Contracting Officer lee en 60 segundos para decidir si trabaja con vos.
             </p>
