@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Shield, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Shield, LogOut, Menu, X } from "lucide-react";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 import { ResetDashboardButton } from "@/components/reset-dashboard-button";
 import { ProfileButton } from "@/components/profile-button";
@@ -229,6 +231,11 @@ export function SidebarNav({
   const day3Done = progressMap[3]?.is_completed ?? false;
   const day4Done = progressMap[4]?.is_completed ?? false;
 
+  // Mobile drawer state — close automatically on navigation
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  useEffect(() => { setOpen(false); }, [pathname]);
+
   return (
     <>
       {/* Keyframes for the pulse dot */}
@@ -242,7 +249,20 @@ export function SidebarNav({
         }
       `}</style>
 
+      {/* Hamburger trigger — visible only on mobile (CSS) */}
+      <button
+        className="gb-hamburger"
+        aria-label={open ? "Cerrar menú" : "Abrir menú"}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {open ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
+      {/* Overlay behind the open drawer — only rendered when open (mobile) */}
+      {open && <div className="gb-overlay" onClick={() => setOpen(false)} />}
+
       <aside
+        className={`gb-sidebar${open ? " gb-open" : ""}`}
         style={{
           width: `${SIDEBAR_WIDTH}px`,
           minWidth: `${SIDEBAR_WIDTH}px`,

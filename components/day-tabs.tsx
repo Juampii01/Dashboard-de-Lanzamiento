@@ -32,6 +32,7 @@ export function DayTabs({ progressMap }: DayTabsProps) {
   return (
     <div
       ref={tabRef}
+      className="gb-daytabs"
       style={{
         display: "flex",
         alignItems: "stretch",
@@ -57,6 +58,7 @@ export function DayTabs({ progressMap }: DayTabsProps) {
         return (
           <div
             key={day}
+            className="gb-daytab"
             data-tour-id={day === 1 ? "day-tab-1" : undefined}
             onClick={(e) => handleTabClick(e, href, isUnlocked)}
             style={{
@@ -138,7 +140,7 @@ export function DayTabs({ progressMap }: DayTabsProps) {
                   fontFamily: "var(--font-sans)",
                   fontSize: "12px",
                   fontWeight: 700,
-                  color: isActive ? "#FFFFFF" : isLocked ? "#3D4E6B" : "#A8B5CC",
+                  color: isActive ? "#FFFFFF" : isLocked ? "#647FA8" : "#C9D6EC",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -153,7 +155,7 @@ export function DayTabs({ progressMap }: DayTabsProps) {
                   fontFamily: "var(--font-sans)",
                   fontSize: "9px",
                   fontWeight: 500,
-                  color: isActive ? "rgba(255,255,255,0.75)" : isLocked ? "#2A3A50" : "#5A6B85",
+                  color: isActive ? "rgba(255,255,255,0.75)" : isLocked ? "#2A3A50" : "#8DA2C4",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",

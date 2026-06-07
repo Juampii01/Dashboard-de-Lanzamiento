@@ -236,7 +236,7 @@ export default async function DashboardLayout({
           <DayTabs progressMap={progressMapFromLayout} />
 
           {/* Contenido principal */}
-          <main style={{ flex: 1, overflowY: "auto", background: "#0A2540", padding: "28px 24px" }}>
+          <main className="gb-main" style={{ flex: 1, overflowY: "auto", background: "#0A2540", padding: "28px 24px" }}>
             {children}
           </main>
         </div>
