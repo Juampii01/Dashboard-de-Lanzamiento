@@ -247,7 +247,7 @@ export default async function DashboardLayout({
           hasSeenOnboarding={profile?.has_seen_onboarding ?? false}
         />
       )}
-      {!devMode && <DashboardLockOverlay />}
+      {!devMode && <DashboardLockOverlay isAdmin={profile?.is_admin ?? false} />}
     </div>
   );
 }

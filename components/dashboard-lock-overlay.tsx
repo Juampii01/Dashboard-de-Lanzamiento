@@ -9,7 +9,7 @@ interface LockState {
   locked_at: string | null;
 }
 
-export function DashboardLockOverlay() {
+export function DashboardLockOverlay({ isAdmin = false }: { isAdmin?: boolean }) {
   const [lock, setLock] = useState<LockState>({
     is_locked: false,
     call_url: null,
@@ -17,6 +17,27 @@ export function DashboardLockOverlay() {
     locked_at: null,
   });
   const [visible, setVisible] = useState(false); // animate in
+  const [unlocking, setUnlocking] = useState(false);
+
+  // Admin-only: unlock the dashboard for everyone directly from the overlay,
+  // without having to navigate into the admin panel (which is also locked).
+  async function handleAdminUnlock() {
+    setUnlocking(true);
+    try {
+      const res = await fetch("/api/admin/dashboard-lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lock: false }),
+      });
+      if (res.ok) {
+        setLock({ is_locked: false, call_url: null, message: null, locked_at: null });
+      }
+    } catch {
+      // network error — leave the overlay up so the admin can retry
+    } finally {
+      setUnlocking(false);
+    }
+  }
 
   async function fetchLock() {
     try {
@@ -304,13 +325,62 @@ export function DashboardLockOverlay() {
           style={{
             fontFamily: "var(--font-sans)",
             fontSize: "11px",
-            color: "#3A5070",
+            color: "#647FA8",
             margin: 0,
             fontStyle: "italic",
           }}
         >
           Puede tardar unos segundos en actualizarse · Recargá la página cuando termine
         </p>
+
+        {/* ── Admin-only unlock button ── */}
+        {isAdmin && (
+          <div style={{ marginTop: "28px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" }}>
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: "9px",
+                color: "#647FA8",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+              }}
+            >
+              ⚙ Controles de Admin
+            </div>
+            <button
+              onClick={handleAdminUnlock}
+              disabled={unlocking}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "11px 26px",
+                borderRadius: "12px",
+                background: unlocking
+                  ? "rgba(0,214,122,0.10)"
+                  : "linear-gradient(135deg, #00D67A 0%, #00A85F 100%)",
+                color: unlocking ? "#00D67A" : "#04140C",
+                fontFamily: "var(--font-sans)",
+                fontWeight: 800,
+                fontSize: "14px",
+                border: "1px solid rgba(0,214,122,0.4)",
+                cursor: unlocking ? "wait" : "pointer",
+                boxShadow: unlocking ? "none" : "0 4px 20px rgba(0,214,122,0.4)",
+                transition: "transform 0.15s, box-shadow 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                if (unlocking) return;
+                (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.transform = "";
+              }}
+            >
+              <span style={{ fontSize: "16px" }}>🔓</span>
+              {unlocking ? "Desbloqueando…" : "Desbloquear dashboard para todos"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Keyframes ── */}
