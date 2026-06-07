@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { callClaudeJSON, sanitizeInput } from "@/lib/claude";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { fetchWebImageUrls } from "@/lib/unsplash";
+import { fetchNicheImageUrls } from "@/lib/unsplash";
 import { z } from "zod";
 
 const bodySchema = z.object({
@@ -74,12 +74,11 @@ export async function POST(request: Request) {
   const usState       = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
   const logoUrl       = parsed.data.logoUrl ?? null;  // already validated as URL by zod
 
-  // Fetch real photos for the site (degrades to [] without UNSPLASH_ACCESS_KEY)
-  // Always lead with `niche` so the hero image matches the actual business type,
-  // not the procurement keywords from Day 2 (which are often industry-specific
-  // and would pull images from the wrong sector for different niches).
-  const imgQueries = [niche, ...(keywords ?? [])].filter(Boolean).slice(0, 4);
-  const images = await fetchWebImageUrls(imgQueries, 4);
+  // Fetch real photos for the site (degrades to [] without UNSPLASH_ACCESS_KEY).
+  // NICHE-LOCKED: every photo is pulled from the company's actual niche, so a
+  // printing business never gets cleaning images (and vice-versa). Day 2
+  // keywords are only used as niche-qualified refinements, never standalone.
+  const images = await fetchNicheImageUrls(niche, keywords ?? [], 4);
   const imageBlock = images.length
     ? `\n\nFOTOS REALES DISPONIBLES (usá EXACTAMENTE estas URLs en <img src="..."> — son fotos profesionales del sector):\n${images.map((u, i) => `IMG${i + 1}: ${u}`).join("\n")}\nUsá IMG1 como imagen del hero (de fondo o lateral), IMG2 en About, IMG3 e IMG4 en Servicios o galería. Si necesitás menos, está bien.`
     : "\n\nNo hay fotos disponibles — usá gradientes y formas como fondo, sin imágenes externas.";
