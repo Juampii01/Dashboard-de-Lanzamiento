@@ -8,32 +8,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
-import { CheckCircle2, Download, Loader2, PlayCircle, ImagePlus, Trash2, Lock, ArrowRight } from "lucide-react";
-import { StepProgress, RevealStep } from "@/components/step-flow";
+import { CheckCircle2, Download, Loader2, PlayCircle, ImagePlus, Trash2, ArrowRight, ListChecks } from "lucide-react";
+import { WizardModal } from "@/components/wizard-modal";
 
-// Dimmed, locked placeholder for steps not yet reached.
-function LockedPlaceholder({ step, label }: { step: number; label: string }) {
-  return (
-    <div
-      style={{
-        display: "flex", alignItems: "center", gap: 12,
-        padding: "18px 22px", borderRadius: 16,
-        border: "1.5px dashed var(--border)", background: "var(--muted)",
-        opacity: 0.7,
-      }}
-    >
-      <Lock className="w-5 h-5" style={{ color: "var(--muted-foreground)", flexShrink: 0 }} />
-      <div>
-        <p className="font-semibold" style={{ color: "var(--muted-foreground)" }}>Paso {step} — {label}</p>
-        <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Se desbloquea al completar el paso anterior</p>
-      </div>
-    </div>
-  );
-}
+const US_STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","Washington D.C.","Puerto Rico"];
+
+const CERTS = [
+  { id: "SAM.gov", label: "SAM.gov activo" },
+  { id: "WOSB", label: "WOSB" },
+  { id: "SDVOSB", label: "SDVOSB" },
+  { id: "HUBZone", label: "HUBZone" },
+  { id: "8(a)", label: "8(a) SBA" },
+  { id: "MBE", label: "MBE" },
+];
+
+const selectClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 import { JoinCallButton } from "@/components/join-call-button";
@@ -60,11 +53,8 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   const [naicsResult, setNaicsResult] = useState<NAICSResult | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
-  // ── Wizard / progressive disclosure (presentation only — no XP/logic change) ──
-  const [classWatched, setClassWatched] = useState(false);
-  const showPerfil = classWatched || isCompleted;
-  const showResult = isCompleted;
-  const currentStep = isCompleted ? 2 : classWatched ? 1 : 0;
+  // ── Wizard modal (presentation only — no XP/logic change) ──
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   // ── Logo state ──────────────────────────────────────────────────────────────
   const [logoUrl, setLogoUrl] = useState<string | null>(
@@ -270,6 +260,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       }
 
       setIsCompleted(true);
+      setWizardOpen(false); // cerrar el modal-wizard al terminar
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Perfil Estratégico guardado! Ya podés descargar tu análisis.");
 
@@ -339,9 +330,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
         </div>
       </div>
 
-      <StepProgress steps={["Mirá la clase", "Armá tu perfil", "Tu resultado"]} current={currentStep} />
-
-      {/* ── Paso 1 — Video clase ── */}
+      {/* ── Clase en vivo ── */}
       <Card style={{ background: "color-mix(in srgb, var(--primary) 7%, var(--card))", borderColor: "color-mix(in srgb, var(--primary) 28%, transparent)" }}>
         <CardContent className="flex items-center gap-4 py-4">
           <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}>
@@ -357,361 +346,218 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
         </CardContent>
       </Card>
 
-      {/* Continuar al Paso 2 */}
-      {!showPerfil && (
-        <div className="flex justify-center pt-1">
-          <Button onClick={() => setClassWatched(true)} className="gap-2 px-7 h-11 text-base">
-            Continuar a tu perfil <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
-      )}
-
-      {/* ── Paso 2 — Perfil (logo + formulario) ── */}
-      {showPerfil ? (
-        <RevealStep show={showPerfil}>
-          <div className="space-y-6">
-
-      {/* ── Logo de empresa ─────────────────────────────────────────────────── */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Logo de tu Empresa</CardTitle>
-          <CardDescription>
-            Opcional — si lo subís, aparecerá en todos tus documentos PDF
-            (Análisis Día 1, Mapa de Códigos y Capability Statement).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-5">
-            {/* Preview */}
-            <div
-              className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center"
-              style={{
-                background: logoUrl ? "#fff" : "rgba(255,255,255,0.04)",
-                border: logoUrl
-                  ? "2px solid rgba(59,130,246,0.35)"
-                  : "2px dashed rgba(255,255,255,0.15)",
-              }}
-            >
-              {logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={logoUrl}
-                  alt="Logo empresa"
-                  className="w-full h-full object-contain p-1"
-                />
-              ) : (
-                <ImagePlus className="w-7 h-7" style={{ color: "rgba(255,255,255,0.25)" }} />
-              )}
+      {/* ── Realizar tareas (launch) / Resultado ── */}
+      {!isCompleted ? (
+        <Card>
+          <CardContent className="py-8 flex flex-col items-center text-center gap-3">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
+              <ListChecks className="w-6 h-6" style={{ color: "var(--primary)" }} />
             </div>
-
-            {/* Actions */}
-            <div className="flex flex-col gap-2">
-              <input
-                ref={logoInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={handleLogoUpload}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={uploadingLogo}
-                onClick={() => logoInputRef.current?.click()}
-                className="gap-2"
-              >
-                {uploadingLogo ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <ImagePlus className="w-3.5 h-3.5" />
-                )}
-                {logoUrl ? "Cambiar logo" : "Subir logo"}
-              </Button>
-              {logoUrl && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={uploadingLogo}
-                  onClick={handleLogoRemove}
-                  className="gap-2 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Quitar logo
-                </Button>
-              )}
-              <p className="text-xs text-muted-foreground">
-                PNG, JPG o WebP · Máx 3MB
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Formulario */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Perfil Estratégico de tu empresa</CardTitle>
-          <CardDescription>
-            Esta información se usa para generar tu análisis inicial y tu Capability
-            Statement final. Sé específico — cuanto más detail, mejores resultados.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="company_name">Nombre de la empresa *</Label>
-                <Input
-                  id="company_name"
-                  value={form.company_name}
-                  onChange={setField("company_name")}
-                  placeholder="Ej: ABC Services LLC"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="year_founded">Año de fundación</Label>
-                <Input
-                  id="year_founded"
-                  type="number"
-                  value={form.year_founded}
-                  onChange={setField("year_founded")}
-                  placeholder="Ej: 2018"
-                  min={1900}
-                  max={2025}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="employee_count">Cantidad de empleados</Label>
-                <Input
-                  id="employee_count"
-                  type="number"
-                  value={form.employee_count}
-                  onChange={setField("employee_count")}
-                  placeholder="Ej: 5"
-                  min={1}
-                />
-              </div>
-
-              {/* Estado de operación */}
-              <div className="space-y-2">
-                <Label htmlFor="us_state">Estado donde operás</Label>
-                <select
-                  id="us_state"
-                  value={form.us_state}
-                  onChange={(e) => setForm((p) => ({ ...p, us_state: e.target.value }))}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-                >
-                  <option value="">Seleccioná un estado</option>
-                  {["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","Washington D.C.","Puerto Rico"].map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-muted-foreground">Mejora la precisión del análisis de mercado</p>
-              </div>
-            </div>
-
-            {/* Estructura legal */}
-            <div className="space-y-2">
-              <Label htmlFor="legal_structure">Estructura legal de la empresa</Label>
-              <select
-                id="legal_structure"
-                value={form.legal_structure}
-                onChange={(e) => setForm((p) => ({ ...p, legal_structure: e.target.value }))}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Seleccioná una opción</option>
-                <option value="LLC">LLC (Limited Liability Company)</option>
-                <option value="S-Corp">S-Corporation</option>
-                <option value="C-Corp">C-Corporation</option>
-                <option value="Sole Proprietor">Sole Proprietor (Autónomo)</option>
-                <option value="Partnership">Partnership</option>
-                <option value="Nonprofit">Nonprofit / 501(c)(3)</option>
-                <option value="Other">Otro</option>
-              </select>
-              <p className="text-xs text-muted-foreground">Determina a qué tipos de contratos podés acceder</p>
-            </div>
-
-            {/* Certificaciones actuales */}
-            <div className="space-y-2">
-              <Label>Certificaciones que ya tenés (opcional)</Label>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                {[
-                  { id: "SAM.gov", label: "SAM.gov activo" },
-                  { id: "WOSB", label: "WOSB" },
-                  { id: "SDVOSB", label: "SDVOSB" },
-                  { id: "HUBZone", label: "HUBZone" },
-                  { id: "8(a)", label: "8(a) SBA" },
-                  { id: "MBE", label: "MBE" },
-                ].map((cert) => (
-                  <label key={cert.id} className="flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={certifications.includes(cert.id)}
-                      onChange={(e) =>
-                        setCertifications((prev) =>
-                          e.target.checked ? [...prev, cert.id] : prev.filter((c) => c !== cert.id)
-                        )
-                      }
-                      className="accent-primary"
-                    />
-                    {cert.label}
-                  </label>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">Evitamos recomendarte lo que ya tenés</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="niche">¿Qué vende / hace tu empresa? *</Label>
-              <Textarea
-                id="niche"
-                value={form.niche}
-                onChange={setField("niche")}
-                placeholder="Ej: Servicios de limpieza comercial para oficinas y edificios"
-                rows={2}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="problem_solved">¿Qué problema resolvés para tus clientes? *</Label>
-              <Textarea
-                id="problem_solved"
-                value={form.problem_solved}
-                onChange={setField("problem_solved")}
-                placeholder="Ej: Mantenemos los espacios de trabajo higiénicos y seguros para los empleados"
-                rows={2}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="target_avatar">¿Quién es tu cliente ideal?</Label>
-              <Textarea
-                id="target_avatar"
-                value={form.target_avatar}
-                onChange={setField("target_avatar")}
-                placeholder="Ej: Oficinas corporativas, hospitales, instalaciones gubernamentales"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="previous_acquisition_methods">
-                ¿Cómo conseguiste clientes hasta ahora?
-              </Label>
-              <Textarea
-                id="previous_acquisition_methods"
-                value={form.previous_acquisition_methods}
-                onChange={setField("previous_acquisition_methods")}
-                placeholder="Ej: Referencias, redes sociales, directorio de empresas locales"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="primary_naics">
-                Código NAICS (opcional — si no lo sabés, la IA lo sugiere)
-              </Label>
-              <Input
-                id="primary_naics"
-                value={form.primary_naics}
-                onChange={setField("primary_naics")}
-                placeholder="Ej: 561720"
-                maxLength={6}
-              />
-              <p className="text-xs text-muted-foreground">
-                6 dígitos. Si lo dejás vacío, usamos IA para sugerirte el más
-                apropiado.
-              </p>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90"
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analizando con IA...
-                </>
-              ) : isCompleted ? (
-                "Actualizar Perfil Estratégico"
-              ) : (
-                "Generar mi Análisis Inicial →"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-          </div>
-        </RevealStep>
-      ) : (
-        <LockedPlaceholder step={2} label="Armá tu perfil" />
-      )}
-
-      {/* ── Paso 3 — Tu resultado ── */}
-      {showResult ? (
-        <RevealStep show={showResult}>
-          <div className="space-y-6">
-
-      {/* Resultado NAICS */}
-      {naicsResult && (
-        <Card className="border-green-200 bg-green-50/50">
-          <CardContent className="pt-6 space-y-3">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-              <p className="font-semibold text-green-800">NAICS sugerido por IA</p>
-            </div>
-            <div className="bg-white rounded-lg p-4 border border-green-200">
-              <p className="text-2xl font-bold text-primary">{naicsResult.naics_code}</p>
-              <p className="font-medium">{naicsResult.naics_description}</p>
-              <p className="text-sm text-muted-foreground mt-2">{naicsResult.reasoning}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Descarga PDF */}
-      {isCompleted && (
-        <Card className="border-accent/30 bg-accent/5">
-          <CardContent className="flex items-center justify-between py-5">
             <div>
-              <p className="font-semibold">📄 Análisis Inicial — Día 1</p>
-              <p className="text-sm text-muted-foreground">
-                Tu Perfil Estratégico + código NAICS en PDF.
+              <p className="font-semibold text-lg">Completá tu Perfil Estratégico</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                En 4 pasos guiados generamos tu análisis inicial y tu código NAICS.
               </p>
             </div>
-            <Button
-              onClick={handleDownloadPdf}
-              disabled={downloadingPdf}
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
-            >
-              {downloadingPdf ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar PDF
-                </>
-              )}
+            <Button onClick={() => setWizardOpen(true)} className="gap-2 h-12 px-7 text-base font-bold">
+              Realizar tareas — Día 1 <ArrowRight className="w-4 h-4" />
             </Button>
           </CardContent>
         </Card>
+      ) : (
+        <>
+          {naicsResult && (
+            <Card className="border-green-200 bg-green-50/50">
+              <CardContent className="pt-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <p className="font-semibold text-green-800">NAICS sugerido por IA</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-green-200">
+                  <p className="text-2xl font-bold text-primary">{naicsResult.naics_code}</p>
+                  <p className="font-medium text-green-900">{naicsResult.naics_description}</p>
+                  <p className="text-sm text-green-800/80 mt-2">{naicsResult.reasoning}</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="border-accent/30 bg-accent/5">
+            <CardContent className="flex items-center justify-between py-5">
+              <div>
+                <p className="font-semibold">📄 Análisis Inicial — Día 1</p>
+                <p className="text-sm text-muted-foreground">
+                  Tu Perfil Estratégico + código NAICS en PDF.
+                </p>
+              </div>
+              <Button
+                onClick={handleDownloadPdf}
+                disabled={downloadingPdf}
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                {downloadingPdf ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Descargar PDF
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2">
+              <ListChecks className="w-4 h-4" /> Editar mi perfil
+            </Button>
+          </div>
+        </>
       )}
 
-          </div>
-        </RevealStep>
-      ) : (
-        <LockedPlaceholder step={3} label="Tu resultado" />
-      )}
+      {/* ── Wizard modal — formulario guiado paso a paso ── */}
+      <WizardModal
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        title="Día 1 — Perfil Estratégico"
+        subtitle="Completá tu perfil para generar tu análisis inicial."
+        finishLabel={isCompleted ? "Actualizar Perfil" : "Generar mi Análisis"}
+        finishing={saving}
+        onFinish={() => handleSubmit()}
+        steps={[
+          {
+            label: "Tu empresa",
+            isValid: () => form.company_name.trim().length > 0,
+            content: (
+              <div className="space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="company_name">Nombre de la empresa *</Label>
+                    <Input id="company_name" value={form.company_name} onChange={setField("company_name")} placeholder="Ej: ABC Services LLC" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="year_founded">Año de fundación</Label>
+                    <Input id="year_founded" type="number" value={form.year_founded} onChange={setField("year_founded")} placeholder="Ej: 2018" min={1900} max={2025} />
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="employee_count">Cantidad de empleados</Label>
+                    <Input id="employee_count" type="number" value={form.employee_count} onChange={setField("employee_count")} placeholder="Ej: 5" min={1} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="us_state">Estado donde operás</Label>
+                    <select id="us_state" value={form.us_state} onChange={(e) => setForm((p) => ({ ...p, us_state: e.target.value }))} className={selectClass}>
+                      <option value="">Seleccioná un estado</option>
+                      {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <p className="text-xs text-muted-foreground">Mejora la precisión del análisis de mercado</p>
+                  </div>
+                </div>
+              </div>
+            ),
+          },
+          {
+            label: "Estructura y certificaciones",
+            content: (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="legal_structure">Estructura legal de la empresa</Label>
+                  <select id="legal_structure" value={form.legal_structure} onChange={(e) => setForm((p) => ({ ...p, legal_structure: e.target.value }))} className={selectClass}>
+                    <option value="">Seleccioná una opción</option>
+                    <option value="LLC">LLC (Limited Liability Company)</option>
+                    <option value="S-Corp">S-Corporation</option>
+                    <option value="C-Corp">C-Corporation</option>
+                    <option value="Sole Proprietor">Sole Proprietor (Autónomo)</option>
+                    <option value="Partnership">Partnership</option>
+                    <option value="Nonprofit">Nonprofit / 501(c)(3)</option>
+                    <option value="Other">Otro</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground">Determina a qué tipos de contratos podés acceder</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Certificaciones que ya tenés (opcional)</Label>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                    {CERTS.map((cert) => (
+                      <label key={cert.id} className="flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
+                        <input type="checkbox" checked={certifications.includes(cert.id)} onChange={(e) => setCertifications((prev) => e.target.checked ? [...prev, cert.id] : prev.filter((c) => c !== cert.id))} className="accent-primary" />
+                        {cert.label}
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Evitamos recomendarte lo que ya tenés</p>
+                </div>
+              </div>
+            ),
+          },
+          {
+            label: "Tu negocio",
+            isValid: () => form.niche.trim().length > 0 && form.problem_solved.trim().length > 0,
+            content: (
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="niche">¿Qué vende / hace tu empresa? *</Label>
+                  <Textarea id="niche" value={form.niche} onChange={setField("niche")} placeholder="Ej: Servicios de limpieza comercial para oficinas y edificios" rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="problem_solved">¿Qué problema resolvés para tus clientes? *</Label>
+                  <Textarea id="problem_solved" value={form.problem_solved} onChange={setField("problem_solved")} placeholder="Ej: Mantenemos los espacios de trabajo higiénicos y seguros para los empleados" rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="target_avatar">¿Quién es tu cliente ideal?</Label>
+                  <Textarea id="target_avatar" value={form.target_avatar} onChange={setField("target_avatar")} placeholder="Ej: Oficinas corporativas, hospitales, instalaciones gubernamentales" rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="previous_acquisition_methods">¿Cómo conseguiste clientes hasta ahora?</Label>
+                  <Textarea id="previous_acquisition_methods" value={form.previous_acquisition_methods} onChange={setField("previous_acquisition_methods")} placeholder="Ej: Referencias, redes sociales, directorio de empresas locales" rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="primary_naics">Código NAICS (opcional — si no lo sabés, la IA lo sugiere)</Label>
+                  <Input id="primary_naics" value={form.primary_naics} onChange={setField("primary_naics")} placeholder="Ej: 561720" maxLength={6} />
+                  <p className="text-xs text-muted-foreground">6 dígitos. Si lo dejás vacío, usamos IA para sugerirte el más apropiado.</p>
+                </div>
+              </div>
+            ),
+          },
+          {
+            label: "Logo (opcional)",
+            content: (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Si lo subís, aparecerá en todos tus documentos PDF (Análisis, Mapa de Códigos y Capability Statement).
+                </p>
+                <div className="flex items-center gap-5">
+                  <div className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center"
+                    style={{ background: logoUrl ? "#fff" : "var(--muted)", border: logoUrl ? "2px solid color-mix(in srgb, var(--secondary) 35%, transparent)" : "2px dashed var(--border)" }}>
+                    {logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={logoUrl} alt="Logo empresa" className="w-full h-full object-contain p-1" />
+                    ) : (
+                      <ImagePlus className="w-7 h-7" style={{ color: "var(--muted-foreground)" }} />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleLogoUpload} />
+                    <Button type="button" variant="outline" size="sm" disabled={uploadingLogo} onClick={() => logoInputRef.current?.click()} className="gap-2">
+                      {uploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImagePlus className="w-3.5 h-3.5" />}
+                      {logoUrl ? "Cambiar logo" : "Subir logo"}
+                    </Button>
+                    {logoUrl && (
+                      <Button type="button" variant="ghost" size="sm" disabled={uploadingLogo} onClick={handleLogoRemove} className="gap-2 text-destructive hover:text-destructive">
+                        <Trash2 className="w-3.5 h-3.5" /> Quitar logo
+                      </Button>
+                    )}
+                    <p className="text-xs text-muted-foreground">PNG, JPG o WebP · Máx 3MB</p>
+                  </div>
+                </div>
+                <div className="rounded-lg p-3 text-sm" style={{ background: "color-mix(in srgb, var(--success) 9%, transparent)", color: "var(--muted-foreground)" }}>
+                  Al tocar <strong style={{ color: "var(--foreground)" }}>“Generar mi Análisis”</strong> creamos tu perfil y tu código NAICS automáticamente.
+                </div>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
