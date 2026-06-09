@@ -38,8 +38,8 @@ export function DayTabs({ progressMap }: DayTabsProps) {
         alignItems: "stretch",
         padding: "6px 10px",
         gap: "5px",
-        background: "#0A2540",
-        borderBottom: "1px solid #1E3A5C",
+        background: "var(--card)",
+        borderBottom: "1px solid var(--border)",
         flexShrink: 0,
         height: "58px",
       }}
@@ -71,37 +71,35 @@ export function DayTabs({ progressMap }: DayTabsProps) {
               padding: "0 8px",
               borderRadius: "8px",
               border: isActive
-                ? "1.5px solid #0056D6"
-                : isLocked
-                ? "1.5px solid rgba(30,58,92,0.4)"
-                : "1.5px solid #1E3A5C",
+                ? "1.5px solid var(--secondary)"
+                : "1.5px solid var(--border)",
               cursor: isLocked ? "not-allowed" : "pointer",
               transition: "background 0.15s, border-color 0.15s",
               background: isActive
-                ? "linear-gradient(135deg, #0E3A7A 0%, #0056D6 100%)"
+                ? "var(--secondary)"
                 : isLocked
-                ? "rgba(10,37,64,0.4)"
-                : "rgba(20,58,107,0.25)",
+                ? "transparent"
+                : "var(--muted)",
               boxShadow: isActive
-                ? "0 2px 12px rgba(0,86,214,0.35), inset 0 1px 0 rgba(255,255,255,0.08)"
+                ? "0 2px 12px -2px color-mix(in srgb, var(--secondary) 55%, transparent)"
                 : "none",
               userSelect: "none",
-              opacity: isLocked ? 0.6 : 1,
+              opacity: isLocked ? 0.55 : 1,
               textAlign: "center",
               minWidth: 0,
             }}
             onMouseEnter={(e) => {
               if (!isLocked && !isActive) {
                 const el = e.currentTarget as HTMLDivElement;
-                el.style.background = "rgba(20,58,107,0.55)";
-                el.style.borderColor = "#2A5A8C";
+                el.style.background = "var(--sidebar-accent)";
+                el.style.borderColor = "color-mix(in srgb, var(--secondary) 40%, transparent)";
               }
             }}
             onMouseLeave={(e) => {
               if (!isLocked && !isActive) {
                 const el = e.currentTarget as HTMLDivElement;
-                el.style.background = "rgba(20,58,107,0.25)";
-                el.style.borderColor = "#1E3A5C";
+                el.style.background = "var(--muted)";
+                el.style.borderColor = "var(--border)";
               }
             }}
           >
@@ -125,11 +123,11 @@ export function DayTabs({ progressMap }: DayTabsProps) {
                     fontWeight: 900,
                     flexShrink: 0,
                     background: isActive
-                      ? "rgba(255,255,255,0.2)"
+                      ? "rgba(255,255,255,0.22)"
                       : isCompleted
-                      ? "rgba(0,214,122,0.2)"
-                      : "rgba(255,255,255,0.06)",
-                    color: isCompleted && !isActive ? "#00D67A" : "#FFFFFF",
+                      ? "color-mix(in srgb, var(--success) 16%, transparent)"
+                      : "color-mix(in srgb, var(--foreground) 8%, transparent)",
+                    color: isActive ? "#FFFFFF" : isCompleted ? "var(--success)" : "var(--muted-foreground)",
                   }}
                 >
                   {isLocked ? "🔒" : isCompleted ? "✓" : day}
@@ -140,7 +138,7 @@ export function DayTabs({ progressMap }: DayTabsProps) {
                   fontFamily: "var(--font-sans)",
                   fontSize: "12px",
                   fontWeight: 700,
-                  color: isActive ? "#FFFFFF" : isLocked ? "#647FA8" : "#C9D6EC",
+                  color: isActive ? "#FFFFFF" : isLocked ? "var(--muted-foreground)" : "var(--foreground)",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -155,7 +153,7 @@ export function DayTabs({ progressMap }: DayTabsProps) {
                   fontFamily: "var(--font-sans)",
                   fontSize: "9px",
                   fontWeight: 500,
-                  color: isActive ? "rgba(255,255,255,0.75)" : isLocked ? "#2A3A50" : "#8DA2C4",
+                  color: isActive ? "rgba(255,255,255,0.8)" : "var(--muted-foreground)",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
