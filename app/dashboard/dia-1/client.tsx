@@ -12,7 +12,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
-import { CheckCircle2, Download, Loader2, PlayCircle, ImagePlus, Trash2 } from "lucide-react";
+import { CheckCircle2, Download, Loader2, PlayCircle, ImagePlus, Trash2, Lock, ArrowRight } from "lucide-react";
+import { StepProgress, RevealStep } from "@/components/step-flow";
+
+// Dimmed, locked placeholder for steps not yet reached.
+function LockedPlaceholder({ step, label }: { step: number; label: string }) {
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 12,
+        padding: "18px 22px", borderRadius: 16,
+        border: "1.5px dashed var(--border)", background: "var(--muted)",
+        opacity: 0.7,
+      }}
+    >
+      <Lock className="w-5 h-5" style={{ color: "var(--muted-foreground)", flexShrink: 0 }} />
+      <div>
+        <p className="font-semibold" style={{ color: "var(--muted-foreground)" }}>Paso {step} — {label}</p>
+        <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>Se desbloquea al completar el paso anterior</p>
+      </div>
+    </div>
+  );
+}
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 import { JoinCallButton } from "@/components/join-call-button";
@@ -38,6 +59,12 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   const [saving, setSaving] = useState(false);
   const [naicsResult, setNaicsResult] = useState<NAICSResult | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  // ── Wizard / progressive disclosure (presentation only — no XP/logic change) ──
+  const [classWatched, setClassWatched] = useState(false);
+  const showPerfil = classWatched || isCompleted;
+  const showResult = isCompleted;
+  const currentStep = isCompleted ? 2 : classWatched ? 1 : 0;
 
   // ── Logo state ──────────────────────────────────────────────────────────────
   const [logoUrl, setLogoUrl] = useState<string | null>(
@@ -289,7 +316,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {devMode && <DevTestBar day={1} isCompleted={isCompleted} />}
       {/* Header */}
       <div className="flex items-start justify-between">
@@ -312,7 +339,9 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
         </div>
       </div>
 
-      {/* Video clase */}
+      <StepProgress steps={["Mirá la clase", "Armá tu perfil", "Tu resultado"]} current={currentStep} />
+
+      {/* ── Paso 1 — Video clase ── */}
       <Card style={{ background: "color-mix(in srgb, var(--primary) 7%, var(--card))", borderColor: "color-mix(in srgb, var(--primary) 28%, transparent)" }}>
         <CardContent className="flex items-center gap-4 py-4">
           <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}>
@@ -327,6 +356,20 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           <JoinCallButton day={1} />
         </CardContent>
       </Card>
+
+      {/* Continuar al Paso 2 */}
+      {!showPerfil && (
+        <div className="flex justify-center pt-1">
+          <Button onClick={() => setClassWatched(true)} className="gap-2 px-7 h-11 text-base">
+            Continuar a tu perfil <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* ── Paso 2 — Perfil (logo + formulario) ── */}
+      {showPerfil ? (
+        <RevealStep show={showPerfil}>
+          <div className="space-y-6">
 
       {/* ── Logo de empresa ─────────────────────────────────────────────────── */}
       <Card>
@@ -608,6 +651,17 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
         </CardContent>
       </Card>
 
+          </div>
+        </RevealStep>
+      ) : (
+        <LockedPlaceholder step={2} label="Armá tu perfil" />
+      )}
+
+      {/* ── Paso 3 — Tu resultado ── */}
+      {showResult ? (
+        <RevealStep show={showResult}>
+          <div className="space-y-6">
+
       {/* Resultado NAICS */}
       {naicsResult && (
         <Card className="border-green-200 bg-green-50/50">
@@ -651,6 +705,12 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             </Button>
           </CardContent>
         </Card>
+      )}
+
+          </div>
+        </RevealStep>
+      ) : (
+        <LockedPlaceholder step={3} label="Tu resultado" />
       )}
     </div>
   );

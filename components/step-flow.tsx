@@ -87,13 +87,20 @@ export function RevealStep({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const wasShown = useRef(false);
+  const mounted = useRef(false);
 
   useEffect(() => {
+    // Never scroll on the initial mount (e.g. a returning user whose steps are
+    // already all visible) — only when a step is revealed live during the session.
+    if (!mounted.current) {
+      mounted.current = true;
+      wasShown.current = show;
+      return;
+    }
     if (show && !wasShown.current) {
       wasShown.current = true;
       if (scrollOnReveal && ref.current) {
         const behavior: ScrollBehavior = reduceMotion() ? "auto" : "smooth";
-        // Defer so the element has painted before scrolling.
         requestAnimationFrame(() => ref.current?.scrollIntoView({ behavior, block: "center" }));
       }
     }
