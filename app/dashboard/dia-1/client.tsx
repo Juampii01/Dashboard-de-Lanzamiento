@@ -246,11 +246,20 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Perfil Estratégico guardado! Ya podés descargar tu análisis.");
 
-      // Celebración arcade
-      const colors = ["#D7263D", "#FFD60A", "#00D67A", "#FFFFFF"];
-      confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 }, colors });
-      setTimeout(() => confetti({ particleCount: 60, spread: 60, origin: { x: 0.2, y: 0.6 }, colors }), 250);
-      setTimeout(() => confetti({ particleCount: 60, spread: 60, origin: { x: 0.8, y: 0.6 }, colors }), 450);
+      // Celebración sobria — una sola ráfaga breve, colores de marca,
+      // y respetando prefers-reduced-motion.
+      const prefersReduced =
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+      if (!prefersReduced) {
+        confetti({
+          particleCount: 45,
+          spread: 60,
+          startVelocity: 32,
+          ticks: 120,
+          origin: { y: 0.5 },
+          colors: ["#E42D2C", "#152978", "#16A65F", "#FFD700"],
+        });
+      }
     } catch (err) {
       console.error(err);
       toast.error(err instanceof Error ? err.message : "Estamos teniendo un problema. Intentá de nuevo.");

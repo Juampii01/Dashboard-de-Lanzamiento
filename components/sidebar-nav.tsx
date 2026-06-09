@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Shield, LogOut, Menu, X } from "lucide-react";
+import {
+  Shield, LogOut, Menu, X, ChevronLeft, ChevronDown,
+  CheckCircle2, Lock, FileText, CalendarDays, FolderDown, Pencil,
+} from "lucide-react";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 import { ResetDashboardButton } from "@/components/reset-dashboard-button";
 import { ProfileButton } from "@/components/profile-button";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Width exported as CSS variable so DayTabs can offset itself
-// ─────────────────────────────────────────────────────────────────────────────
-export const SIDEBAR_WIDTH = 240;
+// Exported so other layout pieces can offset against the expanded width.
+export const SIDEBAR_WIDTH = 248;
+const SIDEBAR_COLLAPSED_WIDTH = 64;
 
 interface SidebarNavProps {
   profile: {
@@ -37,219 +39,201 @@ const DAY_META: Record<number, { label: string; href: string }> = {
   4: { label: "Cap. Statement",     href: "/dashboard/dia-4" },
 };
 
+// ─── Day nav item ─────────────────────────────────────────────────────────────
 function DayNavItem({
-  day,
-  label,
-  href,
-  isCompleted,
-  isUnlocked,
+  day, label, href, isCompleted, isUnlocked, collapsed, active,
 }: {
-  day: number;
-  label: string;
-  href: string;
-  isCompleted: boolean;
-  isUnlocked: boolean;
+  day: number; label: string; href: string;
+  isCompleted: boolean; isUnlocked: boolean; collapsed: boolean; active: boolean;
 }) {
-  const isLocked = !isUnlocked;
+  const locked = !isUnlocked;
+  const accent = isCompleted ? "var(--success)" : isUnlocked ? "var(--primary)" : "var(--muted-foreground)";
 
-  const content = (
-    <div
+  const box = (
+    <span
+      className="sb-daybox"
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "9px",
-        padding: "8px 14px",
-        borderLeft: isCompleted
-          ? "3px solid #00D67A"
-          : isUnlocked
-          ? "3px solid #D7263D"
-          : "3px solid transparent",
-        background: isUnlocked && !isCompleted
-          ? "rgba(215,38,61,0.07)"
-          : "transparent",
-        opacity: isLocked ? 0.4 : 1,
-        cursor: isLocked ? "not-allowed" : "pointer",
-        transition: "background 0.15s",
+        width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 800,
+        color: locked ? "var(--muted-foreground)" : isCompleted ? "var(--success)" : "var(--primary)",
+        background: "color-mix(in srgb, " + accent + " 12%, transparent)",
+        border: "1px solid color-mix(in srgb, " + accent + " 30%, transparent)",
       }}
     >
-      {/* Day number box */}
-      <div
-        style={{
-          width: "26px",
-          height: "26px",
-          borderRadius: "6px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "var(--font-arcade)",
-          fontSize: "11px",
-          fontWeight: 900,
-          flexShrink: 0,
-          background: isCompleted
-            ? "rgba(0,214,122,0.15)"
-            : isUnlocked
-            ? "rgba(215,38,61,0.15)"
-            : "rgba(90,107,133,0.12)",
-          color: isCompleted
-            ? "#00D67A"
-            : isUnlocked
-            ? "#fff"
-            : "#8DA2C4",
-          border: isCompleted
-            ? "1px solid rgba(0,214,122,0.3)"
-            : isUnlocked
-            ? "1px solid rgba(215,38,61,0.3)"
-            : "1px solid #1E3A5C",
-        }}
-      >
-        {isLocked ? "🔒" : `0${day}`}
-      </div>
+      {isCompleted ? <CheckCircle2 size={15} /> : locked ? <Lock size={13} /> : day}
+    </span>
+  );
 
-      {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: "11.5px",
-            fontWeight: 700,
-            color: isLocked ? "#8DA2C4" : "#FFFFFF",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            lineHeight: 1.2,
-          }}
-        >
-          {label}
-        </div>
-        <div
-          style={{
-            fontSize: "9.5px",
-            color: isCompleted ? "#00D67A" : isUnlocked ? "#D7263D" : "#8DA2C4",
-            marginTop: "1px",
-          }}
-        >
-          {isCompleted ? "✓ Completado" : isUnlocked ? "En progreso" : "Bloqueado"}
-        </div>
-      </div>
-
-      {/* Pulse dot for active */}
-      {isUnlocked && !isCompleted && (
-        <div
-          style={{
-            width: "6px",
-            height: "6px",
-            borderRadius: "50%",
-            background: "#D7263D",
-            boxShadow: "0 0 6px #D7263D",
-            flexShrink: 0,
-            animation: "sb-pulse 1.4s ease infinite",
-          }}
-        />
+  const inner = (
+    <div
+      className="sb-item"
+      title={collapsed ? `Día ${day} — ${label}` : undefined}
+      style={{
+        display: "flex", alignItems: "center", gap: 11,
+        padding: collapsed ? "8px 0" : "8px 12px",
+        justifyContent: collapsed ? "center" : "flex-start",
+        borderRadius: 10,
+        background: active ? "var(--sidebar-accent)" : "transparent",
+        opacity: locked ? 0.55 : 1,
+        cursor: locked ? "not-allowed" : "pointer",
+        position: "relative",
+      }}
+    >
+      {active && !collapsed && (
+        <span style={{ position: "absolute", left: 0, top: 8, bottom: 8, width: 3, borderRadius: 3, background: accent }} />
+      )}
+      {box}
+      {!collapsed && (
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{
+            display: "block", fontSize: 13, fontWeight: 600, lineHeight: 1.25,
+            color: locked ? "var(--muted-foreground)" : "var(--sidebar-foreground)",
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>{label}</span>
+          <span style={{ display: "block", fontSize: 11, color: accent, fontWeight: 600 }}>
+            {isCompleted ? "Completado" : isUnlocked ? "En progreso" : "Bloqueado"}
+          </span>
+        </span>
       )}
     </div>
   );
 
-  if (isLocked) return content;
-  return <Link href={href} style={{ textDecoration: "none" }}>{content}</Link>;
+  if (locked) return <div style={{ display: "block", textDecoration: "none" }}>{inner}</div>;
+  return <Link href={href} style={{ display: "block", textDecoration: "none" }}>{inner}</Link>;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Entregable link
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── Deliverable row ──────────────────────────────────────────────────────────
 function EntregableRow({
-  icon,
-  name,
-  sub,
-  href,
-  available,
+  name, sub, href, available, collapsed,
 }: {
-  icon: string;
-  name: string;
-  sub: string;
-  href: string;
-  available: boolean;
+  name: string; sub: string; href: string; available: boolean; collapsed: boolean;
 }) {
   const inner = (
     <div
+      className="sb-item"
+      title={collapsed ? name : undefined}
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        padding: "7px 14px",
-        opacity: available ? 1 : 0.45,
+        display: "flex", alignItems: "center", gap: 11,
+        padding: collapsed ? "8px 0" : "8px 12px",
+        justifyContent: collapsed ? "center" : "flex-start",
+        borderRadius: 10,
+        opacity: available ? 1 : 0.5,
         cursor: available ? "pointer" : "not-allowed",
-        transition: "background 0.15s",
       }}
     >
-      <div
-        style={{
-          width: "24px",
-          height: "24px",
-          borderRadius: "5px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "13px",
-          flexShrink: 0,
-          background: "rgba(30,58,92,0.6)",
-          border: "1px solid #1E3A5C",
-        }}
-      >
-        {icon}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: "11px", fontWeight: 600, color: "#FFFFFF", lineHeight: 1.2 }}>
-          {name}
-        </div>
-        <div style={{ fontSize: "9px", color: "#8DA2C4" }}>{sub}</div>
-      </div>
-      <span style={{ fontSize: available ? "11px" : "9px", color: "#8DA2C4", flexShrink: 0 }}>
-        {available ? "↓" : "🔒"}
+      <span style={{
+        width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        background: "var(--muted)", color: available ? "var(--secondary)" : "var(--muted-foreground)",
+        border: "1px solid var(--sidebar-border)",
+      }}>
+        <FileText size={15} />
       </span>
+      {!collapsed && (
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{
+            display: "block", fontSize: 12.5, fontWeight: 600, lineHeight: 1.25,
+            color: "var(--sidebar-foreground)",
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>{name}</span>
+          <span style={{ display: "block", fontSize: 11, color: "var(--muted-foreground)" }}>{sub}</span>
+        </span>
+      )}
+      {!collapsed && (
+        <span style={{ fontSize: 11, color: "var(--muted-foreground)", flexShrink: 0 }}>
+          {available ? "↓" : <Lock size={12} />}
+        </span>
+      )}
     </div>
   );
 
-  if (!available) return inner;
+  if (!available) return <div style={{ textDecoration: "none" }}>{inner}</div>;
+  return <a href={href} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>{inner}</a>;
+}
+
+// ─── Section header (accordion) ───────────────────────────────────────────────
+function SectionHeader({
+  icon, label, open, onToggle,
+}: { icon: React.ReactNode; label: string; open: boolean; onToggle: () => void }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
-      {inner}
-    </a>
+    <button
+      type="button"
+      onClick={onToggle}
+      className="sb-section-head"
+      style={{
+        width: "100%", display: "flex", alignItems: "center", gap: 8,
+        padding: "6px 12px", background: "transparent", border: "none", cursor: "pointer",
+        color: "var(--muted-foreground)",
+      }}
+    >
+      <span style={{ display: "inline-flex", color: "var(--muted-foreground)" }}>{icon}</span>
+      <span style={{
+        flex: 1, textAlign: "left", fontSize: 10.5, fontWeight: 700,
+        letterSpacing: "0.1em", textTransform: "uppercase",
+      }}>{label}</span>
+      <ChevronDown
+        size={14}
+        style={{ transition: "transform 0.2s ease", transform: open ? "rotate(0deg)" : "rotate(-90deg)" }}
+      />
+    </button>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main export
-// ─────────────────────────────────────────────────────────────────────────────
-export function SidebarNav({
-  profile,
-  email,
-  progressMap,
-  completedDays,
-  devMode,
-}: SidebarNavProps) {
+// ─── Main ─────────────────────────────────────────────────────────────────────
+export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
   const day1Done = progressMap[1]?.is_completed ?? false;
   const day2Done = progressMap[2]?.is_completed ?? false;
   const day3Done = progressMap[3]?.is_completed ?? false;
   const day4Done = progressMap[4]?.is_completed ?? false;
 
-  // Mobile drawer state — close automatically on navigation
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  // Mobile drawer
+  const [open, setOpen] = useState(false);
   useEffect(() => { setOpen(false); }, [pathname]);
+
+  // Two-level collapse + accordions (persisted in localStorage)
+  const [collapsed, setCollapsed] = useState(false);
+  const [diasOpen, setDiasOpen] = useState(true);
+  const [entregablesOpen, setEntregablesOpen] = useState(true);
+
+  useEffect(() => {
+    try {
+      const c = localStorage.getItem("gb_sidebar_collapsed");
+      if (c !== null) setCollapsed(c === "1");
+      const d = localStorage.getItem("gb_section_dias");
+      if (d !== null) setDiasOpen(d === "1");
+      const e = localStorage.getItem("gb_section_entregables");
+      if (e !== null) setEntregablesOpen(e === "1");
+    } catch { /* localStorage unavailable */ }
+  }, []);
+
+  const persist = (key: string, val: boolean) => {
+    try { localStorage.setItem(key, val ? "1" : "0"); } catch { /* ignore */ }
+  };
+  const toggleCollapsed = () => setCollapsed((v) => { persist("gb_sidebar_collapsed", !v); return !v; });
+  const toggleDias = () => setDiasOpen((v) => { persist("gb_section_dias", !v); return !v; });
+  const toggleEntregables = () => setEntregablesOpen((v) => { persist("gb_section_entregables", !v); return !v; });
+
+  const width = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   return (
     <>
-      {/* Keyframes for the pulse dot */}
       <style>{`
-        @keyframes sb-pulse {
-          0%,100% { opacity: 1; }
-          50%      { opacity: 0.3; }
-        }
-        .sb-nav-item:hover {
-          background: rgba(255,255,255,0.04) !important;
+        .sb-item { transition: background 0.15s ease; }
+        .sb-item:hover { background: var(--sidebar-accent); }
+        .sb-section-head:hover { color: var(--sidebar-foreground) !important; }
+        .gb-sidebar { transition: width 0.22s cubic-bezier(0.4,0,0.2,1); }
+        /* Accordion smooth height */
+        .sb-acc { display: grid; transition: grid-template-rows 0.24s ease; }
+        .sb-acc > .sb-acc-inner { overflow: hidden; min-height: 0; }
+        @media (prefers-reduced-motion: reduce) {
+          .gb-sidebar, .sb-acc, .sb-item { transition: none !important; }
         }
       `}</style>
 
-      {/* Hamburger trigger — visible only on mobile (CSS) */}
+      {/* Hamburger — mobile only (CSS) */}
       <button
         className="gb-hamburger"
         aria-label={open ? "Cerrar menú" : "Abrir menú"}
@@ -258,229 +242,169 @@ export function SidebarNav({
         {open ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Overlay behind the open drawer — only rendered when open (mobile) */}
       {open && <div className="gb-overlay" onClick={() => setOpen(false)} />}
 
       <aside
         className={`gb-sidebar${open ? " gb-open" : ""}`}
         style={{
-          width: `${SIDEBAR_WIDTH}px`,
-          minWidth: `${SIDEBAR_WIDTH}px`,
-          background: "linear-gradient(180deg, #0D2E4D 0%, #0A2540 100%)",
-          borderRight: "1px solid #1E3A5C",
-          display: "flex",
-          flexDirection: "column",
-          overflowY: "auto",
-          overflowX: "hidden",
-          flexShrink: 0,
-          scrollbarWidth: "none",
-          height: "100vh",
+          width, minWidth: width,
+          background: "var(--sidebar)",
+          borderRight: "1px solid var(--sidebar-border)",
+          boxShadow: "1px 0 0 var(--sidebar-border), 4px 0 24px -12px rgba(13,26,61,0.18)",
+          display: "flex", flexDirection: "column",
+          overflowY: "auto", overflowX: "hidden",
+          flexShrink: 0, scrollbarWidth: "none", height: "100vh",
+          color: "var(--sidebar-foreground)",
         }}
       >
-        {/* ── Marca ── */}
-        <div style={{ padding: "14px 14px 10px", borderBottom: "1px solid #1E3A5C", flexShrink: 0 }}>
-
-          {/* Fila 1: Logo + producto */}
-          <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-            <div style={{ background: "#fff", borderRadius: "8px", padding: "4px 8px", display: "inline-flex", alignItems: "center", boxShadow: "0 2px 10px rgba(0,0,0,0.25)", flexShrink: 0 }}>
-              <img src="/halcon.png" alt="Govbidder" style={{ height: "32px", width: "auto", display: "block" }} />
-            </div>
-            <div>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "14px", fontWeight: 900, color: "#FFFFFF", lineHeight: 1.2 }}>
-                Govbidder
-              </div>
-              <div style={{ fontSize: "7px", color: "#8DA2C4", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                Govbidder Challenge
-              </div>
-            </div>
+        {/* ── Brand + collapse toggle ── */}
+        <div style={{
+          padding: collapsed ? "14px 0 12px" : "14px 14px 12px",
+          borderBottom: "1px solid var(--sidebar-border)", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", gap: 8,
+        }}>
+          <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <span style={{
+              background: "#fff", borderRadius: 9, padding: "4px 7px",
+              display: "inline-flex", alignItems: "center", flexShrink: 0,
+              boxShadow: "0 1px 4px rgba(13,26,61,0.18)",
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/halcon.png" alt="Govbidder" style={{ height: 28, width: "auto", display: "block" }} />
+            </span>
+            {!collapsed && (
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 15, fontWeight: 800, lineHeight: 1.15, color: "var(--sidebar-foreground)" }}>
+                  Govbidder
+                </span>
+                <span style={{ display: "block", fontSize: 8.5, color: "var(--muted-foreground)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                  Challenge
+                </span>
+              </span>
+            )}
           </Link>
 
-          {/* Tarjeta de usuario — prominente, clickeable, affordance claro */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {/* Collapse toggle — desktop only */}
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            className="sb-collapse-btn theme-toggle"
+            aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+            title={collapsed ? "Expandir" : "Colapsar"}
+            style={{ width: 30, height: 30 }}
+          >
+            <ChevronLeft size={16} style={{ transition: "transform 0.2s ease", transform: collapsed ? "rotate(180deg)" : "none" }} />
+          </button>
+        </div>
 
-            {/* Card clickeable (ProfileButton maneja el modal) */}
-            <div
-              style={{
-                flex: 1,
-                minWidth: 0,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid #1E3A5C",
-                borderRadius: "10px",
-                padding: "8px 10px",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
-                transition: "background 0.15s, border-color 0.15s",
-                cursor: "pointer",
-                position: "relative",
-                overflow: "hidden",
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.background = "rgba(255,255,255,0.09)";
-                el.style.borderColor = "#647FA8";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.background = "rgba(255,255,255,0.05)";
-                el.style.borderColor = "#1E3A5C";
-              }}
-            >
-              {/* ProfileButton: avatar circle + modal handler */}
-              <ProfileButton
-                fullName={profile.full_name}
-                email={email}
-                avatarUrl={profile.avatar_url ?? null}
-              />
-
-              {/* Texto del usuario */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: "13px", fontWeight: 800, color: "#FFFFFF",
-                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                  lineHeight: 1.3,
-                }}>
-                  {profile.full_name}
-                </div>
-                <div style={{
-                  fontSize: "9.5px", color: "#8DA2C4",
-                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                }}>
-                  {email}
-                </div>
-              </div>
-
-              {/* Ícono de editar */}
-              <span style={{ fontSize: "11px", color: "#647FA8", flexShrink: 0 }}>✏️</span>
-            </div>
-
-            {/* Logout separado del card */}
-            <form action="/api/auth/signout" method="POST" style={{ flexShrink: 0 }}>
-              <button
-                type="submit"
-                title="Cerrar sesión"
+        {/* ── User card ── */}
+        <div style={{
+          padding: collapsed ? "12px 0" : "12px 14px",
+          display: "flex", alignItems: "center", gap: 8,
+          justifyContent: collapsed ? "center" : "flex-start",
+          borderBottom: "1px solid var(--sidebar-border)", flexShrink: 0,
+        }}>
+          {collapsed ? (
+            <ProfileButton fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} />
+          ) : (
+            <>
+              <div
+                className="sb-item"
                 style={{
-                  width: "34px", height: "34px",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid #1E3A5C",
-                  borderRadius: "8px",
-                  color: "#8DA2C4", cursor: "pointer",
-                  transition: "background 0.15s, color 0.15s",
-                }}
-                onMouseEnter={(e) => {
-                  const b = e.currentTarget as HTMLButtonElement;
-                  b.style.background = "rgba(215,38,61,0.12)";
-                  b.style.color = "#D7263D";
-                  b.style.borderColor = "rgba(215,38,61,0.3)";
-                }}
-                onMouseLeave={(e) => {
-                  const b = e.currentTarget as HTMLButtonElement;
-                  b.style.background = "rgba(255,255,255,0.04)";
-                  b.style.color = "#8DA2C4";
-                  b.style.borderColor = "#1E3A5C";
+                  flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10,
+                  background: "var(--muted)", border: "1px solid var(--sidebar-border)",
+                  borderRadius: 10, padding: "7px 9px", cursor: "pointer",
                 }}
               >
-                <LogOut style={{ width: "14px", height: "14px" }} />
-              </button>
-            </form>
-          </div>
+                <ProfileButton fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{
+                    display: "block", fontSize: 13, fontWeight: 700, color: "var(--sidebar-foreground)",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.3,
+                  }}>{profile.full_name}</span>
+                  <span style={{
+                    display: "block", fontSize: 10.5, color: "var(--muted-foreground)",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>{email}</span>
+                </span>
+                <Pencil size={12} style={{ color: "var(--muted-foreground)", flexShrink: 0 }} />
+              </div>
 
-          {/* Fila 3: Admin controls — solo si es admin, todo en una línea */}
-          {profile.is_admin && (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #1E3A5C" }}>
-              <Link href="/admin" style={{ fontSize: "10px", fontWeight: 600, color: "#D7263D", display: "flex", alignItems: "center", gap: "3px", textDecoration: "none" }}>
-                <Shield style={{ width: "10px", height: "10px" }} /> Admin
-              </Link>
-              <ResetTutorialButton />
-              <ResetDashboardButton />
-            </div>
+              <form action="/api/auth/signout" method="POST" style={{ flexShrink: 0 }}>
+                <button type="submit" title="Cerrar sesión" className="theme-toggle" style={{ width: 34, height: 34 }}>
+                  <LogOut size={15} />
+                </button>
+              </form>
+            </>
           )}
         </div>
 
-        {/* ── Divider ── */}
-        <div style={{ height: "1px", background: "#1E3A5C", margin: "10px 12px" }} />
+        {/* ── Admin row ── */}
+        {profile.is_admin && !collapsed && (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10,
+            padding: "8px 14px", borderBottom: "1px solid var(--sidebar-border)", flexShrink: 0,
+          }}>
+            <Link href="/admin" style={{ fontSize: 11, fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
+              <Shield size={12} /> Admin
+            </Link>
+            <ResetTutorialButton />
+            <ResetDashboardButton />
+          </div>
+        )}
+        {profile.is_admin && collapsed && (
+          <div style={{ display: "flex", justifyContent: "center", padding: "8px 0", borderBottom: "1px solid var(--sidebar-border)" }}>
+            <Link href="/admin" title="Admin" style={{ color: "var(--primary)", display: "inline-flex" }}>
+              <Shield size={16} />
+            </Link>
+          </div>
+        )}
 
-        {/* ── Navegación días ── */}
-        <div
-          style={{
-            fontSize: "8px",
-            fontWeight: 700,
-            color: "#8DA2C4",
-            textTransform: "uppercase",
-            letterSpacing: "0.14em",
-            fontFamily: "var(--font-arcade)",
-            padding: "0 14px 5px",
-          }}
-        >
-          Fases del Programa
+        {/* ── Section: Fases del Programa ── */}
+        <div style={{ padding: "8px 6px 4px", flexShrink: 0 }}>
+          {!collapsed && (
+            <SectionHeader icon={<CalendarDays size={13} />} label="Fases del Programa" open={diasOpen} onToggle={toggleDias} />
+          )}
+          <div className="sb-acc" style={{ gridTemplateRows: collapsed || diasOpen ? "1fr" : "0fr" }}>
+            <div className="sb-acc-inner">
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: collapsed ? "4px 6px" : "2px 6px" }}>
+                {[1, 2, 3, 4].map((day) => {
+                  const prog = progressMap[day];
+                  const isUnlocked = prog?.is_unlocked ?? (day === 1);
+                  const isCompleted = prog?.is_completed ?? false;
+                  const { label, href } = DAY_META[day];
+                  const active = pathname === href || pathname.startsWith(href + "/");
+                  return (
+                    <DayNavItem
+                      key={day} day={day} label={label} href={href}
+                      isCompleted={isCompleted} isUnlocked={isUnlocked}
+                      collapsed={collapsed} active={active}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {[1, 2, 3, 4].map((day) => {
-          const prog      = progressMap[day];
-          const isUnlocked  = prog?.is_unlocked  ?? (day === 1);
-          const isCompleted = prog?.is_completed ?? false;
-          const { label, href } = DAY_META[day];
-          return (
-            <DayNavItem
-              key={day}
-              day={day}
-              label={label}
-              href={href}
-              isCompleted={isCompleted}
-              isUnlocked={isUnlocked}
-            />
-          );
-        })}
-
-        {/* ── Divider ── */}
-        <div style={{ height: "1px", background: "#1E3A5C", margin: "8px 12px" }} />
-
-        {/* ── Mis entregables ── */}
-        <div
-          style={{
-            fontSize: "8px",
-            fontWeight: 700,
-            color: "#8DA2C4",
-            textTransform: "uppercase",
-            letterSpacing: "0.14em",
-            fontFamily: "var(--font-arcade)",
-            padding: "0 14px 5px",
-          }}
-        >
-          Mis Entregables
+        {/* ── Section: Mis Entregables ── */}
+        <div style={{ padding: "4px 6px 8px", flexShrink: 0 }}>
+          {!collapsed && (
+            <SectionHeader icon={<FolderDown size={13} />} label="Mis Entregables" open={entregablesOpen} onToggle={toggleEntregables} />
+          )}
+          <div className="sb-acc" style={{ gridTemplateRows: collapsed || entregablesOpen ? "1fr" : "0fr" }}>
+            <div className="sb-acc-inner">
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: collapsed ? "4px 6px" : "2px 6px" }}>
+                <EntregableRow name="Análisis Día 1" sub="NAICS + Perfil · PDF" href="/api/pdf/day-1" available={day1Done} collapsed={collapsed} />
+                <EntregableRow name="Códigos NAICS" sub="Keywords · PDF" href="/api/pdf/day-2" available={day2Done} collapsed={collapsed} />
+                <EntregableRow name="Web Preview" sub="Disponible en Día 3" href="/api/pdf/day-3" available={day3Done} collapsed={collapsed} />
+                <EntregableRow name="Capability Statement" sub="Disponible en Día 4" href="/api/pdf/capability-statement" available={day4Done} collapsed={collapsed} />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <EntregableRow
-          icon="📄"
-          name="Análisis Día 1"
-          sub="NAICS + Perfil · PDF"
-          href="/api/pdf/day-1"
-          available={day1Done}
-        />
-        <EntregableRow
-          icon="📄"
-          name="Códigos NAICS"
-          sub="Keywords · PDF"
-          href="/api/pdf/day-2"
-          available={day2Done}
-        />
-        <EntregableRow
-          icon="📄"
-          name="Web Preview"
-          sub="Disponible en Día 3"
-          href="/api/pdf/day-3"
-          available={day3Done}
-        />
-        <EntregableRow
-          icon="📄"
-          name="Capability Statement"
-          sub="Disponible en Día 4"
-          href="/api/pdf/capability-statement"
-          available={day4Done}
-        />
-
-        <div style={{ height: "16px" }} />
+        <div style={{ flex: 1 }} />
       </aside>
     </>
   );

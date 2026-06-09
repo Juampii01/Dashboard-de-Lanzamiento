@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Fonts */
+  /* Fonts — Raleway (text+headings), Inter (UI/numbers), Bebas Neue (big numbers) */
   --font-sans:    var(--font-sans);
-  --font-display: var(--font-display);
+  --font-display: var(--font-sans);
   --font-mono:    var(--font-mono);
   --font-arcade:  var(--font-arcade);
 
@@ -26,6 +26,8 @@
   --color-muted-foreground:     var(--muted-foreground);
   --color-accent:               var(--accent);
   --color-accent-foreground:    var(--accent-foreground);
+  --color-success:              var(--success);
+  --color-success-foreground:   var(--success-foreground);
   --color-destructive:          var(--destructive);
   --color-border:               var(--border);
   --color-input:                var(--input);
@@ -43,78 +45,138 @@
   --radius-2xl: calc(var(--radius) + 10px);
 }
 
+/* ════════════════════════════════════════════════════════════════
+   GOVBIDDER THEME TOKENS — brand-aligned, premium SaaS
+   Brand palette:  navy #0d1a3d · navy-mid #152978 · navy-deep #080f24
+                   red #E42D2C · gold #FFD700 · green #16A65F · white #fff
+   LIGHT is the primary theme (:root). DARK lives under .dark.
+   Every color in the app should reference a token below — no loose hex.
+   ════════════════════════════════════════════════════════════════ */
+
 :root {
-  /* ════════════════════════════════════════════════
-     GOVBIDDER — Dark arcade, vivid & legible
-     Hierarchy: sidebar (#0f2444) > bg (#0b1929) > card (#1a3870)
-     ════════════════════════════════════════════════ */
+  /* ── LIGHT MODE (primary) — navy is TEXT/structure, not background ── */
+  --background:           #F7F8FA;  /* page: very light gray */
+  --foreground:           #0d1a3d;  /* navy text */
 
-  /* Fondo principal del área de contenido — el más oscuro */
-  --background:           #0b1929;
-  --foreground:           #ffffff;
+  --card:                 #ffffff;
+  --card-foreground:      #0d1a3d;
+  --popover:              #ffffff;
+  --popover-foreground:   #0d1a3d;
 
-  /* Cards — claramente por encima del fondo */
-  --card:                 #1a3870;
-  --card-foreground:      #ffffff;
-  --popover:              #1a3870;
-  --popover-foreground:   #ffffff;
-
-  /* Rojo USA vivido */
-  --primary:              #ef4444;
+  /* Primary CTA: brand red */
+  --primary:              #E42D2C;
   --primary-foreground:   #ffffff;
 
-  /* Azul eléctrico — botones activos, highlights */
-  --secondary:            #3b82f6;
+  /* Structural / active: navy medio */
+  --secondary:            #152978;
   --secondary-foreground: #ffffff;
 
-  /* Muted */
-  --muted:                #1e3464;
-  --muted-foreground:     #e2e8f0;  /* texto secundario, mínimo garantizado */
+  /* Muted surfaces + secondary text */
+  --muted:                #EEF1F6;
+  --muted-foreground:     #5A6B85;  /* desaturated navy/gray, AA on white */
 
-  /* Dorado arcade */
-  --accent:               #FFD60A;
-  --accent-foreground:    #0b1929;
+  /* Accent: gold — badges/highlights only (never text on light) */
+  --accent:               #FFD700;
+  --accent-foreground:    #0d1a3d;
 
-  --destructive:          #ef4444;
-  --border:               #2a4f96;
-  --input:                #0b1929;
-  --ring:                 rgba(239, 68, 68, 0.45);
+  /* Success: brand green */
+  --success:              #16A65F;
+  --success-foreground:   #ffffff;
+
+  --destructive:          #E42D2C;
+  --border:               rgba(13, 26, 61, 0.10);  /* subtle navy at low opacity */
+  --input:                rgba(13, 26, 61, 0.14);
+  --ring:                 rgba(228, 45, 44, 0.35);
 
   /* Charts */
-  --chart-1: #ef4444;
-  --chart-2: #FFD60A;
-  --chart-3: #22c55e;
-  --chart-4: #3b82f6;
-  --chart-5: #e2e8f0;
+  --chart-1: #E42D2C;
+  --chart-2: #FFD700;
+  --chart-3: #16A65F;
+  --chart-4: #152978;
+  --chart-5: #5A6B85;
 
   --radius: 0.75rem;
 
-  /* ── Sidebar — MÁS VIVIDO que el bg, claramente distinto ──
-     bg: #0b1929  →  sidebar: #0f2444  (delta perceptible) */
-  --sidebar:                   #0f2444;
-  --sidebar-foreground:        #ffffff;
-  --sidebar-primary:           #ef4444;
-  --sidebar-primary-foreground:#ffffff;
-  --sidebar-accent:            rgba(59, 130, 246, 0.18);  /* blue tint active items */
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border:            #2a4f96;
-  --sidebar-ring:              #ef4444;
+  /* Sidebar (light) */
+  --sidebar:                    #ffffff;
+  --sidebar-foreground:         #0d1a3d;
+  --sidebar-primary:            #E42D2C;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:             rgba(21, 41, 120, 0.07);
+  --sidebar-accent-foreground:  #0d1a3d;
+  --sidebar-border:             rgba(13, 26, 61, 0.10);
+  --sidebar-ring:               #E42D2C;
 }
 
-/* ── Custom tokens ─────────────────────────────── */
+.dark {
+  /* ── DARK MODE — navy background, white text (like the public site) ── */
+  --background:           #0d1a3d;
+  --foreground:           #ffffff;
+
+  --card:                 #122150;
+  --card-foreground:      #ffffff;
+  --popover:              #122150;
+  --popover-foreground:   #ffffff;
+
+  --primary:              #E42D2C;
+  --primary-foreground:   #ffffff;
+
+  --secondary:            #152978;
+  --secondary-foreground: #ffffff;
+
+  --muted:                #1a2a52;
+  --muted-foreground:     #AEBCD6;
+
+  --accent:               #FFD700;
+  --accent-foreground:    #0d1a3d;
+
+  --success:              #16A65F;
+  --success-foreground:   #ffffff;
+
+  --destructive:          #E42D2C;
+  --border:               rgba(255, 255, 255, 0.10);
+  --input:                rgba(255, 255, 255, 0.14);
+  --ring:                 rgba(228, 45, 44, 0.45);
+
+  --chart-1: #E42D2C;
+  --chart-2: #FFD700;
+  --chart-3: #16A65F;
+  --chart-4: #4661c0;
+  --chart-5: #AEBCD6;
+
+  /* Sidebar (dark) */
+  --sidebar:                    #0b1533;
+  --sidebar-foreground:         #ffffff;
+  --sidebar-primary:            #E42D2C;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:             rgba(255, 255, 255, 0.08);
+  --sidebar-accent-foreground:  #ffffff;
+  --sidebar-border:             rgba(255, 255, 255, 0.10);
+  --sidebar-ring:               #E42D2C;
+}
+
+/* ── Raw brand tokens (theme-independent) ─────────────────────────── */
 :root {
-  --govbidder-blue:       #0b1929;   /* main bg */
-  --govbidder-blue-mid:   #1a3870;   /* cards */
-  --govbidder-blue-light: #3b82f6;   /* electric blue */
-  --govbidder-red:        #ef4444;   /* vivid red */
-  --govbidder-red-deep:   #dc2626;
-  --arcade-gold:          #FFD60A;
-  --arcade-green:         #22c55e;   /* vivid green */
-  --locked-gray:          #1e3464;
-  --text-secondary-color: #e2e8f0;   /* bright secondary text */
-  --text-muted-color:     #94a3b8;   /* label minimum */
-  --border-default:       #2a4f96;
-  --border-active:        #ef4444;
+  --govbidder-navy:       #0d1a3d;
+  --govbidder-navy-mid:   #152978;
+  --govbidder-navy-deep:  #080f24;
+  --govbidder-red:        #E42D2C;
+  --govbidder-red-deep:   #b91f1e;
+  --govbidder-gold:       #FFD700;
+  --govbidder-green:      #16A65F;
+
+  /* Legacy aliases — kept so un-migrated components keep working until
+     points 3 & 4 of the redesign tokenize them. Mapped to brand palette. */
+  --govbidder-blue:       var(--govbidder-navy);
+  --govbidder-blue-mid:   var(--govbidder-navy-mid);
+  --govbidder-blue-light: var(--govbidder-navy-mid);
+  --arcade-gold:          var(--govbidder-gold);
+  --arcade-green:         var(--govbidder-green);
+  --locked-gray:          #5A6B85;
+  --text-secondary-color: var(--muted-foreground);
+  --text-muted-color:     var(--muted-foreground);
+  --border-default:       var(--border);
+  --border-active:        var(--govbidder-red);
 }
 
 @layer base {
@@ -128,8 +190,8 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ── CRT scanlines — subtle, 4% opacity ── */
-  body::before {
+  /* ── CRT scanlines — DARK MODE ONLY (light mode stays clean) ── */
+  .dark body::before {
     content: '';
     position: fixed;
     inset: 0;
@@ -144,15 +206,15 @@
     z-index: 9998;
   }
 
-  /* ── CRT vignette + ambient color blobs ── */
-  body::after {
+  /* ── CRT vignette + ambient color blobs — DARK MODE ONLY ── */
+  .dark body::after {
     content: '';
     position: fixed;
     inset: 0;
     background:
       radial-gradient(ellipse at center, transparent 0%, transparent 65%, rgba(0,0,0,0.40) 100%),
-      radial-gradient(circle at 15% 8%,  rgba(59,130,246,0.10)  0%, transparent 45%),
-      radial-gradient(circle at 85% 88%, rgba(239,68,68,0.07)   0%, transparent 45%);
+      radial-gradient(circle at 15% 8%,  rgba(21,41,120,0.22)  0%, transparent 45%),
+      radial-gradient(circle at 85% 88%, rgba(228,45,44,0.10)  0%, transparent 45%);
     pointer-events: none;
     z-index: 9997;
   }
@@ -165,19 +227,7 @@
   }
 }
 
-/* ── Pixel floating stars ───────────────────── */
-@keyframes px-twinkle {
-  0%, 100% { opacity: 0.25; transform: scale(1); }
-  50%       { opacity: 1;    transform: scale(1.4); }
-}
-.px-star {
-  position: fixed;
-  width: 4px;
-  height: 4px;
-  pointer-events: none;
-  z-index: 1;
-  animation: px-twinkle steps(2) infinite;
-}
+/* (Pixel floating stars removed — sober redesign) */
 
 /* Avatar mega-jump (easter egg) */
 @keyframes bar-avatar-jump {
@@ -193,40 +243,20 @@
   50%       { transform: translateY(-6px) rotate(3deg)  scale(1.08); }
 }
 
-/* Flying +PTS label */
+/* Floating "+XP" label — sober, premium (Inter, success green, no glow) */
 .wow-pts-fly {
   position: fixed;
   z-index: 9999;
-  font-family: var(--font-arcade);
-  font-size: 14px;
-  color: #FFD60A;
-  text-shadow: 0 0 14px rgba(255,214,10,0.9), 2px 2px 0 #0b1929;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--success);
   pointer-events: none;
   white-space: nowrap;
 }
 
-/* DOM particle (gold / green / cyan) */
-.wow-particle {
-  position: fixed;
-  width: 7px;
-  height: 7px;
-  border-radius: 1px;
-  pointer-events: none;
-  z-index: 9999;
-}
-.wow-particle.gold  { background: #FFD60A; box-shadow: 0 0 10px #FFD60A; }
-.wow-particle.green { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-.wow-particle.cyan  { background: #00D4FF; box-shadow: 0 0 10px #00D4FF; }
-
-/* Avatar star (easter egg) */
-.wow-avatar-star {
-  position: fixed;
-  z-index: 9999;
-  pointer-events: none;
-  font-size: 18px;
-  color: #FFD60A;
-  text-shadow: 0 0 12px rgba(255,214,10,0.8);
-}
+/* (DOM particle bursts & avatar easter-egg stars removed — sober redesign) */
 
 /* Lock tooltip bounce */
 @keyframes lock-tooltip-in {
@@ -576,11 +606,14 @@
 .gb-overlay   { display: none; }
 
 @media (max-width: 768px) {
-  /* Sidebar becomes an off-canvas drawer */
+  /* Sidebar becomes an off-canvas drawer — always full drawer width,
+     independent of the desktop collapse state. */
   .gb-sidebar {
     position: fixed !important;
     top: 0;
     left: 0;
+    width: 264px !important;
+    min-width: 264px !important;
     height: 100dvh !important;
     z-index: 50;
     transform: translateX(-100%);
@@ -588,6 +621,9 @@
     box-shadow: 4px 0 28px rgba(0, 0, 0, 0.55);
   }
   .gb-sidebar.gb-open { transform: translateX(0); }
+
+  /* Collapse-to-icons is a desktop concept — hide its trigger on mobile */
+  .sb-collapse-btn { display: none !important; }
 
   /* Hamburger trigger — floating top-left */
   .gb-hamburger {
@@ -638,4 +674,47 @@
 
   /* Tighter content padding on phones */
   .gb-main { padding: 16px 12px !important; }
+}
+
+/* ════════════════════════════════════════════════
+   THEME TOGGLE BUTTON (light/dark) — token-driven
+   ════════════════════════════════════════════════ */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.theme-toggle:hover {
+  background: var(--muted);
+  border-color: var(--secondary);
+  transform: translateY(-1px);
+}
+.theme-toggle:active { transform: translateY(0); }
+
+/* ════════════════════════════════════════════════
+   ACCESSIBILITY — honor reduced-motion everywhere
+   Any new animation in this redesign must respect this.
+   ════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Progressive-disclosure step reveal (presentation only) ── */
+@keyframes reveal-step-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

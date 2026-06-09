@@ -2,16 +2,14 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
-import { ParticleBackground } from "@/components/particle-background";
-import { BootSequence } from "@/components/boot-sequence";
 import { UnlockEventListener } from "@/components/unlock-event-listener";
-import { ArcadeAmbient } from "@/components/arcade-ambient";
 import { XpEngine } from "@/components/xp-engine";
 import { OnboardingTutorial } from "@/components/onboarding-tutorial";
 import { daysLeft, isExpired } from "@/lib/utils";
 import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { DayTabs } from "@/components/day-tabs";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -176,14 +174,11 @@ export default async function DashboardLayout({
         height: "100vh",
         display: "flex",
         flexDirection: "row",     /* sidebar izquierdo, todo el resto a la derecha */
-        background: "#0A2540",
+        background: "var(--background)",
         overflow: "hidden",
       }}
     >
       {/* Invisible global effects */}
-      <ParticleBackground />
-      <ArcadeAmbient />
-      <BootSequence />
       <UnlockEventListener />
       {!devMode && <XpEngine />}
 
@@ -212,17 +207,23 @@ export default async function DashboardLayout({
           <div
             data-tour-id="progress-bar"
             style={{
-              background: "linear-gradient(180deg, #0A2540 0%, #143A6B 100%)",
-              borderBottom: "1px solid #1E3A5C",
+              background: "var(--card)",
+              borderBottom: "1px solid var(--border)",
               padding: "8px 20px",
               flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: "14px",
             }}
           >
-            <ProgressBar
-              completedDays={completedDays}
-              isAdmin={profile?.is_admin ?? false}
-              avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
-            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <ProgressBar
+                completedDays={completedDays}
+                isAdmin={profile?.is_admin ?? false}
+                avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
+              />
+            </div>
+            <ThemeToggle />
           </div>
 
           {/* Expiry banner */}
@@ -235,9 +236,11 @@ export default async function DashboardLayout({
           {/* Tabs */}
           <DayTabs progressMap={progressMapFromLayout} />
 
-          {/* Contenido principal */}
-          <main className="gb-main" style={{ flex: 1, overflowY: "auto", background: "#0A2540", padding: "28px 24px" }}>
-            {children}
+          {/* Contenido principal — contenedor centrado y con aire */}
+          <main className="gb-main" style={{ flex: 1, overflowY: "auto", background: "var(--background)", padding: "40px 24px 64px" }}>
+            <div style={{ maxWidth: "960px", margin: "0 auto", width: "100%" }}>
+              {children}
+            </div>
           </main>
         </div>
 

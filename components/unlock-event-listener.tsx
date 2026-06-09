@@ -16,11 +16,19 @@ export function UnlockEventListener() {
     setEvent({ dayNumber });
     setFading(false);
 
-    // Staggered confetti burst in brand colors
-    const colors = ["#D7263D", "#FFD60A", "#00D67A", "#FFFFFF"];
-    confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 }, colors });
-    setTimeout(() => confetti({ particleCount: 70, spread: 60, origin: { x: 0.25, y: 0.5 }, colors }), 280);
-    setTimeout(() => confetti({ particleCount: 70, spread: 60, origin: { x: 0.75, y: 0.5 }, colors }), 500);
+    // Single sober confetti burst — brand colors, reduced-motion aware
+    const prefersReduced =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+    if (!prefersReduced) {
+      confetti({
+        particleCount: 50,
+        spread: 65,
+        startVelocity: 34,
+        ticks: 130,
+        origin: { y: 0.5 },
+        colors: ["#E42D2C", "#152978", "#16A65F", "#FFD700"],
+      });
+    }
   }, []);
 
   const dismiss = useCallback(() => {
@@ -94,7 +102,7 @@ export function UnlockEventListener() {
             <br />
             <span style={{ color: "#FFD60A" }}>disponible</span>
           </h2>
-          <p className="mt-3 text-sm" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>
+          <p className="mt-3 text-sm" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>
             ¡El nuevo reto ya está activo para todos!
           </p>
         </div>
@@ -106,7 +114,7 @@ export function UnlockEventListener() {
           Ir al Día {event.dayNumber} →
         </div>
 
-        <p className="text-[10px]" style={{ color: "#3D4E6B", fontFamily: "var(--font-mono)" }}>
+        <p className="text-[10px]" style={{ color: "#647FA8", fontFamily: "var(--font-mono)" }}>
           Click para continuar
         </p>
       </div>

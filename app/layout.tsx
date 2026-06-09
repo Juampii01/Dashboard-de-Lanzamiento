@@ -1,30 +1,26 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono, Press_Start_2P } from "next/font/google";
+import { Raleway, Inter, Bebas_Neue } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-display",
+// ── Brand typography (matches the public Govbidder site) ──
+// Raleway: body + headings · Inter: UI / numbers · Bebas Neue: big counters / scores
+const raleway = Raleway({
+  variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
 const inter = Inter({
-  variable: "--font-sans",
+  variable: "--font-mono", // UI / numeric token across the app
   subsets: ["latin"],
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  display: "swap",
-});
-
-const pressStart = Press_Start_2P({
-  variable: "--font-arcade",
+const bebasNeue = Bebas_Neue({
+  variable: "--font-arcade", // big numbers / scores
   subsets: ["latin"],
   weight: ["400"],
   display: "swap",
@@ -48,11 +44,19 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} ${pressStart.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${raleway.variable} ${inter.variable} ${bebasNeue.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
-        <Toaster richColors position="top-right" />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster richColors position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );
