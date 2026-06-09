@@ -314,7 +314,7 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
         <div style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "8px", fontWeight: 700,
-          color: "#A8B5CC", letterSpacing: "0.1em",
+          color: "#C9D6EC", letterSpacing: "0.1em",
           textTransform: "uppercase", marginBottom: "2px",
         }}>
           TUS PUNTOS ACUMULADOS
@@ -327,27 +327,11 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
           {points.toLocaleString()}
         </div>
         <div style={{
-          fontSize: "10px", color: "#5A6B85",
+          fontSize: "10px", color: "#8DA2C4",
           fontWeight: 600, marginTop: "2px",
         }}>
           Seguí completando retos y viendo videos para subir en el ranking
         </div>
-      </div>
-
-      <div
-        style={{
-          fontFamily: "var(--font-arcade)",
-          fontSize: "9px", fontWeight: 700,
-          color: "#00D67A",
-          background: "rgba(0,214,122,0.1)",
-          border: "1px solid rgba(0,214,122,0.25)",
-          borderRadius: "20px",
-          padding: "4px 10px",
-          flexShrink: 0,
-          fontStyle: "italic",
-        }}
-      >
-        puede tardar unos segundos
       </div>
     </div>
   );
@@ -362,7 +346,7 @@ function VideoTutorial() {
         <p style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "8px", fontWeight: 700,
-          color: "#5A6B85", textTransform: "uppercase",
+          color: "#8DA2C4", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "4px",
         }}>
           🎬 Tutorial
@@ -374,7 +358,7 @@ function VideoTutorial() {
         }}>
           Cómo usar el dashboard
         </h2>
-        <p style={{ fontSize: "13px", color: "#A8B5CC", marginTop: "4px" }}>
+        <p style={{ fontSize: "13px", color: "#C9D6EC", marginTop: "4px" }}>
           Mirá el tutorial completo antes de empezar los retos.
         </p>
       </div>
@@ -403,10 +387,10 @@ function VideoTutorial() {
           >
             <div style={{ fontSize: "48px" }}>🎬</div>
             <div style={{ textAlign: "center" }}>
-              <p style={{ color: "#A8B5CC", fontSize: "14px", fontWeight: 600 }}>
+              <p style={{ color: "#C9D6EC", fontSize: "14px", fontWeight: 600 }}>
                 Video tutorial próximamente
               </p>
-              <p style={{ color: "#5A6B85", fontSize: "12px", marginTop: "4px" }}>
+              <p style={{ color: "#8DA2C4", fontSize: "12px", marginTop: "4px" }}>
                 Reemplazá <code style={{ color: "#FFD60A" }}>LOOM_VIDEO_ID</code> en <code style={{ color: "#00D4FF" }}>home-client.tsx</code>
               </p>
             </div>
@@ -476,7 +460,7 @@ function CommentsSection() {
         <p style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "8px", fontWeight: 700,
-          color: "#5A6B85", textTransform: "uppercase",
+          color: "#8DA2C4", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "4px",
         }}>
           💬 Comunidad
@@ -513,8 +497,8 @@ function CommentsSection() {
                   display: "flex", alignItems: "center", gap: "6px",
                   marginBottom: "6px",
                 }}>
-                  <MessageCircle style={{ width: "13px", height: "13px", color: "#5A6B85" }} />
-                  <span style={{ fontSize: "11px", color: "#5A6B85", fontWeight: 600 }}>
+                  <MessageCircle style={{ width: "13px", height: "13px", color: "#8DA2C4" }} />
+                  <span style={{ fontSize: "11px", color: "#8DA2C4", fontWeight: 600 }}>
                     Tu comentario
                   </span>
                 </div>
@@ -540,7 +524,7 @@ function CommentsSection() {
                   onFocus={(e) => { e.target.style.borderColor = "#00D4FF"; }}
                   onBlur={(e) => { e.target.style.borderColor = "#1E3A5C"; }}
                 />
-                <p style={{ fontSize: "10px", color: "#3A5070", marginTop: "3px", textAlign: "right" }}>
+                <p style={{ fontSize: "10px", color: "#647FA8", marginTop: "3px", textAlign: "right" }}>
                   {content.length}/500
                 </p>
               </div>
@@ -553,7 +537,7 @@ function CommentsSection() {
                   background: content.trim() ? "#D7263D" : "rgba(215,38,61,0.2)",
                   border: "1px solid rgba(215,38,61,0.4)",
                   borderRadius: "8px",
-                  color: content.trim() ? "#FFFFFF" : "#5A6B85",
+                  color: content.trim() ? "#FFFFFF" : "#8DA2C4",
                   fontSize: "12px", fontWeight: 700,
                   cursor: content.trim() ? "pointer" : "not-allowed",
                   transition: "all 0.15s",
@@ -573,10 +557,10 @@ function CommentsSection() {
           {!available ? (
             <div style={{
               padding: "32px 16px", textAlign: "center",
-              color: "#5A6B85", fontSize: "13px",
+              color: "#8DA2C4", fontSize: "13px",
             }}>
               <MessageCircle style={{ width: "24px", height: "24px", margin: "0 auto 8px", opacity: 0.4 }} />
-              <p style={{ color: "#A8B5CC", fontWeight: 600 }}>Sección de comentarios próximamente</p>
+              <p style={{ color: "#C9D6EC", fontWeight: 600 }}>Sección de comentarios próximamente</p>
               <p style={{ fontSize: "11px", marginTop: "4px" }}>
                 Ejecutá la migración SQL para activarla.
               </p>
@@ -584,10 +568,10 @@ function CommentsSection() {
           ) : comments.length === 0 ? (
             <div style={{
               padding: "32px 16px", textAlign: "center",
-              color: "#5A6B85", fontSize: "13px",
+              color: "#8DA2C4", fontSize: "13px",
             }}>
-              <p style={{ color: "#A8B5CC", fontWeight: 600 }}>Sé el primero en comentar 👆</p>
-              <p style={{ fontSize: "11px", marginTop: "4px", color: "#5A6B85" }}>
+              <p style={{ color: "#C9D6EC", fontWeight: 600 }}>Sé el primero en comentar 👆</p>
+              <p style={{ fontSize: "11px", marginTop: "4px", color: "#8DA2C4" }}>
                 Tu opinión ayuda a mejorar el programa.
               </p>
             </div>
@@ -608,7 +592,7 @@ function CommentsSection() {
                     background: "linear-gradient(135deg, #143A6B 0%, #0A2540 100%)",
                     border: "1px solid #1E3A5C",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "11px", fontWeight: 700, color: "#A8B5CC",
+                    fontSize: "11px", fontWeight: 700, color: "#C9D6EC",
                     flexShrink: 0,
                   }}
                 >
@@ -619,13 +603,13 @@ function CommentsSection() {
                     <span style={{ fontSize: "12px", fontWeight: 700, color: "#C8D6E8" }}>
                       {c.display_name}
                     </span>
-                    <span style={{ fontSize: "10px", color: "#3A5070" }}>
+                    <span style={{ fontSize: "10px", color: "#647FA8" }}>
                       {new Date(c.created_at).toLocaleDateString("es-AR", {
                         day: "numeric", month: "short",
                       })}
                     </span>
                   </div>
-                  <p style={{ fontSize: "13px", color: "#A8B5CC", lineHeight: 1.5, margin: 0 }}>
+                  <p style={{ fontSize: "13px", color: "#C9D6EC", lineHeight: 1.5, margin: 0 }}>
                     {c.content}
                   </p>
                 </div>
@@ -796,7 +780,6 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
           {/* Seal placeholder */}
           <div style={{ textAlign: "center", marginBottom: "20px" }}>
             <div style={{
-              display: "inline-block",
               width: "64px", height: "64px",
               borderRadius: "50%",
               border: "3px solid #1a365d",
@@ -937,7 +920,7 @@ function ContractModels() {
         <p style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "8px", fontWeight: 700,
-          color: "#5A6B85", textTransform: "uppercase",
+          color: "#8DA2C4", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "4px",
         }}>
           🏆 Contratos Reales
@@ -949,7 +932,7 @@ function ContractModels() {
         }}>
           ¡Mirá contratos gubernamentales ganados!
         </h2>
-        <p style={{ fontSize: "13px", color: "#A8B5CC", marginTop: "4px" }}>
+        <p style={{ fontSize: "13px", color: "#C9D6EC", marginTop: "4px" }}>
           Estos son contratos reales adjudicados a pequeñas empresas como la tuya. Seleccioná tu sector.
         </p>
       </div>
@@ -997,7 +980,7 @@ function ContractModels() {
               }}>
                 {niche.label}
               </div>
-              <div style={{ fontSize: "9px", color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
+              <div style={{ fontSize: "9px", color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
                 NAICS {niche.naics}
               </div>
             </div>
@@ -1038,7 +1021,7 @@ function ContractModels() {
       >
         <span style={{ fontSize: "18px" }}>📜</span>
         Ver Certificado de Participación
-        <span style={{ fontSize: "11px", color: "#A8B5CC", fontWeight: 400, fontFamily: "var(--font-sans)" }}>
+        <span style={{ fontSize: "11px", color: "#C9D6EC", fontWeight: 400, fontFamily: "var(--font-sans)" }}>
           — boceto
         </span>
       </button>
@@ -1167,14 +1150,10 @@ function LeaderboardHome() {
             Tabla de líderes
           </span>
           {total > 0 && (
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#3A5070" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8" }}>
               {total} participante{total !== 1 ? "s" : ""}
             </span>
           )}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#00D67A", display: "inline-block" }} />
-          <span style={{ fontFamily: "var(--font-sans)", fontSize: "9px", color: "#5A6B85", fontStyle: "italic" }}>puede tardar unos segundos</span>
         </div>
       </div>
 
@@ -1189,13 +1168,13 @@ function LeaderboardHome() {
         ))}
 
         {!loading && top.length === 0 && (
-          <p style={{ textAlign: "center", padding: "24px 16px", fontSize: "13px", color: "#5A6B85" }}>
+          <p style={{ textAlign: "center", padding: "24px 16px", fontSize: "13px", color: "#8DA2C4" }}>
             Aún no hay participantes. ¡Sé el primero!
           </p>
         )}
 
         {!loading && top.map((entry) => {
-          const color = TOP_COLORS[entry.rank] ?? "#5A6B85";
+          const color = TOP_COLORS[entry.rank] ?? "#8DA2C4";
           const isTop3 = entry.rank <= 3;
           return (
             <div
@@ -1232,7 +1211,7 @@ function LeaderboardHome() {
                 <HomePrizeBadge rank={entry.rank} />
                 <span style={{
                   fontFamily: "var(--font-mono)", fontSize: "11px",
-                  fontWeight: 700, color: isTop3 ? color : "#A8B5CC",
+                  fontWeight: 700, color: isTop3 ? color : "#C9D6EC",
                 }}>
                   {entry.total_points} pts
                 </span>
@@ -1248,7 +1227,7 @@ function LeaderboardHome() {
               display: "flex", alignItems: "center", justifyContent: "center",
               padding: "6px", background: "rgba(0,0,0,0.2)",
             }}>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#3A5070", letterSpacing: "0.3em" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8", letterSpacing: "0.3em" }}>
                 • • •
               </span>
             </div>
@@ -1262,7 +1241,7 @@ function LeaderboardHome() {
             }}>
               <span style={{
                 width: "28px", textAlign: "center", flexShrink: 0,
-                fontFamily: "var(--font-arcade)", fontSize: "9px", color: "#5A6B85",
+                fontFamily: "var(--font-arcade)", fontSize: "9px", color: "#8DA2C4",
               }}>
                 #{meEntry.rank}
               </span>
@@ -1274,7 +1253,7 @@ function LeaderboardHome() {
                 {meEntry.display_name}
                 <span style={{ marginLeft: "6px", fontSize: "9px", opacity: 0.6 }}>(vos)</span>
               </span>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 700, color: "#A8B5CC" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 700, color: "#C9D6EC" }}>
                 {meEntry.total_points} pts
               </span>
             </div>
@@ -1285,12 +1264,12 @@ function LeaderboardHome() {
       {/* Footer */}
       <div style={{ padding: "8px 16px", borderTop: "1px solid rgba(255,255,255,0.04)", textAlign: "center" }}>
         {!loading && !inTop && myRank && (
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "8px", color: "#5A6B85", marginBottom: "2px" }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "8px", color: "#8DA2C4", marginBottom: "2px" }}>
             Tu posición actual: #{myRank} de {total}
           </p>
         )}
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: "8px", color: "#3A5070" }}>
-          Los mejores ranqueados al final del challenge ganan premios reales · Se actualiza cada 60s
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: "8px", color: "#647FA8" }}>
+          Los mejores ranqueados al final del challenge ganan premios reales
         </p>
       </div>
     </div>
@@ -1321,7 +1300,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl }: HomeClientProp
             <p style={{
               fontFamily: "var(--font-arcade)",
               fontSize: "8px", fontWeight: 700,
-              color: "#5A6B85", textTransform: "uppercase",
+              color: "#8DA2C4", textTransform: "uppercase",
               letterSpacing: "0.14em", marginBottom: "4px",
             }}>
               🏆 Ranking

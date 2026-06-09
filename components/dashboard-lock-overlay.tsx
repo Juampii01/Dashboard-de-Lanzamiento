@@ -320,18 +320,6 @@ export function DashboardLockOverlay({ isAdmin = false }: { isAdmin?: boolean })
           </div>
         )}
 
-        {/* Status note */}
-        <p
-          style={{
-            fontFamily: "var(--font-sans)",
-            fontSize: "11px",
-            color: "#647FA8",
-            margin: 0,
-            fontStyle: "italic",
-          }}
-        >
-          Puede tardar unos segundos en actualizarse · Recargá la página cuando termine
-        </p>
 
         {/* ── Admin-only unlock button ── */}
         {isAdmin && (

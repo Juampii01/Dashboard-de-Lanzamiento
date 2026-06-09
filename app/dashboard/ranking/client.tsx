@@ -114,7 +114,7 @@ export function RankingClient() {
         <p style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "9px", fontWeight: 700,
-          color: "#5A6B85", textTransform: "uppercase",
+          color: "#8DA2C4", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "6px",
         }}>
           🏆 Ranking Final
@@ -127,7 +127,7 @@ export function RankingClient() {
         }}>
           Premios y Posiciones
         </h1>
-        <p style={{ fontSize: "13px", color: "#A8B5CC" }}>
+        <p style={{ fontSize: "13px", color: "#C9D6EC" }}>
           Los mejores ranqueados al cierre del challenge ganan premios reales.
         </p>
       </div>
@@ -239,14 +239,10 @@ export function RankingClient() {
               Tabla de líderes
             </span>
             {total > 0 && (
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#3A5070" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8" }}>
                 {total} participante{total !== 1 ? "s" : ""}
               </span>
             )}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#00D67A", display: "inline-block", animation: "pulse 2s infinite" }} />
-            <span style={{ fontFamily: "var(--font-sans)", fontSize: "9px", color: "#5A6B85", fontStyle: "italic" }}>puede tardar unos segundos</span>
           </div>
         </div>
 
@@ -261,13 +257,13 @@ export function RankingClient() {
           ))}
 
           {!loading && top.length === 0 && (
-            <p style={{ textAlign: "center", padding: "32px 16px", fontSize: "14px", color: "#5A6B85" }}>
+            <p style={{ textAlign: "center", padding: "32px 16px", fontSize: "14px", color: "#8DA2C4" }}>
               Aún no hay participantes. ¡Sé el primero!
             </p>
           )}
 
           {!loading && top.map((entry) => {
-            const color  = TOP_COLORS[entry.rank] ?? "#5A6B85";
+            const color  = TOP_COLORS[entry.rank] ?? "#8DA2C4";
             const isTop3 = entry.rank <= 3;
             const bg     = rowBg(entry.rank, entry.is_current_user);
             return (
@@ -317,7 +313,7 @@ export function RankingClient() {
                   <span style={{
                     fontFamily: "var(--font-mono)", fontSize: "12px",
                     fontWeight: 700,
-                    color: isTop3 ? color : "#A8B5CC",
+                    color: isTop3 ? color : "#C9D6EC",
                   }}>
                     {entry.total_points} pts
                   </span>
@@ -333,7 +329,7 @@ export function RankingClient() {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 padding: "8px", background: "rgba(0,0,0,0.2)",
               }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "#3A5070", letterSpacing: "0.3em" }}>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "#647FA8", letterSpacing: "0.3em" }}>
                   • • •
                 </span>
               </div>
@@ -346,7 +342,7 @@ export function RankingClient() {
               }}>
                 <span style={{
                   width: "32px", textAlign: "center", flexShrink: 0,
-                  fontFamily: "var(--font-arcade)", fontSize: "10px", color: "#5A6B85",
+                  fontFamily: "var(--font-arcade)", fontSize: "10px", color: "#8DA2C4",
                 }}>
                   #{meEntry.rank}
                 </span>
@@ -360,7 +356,7 @@ export function RankingClient() {
                 </span>
                 <span style={{
                   fontFamily: "var(--font-mono)", fontSize: "12px",
-                  fontWeight: 700, color: "#A8B5CC",
+                  fontWeight: 700, color: "#C9D6EC",
                 }}>
                   {meEntry.total_points} pts
                 </span>
@@ -376,12 +372,12 @@ export function RankingClient() {
           textAlign: "center",
         }}>
           {!loading && !inTop && myRank && (
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#5A6B85", marginBottom: "3px" }}>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#8DA2C4", marginBottom: "3px" }}>
               Tu posición actual: #{myRank} de {total}
             </p>
           )}
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#3A5070" }}>
-            Los mejores ranqueados al final del challenge ganan premios reales · Se actualiza cada 60s
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8" }}>
+            Los mejores ranqueados al final del challenge ganan premios reales
           </p>
         </div>
       </div>

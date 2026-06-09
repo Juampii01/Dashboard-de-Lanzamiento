@@ -98,7 +98,7 @@ function PrizeBadge({ rank }: { rank: number }) {
 // ─── RankBadge ───────────────────────────────────────────────────────────────
 
 function RankBadge({ rank, small = false }: { rank: number; small?: boolean }) {
-  const color = TOP_COLORS[rank] ?? "#5A6B85";
+  const color = TOP_COLORS[rank] ?? "#8DA2C4";
   const isTop3 = rank <= 3;
 
   return (
@@ -129,8 +129,8 @@ function LeaderRow({
   onClick,
 }: Omit<LeaderEntry, "raffle_entries"> & { onClick?: (e: React.MouseEvent) => void }) {
   const isTop3 = rank <= 3;
-  const rankColor = TOP_COLORS[rank] ?? "#5A6B85";
-  const ptColor   = isTop3 ? rankColor : "#A8B5CC";
+  const rankColor = TOP_COLORS[rank] ?? "#8DA2C4";
+  const ptColor   = isTop3 ? rankColor : "#C9D6EC";
 
   return (
     <div
@@ -238,15 +238,12 @@ export function Leaderboard() {
           {total > 0 && (
             <span
               className="text-[9px]"
-              style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}
+              style={{ color: "#647FA8", fontFamily: "var(--font-mono)" }}
             >
               {total} participante{total !== 1 ? "s" : ""}
             </span>
           )}
         </div>
-        <span className="text-[9px]" style={{ color: "#5A6B85", fontFamily: "var(--font-sans)", fontStyle: "italic" }}>
-          puede tardar unos segundos en actualizarse
-        </span>
       </div>
 
       {/* Table */}
@@ -265,7 +262,7 @@ export function Leaderboard() {
 
         {/* Empty state */}
         {isEmpty && (
-          <p className="text-center py-8 text-sm" style={{ color: "#5A6B85" }}>
+          <p className="text-center py-8 text-sm" style={{ color: "#8DA2C4" }}>
             Aún no hay participantes. ¡Sé el primero!
           </p>
         )}
@@ -294,7 +291,7 @@ export function Leaderboard() {
                 style={{
                   fontFamily: "var(--font-mono)",
                   fontSize: "10px",
-                  color: "#3A5070",
+                  color: "#647FA8",
                   letterSpacing: "0.3em",
                 }}
               >
@@ -320,12 +317,12 @@ export function Leaderboard() {
         style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
       >
         {!loading && !inTop && myRank && (
-          <p className="text-[9px] mb-1" style={{ color: "#5A6B85", fontFamily: "var(--font-mono)" }}>
+          <p className="text-[9px] mb-1" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
             Tu posición actual: #{myRank} de {total}
           </p>
         )}
-        <p className="text-[9px]" style={{ color: "#3A5070", fontFamily: "var(--font-mono)" }}>
-          Los mejores ranqueados al final del challenge ganan premios reales · Se actualiza cada 60s
+        <p className="text-[9px]" style={{ color: "#647FA8", fontFamily: "var(--font-mono)" }}>
+          Los mejores ranqueados al final del challenge ganan premios reales
         </p>
       </div>
     </div>
