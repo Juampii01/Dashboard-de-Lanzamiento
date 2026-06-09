@@ -311,7 +311,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
           borderBottom: "1px solid var(--sidebar-border)", flexShrink: 0,
         }}>
           {collapsed ? (
-            <ProfileButton fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} />
+            <ProfileButton fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} compact size={40} />
           ) : (
             <>
               <div
@@ -322,7 +322,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
                   borderRadius: 10, padding: "7px 9px", cursor: "pointer",
                 }}
               >
-                <ProfileButton fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} />
+                <ProfileButton fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} compact size={32} />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{
                     display: "block", fontSize: 13, fontWeight: 700, color: "var(--sidebar-foreground)",

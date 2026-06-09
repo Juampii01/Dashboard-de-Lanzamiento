@@ -19,10 +19,16 @@ export function ProfileButton({
   fullName,
   email,
   avatarUrl,
+  compact = false,
+  size = 28,
 }: {
   fullName: string;
   email: string;
   avatarUrl: string | null;
+  /** When true, renders only the avatar (no name) — e.g. collapsed sidebar */
+  compact?: boolean;
+  /** Avatar diameter in px */
+  size?: number;
 }) {
   // ── Display state (shown in the header chip) ─────────────────────────────
   const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
@@ -167,21 +173,22 @@ export function ProfileButton({
         />
       )}
 
-      {/* ── Header chip (avatar + name, clickable) ────────────────────────── */}
+      {/* ── Header chip (avatar [+ name], clickable) ──────────────────────── */}
       <button
         onClick={openModal}
-        className="hidden sm:flex items-center gap-2 hover:opacity-80 transition-opacity"
+        title={compact ? displayName : undefined}
+        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
       >
-        {/* Mini circular avatar */}
+        {/* Circular avatar */}
         <div
           style={{
-            width: "28px",
-            height: "28px",
+            width: `${size}px`,
+            height: `${size}px`,
             borderRadius: "50%",
             overflow: "hidden",
-            border: "1.5px solid rgba(168,181,204,0.35)",
-            background: "#0A2540",
+            border: "1.5px solid var(--sidebar-border)",
+            background: "var(--secondary)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -228,9 +235,11 @@ export function ProfileButton({
           )}
         </div>
 
-        <p className="text-xs font-medium text-white truncate max-w-[100px]">
-          {displayName}
-        </p>
+        {!compact && (
+          <p className="text-xs font-medium truncate max-w-[100px]" style={{ color: "var(--sidebar-foreground)" }}>
+            {displayName}
+          </p>
+        )}
       </button>
 
       {/* ── Profile modal ─────────────────────────────────────────────────── */}
@@ -367,7 +376,7 @@ export function ProfileButton({
                         style={{
                           fontSize: "28px",
                           fontWeight: 700,
-                          color: "#A8B5CC",
+                          color: "#C9D6EC",
                         }}
                       >
                         {initial}
@@ -444,7 +453,7 @@ export function ProfileButton({
                       display: "block",
                       fontSize: "10px",
                       fontWeight: 600,
-                      color: "#7A9AC0",
+                      color: "#A0BCDE",
                       letterSpacing: "0.08em",
                       marginBottom: "6px",
                     }}
@@ -523,7 +532,7 @@ export function ProfileButton({
                       display: "block",
                       fontSize: "10px",
                       fontWeight: 600,
-                      color: "#7A9AC0",
+                      color: "#A0BCDE",
                       letterSpacing: "0.08em",
                       marginBottom: "6px",
                     }}
@@ -552,7 +561,7 @@ export function ProfileButton({
                     <span
                       style={{
                         fontSize: "13px",
-                        color: "#7A9AC0",
+                        color: "#A0BCDE",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
