@@ -412,23 +412,23 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
         data-tour-id="capsules"
         className="rounded-xl border overflow-hidden"
         style={{
-          background: "linear-gradient(135deg, rgba(0,212,255,0.05) 0%, rgba(10,37,64,0.88) 100%)",
-          borderColor: "rgba(0,212,255,0.2)",
+          background: "var(--card)",
+          borderColor: "var(--border)",
         }}
       >
         {/* Widget Header */}
         <div
           className="flex items-center justify-between px-5 py-3.5 cursor-pointer"
-          style={{ borderBottom: expanded ? "1px solid rgba(0,212,255,0.12)" : "none" }}
+          style={{ borderBottom: expanded ? "1px solid var(--border)" : "none" }}
           onClick={() => setExpanded((v) => !v)}
         >
           <div className="flex items-center gap-3">
             <span className="text-lg select-none">📺</span>
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "#00D4FF", fontFamily: "var(--font-arcade)" }}>
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--secondary)", fontFamily: "var(--font-mono)" }}>
                 Misiones en video
               </p>
-              <p className="text-[10px] mt-0.5" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
                 {completed}/{total} completadas · {capsules.filter(c => !c.completed).reduce((sum, c) => sum + c.points_reward, 0)} XP disponibles
               </p>
             </div>
@@ -444,9 +444,9 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     title={badge.label}
                     className="w-4 h-4 rounded-sm flex items-center justify-center text-[8px]"
                     style={{
-                      background: c.completed ? "rgba(0,214,122,0.2)" : "rgba(0,212,255,0.1)",
-                      border: `1px solid ${c.completed ? "#00D67A" : "rgba(0,212,255,0.3)"}`,
-                      color: c.completed ? "#00D67A" : "#8DA2C4",
+                      background: c.completed ? "color-mix(in srgb, var(--success) 18%, transparent)" : "var(--muted)",
+                      border: `1px solid ${c.completed ? "var(--success)" : "var(--border)"}`,
+                      color: c.completed ? "var(--success)" : "var(--muted-foreground)",
                     }}
                   >
                     {c.completed ? "✓" : "●"}
@@ -454,7 +454,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                 );
               })}
             </div>
-            <span style={{ color: "#8DA2C4", fontSize: "12px" }}>{expanded ? "▲" : "▼"}</span>
+            <span style={{ color: "var(--muted-foreground)", fontSize: "12px" }}>{expanded ? "▲" : "▼"}</span>
           </div>
         </div>
 
@@ -464,13 +464,13 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
             {/* Status row — only shown when cooldown active or all done */}
             {allDone && (
-              <p className="text-sm font-semibold mb-3" style={{ color: "#00D67A" }}>
+              <p className="text-sm font-semibold mb-3" style={{ color: "var(--success)" }}>
                 🏆 ¡Todas las misiones completadas!
               </p>
             )}
             {!allDone && onCooldown && (
-              <div className="flex items-center gap-2 mb-3 pb-3" style={{ borderBottom: "1px solid rgba(0,212,255,0.08)" }}>
-                <p className="text-xs" style={{ color: "#8DA2C4" }}>Próxima misión en</p>
+              <div className="flex items-center gap-2 mb-3 pb-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                <p className="text-xs" style={{ color: "var(--muted-foreground)" }}>Próxima misión en</p>
                 <CooldownBadge seconds={cooldownSecs} />
               </div>
             )}
@@ -485,12 +485,12 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     key={c.id}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
                     style={{
-                      background: c.completed ? "rgba(0,214,122,0.06)" : "rgba(0,212,255,0.04)",
-                      border: `1px solid ${c.completed ? "rgba(0,214,122,0.15)" : "rgba(0,212,255,0.08)"}`,
+                      background: c.completed ? "color-mix(in srgb, var(--success) 8%, transparent)" : "var(--muted)",
+                      border: `1px solid ${c.completed ? "color-mix(in srgb, var(--success) 22%, transparent)" : "var(--border)"}`,
                     }}
                   >
                     {/* Completion dot */}
-                    <span className="text-xs shrink-0" style={{ color: c.completed ? "#00D67A" : "#647FA8" }}>
+                    <span className="text-xs shrink-0" style={{ color: c.completed ? "var(--success)" : "var(--muted-foreground)" }}>
                       {c.completed ? "✓" : "○"}
                     </span>
 
@@ -499,8 +499,8 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                       className="text-[9px] shrink-0 px-1.5 py-0.5 rounded"
                       style={{
                         color: badge.color,
-                        background: "rgba(0,0,0,0.3)",
-                        border: `1px solid ${badge.color}33`,
+                        background: "color-mix(in srgb, " + badge.color + " 12%, transparent)",
+                        border: `1px solid ${badge.color}44`,
                         fontFamily: "var(--font-mono)",
                       }}
                     >
@@ -510,7 +510,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     {/* Title */}
                     <span
                       className="flex-1 text-xs truncate"
-                      style={{ color: c.completed ? "#00D67A" : "#C9D6EC", fontFamily: "var(--font-sans)" }}
+                      style={{ color: c.completed ? "var(--success)" : "var(--foreground)", fontFamily: "var(--font-sans)" }}
                     >
                       {c.title}
                     </span>
@@ -518,7 +518,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     {/* XP reward */}
                     <span
                       className="text-[10px] shrink-0"
-                      style={{ color: c.completed ? "#00D67A" : "#647FA8", fontFamily: "var(--font-mono)" }}
+                      style={{ color: c.completed ? "var(--success)" : "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}
                     >
                       +{c.points_reward} XP
                     </span>
@@ -529,17 +529,11 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                         onClick={() => handleWatchCapsule(c.id)}
                         className="shrink-0 flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold transition-all"
                         style={{
-                          color: "#00D67A",
-                          background: "rgba(0,214,122,0.08)",
-                          border: "1px solid rgba(0,214,122,0.2)",
+                          color: "var(--success)",
+                          background: "color-mix(in srgb, var(--success) 10%, transparent)",
+                          border: "1px solid color-mix(in srgb, var(--success) 25%, transparent)",
                           fontFamily: "var(--font-mono)",
                           cursor: "pointer",
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget).style.background = "rgba(0,214,122,0.18)";
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget).style.background = "rgba(0,214,122,0.08)";
                         }}
                       >
                         ✓ Ver de nuevo
@@ -550,12 +544,10 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                         disabled={!canDoThis}
                         className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-[11px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{
-                          background: canDoThis
-                            ? "linear-gradient(135deg, #00D4FF, #0099CC)"
-                            : "rgba(0,212,255,0.08)",
-                          color: canDoThis ? "#000" : "#647FA8",
+                          background: canDoThis ? "var(--secondary)" : "var(--muted)",
+                          color: canDoThis ? "var(--secondary-foreground)" : "var(--muted-foreground)",
                           fontFamily: "var(--font-sans)",
-                          boxShadow: canDoThis ? "0 0 10px rgba(0,212,255,0.3)" : "none",
+                          boxShadow: "none",
                           whiteSpace: "nowrap",
                         }}
                       >
