@@ -112,22 +112,22 @@ export function RankingClient() {
       {/* Page title */}
       <div style={{ marginBottom: "24px" }}>
         <p style={{
-          fontFamily: "var(--font-arcade)",
-          fontSize: "9px", fontWeight: 700,
-          color: "#8DA2C4", textTransform: "uppercase",
+          fontFamily: "var(--font-mono)",
+          fontSize: "10px", fontWeight: 700,
+          color: "var(--muted-foreground)", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "6px",
         }}>
           🏆 Ranking Final
         </p>
         <h1 style={{
           fontFamily: "var(--font-display)",
-          fontSize: "26px", fontWeight: 900,
-          color: "#FFFFFF", lineHeight: 1.2,
+          fontSize: "26px", fontWeight: 800,
+          color: "var(--foreground)", lineHeight: 1.2,
           marginBottom: "4px",
         }}>
           Premios y Posiciones
         </h1>
-        <p style={{ fontSize: "13px", color: "#C9D6EC" }}>
+        <p style={{ fontSize: "13px", color: "var(--muted-foreground)" }}>
           Los mejores ranqueados al cierre del challenge ganan premios reales.
         </p>
       </div>

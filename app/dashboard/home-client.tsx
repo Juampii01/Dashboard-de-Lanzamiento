@@ -344,21 +344,21 @@ function VideoTutorial() {
     <div>
       <div style={{ marginBottom: "12px" }}>
         <p style={{
-          fontFamily: "var(--font-arcade)",
-          fontSize: "8px", fontWeight: 700,
-          color: "#8DA2C4", textTransform: "uppercase",
+          fontFamily: "var(--font-mono)",
+          fontSize: "9px", fontWeight: 700,
+          color: "var(--muted-foreground)", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "4px",
         }}>
           🎬 Tutorial
         </p>
         <h2 style={{
           fontFamily: "var(--font-display)",
-          fontSize: "20px", fontWeight: 900,
-          color: "#FFFFFF", lineHeight: 1.2,
+          fontSize: "20px", fontWeight: 800,
+          color: "var(--foreground)", lineHeight: 1.2,
         }}>
           Cómo usar el dashboard
         </h2>
-        <p style={{ fontSize: "13px", color: "#C9D6EC", marginTop: "4px" }}>
+        <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
           Mirá el tutorial completo antes de empezar los retos.
         </p>
       </div>

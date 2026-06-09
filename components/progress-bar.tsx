@@ -247,53 +247,70 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
         <AvatarCropModal file={cropFile} onClose={() => setCropFile(null)} onUploaded={handleAvatarUploaded} />
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <UserAvatar
-          isAdmin={isAdmin}
-          avatarUrl={currentAvatarUrl}
-          onCameraClick={handleCameraClick}
-        />
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
+        <span style={{
+          fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+          color: "var(--muted-foreground)", fontFamily: "var(--font-mono)",
+        }}>
+          Tu progreso
+        </span>
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: isFull ? "var(--success)" : "var(--foreground)" }}>
+          {isFull ? "¡Completado! 🎉" : `${done} de 4 días`}
+        </span>
+      </div>
 
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Header row */}
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 7 }}>
-            <span style={{
-              fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
-              color: "var(--muted-foreground)", fontFamily: "var(--font-mono)",
-            }}>
-              Tu progreso
-            </span>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: isFull ? "var(--success)" : "var(--foreground)" }}>
-              {isFull ? "¡Completado! 🎉" : `${done} de 4 días`}
-            </span>
-          </div>
-
-          {/* Segmented progress — one segment per day */}
-          <div style={{ display: "flex", gap: 5 }}>
-            {[1, 2, 3, 4].map((d) => {
-              const isDone = done >= d;
-              const isCurrent = done === d - 1;
-              return (
-                <div key={d} style={{ flex: 1 }}>
-                  <div style={{
-                    height: 7, borderRadius: 20,
-                    background: isDone ? "var(--success)" : "var(--muted)",
-                    border: isCurrent ? "1px solid color-mix(in srgb, var(--primary) 45%, transparent)" : "1px solid transparent",
-                    boxShadow: isCurrent ? "0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent)" : "none",
-                    transition: "background 0.5s ease",
-                  }} />
-                  <div style={{
-                    marginTop: 5, fontSize: 9.5, fontWeight: 600, textAlign: "center",
-                    color: isDone ? "var(--success)" : isCurrent ? "var(--primary)" : "var(--muted-foreground)",
-                    fontFamily: "var(--font-mono)",
-                  }}>
-                    {isDone ? "✓ " : ""}Día {d}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {/* Continuous bar — the avatar rides the fill edge */}
+      <div style={{ position: "relative", height: 34 }}>
+        {/* Track */}
+        <div style={{
+          position: "absolute", top: "50%", left: 0, right: 0, transform: "translateY(-50%)",
+          height: 12, borderRadius: 999, background: "var(--muted)",
+          border: "1px solid var(--border)", overflow: "hidden",
+        }}>
+          {/* Fill */}
+          <div style={{
+            position: "absolute", top: 0, bottom: 0, left: 0,
+            width: `${pct}%`,
+            background: "linear-gradient(90deg, var(--success) 0%, color-mix(in srgb, var(--success) 80%, #0a8a4d) 100%)",
+            borderRadius: 999,
+            transition: "width 0.9s cubic-bezier(0.22,0.61,0.36,1)",
+          }} />
+          {/* Day dividers at 25/50/75 */}
+          {[25, 50, 75].map((p) => (
+            <div key={p} style={{
+              position: "absolute", top: 0, bottom: 0, left: `${p}%`, width: 2,
+              background: "var(--card)", opacity: 0.9,
+            }} />
+          ))}
         </div>
+
+        {/* Avatar rides the fill edge */}
+        <div style={{
+          position: "absolute", top: "50%", transform: "translateY(-50%)",
+          left: `clamp(0px, calc(${pct}% - 17px), calc(100% - 34px))`,
+          transition: "left 0.9s cubic-bezier(0.22,0.61,0.36,1)",
+          zIndex: 2,
+        }}>
+          <UserAvatar isAdmin={isAdmin} avatarUrl={currentAvatarUrl} onCameraClick={handleCameraClick} />
+        </div>
+      </div>
+
+      {/* Day labels */}
+      <div style={{ display: "flex", marginTop: 7 }}>
+        {[1, 2, 3, 4].map((d) => {
+          const isDone = done >= d;
+          const isCurrent = done === d - 1;
+          return (
+            <div key={d} style={{
+              flex: 1, textAlign: "center", fontSize: 9.5, fontWeight: 600,
+              fontFamily: "var(--font-mono)",
+              color: isDone ? "var(--success)" : isCurrent ? "var(--primary)" : "var(--muted-foreground)",
+            }}>
+              {isDone ? "✓ " : ""}Día {d}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
