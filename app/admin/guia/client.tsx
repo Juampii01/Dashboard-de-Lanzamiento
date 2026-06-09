@@ -733,7 +733,7 @@ function TabXP() {
                 { pos: "#1", color: "#FFD700", label: "Oro" },
                 { pos: "#2", color: "#C0C0C0", label: "Plata" },
                 { pos: "#3", color: "#CD7F32", label: "Bronce" },
-                { pos: "#4+", color: "#5A6B85", label: "Resto" },
+                { pos: "#4+", color: "#8DA2C4", label: "Resto" },
               ].map((item) => (
                 <div key={item.pos} className="flex items-center gap-2">
                   <span className="text-sm font-mono font-bold w-6" style={{ color: item.color }}>{item.pos}</span>
@@ -752,15 +752,15 @@ function TabXP() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border rounded-lg p-4 text-center space-y-2">
             <p className="text-2xl font-bold">🥇 #1</p>
-            <p className="text-xs text-muted-foreground">Consultoría de $15,000</p>
+            <p className="text-xs text-muted-foreground">Servicio completo «Te conseguimos tu contrato» — $15,000 USD</p>
           </div>
           <div className="border rounded-lg p-4 text-center space-y-2">
             <p className="text-2xl font-bold">🥈 #2</p>
-            <p className="text-xs text-muted-foreground">Premio por anunciar</p>
+            <p className="text-xs text-muted-foreground">Consultoría 1:1 de 1 hora con Santo (roadmap para venderle al gobierno)</p>
           </div>
           <div className="border rounded-lg p-4 text-center space-y-2">
             <p className="text-2xl font-bold">🏆 #3–12</p>
-            <p className="text-xs text-muted-foreground">Premio por anunciar</p>
+            <p className="text-xs text-muted-foreground">Auditoría con el Team Govbidder (roadmap para venderle al gobierno)</p>
           </div>
         </div>
         <InfoBox type="tip">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { FlagBanner } from "@/components/flag-banner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ function PrizeBadge({ rank }: { rank: number }) {
         border: "1px solid rgba(255,214,10,0.4)",
         borderRadius: "5px", padding: "2px 7px",
         whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🥇 Consultoría $15K</span>
+      }}>🥇 Servicio $15K</span>
     );
   }
   if (rank === 2) {
@@ -60,7 +61,7 @@ function PrizeBadge({ rank }: { rank: number }) {
         border: "1px solid rgba(192,192,192,0.3)",
         borderRadius: "5px", padding: "2px 7px",
         whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🥈 Premio</span>
+      }}>🥈 1h con Santo</span>
     );
   }
   if (rank >= 3 && rank <= 12) {
@@ -72,7 +73,7 @@ function PrizeBadge({ rank }: { rank: number }) {
         border: "1px solid rgba(0,214,122,0.25)",
         borderRadius: "5px", padding: "2px 7px",
         whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🏆 Premio</span>
+      }}>🏆 Auditoría 1:1</span>
     );
   }
   return null;
@@ -109,28 +110,29 @@ export function RankingClient() {
   return (
     <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 16px" }}>
 
-      {/* Page title */}
-      <div style={{ marginBottom: "24px" }}>
+      {/* Page title — banner celebratorio con la bandera de marca */}
+      <FlagBanner minHeight={170} priority contentStyle={{ padding: "26px 28px" }} className="gb-ranking-hero">
         <p style={{
           fontFamily: "var(--font-mono)",
-          fontSize: "10px", fontWeight: 700,
-          color: "var(--muted-foreground)", textTransform: "uppercase",
-          letterSpacing: "0.14em", marginBottom: "6px",
+          fontSize: "11px", fontWeight: 700,
+          color: "#FFD700", textTransform: "uppercase",
+          letterSpacing: "0.14em", marginBottom: "8px",
         }}>
           🏆 Ranking Final
         </p>
         <h1 style={{
           fontFamily: "var(--font-display)",
-          fontSize: "26px", fontWeight: 800,
-          color: "var(--foreground)", lineHeight: 1.2,
-          marginBottom: "4px",
+          fontSize: "28px", fontWeight: 800,
+          color: "#ffffff", lineHeight: 1.15,
+          marginBottom: "6px",
         }}>
           Premios y Posiciones
         </h1>
-        <p style={{ fontSize: "13px", color: "var(--muted-foreground)" }}>
+        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.78)", maxWidth: "48ch" }}>
           Los mejores ranqueados al cierre del challenge ganan premios reales.
         </p>
-      </div>
+      </FlagBanner>
+      <div style={{ height: "24px" }} />
 
       {/* Prize tiers */}
       <div style={{
@@ -162,14 +164,16 @@ export function RankingClient() {
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#FFD60A", marginBottom: "2px" }}>
               1er lugar
             </p>
-            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>Consultoría de $15,000</p>
+            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
+              Servicio completo <strong style={{ color: "#FFFFFF" }}>«Te conseguimos tu contrato»</strong>
+            </p>
           </div>
           <span style={{
             fontFamily: "var(--font-arcade)", fontSize: "9px", fontWeight: 700,
             color: "#FFD60A", background: "rgba(255,214,10,0.12)",
             border: "1px solid rgba(255,214,10,0.3)",
-            borderRadius: "5px", padding: "4px 10px",
-          }}>$15,000</span>
+            borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap",
+          }}>$15,000 USD</span>
         </div>
 
         {/* 2nd place */}
@@ -184,14 +188,16 @@ export function RankingClient() {
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#C0C0C0", marginBottom: "2px" }}>
               2do lugar
             </p>
-            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>Premio por anunciar</p>
+            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
+              Consultoría 1:1 de 1 hora con <strong style={{ color: "#FFFFFF" }}>Santo</strong> — el roadmap exacto para venderle al gobierno
+            </p>
           </div>
           <span style={{
             fontFamily: "var(--font-arcade)", fontSize: "9px", fontWeight: 700,
             color: "#C0C0C0", background: "rgba(192,192,192,0.08)",
             border: "1px solid rgba(192,192,192,0.25)",
-            borderRadius: "5px", padding: "4px 10px",
-          }}>Próximamente</span>
+            borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap",
+          }}>1 hora 1:1</span>
         </div>
 
         {/* 3rd–12th place */}
@@ -205,14 +211,16 @@ export function RankingClient() {
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#00D67A", marginBottom: "2px" }}>
               3ro al 12vo lugar
             </p>
-            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>Premio por anunciar</p>
+            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
+              Auditoría con el <strong style={{ color: "#FFFFFF" }}>Team Govbidder</strong> — el roadmap exacto para venderle al gobierno
+            </p>
           </div>
           <span style={{
             fontFamily: "var(--font-arcade)", fontSize: "9px", fontWeight: 700,
             color: "#00D67A", background: "rgba(0,214,122,0.08)",
             border: "1px solid rgba(0,214,122,0.2)",
-            borderRadius: "5px", padding: "4px 10px",
-          }}>Próximamente</span>
+            borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap",
+          }}>10 lugares</span>
         </div>
       </div>
 

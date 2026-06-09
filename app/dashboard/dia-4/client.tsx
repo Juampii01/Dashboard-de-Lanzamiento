@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Search, Send, Sparkles } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Search, Send, Sparkles, FileText, ArrowRight, RefreshCw } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
+import { WizardModal } from "@/components/wizard-modal";
 import { isExpired } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
@@ -76,7 +77,7 @@ export function Dia4Client({
     website: (p.website as string) ?? "",
   });
   const [hasGovContracts, setHasGovContracts] = useState(false);
-  const [showCompanyForm, setShowCompanyForm] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const setCompanyField = (field: keyof typeof companyForm) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setCompanyForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -166,6 +167,7 @@ export function Dia4Client({
       }
 
       setIsCompleted(true);
+      setWizardOpen(false);
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Capability Statement generado!");
     } catch {
@@ -285,100 +287,31 @@ export function Dia4Client({
         </CardContent>
       </Card>
 
-      {/* Generar Capability Statement */}
-      <Card>
-        <CardHeader>
-          <CardTitle>📋 Tu Capability Statement</CardTitle>
-          <CardDescription>
-            El documento que presentás ante oficiales de compras del gobierno.
-            Se genera automáticamente con toda tu data acumulada.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Datos de registro — opcional pero recomendado */}
-          <div className="border rounded-lg overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setShowCompanyForm((v) => !v)}
-              className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/40 transition-colors"
-            >
-              <div>
-                <p className="text-sm font-semibold">Datos de tu empresa (para el documento)</p>
-                <p className="text-xs text-muted-foreground">
-                  Sin estos datos los Contracting Officers no pueden verificar tu registro. Opcional pero recomendado.
-                </p>
-              </div>
-              <span className="text-xs text-muted-foreground">{showCompanyForm ? "▲" : "▼"}</span>
-            </button>
-            {showCompanyForm && (
-              <div className="px-4 pb-4 pt-1 space-y-3 border-t bg-muted/20">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">UEI (SAM.gov)</label>
-                    <input value={companyForm.uei} onChange={setCompanyField("uei")} placeholder="Ej: ABC123DEF456" maxLength={12}
-                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">CAGE Code</label>
-                    <input value={companyForm.cage_code} onChange={setCompanyField("cage_code")} placeholder="Ej: 1A2B3" maxLength={5}
-                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Teléfono de negocio</label>
-                    <input value={companyForm.phone} onChange={setCompanyField("phone")} placeholder="Ej: (844) 555-0100"
-                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium">Website</label>
-                    <input value={companyForm.website} onChange={setCompanyField("website")} placeholder="www.tuempresa.com"
-                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
-                  </div>
-                </div>
-                <label className="flex items-center gap-2 text-sm cursor-pointer pt-1">
-                  <input type="checkbox" checked={hasGovContracts} onChange={(e) => setHasGovContracts(e.target.checked)} className="accent-primary" />
-                  Ya tuve contratos con el gobierno (mejora la sección Past Performance)
-                </label>
-              </div>
-            )}
-          </div>
-
-          <Button
-            onClick={handleGenerate}
-            className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90"
-            disabled={generating}
-          >
-            {generating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {LOADING_STEPS[loadingStep]}
-              </>
-            ) : statement ? (
-              "Regenerar Capability Statement"
-            ) : (
-              "Generar mi Capability Statement →"
-            )}
-          </Button>
-          {generating && (
-            <div className="flex gap-1.5 justify-center">
-              {LOADING_STEPS.map((_, i) => (
-                <div
-                  key={i}
-                  className="h-1 rounded-full transition-all duration-300"
-                  style={{
-                    width: i === loadingStep ? "24px" : "8px",
-                    background: i <= loadingStep ? "#D7263D" : "#1E3A5C",
-                  }}
-                />
-              ))}
+      {/* Generar Capability Statement — launch / resultado */}
+      {!statement ? (
+        <Card>
+          <CardContent className="py-8 flex flex-col items-center text-center gap-3">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
+              <FileText className="w-6 h-6" style={{ color: "var(--primary)" }} />
             </div>
-          )}
-
-          {statement && (
-            <div className="mt-4 border rounded-xl p-5 space-y-4 bg-card">
+            <div>
+              <p className="font-semibold text-lg">Generá tu Capability Statement</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                En 2 pasos guiados armamos el documento que un Contracting Officer lee en 60 segundos. Usa toda tu data de los Días 1–3.
+              </p>
+            </div>
+            <Button onClick={() => setWizardOpen(true)} className="gap-2 h-12 px-7 text-base font-bold" disabled={generating}>
+              Generar mi Capability Statement — Día 4 <ArrowRight className="w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          <div className="border rounded-xl p-5 space-y-4 bg-card">
               {/* Header */}
               <div className="border-b pb-3">
                 <p className="text-xl font-bold text-primary">{profile?.company_name ?? "Your Company"}</p>
-                <p className="text-accent font-medium italic">{statement.tagline}</p>
+                <p className="font-medium italic" style={{ color: "var(--secondary)" }}>{statement.tagline}</p>
                 {statement.service_categories?.length ? (
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mt-1">
                     {statement.service_categories.join("  |  ")}
@@ -399,7 +332,7 @@ export function Dia4Client({
                   <ul className="space-y-1">
                     {statement.core_competencies.map((c, i) => (
                       <li key={i} className="text-sm flex items-start gap-2">
-                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span className="font-bold mt-0.5" style={{ color: "var(--secondary)" }}>•</span>
                         {c}
                       </li>
                     ))}
@@ -410,7 +343,7 @@ export function Dia4Client({
                   <ul className="space-y-1">
                     {statement.differentiators.map((d, i) => (
                       <li key={i} className="text-sm flex items-start gap-2">
-                        <span className="text-accent font-bold mt-0.5">★</span>
+                        <span className="font-bold mt-0.5" style={{ color: "var(--accent)" }}>★</span>
                         {d}
                       </li>
                     ))}
@@ -473,24 +406,29 @@ export function Dia4Client({
                   <p className="text-sm font-semibold text-primary">{statement.primary_markets.join("  |  ")}</p>
                 </div>
               ) : null}
-            </div>
-          )}
+          </div>
 
-          {statement && (
-            <Card className="border-accent/30 bg-accent/5">
-              <CardContent className="flex items-center justify-between py-5">
-                <div>
-                  <p className="font-semibold">📄 Capability Statement PDF</p>
-                  <p className="text-sm text-muted-foreground">Formato profesional listo para enviar.</p>
-                </div>
-                <Button onClick={handleDownloadPdf} disabled={downloadingPdf} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Download className="w-4 h-4 mr-2" /> Descargar</>}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </CardContent>
-      </Card>
+          {/* Descargar PDF */}
+          <Card>
+            <CardContent className="flex items-center justify-between py-5">
+              <div>
+                <p className="font-semibold">📄 Capability Statement PDF</p>
+                <p className="text-sm text-muted-foreground">Formato profesional listo para enviar.</p>
+              </div>
+              <Button onClick={handleDownloadPdf} disabled={downloadingPdf} style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}>
+                {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Download className="w-4 h-4 mr-2" /> Descargar</>}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Regenerar */}
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2" disabled={generating}>
+              <RefreshCw className="w-4 h-4" /> Regenerar mi Capability Statement
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Próximos pasos — qué hacer con el Capability Statement */}
       {statement && (
@@ -558,10 +496,10 @@ export function Dia4Client({
       )}
 
       {/* Sorteo */}
-      <Card className="border-amber-200 bg-amber-50/50">
+      <Card style={{ borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)", background: "color-mix(in srgb, var(--accent) 8%, var(--card))" }}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-500" />
+            <Trophy className="w-5 h-5" style={{ color: "var(--accent)" }} />
             Competir por Premios
           </CardTitle>
           <CardDescription>
@@ -585,12 +523,12 @@ export function Dia4Client({
           ) : (
             <div>
               <label className="w-full">
-                <div className="border-2 border-dashed border-amber-300 rounded-xl p-8 text-center cursor-pointer hover:bg-amber-50 transition-colors">
+                <div className="rounded-xl p-8 text-center cursor-pointer transition-colors hover:bg-muted/50" style={{ border: "2px dashed color-mix(in srgb, var(--secondary) 32%, transparent)" }}>
                   {uploading ? (
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-amber-500" />
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto" style={{ color: "var(--secondary)" }} />
                   ) : (
                     <>
-                      <Upload className="w-8 h-8 mx-auto text-amber-500 mb-3" />
+                      <Upload className="w-8 h-8 mx-auto mb-3" style={{ color: "var(--secondary)" }} />
                       <p className="font-semibold">Subir entregable del Challenge</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         PDF combinado o screenshots de los 4 días completados
@@ -641,10 +579,10 @@ export function Dia4Client({
 
       {/* Puente a la mentoría premium */}
       {isCompleted && (
-        <Card style={{ borderColor: "rgba(255,214,10,0.35)", background: "rgba(255,214,10,0.04)" }}>
+        <Card style={{ borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)", background: "color-mix(in srgb, var(--accent) 7%, var(--card))" }}>
           <CardContent className="py-6 space-y-4">
             <div className="flex items-start gap-3">
-              <Sparkles className="w-6 h-6 flex-shrink-0" style={{ color: "#FFD60A" }} />
+              <Sparkles className="w-6 h-6 flex-shrink-0" style={{ color: "var(--accent)" }} />
               <div>
                 <h3 className="font-bold text-lg">¿Y ahora? De tener las herramientas a ganar el contrato</h3>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -655,21 +593,21 @@ export function Dia4Client({
             </div>
             <ul className="space-y-2 text-sm pl-9">
               <li className="flex items-start gap-2">
-                <span style={{ color: "#FFD60A" }}>1.</span>
+                <span className="font-bold" style={{ color: "var(--secondary)" }}>1.</span>
                 Un <strong>teaming agreement</strong> con un prime que ya tiene past performance federal.
               </li>
               <li className="flex items-start gap-2">
-                <span style={{ color: "#FFD60A" }}>2.</span>
+                <span className="font-bold" style={{ color: "var(--secondary)" }}>2.</span>
                 Responder un <strong>Sources Sought activo</strong> en los próximos 30 días.
               </li>
               <li className="flex items-start gap-2">
-                <span style={{ color: "#FFD60A" }}>3.</span>
+                <span className="font-bold" style={{ color: "var(--secondary)" }}>3.</span>
                 Hacer el <strong>follow-up correcto</strong> con un Contracting Officer sin parecer amateur.
               </li>
             </ul>
             <div
               className="rounded-lg p-3 text-sm"
-              style={{ background: "rgba(0,86,214,0.06)", border: "1px solid rgba(0,86,214,0.2)" }}
+              style={{ background: "color-mix(in srgb, var(--secondary) 7%, var(--card))", border: "1px solid color-mix(in srgb, var(--secondary) 22%, transparent)" }}
             >
               En la mentoría <strong>&ldquo;Tu Primer Contrato&rdquo;</strong> trabajamos tu caso específico hasta
               que respondas tu primera oportunidad real y tengas al menos un CO que te conozca por nombre.
@@ -677,6 +615,68 @@ export function Dia4Client({
           </CardContent>
         </Card>
       )}
+
+      {/* ── Wizard modal — datos de empresa + experiencia ── */}
+      <WizardModal
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        title="Día 4 — Capability Statement"
+        subtitle="Sumá tus datos de registro y generamos el documento."
+        finishLabel={statement ? "Regenerar documento" : "Generar mi Capability Statement"}
+        finishing={generating}
+        onFinish={() => handleGenerate()}
+        steps={[
+          {
+            label: "Datos de tu empresa",
+            content: (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Estos datos van en el documento para que un Contracting Officer pueda verificar tu registro. Todos son opcionales.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">UEI (SAM.gov)</label>
+                    <input value={companyForm.uei} onChange={setCompanyField("uei")} placeholder="Ej: ABC123DEF456" maxLength={12}
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">CAGE Code</label>
+                    <input value={companyForm.cage_code} onChange={setCompanyField("cage_code")} placeholder="Ej: 1A2B3" maxLength={5}
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Teléfono de negocio</label>
+                    <input value={companyForm.phone} onChange={setCompanyField("phone")} placeholder="Ej: (844) 555-0100"
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Website</label>
+                    <input value={companyForm.website} onChange={setCompanyField("website")} placeholder="www.tuempresa.com"
+                      className="w-full px-3 py-2 border rounded-md text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary" />
+                  </div>
+                </div>
+              </div>
+            ),
+          },
+          {
+            label: "Tu experiencia",
+            content: (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Esto nos ayuda a redactar mejor la sección <strong>Past Performance</strong> del documento.
+                </p>
+                <label className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-sm cursor-pointer hover:bg-muted/40 transition-colors">
+                  <input type="checkbox" checked={hasGovContracts} onChange={(e) => setHasGovContracts(e.target.checked)} className="accent-primary w-4 h-4" />
+                  Ya tuve contratos con el gobierno
+                </label>
+                {generating && (
+                  <p className="text-xs text-center text-muted-foreground">{LOADING_STEPS[loadingStep]}</p>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

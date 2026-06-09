@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 
 export interface WizardStep {
@@ -40,9 +40,15 @@ export function WizardModal({
 }) {
   const [current, setCurrent] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
+  // The step currently animating OUT (rendered alongside the entering one for a brief overlap)
+  const [exiting, setExiting] = useState<{ idx: number; dir: 1 | -1 } | null>(null);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Reset to first step whenever the modal opens
-  useEffect(() => { if (open) setCurrent(0); }, [open]);
+  useEffect(() => { if (open) { setCurrent(0); setExiting(null); } }, [open]);
+
+  // Clean up the exit timer on unmount
+  useEffect(() => () => { if (exitTimer.current) clearTimeout(exitTimer.current); }, []);
 
   // Esc to close
   useEffect(() => {
@@ -61,15 +67,23 @@ export function WizardModal({
   const canNext = step.isValid ? step.isValid() : true;
   const pct = ((current + 1) / total) * 100;
 
+  const transitionTo = (target: number, direction: 1 | -1) => {
+    if (target === current) return;
+    setDir(direction);
+    if (reduceMotion()) { setCurrent(target); return; }
+    // Keep the outgoing step mounted briefly so it can slide out while the next slides in.
+    setExiting({ idx: current, dir: direction });
+    setCurrent(target);
+    if (exitTimer.current) clearTimeout(exitTimer.current);
+    exitTimer.current = setTimeout(() => setExiting(null), 420); // ~ --dur-med
+  };
+
   const goNext = () => {
     if (!canNext) return;
     if (isLast) { onFinish(); return; }
-    setDir(1);
-    setCurrent((c) => Math.min(total - 1, c + 1));
+    transitionTo(Math.min(total - 1, current + 1), 1);
   };
-  const goBack = () => { setDir(-1); setCurrent((c) => Math.max(0, c - 1)); };
-
-  const animName = reduceMotion() ? "none" : dir === 1 ? "wz-slide-next" : "wz-slide-prev";
+  const goBack = () => { transitionTo(Math.max(0, current - 1), -1); };
 
   return (
     <div
@@ -118,23 +132,34 @@ export function WizardModal({
           <div style={{ marginTop: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
-                Paso {current + 1} de {total}
+                Paso{" "}
+                <span key={current} style={{ display: "inline-block", animation: reduceMotion() ? "none" : "wz-num-swap var(--dur-fast) var(--ease-out) both" }}>
+                  {current + 1}
+                </span>{" "}
+                de {total}
               </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>{step.label}</span>
+              <span key={`lbl-${current}`} style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", animation: reduceMotion() ? "none" : "wz-num-swap var(--dur-fast) var(--ease-out) both" }}>{step.label}</span>
             </div>
             <div style={{ height: 5, borderRadius: 5, background: "var(--muted)", overflow: "hidden" }}>
               <div style={{
                 height: "100%", width: `${pct}%`, borderRadius: 5,
-                background: "var(--success)", transition: "width 0.35s cubic-bezier(0.4,0,0.2,1)",
+                background: "var(--success)", transition: "width var(--dur-med) var(--ease-out)",
               }} />
             </div>
           </div>
         </div>
 
-        {/* Body — animated per step */}
+        {/* Body — directional enter/exit with field stagger (transform+opacity only) */}
         <div style={{ flex: 1, overflowY: "auto", padding: "22px" }}>
-          <div key={current} style={{ animation: `${animName} 0.32s cubic-bezier(0.22,1,0.36,1) both` }}>
-            {step.content}
+          <div style={{ position: "relative" }}>
+            {exiting && (
+              <div className="wz-step wz-step-exit" data-dir={exiting.dir} key={`exit-${exiting.idx}`} aria-hidden>
+                {steps[exiting.idx].content}
+              </div>
+            )}
+            <div className="wz-step wz-step-enter" data-dir={dir} key={`enter-${current}`}>
+              {step.content}
+            </div>
           </div>
         </div>
 

@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, PlayCircle } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, PlayCircle, ArrowRight, Map, RefreshCw } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
+import { WizardModal } from "@/components/wizard-modal";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 
@@ -139,6 +140,7 @@ export function Dia2Client({
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   // Clean up loading interval on unmount
   useEffect(() => () => { if (loadingRef.current) clearInterval(loadingRef.current); }, []);
@@ -242,6 +244,7 @@ export function Dia2Client({
       }
 
       setIsCompleted(true);
+      setWizardOpen(false);
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Mapa de códigos generado!");
     } catch {
@@ -302,82 +305,24 @@ export function Dia2Client({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Generá tu Mapa de Códigos</CardTitle>
-          <CardDescription>
-            Ingresá tu NAICS principal y palabras clave de tu negocio. La IA genera
-            todos los códigos relacionados que el gobierno usa para encontrarte.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="space-y-2">
-            <Label>Código NAICS principal</Label>
-            <Input
-              value={naicsInput}
-              onChange={(e) => setNaicsInput(e.target.value)}
-              placeholder="Ej: 561720"
-              maxLength={6}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Keywords de tu negocio</Label>
-            <div className="flex gap-2">
-              <Input
-                value={keywordInput}
-                onChange={(e) => setKeywordInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeyword())}
-                placeholder="Ej: janitorial services"
-              />
-              <Button type="button" variant="outline" onClick={addKeyword} size="icon">
-                <Plus className="w-4 h-4" />
-              </Button>
+      {!result && (
+        <Card>
+          <CardContent className="py-8 flex flex-col items-center text-center gap-3">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
+              <Map className="w-6 h-6" style={{ color: "var(--primary)" }} />
             </div>
-            {keywords.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {keywords.map((kw) => (
-                  <Badge key={kw} variant="secondary" className="flex items-center gap-1">
-                    {kw}
-                    <button onClick={() => removeKeyword(kw)} className="ml-1 hover:text-destructive">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <Button
-            onClick={handleGenerate}
-            className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90"
-            disabled={generating}
-          >
-            {generating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {LOADING_STEPS[loadingStep]}
-              </>
-            ) : (
-              "Generar mi Mapa de Códigos →"
-            )}
-          </Button>
-          {generating && (
-            <div className="flex gap-1.5 justify-center pt-1">
-              {LOADING_STEPS.map((_, i) => (
-                <div
-                  key={i}
-                  className="h-1 rounded-full transition-all duration-300"
-                  style={{
-                    width: i === loadingStep ? "24px" : "8px",
-                    background: i <= loadingStep ? "#D7263D" : "#1E3A5C",
-                  }}
-                />
-              ))}
+            <div>
+              <p className="font-semibold text-lg">Generá tu Mapa de Códigos</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                En 2 pasos guiados, la IA expande tu NAICS en los 5 formatos que el gobierno usa para encontrarte.
+              </p>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <Button onClick={() => setWizardOpen(true)} className="gap-2 h-12 px-7 text-base font-bold" disabled={generating}>
+              Generar mi mapa — Día 2 <ArrowRight className="w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Resultados */}
       {result && (
@@ -385,11 +330,11 @@ export function Dia2Client({
           {/* ── Header "CÓDIGOS EQUIVALENTES EN TODOS LOS FORMATOS" ── */}
           <div
             className="rounded-xl px-4 py-3"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+            style={{ background: "var(--muted)", border: "1px solid var(--border)" }}
           >
             <p
               className="text-xs font-bold uppercase tracking-widest text-center"
-              style={{ color: "#BDC9DC", letterSpacing: "0.15em" }}
+              style={{ color: "var(--muted-foreground)", letterSpacing: "0.15em" }}
             >
               Códigos Equivalentes en Todos los Formatos Gubernamentales
             </p>
@@ -431,7 +376,7 @@ export function Dia2Client({
                 {/* Desc row */}
                 <div
                   className="px-4 py-2 text-xs"
-                  style={{ background: "rgba(255,255,255,0.03)", color: "#BDC9DC", borderBottom: `1px solid ${meta.color}33` }}
+                  style={{ background: "var(--muted)", color: "var(--muted-foreground)", borderBottom: `1px solid color-mix(in srgb, ${meta.color} 25%, transparent)` }}
                 >
                   {meta.desc}
                 </div>
@@ -439,15 +384,15 @@ export function Dia2Client({
                 {/* Code cards grid */}
                 <div
                   className="grid gap-2 p-3 sm:grid-cols-2"
-                  style={{ background: meta.lightBg }}
+                  style={{ background: `color-mix(in srgb, ${meta.color} 6%, var(--card))` }}
                 >
                   {codes.map((code) => (
                     <div
                       key={`${code.type}-${code.code}`}
                       className="rounded-lg p-3 flex flex-col gap-1"
                       style={{
-                        background: "rgba(0,0,0,0.35)",
-                        border: `1px solid ${meta.color}44`,
+                        background: "var(--card)",
+                        border: `1px solid color-mix(in srgb, ${meta.color} 30%, transparent)`,
                       }}
                     >
                       {/* Code number + actions */}
@@ -456,7 +401,7 @@ export function Dia2Client({
                           className="font-black tabular-nums"
                           style={{
                             fontSize: "22px",
-                            color: meta.textColor,
+                            color: `color-mix(in srgb, ${meta.color} 60%, var(--foreground))`,
                             fontFamily: "var(--font-mono)",
                             lineHeight: 1,
                           }}
@@ -469,13 +414,13 @@ export function Dia2Client({
                             title="Copiar código"
                             className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded transition-all"
                             style={{
-                              background: "rgba(255,255,255,0.08)",
-                              color: "#fff",
-                              border: "1px solid rgba(255,255,255,0.12)",
+                              background: "var(--muted)",
+                              color: "var(--foreground)",
+                              border: "1px solid var(--border)",
                             }}
                           >
                             {copiedCode === code.code ? (
-                              <><CheckCircle2 className="w-3 h-3 text-green-400" /> Copiado</>
+                              <><CheckCircle2 className="w-3 h-3" style={{ color: "var(--success)" }} /> Copiado</>
                             ) : (
                               <><Copy className="w-3 h-3" /> Copiar</>
                             )}
@@ -486,9 +431,9 @@ export function Dia2Client({
                             rel="noopener noreferrer"
                             className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded transition-all"
                             style={{
-                              background: `${meta.color}33`,
-                              color: meta.textColor,
-                              border: `1px solid ${meta.color}55`,
+                              background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
+                              color: `color-mix(in srgb, ${meta.color} 60%, var(--foreground))`,
+                              border: `1px solid color-mix(in srgb, ${meta.color} 40%, transparent)`,
                             }}
                           >
                             {meta.externalLabel} <ExternalLink className="w-3 h-3" />
@@ -496,7 +441,7 @@ export function Dia2Client({
                         </div>
                       </div>
                       {/* Description */}
-                      <p className="text-xs leading-relaxed" style={{ color: "#BDC9DC" }}>
+                      <p className="text-xs leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
                         {code.description}
                       </p>
                     </div>
@@ -544,7 +489,7 @@ export function Dia2Client({
 
           {/* Descargar PDF */}
           {isCompleted && (
-            <Card className="border-accent/30 bg-accent/5">
+            <Card>
               <CardContent className="flex items-center justify-between py-5">
                 <div>
                   <p className="font-semibold">📄 Mapa de Códigos — Día 2</p>
@@ -553,7 +498,7 @@ export function Dia2Client({
                 <Button
                   onClick={handleDownloadPdf}
                   disabled={downloadingPdf}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}
                 >
                   {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                     <><Download className="w-4 h-4 mr-2" /> Descargar PDF</>
@@ -562,8 +507,90 @@ export function Dia2Client({
               </CardContent>
             </Card>
           )}
+
+          {/* Regenerar */}
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2" disabled={generating}>
+              <RefreshCw className="w-4 h-4" /> Regenerar mi mapa
+            </Button>
+          </div>
         </div>
       )}
+
+      {/* ── Wizard modal — NAICS + keywords ── */}
+      <WizardModal
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        title="Día 2 — Mapa de Códigos"
+        subtitle="Confirmá tu NAICS y keywords; la IA arma tu mapa completo."
+        finishLabel={result ? "Regenerar mi mapa" : "Generar mi mapa"}
+        finishing={generating}
+        onFinish={() => handleGenerate()}
+        steps={[
+          {
+            label: "Tu código NAICS",
+            isValid: () => naicsInput.trim().length > 0,
+            content: (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="naics-input">Código NAICS principal *</Label>
+                  <Input
+                    id="naics-input"
+                    value={naicsInput}
+                    onChange={(e) => setNaicsInput(e.target.value)}
+                    placeholder="Ej: 561720"
+                    maxLength={6}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Es el código que generaste en el Día 1. La IA lo expande a PSC, SIC, UNSPSC y NIGP.
+                  </p>
+                </div>
+              </div>
+            ),
+          },
+          {
+            label: "Keywords de tu negocio",
+            content: (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="kw-input">Keywords de tu negocio (opcional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="kw-input"
+                      value={keywordInput}
+                      onChange={(e) => setKeywordInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeyword())}
+                      placeholder="Ej: janitorial services"
+                    />
+                    <Button type="button" variant="outline" onClick={addKeyword} size="icon">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {keywords.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {keywords.map((kw) => (
+                        <Badge key={kw} variant="secondary" className="flex items-center gap-1">
+                          {kw}
+                          <button onClick={() => removeKeyword(kw)} className="ml-1 hover:text-destructive">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Agregá términos que describan tus servicios para afinar la expansión. Podés dejarlo vacío.
+                    </p>
+                  )}
+                </div>
+                {generating && (
+                  <p className="text-xs text-center text-muted-foreground">{LOADING_STEPS[loadingStep]}</p>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

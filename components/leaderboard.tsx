@@ -48,7 +48,7 @@ function PrizeBadge({ rank }: { rank: number }) {
           flexShrink: 0,
         }}
       >
-        🥇 $15K Consultoría
+        🥇 Servicio $15K
       </span>
     );
   }
@@ -68,7 +68,7 @@ function PrizeBadge({ rank }: { rank: number }) {
           flexShrink: 0,
         }}
       >
-        🥈 Premio
+        🥈 1h con Santo
       </span>
     );
   }
@@ -88,7 +88,7 @@ function PrizeBadge({ rank }: { rank: number }) {
           flexShrink: 0,
         }}
       >
-        🏆 Premio
+        🏆 Auditoría 1:1
       </span>
     );
   }

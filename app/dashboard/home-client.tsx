@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Send, MessageCircle, X, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { FlagBanner } from "@/components/flag-banner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1080,7 +1081,7 @@ function HomePrizeBadge({ rank }: { rank: number }) {
         border: "1px solid rgba(192,192,192,0.25)",
         borderRadius: "4px", padding: "1px 4px",
         whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🥈 Premio</span>
+      }}>🥈 1h c/ Santo</span>
     );
   }
   if (rank >= 3 && rank <= 12) {
@@ -1092,7 +1093,7 @@ function HomePrizeBadge({ rank }: { rank: number }) {
         border: "1px solid rgba(0,214,122,0.2)",
         borderRadius: "4px", padding: "1px 4px",
         whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🏆 Premio</span>
+      }}>🏆 Auditoría</span>
     );
   }
   return null;
@@ -1278,9 +1279,30 @@ function LeaderboardHome() {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName }: HomeClientProps) {
+  const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
+      {/* 0. Hero banner con la bandera de marca (isla oscura) */}
+      <FlagBanner minHeight={150} priority>
+        <p style={{
+          fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 700,
+          textTransform: "uppercase", letterSpacing: "0.14em",
+          color: "#FFD700", marginBottom: "8px",
+        }}>
+          Govbidder Challenge
+        </p>
+        <h1 style={{
+          fontFamily: "var(--font-display)", fontSize: "26px", fontWeight: 800,
+          lineHeight: 1.15, color: "#ffffff", margin: 0,
+        }}>
+          {firstName ? <>Hola, {firstName} 👋</> : <>Bienvenido</>}
+        </h1>
+        <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.78)", marginTop: "6px", maxWidth: "46ch" }}>
+          Tu empresa puede ganar contratos con el Gobierno de USA. Completá las fases del programa para avanzar.
+        </p>
+      </FlagBanner>
+
       {/* 1. Points card */}
       {!devMode && <PointsCard initial={initialPoints} avatarUrl={avatarUrl} />}
 

@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, PlayCircle, ArrowRight } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, PlayCircle, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
+import { WizardModal } from "@/components/wizard-modal";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 
@@ -80,6 +81,8 @@ export function Dia3Client({
   const [generating, setGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [copiedHtml, setCopiedHtml] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [webResult, setWebResult] = useState<WebResult | null>(
     existingPreview
@@ -196,6 +199,7 @@ ${webResult.html}
       }
 
       setIsCompleted(true);
+      setWizardOpen(false);
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Preview de tu web generada!");
     } catch {
@@ -249,82 +253,94 @@ ${webResult.html}
         </CardContent>
       </Card>
 
-      {/* Generar web */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="w-5 h-5" />
-            Preview de tu Web Gubernamental
-          </CardTitle>
-          <CardDescription>
-            Basado en tu Perfil Estratégico, la IA genera una landing page profesional
-            orientada a contratos gubernamentales.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button
-            onClick={handleGenerateWeb}
-            className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90"
-            disabled={generating}
-          >
-            {generating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {LOADING_STEPS[loadingStep]}
-              </>
-            ) : webResult ? (
-              "Regenerar Web"
-            ) : (
-              "Generar Preview de mi Web →"
-            )}
-          </Button>
-          {generating && (
-            <div className="flex gap-1.5 justify-center">
-              {LOADING_STEPS.map((_, i) => (
-                <div
-                  key={i}
-                  className="h-1 rounded-full transition-all duration-300"
-                  style={{
-                    width: i === loadingStep ? "24px" : "8px",
-                    background: i <= loadingStep ? "#D7263D" : "#1E3A5C",
-                  }}
-                />
-              ))}
+      {/* ── Launch (sin web) / Showcase (con web) ── */}
+      {!webResult ? (
+        <Card>
+          <CardContent className="py-8 flex flex-col items-center text-center gap-3">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
+              <Globe className="w-6 h-6" style={{ color: "var(--primary)" }} />
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div>
+              <p className="font-semibold text-lg">Generá tu Web Gubernamental</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                La IA usa tu Perfil Estratégico para construir una landing profesional orientada a Contracting Officers.
+              </p>
+            </div>
+            <Button onClick={() => setWizardOpen(true)} className="gap-2 h-12 px-7 text-base font-bold" disabled={generating}>
+              Generar mi web — Día 3 <ArrowRight className="w-4 h-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4 gb-preview-reveal">
+          {/* ── Showcase: la web como un producto ── */}
+          <div style={{
+            position: "relative", borderRadius: 24, overflow: "hidden",
+            padding: "clamp(16px, 3.5vw, 36px)",
+            background: "linear-gradient(160deg, var(--secondary) 0%, var(--govbidder-navy-deep) 100%)",
+          }}>
+            <div aria-hidden style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 50% -10%, rgba(255,255,255,0.10), transparent 55%)" }} />
 
-      {/* Preview */}
-      {webResult && (
-        <div className="space-y-4">
-          <div className="border rounded-2xl overflow-hidden shadow-lg">
-            <div className="bg-muted px-4 py-2 flex items-center gap-2 border-b">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-400" />
-                <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                <div className="w-3 h-3 rounded-full bg-green-400" />
+            {/* Header del showcase */}
+            <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 18 }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FFD700", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Sparkles className="w-3.5 h-3.5" /> Tu presencia profesional
+                </p>
+                <h3 style={{ fontSize: 20, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>
+                  {profile?.company_name ?? "Tu empresa"} ya tiene cara de proveedor del gobierno
+                </h3>
               </div>
-              <span className="text-xs text-muted-foreground ml-2 font-mono">
-                {profile?.company_name?.toLowerCase().replace(/\s/g, "")}.com (preview)
-              </span>
-              <button
-                onClick={handleOpenFullscreen}
-                className="ml-auto flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                title="Abrir en pantalla completa"
-              >
-                <ExternalLink className="w-3 h-3" /> Pantalla completa
-              </button>
+              {/* Toggle dispositivo */}
+              <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.12)", padding: 4, borderRadius: 11, flexShrink: 0 }}>
+                {([["desktop", Monitor, "Escritorio"], ["mobile", Smartphone, "Móvil"]] as const).map(([key, Icon, label]) => (
+                  <button key={key} onClick={() => setDevice(key)} aria-pressed={device === key} style={{
+                    display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 8,
+                    border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,
+                    transition: "background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out)",
+                    background: device === key ? "#fff" : "transparent",
+                    color: device === key ? "var(--secondary)" : "rgba(255,255,255,0.72)",
+                  }}>
+                    <Icon className="w-4 h-4" /> {label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <iframe
-              srcDoc={buildFullHtml()}
-              className="w-full h-[640px] bg-white"
-              sandbox="allow-same-origin"
-              title="Website preview"
-            />
+
+            {/* Ventana del navegador */}
+            <div style={{
+              position: "relative", margin: "0 auto", width: "100%",
+              maxWidth: device === "mobile" ? 390 : "100%",
+              transition: "max-width var(--dur-slow) var(--ease-expo)",
+              borderRadius: 14, overflow: "hidden", background: "#fff",
+              boxShadow: "0 40px 90px -30px rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.14)",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "#f3f4f6", borderBottom: "1px solid #e5e7eb" }}>
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  <span style={{ width: 11, height: 11, borderRadius: "50%", background: "#ff5f57" }} />
+                  <span style={{ width: 11, height: 11, borderRadius: "50%", background: "#febc2e" }} />
+                  <span style={{ width: 11, height: 11, borderRadius: "50%", background: "#28c840" }} />
+                </div>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, padding: "5px 12px", maxWidth: 320, margin: "0 auto", color: "#6b7280", fontSize: 12, fontFamily: "var(--font-mono)", overflow: "hidden", whiteSpace: "nowrap" }}>
+                  <Lock className="w-3 h-3" style={{ color: "#16A65F", flexShrink: 0 }} />
+                  {(profile?.company_name?.toLowerCase().replace(/[^a-z0-9]/g, "") ?? "tuempresa")}.com
+                </div>
+                <button onClick={handleOpenFullscreen} title="Abrir en pantalla completa" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 7, border: "none", background: "transparent", color: "#6b7280", cursor: "pointer", flexShrink: 0 }}>
+                  <ExternalLink className="w-4 h-4" />
+                </button>
+              </div>
+              <iframe
+                key={device}
+                srcDoc={buildFullHtml()}
+                style={{ width: "100%", height: device === "mobile" ? 700 : 620, background: "#fff", border: "none", display: "block" }}
+                sandbox="allow-same-origin"
+                title="Website preview"
+              />
+            </div>
           </div>
 
-          <Card className="border-accent/30 bg-accent/5">
+          {/* Acciones */}
+          <Card>
             <CardContent className="flex flex-wrap items-center justify-between gap-3 py-5">
               <div>
                 <p className="font-semibold">💾 Usá tu web</p>
@@ -340,7 +356,7 @@ ${webResult.html}
                     <><Copy className="w-4 h-4 mr-2" /> Copiar HTML</>
                   )}
                 </Button>
-                <Button onClick={handleDownloadWeb} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <Button onClick={handleDownloadWeb}>
                   <Download className="w-4 h-4 mr-2" />
                   Descargar
                 </Button>
@@ -348,16 +364,23 @@ ${webResult.html}
             </CardContent>
           </Card>
 
-          {/* Conexión con el Capability Statement */}
+          {/* Conexión con el Capability Statement (tokenizado) */}
           <div
             className="flex items-center gap-3 rounded-xl p-4"
-            style={{ background: "rgba(255,214,10,0.06)", border: "1px solid rgba(255,214,10,0.3)" }}
+            style={{ background: "color-mix(in srgb, var(--secondary) 6%, var(--card))", border: "1px solid color-mix(in srgb, var(--secondary) 22%, transparent)" }}
           >
-            <ArrowRight className="w-5 h-5 flex-shrink-0" style={{ color: "#FFD60A" }} />
-            <p className="text-sm" style={{ color: "#C9D6EC" }}>
-              Este copy es la base de tu <strong style={{ color: "#FFD60A" }}>Capability Statement</strong> del Día 4 —
+            <ArrowRight className="w-5 h-5 flex-shrink-0" style={{ color: "var(--secondary)" }} />
+            <p className="text-sm text-foreground">
+              Este copy es la base de tu <strong style={{ color: "var(--secondary)" }}>Capability Statement</strong> del Día 4 —
               el documento que un Contracting Officer lee en 60 segundos para decidir si trabaja con vos.
             </p>
+          </div>
+
+          {/* Regenerar */}
+          <div className="flex justify-center">
+            <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2" disabled={generating}>
+              <RefreshCw className="w-4 h-4" /> Regenerar mi web
+            </Button>
           </div>
         </div>
       )}
@@ -416,6 +439,74 @@ ${webResult.html}
           })}
         </CardContent>
       </Card>
+
+      {/* ── Wizard modal — confirmar perfil y generar ── */}
+      <WizardModal
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        title="Día 3 — Tu Web Gubernamental"
+        subtitle="Confirmá los datos y la IA construye tu landing."
+        finishLabel={webResult ? "Regenerar mi web" : "Generar mi web"}
+        finishing={generating}
+        onFinish={() => handleGenerateWeb()}
+        steps={[
+          {
+            label: "Tu perfil",
+            content: (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Tu web se construye con estos datos de tu Perfil Estratégico (Día 1):
+                </p>
+                <div className="rounded-xl border border-border bg-muted/40 divide-y divide-border">
+                  {[
+                    ["Empresa", profile?.company_name || "—"],
+                    ["NAICS", profile?.primary_naics || "—"],
+                    ["Qué hacés", profile?.niche || "—"],
+                    ["Keywords", keywordsExpanded.slice(0, 5).join(", ") || "—"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-start justify-between gap-4 px-4 py-3">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground flex-shrink-0">{k}</span>
+                      <span className="text-sm font-medium text-foreground text-right">{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  ¿Algo no coincide? Editalo en el Día 1 y volvé. Acá no se cambia nada.
+                </p>
+              </div>
+            ),
+          },
+          {
+            label: "Tu nueva web",
+            content: (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  La IA redacta una landing en tono de procurement, lista para un Contracting Officer:
+                </p>
+                <div className="grid gap-2.5">
+                  {[
+                    ["Hero", "Titular y propuesta de valor para el gobierno"],
+                    ["About Us", "Quién sos, orientado a confianza institucional"],
+                    ["Servicios", "Tus servicios traducidos a lenguaje de contratos"],
+                    ["Capabilities & CTA", "Cierre con llamada a la acción y contacto"],
+                  ].map(([t, d]) => (
+                    <div key={t} className="flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3">
+                      <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "var(--success)" }} />
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">{t}</p>
+                        <p className="text-xs text-muted-foreground">{d}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {generating && (
+                  <p className="text-xs text-center text-muted-foreground">{LOADING_STEPS[loadingStep]}</p>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
