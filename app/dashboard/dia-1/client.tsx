@@ -141,8 +141,8 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.FormEvent) {
+    e?.preventDefault();
 
     // Custom game-style validation
     const gameError = (msg: string) => {
