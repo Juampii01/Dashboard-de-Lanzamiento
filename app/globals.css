@@ -615,6 +615,8 @@
     width: 264px !important;
     min-width: 264px !important;
     height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
     z-index: 50;
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);

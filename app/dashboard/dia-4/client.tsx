@@ -272,10 +272,10 @@ export function Dia4Client({
         </p>
       </div>
 
-      <Card className="border-amber-100 bg-amber-50/50">
+      <Card style={{ background: "color-mix(in srgb, var(--primary) 7%, var(--card))", borderColor: "color-mix(in srgb, var(--primary) 28%, transparent)" }}>
         <CardContent className="flex items-center gap-4 py-4">
-          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <PlayCircle className="w-6 h-6 text-red-600" />
+          <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}>
+            <PlayCircle className="w-6 h-6" style={{ color: "var(--primary)" }} />
           </div>
           <div className="flex-1">
             <p className="font-semibold">Clase en vivo — Día 4 (Q&A)</p>

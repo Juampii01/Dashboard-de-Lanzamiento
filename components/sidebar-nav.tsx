@@ -13,7 +13,7 @@ import { ProfileButton } from "@/components/profile-button";
 
 // Exported so other layout pieces can offset against the expanded width.
 export const SIDEBAR_WIDTH = 248;
-const SIDEBAR_COLLAPSED_WIDTH = 64;
+const SIDEBAR_COLLAPSED_WIDTH = 76;
 
 interface SidebarNavProps {
   profile: {
@@ -125,8 +125,9 @@ function EntregableRow({
       <span style={{
         width: 28, height: 28, borderRadius: 8, flexShrink: 0,
         display: "inline-flex", alignItems: "center", justifyContent: "center",
-        background: "var(--muted)", color: available ? "var(--secondary)" : "var(--muted-foreground)",
-        border: "1px solid var(--sidebar-border)",
+        background: available ? "color-mix(in srgb, var(--primary) 12%, transparent)" : "var(--muted)",
+        color: available ? "var(--primary)" : "var(--muted-foreground)",
+        border: `1px solid ${available ? "color-mix(in srgb, var(--primary) 28%, transparent)" : "var(--sidebar-border)"}`,
       }}>
         <FileText size={15} />
       </span>
@@ -249,19 +250,24 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
         style={{
           width, minWidth: width,
           background: "var(--sidebar)",
-          borderRight: "1px solid var(--sidebar-border)",
-          boxShadow: "1px 0 0 var(--sidebar-border), 4px 0 24px -12px rgba(13,26,61,0.18)",
+          border: "1px solid var(--sidebar-border)",
+          borderRadius: 16,
+          boxShadow: "0 10px 34px -10px rgba(13,26,61,0.22), 0 2px 8px rgba(13,26,61,0.07)",
+          margin: "10px 6px 10px 10px",
+          height: "calc(100vh - 20px)",
           display: "flex", flexDirection: "column",
           overflowY: "auto", overflowX: "hidden",
-          flexShrink: 0, scrollbarWidth: "none", height: "100vh",
+          flexShrink: 0, scrollbarWidth: "none",
           color: "var(--sidebar-foreground)",
         }}
       >
         {/* ── Brand + collapse toggle ── */}
         <div style={{
-          padding: collapsed ? "14px 0 12px" : "14px 14px 12px",
+          padding: collapsed ? "14px 0 10px" : "14px 14px 12px",
           borderBottom: "1px solid var(--sidebar-border)", flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", gap: 8,
+          display: "flex",
+          flexDirection: collapsed ? "column" : "row",
+          alignItems: "center", justifyContent: collapsed ? "center" : "space-between", gap: 9,
         }}>
           <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             <span style={{
@@ -284,7 +290,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
             )}
           </Link>
 
-          {/* Collapse toggle — desktop only */}
+          {/* Collapse toggle — desktop only. In collapsed mode it sits below the logo. */}
           <button
             type="button"
             onClick={toggleCollapsed}
