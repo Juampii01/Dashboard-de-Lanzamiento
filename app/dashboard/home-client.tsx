@@ -628,10 +628,14 @@ function CommentsSection() {
 
 // ─── Certificate Modal ────────────────────────────────────────────────────────
 
-function CertificateModal({ onClose }: { onClose: () => void }) {
+function CertificateModal({ onClose, name }: { onClose: () => void; name: string }) {
   const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
   };
+  const NAVY = "#152340";
+  const displayName = (name || "").trim() || "Tu Nombre Completo";
+  const today = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+
   return (
     <div
       onClick={handleBackdrop}
@@ -642,81 +646,126 @@ function CertificateModal({ onClose }: { onClose: () => void }) {
         padding: "16px", backdropFilter: "blur(4px)",
       }}
     >
-      <div style={{
-        background: "#FFFFFF", borderRadius: "8px",
-        maxWidth: "520px", width: "100%",
-        fontFamily: "Times New Roman, serif",
-        boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
-        overflow: "hidden",
-      }}>
-        {/* Header bar */}
+      <div style={{ position: "relative", width: "min(840px, 100%)" }}>
+        {/* Close */}
+        <button
+          onClick={onClose}
+          aria-label="Cerrar"
+          style={{
+            position: "absolute", top: "-40px", right: 0,
+            background: "rgba(255,255,255,0.14)", border: "none", borderRadius: "8px",
+            padding: "7px 9px", color: "#fff", cursor: "pointer",
+            display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 600,
+          }}
+        >
+          <X style={{ width: 15, height: 15 }} /> Cerrar
+        </button>
+
+        {/* Certificado */}
         <div style={{
-          background: "#1a365d", padding: "12px 16px",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
+          position: "relative", overflow: "hidden",
+          background: "linear-gradient(160deg, #ffffff 0%, #f6f7fb 100%)",
+          borderRadius: "14px", aspectRatio: "1.4 / 1",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.55)",
+          fontFamily: "var(--font-sans)",
         }}>
-          <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, fontFamily: "sans-serif", letterSpacing: "0.05em" }}>
-            📜 CERTIFICADO DE PARTICIPACIÓN — GOVBIDDER CHALLENGE
-          </span>
-          <button
-            onClick={onClose}
-            style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "4px", padding: "4px 6px", color: "#FFFFFF", cursor: "pointer" }}
-          >
-            <X style={{ width: "14px", height: "14px" }} />
-          </button>
-        </div>
+          {/* Ondas decorativas */}
+          <svg viewBox="0 0 840 600" preserveAspectRatio="none" aria-hidden
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+            {Array.from({ length: 9 }).map((_, i) => (
+              <path key={i} fill="none" stroke="rgba(21,41,120,0.10)" strokeWidth="1"
+                d={`M -40 ${150 + i * 13} C 220 ${60 + i * 13}, 600 ${330 + i * 13}, 880 ${150 + i * 13}`} />
+            ))}
+          </svg>
 
-        {/* Certificate body */}
-        <div style={{ padding: "32px 40px", color: "#1a1a1a", lineHeight: 1.6 }}>
-          {/* Seal */}
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
-            <div style={{ width: "64px", height: "64px", borderRadius: "50%", border: "3px solid #1a365d", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 8px", fontSize: "28px" }}>🦅</div>
-            <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", color: "#1a365d", textTransform: "uppercase" }}>Govbidder Academy</p>
-          </div>
+          {/* Swoosh rojo + navy esquina inferior izquierda */}
+          <svg viewBox="0 0 300 240" aria-hidden
+            style={{ position: "absolute", bottom: -6, left: -6, width: "30%", height: "auto" }}>
+            <path d="M -20 260 C 70 210, 150 150, 90 -20" fill="none" stroke="#E42D2C" strokeWidth="16" strokeLinecap="round" />
+            <path d="M -20 285 C 110 220, 190 150, 130 -20" fill="none" stroke={NAVY} strokeWidth="20" strokeLinecap="round" />
+          </svg>
 
-          {/* Title */}
-          <h1 style={{ textAlign: "center", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", borderTop: "2px solid #1a365d", borderBottom: "2px solid #1a365d", padding: "10px 0", margin: "0 0 24px", color: "#1a365d" }}>
-            Certificado de Participación
-          </h1>
-
-          {/* Content */}
-          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "10px" }}>
-            <p style={{ fontSize: "12px", color: "#666" }}>Este certificado se otorga a</p>
-            <p style={{ fontSize: "20px", fontWeight: 700, color: "#1a365d", letterSpacing: "0.05em" }}>[Tu nombre completo]</p>
-            <p style={{ fontSize: "12px", color: "#666" }}>por su participación en el programa</p>
-            <p style={{ fontSize: "16px", fontWeight: 700, color: "#D7263D" }}>Govbidder Challenge</p>
-            <p style={{ fontSize: "11px", color: "#666" }}>Programa de capacitación en contratos gubernamentales</p>
-
-            {/* Day badges */}
-            <div style={{ display: "flex", justifyContent: "center", gap: "16px", margin: "8px 0" }}>
-              {[1,2,3,4].map(d => (
-                <div key={d} style={{ textAlign: "center" }}>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", border: "2px solid #1a365d", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, color: "#1a365d", margin: "0 auto 3px" }}>D{d}</div>
-                  <span style={{ fontSize: "8px", color: "#999" }}>Reto</span>
+          {/* Contenido */}
+          <div style={{
+            position: "relative", height: "100%",
+            display: "flex", flexDirection: "column", alignItems: "center",
+            textAlign: "center", padding: "5.5% 9% 4.5%",
+          }}>
+            {/* Header: sello + título */}
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", justifyContent: "center" }}>
+              {/* Sello con cinta */}
+              <svg width="58" height="74" viewBox="0 0 58 74" aria-hidden style={{ flexShrink: 0 }}>
+                <path d="M20 42 L15 70 L23 62 L29 70 L29 44 Z" fill={NAVY} />
+                <path d="M38 42 L43 70 L35 62 L29 70 L29 44 Z" fill="#0d1a3d" />
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <rect key={i} x="27.5" y="0" width="3" height="9" rx="1.2" fill="#C8A33A"
+                    transform={`rotate(${i * 22.5} 29 27)`} />
+                ))}
+                <circle cx="29" cy="27" r="20" fill={NAVY} />
+                <circle cx="29" cy="27" r="14.5" fill="none" stroke="#E5B83B" strokeWidth="2" />
+                <circle cx="29" cy="27" r="6" fill="#E5B83B" />
+              </svg>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontFamily: "var(--font-mono)", fontWeight: 800, color: NAVY, lineHeight: 0.92, fontSize: "clamp(28px, 5.2vw, 46px)", letterSpacing: "1px" }}>
+                  CERTIFICADO
                 </div>
-              ))}
+                <div style={{ fontWeight: 500, color: "#2a3550", letterSpacing: "3px", fontSize: "clamp(13px, 2.3vw, 21px)", marginTop: "2px" }}>
+                  DE CULMINACIÓN
+                </div>
+              </div>
             </div>
 
-            {/* Signature */}
-            <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ height: "1px", width: "120px", background: "#1a1a1a", margin: "0 auto 4px" }} />
-                <p style={{ fontSize: "9px", color: "#666" }}>Govbidder Academy · Director</p>
+            <p style={{ fontWeight: 700, color: NAVY, fontSize: "clamp(11px, 1.7vw, 15px)", marginTop: "3%" }}>
+              Otorgado a
+            </p>
+            <p style={{ fontWeight: 700, color: NAVY, fontSize: "clamp(22px, 4.2vw, 38px)", lineHeight: 1.1, margin: "1.5% 0" }}>
+              {displayName}
+            </p>
+            <p style={{ color: "#3a4055", fontSize: "clamp(10px, 1.6vw, 14px)", maxWidth: "62ch" }}>
+              Por haber completado con éxito el programa <strong style={{ color: NAVY }}>GOVBIDDER CHALLENGE</strong>
+            </p>
+            <p style={{ fontStyle: "italic", color: "#5A6B85", fontSize: "clamp(10px, 1.5vw, 14px)", marginTop: "2.5%" }}>
+              {today}
+            </p>
+
+            {/* Pie: firma · logo · QR */}
+            <div style={{
+              marginTop: "auto", width: "100%",
+              display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "12px",
+            }}>
+              {/* Firma */}
+              <div style={{ textAlign: "center", flex: "1 1 0", minWidth: 0 }}>
+                <div style={{ height: "2px", background: "#1a1a1a", margin: "0 auto 6px", width: "min(150px, 80%)" }} />
+                <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "clamp(11px, 1.7vw, 15px)" }}>Santo González</div>
+                <div style={{ color: NAVY, fontSize: "clamp(10px, 1.5vw, 13px)" }}>Certificado</div>
+              </div>
+
+              {/* Logo */}
+              <div style={{ flex: "1 1 0", display: "flex", justifyContent: "center" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/halcon.png" alt="Govbidder Challenge" style={{ height: "clamp(48px, 9vw, 78px)", width: "auto", objectFit: "contain" }} />
+              </div>
+
+              {/* QR */}
+              <div style={{ textAlign: "center", flex: "1 1 0", minWidth: 0 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=https://govbidder-challenge.vercel.app"
+                  alt="QR grupo de graduados"
+                  style={{ width: "clamp(54px, 9vw, 82px)", height: "auto", display: "block", margin: "0 auto 4px" }}
+                />
+                <div style={{ color: "#5A6B85", fontSize: "clamp(8px, 1.2vw, 11px)", lineHeight: 1.25 }}>
+                  Lee el código QR y únete al<br />grupo de graduados
+                </div>
               </div>
             </div>
           </div>
-
-          {/* BOCETO notice */}
-          <div style={{ marginTop: "20px", padding: "10px 14px", background: "#FFF3CD", border: "1px solid #FFD60A", borderRadius: "6px", textAlign: "center" }}>
-            <p style={{ fontSize: "11px", fontWeight: 600, color: "#856404", margin: 0 }}>
-              ⚠️ Este certificado será entregado al finalizar el challenge. Completá los 4 días para recibirlo.
-            </p>
-          </div>
-
-          {/* Watermark BOCETO */}
-          <p style={{ textAlign: "center", marginTop: "12px", fontSize: "9px", color: "#CCC", textTransform: "uppercase", letterSpacing: "0.2em", fontStyle: "italic" }}>
-            Vista previa — Boceto
-          </p>
         </div>
+
+        {/* Caption preview */}
+        <p style={{ textAlign: "center", marginTop: "12px", fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>
+          Vista previa — tu certificado se emite al completar los 4 días del programa.
+        </p>
       </div>
     </div>
   );
@@ -913,7 +962,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
   );
 }
 
-function ContractModels() {
+function ContractModels({ fullName }: { fullName?: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [certOpen, setCertOpen] = useState(false);
   const selectedNiche = NICHES.find((n) => n.id === selected) ?? null;
@@ -1033,7 +1082,7 @@ function ContractModels() {
       {selectedNiche && (
         <ContractModal niche={selectedNiche} onClose={() => setSelected(null)} />
       )}
-      {certOpen && <CertificateModal onClose={() => setCertOpen(false)} />}
+      {certOpen && <CertificateModal onClose={() => setCertOpen(false)} name={fullName ?? ""} />}
     </div>
   );
 }
@@ -1316,7 +1365,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName }: Home
       {!devMode && <CommentsSection />}
 
       {/* 4. Contract models */}
-      <ContractModels />
+      <ContractModels fullName={fullName} />
 
       {/* 5. Leaderboard */}
       {!devMode && (
