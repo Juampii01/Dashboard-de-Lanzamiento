@@ -261,6 +261,9 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
         gap: "16px",
         position: "relative",
         overflow: "hidden",
+        alignSelf: "flex-start",
+        maxWidth: "460px",
+        width: "100%",
       }}
     >
       {/* Corner brackets */}
