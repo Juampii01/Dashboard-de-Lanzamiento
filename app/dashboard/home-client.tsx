@@ -760,6 +760,23 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
               </div>
             </div>
           </div>
+
+          {/* Marca de agua MUESTRA — evita que se use el preview como certificado real */}
+          <div aria-hidden style={{
+            position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden",
+            display: "flex", flexDirection: "column", justifyContent: "center", gap: "34px",
+            transform: "rotate(-22deg) scale(1.45)", opacity: 0.13,
+          }}>
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} style={{
+                whiteSpace: "nowrap", textAlign: "center",
+                fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "30px",
+                letterSpacing: "8px", color: "#152340",
+              }}>
+                VISTA&nbsp;PREVIA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;VISTA&nbsp;PREVIA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;VISTA&nbsp;PREVIA
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Caption preview */}
