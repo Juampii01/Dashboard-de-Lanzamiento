@@ -464,7 +464,7 @@ function CommentsSection() {
         <p style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "8px", fontWeight: 700,
-          color: "#8DA2C4", textTransform: "uppercase",
+          color: "var(--muted-foreground)", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "4px",
         }}>
           💬 Comunidad
@@ -472,7 +472,7 @@ function CommentsSection() {
         <h2 style={{
           fontFamily: "var(--font-display)",
           fontSize: "20px", fontWeight: 900,
-          color: "#FFFFFF",
+          color: "var(--foreground)",
         }}>
           ¡Comentá qué te parece el programa aquí!
         </h2>
@@ -990,7 +990,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
         <p style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "8px", fontWeight: 700,
-          color: "#8DA2C4", textTransform: "uppercase",
+          color: "var(--muted-foreground)", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "4px",
         }}>
           🏆 Contratos Reales
@@ -998,7 +998,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
         <h2 style={{
           fontFamily: "var(--font-display)",
           fontSize: "22px", fontWeight: 900,
-          color: "#FFFFFF",
+          color: "var(--foreground)",
         }}>
           ¡Mirá contratos gubernamentales ganados!
         </h2>
@@ -1391,7 +1391,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName }: Home
             <p style={{
               fontFamily: "var(--font-arcade)",
               fontSize: "8px", fontWeight: 700,
-              color: "#8DA2C4", textTransform: "uppercase",
+              color: "var(--muted-foreground)", textTransform: "uppercase",
               letterSpacing: "0.14em", marginBottom: "4px",
             }}>
               🏆 Ranking
@@ -1399,7 +1399,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName }: Home
             <h2 style={{
               fontFamily: "var(--font-display)",
               fontSize: "20px", fontWeight: 900,
-              color: "#FFFFFF",
+              color: "var(--foreground)",
             }}>
               Ranking de premios
             </h2>
