@@ -153,6 +153,18 @@ export async function POST(request: Request) {
   });
 
   if (insertErr) {
+    // Unique violation (partial unique index on correct attempts) = una petición
+    // concurrente ya registró la respuesta correcta. Lo tratamos como "ya correcto"
+    // y NO se vuelve a otorgar XP (cierra la carrera de doble award).
+    if ((insertErr as { code?: string }).code === "23505") {
+      return NextResponse.json({
+        correct: is_correct,
+        xp_awarded: 0,
+        already_correct: true,
+        correct_option_index: quiz.correct_option_index,
+        explanation: quiz.explanation ?? null,
+      });
+    }
     console.error("[quiz/submit] insert attempt error:", insertErr);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
