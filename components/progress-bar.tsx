@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { progressPercent } from "@/lib/utils";
 import { Camera } from "lucide-react";
 import { AvatarCropModal } from "@/components/avatar-upload";
+import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
 
 const AVATAR_LS_KEY      = "govbidder_avatar_xp_at";
 const AVATAR_COOLDOWN_MS = 60 * 60_000; // 60 minutos
@@ -192,34 +193,10 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
   const isFull = pct === 100;
   const done = Math.max(0, Math.min(4, completedDays));
 
-  // Avatar upload state
-  const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(initialAvatarUrl ?? null);
+  // Avatar: fuente de verdad única (compartida con el sidebar vía useUserAvatar).
+  const { photoUrl } = useUserAvatar(initialAvatarUrl);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!initialAvatarUrl) {
-      const stored = localStorage.getItem(LS_AVATAR_KEY);
-      if (stored) setCurrentAvatarUrl(stored);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const url = (e as CustomEvent<{ url: string | null }>).detail?.url;
-      if (url) {
-        setCurrentAvatarUrl(url);
-        localStorage.setItem(LS_AVATAR_KEY, url);
-      } else {
-        setCurrentAvatarUrl(null);
-        localStorage.removeItem(LS_AVATAR_KEY);
-      }
-    };
-    window.addEventListener("avatar-updated", handler);
-    return () => window.removeEventListener("avatar-updated", handler);
-  }, [LS_AVATAR_KEY]);
 
   const handleCameraClick = useCallback(() => { fileInputRef.current?.click(); }, []);
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,9 +205,8 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
     e.target.value = "";
   }, []);
   const handleAvatarUploaded = useCallback((url: string) => {
-    setCurrentAvatarUrl(url);
     setCropFile(null);
-    localStorage.setItem("govbidder_avatar_url_v1", url);
+    // El hook (vía el evento) actualiza estado + localStorage en barra y sidebar.
     window.dispatchEvent(new CustomEvent("avatar-updated", { detail: { url } }));
   }, []);
 
@@ -292,7 +268,7 @@ export function ProgressBar({ completedDays, isAdmin, avatarUrl: initialAvatarUr
           transition: "left 0.9s cubic-bezier(0.22,0.61,0.36,1)",
           zIndex: 2,
         }}>
-          <UserAvatar isAdmin={isAdmin} avatarUrl={currentAvatarUrl} onCameraClick={handleCameraClick} />
+          <UserAvatar isAdmin={isAdmin} avatarUrl={photoUrl} onCameraClick={handleCameraClick} />
         </div>
       </div>
 

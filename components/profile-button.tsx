@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Camera, Check, Loader2, Mail, X } from "lucide-react";
 import { AvatarCropModal } from "@/components/avatar-upload";
+import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
 
 /**
  * ProfileButton
@@ -30,29 +31,18 @@ export function ProfileButton({
   /** Avatar diameter in px */
   size?: number;
 }) {
+  // ── Avatar: fuente de verdad única (compartida con la barra de progreso) ──
+  const { photoUrl } = useUserAvatar(avatarUrl);
+  const [imgError, setImgError] = useState(false);
+  // Resetear el error cuando cambia la foto (nueva subida / borrado).
+  useEffect(() => { setImgError(false); }, [photoUrl]);
+
   // ── Display state (shown in the header chip) ─────────────────────────────
-  const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
   const [displayName,   setDisplayName]   = useState(fullName);
-  const [headerAvatar,  setHeaderAvatar]  = useState(avatarUrl);
-  const [avatarError,   setAvatarError]   = useState(false);
-  const [avatarVisible, setAvatarVisible] = useState(false);
 
   // ── Modal state ───────────────────────────────────────────────────────────
   const [open,       setOpen]       = useState(false);
   const [editName,   setEditName]   = useState(fullName);
-  const [modalAvatar, setModalAvatar] = useState(avatarUrl);
-
-  // After client mount: if server gave no avatar, try localStorage fallback
-  useEffect(() => {
-    if (!avatarUrl) {
-      const stored = localStorage.getItem(LS_AVATAR_KEY);
-      if (stored) {
-        setHeaderAvatar(stored);
-        setModalAvatar(stored);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // ── Avatar-delete state ───────────────────────────────────────────────────
   const [deleting, setDeleting] = useState(false);
@@ -63,11 +53,7 @@ export function ProfileButton({
     try {
       const res = await fetch("/api/profile/avatar", { method: "DELETE" });
       if (!res.ok) throw new Error("failed");
-      setHeaderAvatar(null);
-      setModalAvatar(null);
-      setAvatarError(false);
-      setAvatarVisible(false);
-      localStorage.removeItem(LS_AVATAR_KEY);
+      // El hook (vía el evento) limpia estado + localStorage en todos lados.
       window.dispatchEvent(new CustomEvent("avatar-updated", { detail: { url: null } }));
     } catch {
       // silent — non-critical
@@ -84,21 +70,6 @@ export function ProfileButton({
   const [cropFile,   setCropFile]   = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with avatar uploads from other components (e.g. progress-bar camera)
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const url = (e as CustomEvent<{ url: string }>).detail?.url;
-      if (url) {
-        setHeaderAvatar(url);
-        setModalAvatar(url);
-        setAvatarError(false);
-        setAvatarVisible(false);
-      }
-    };
-    window.addEventListener("avatar-updated", handler);
-    return () => window.removeEventListener("avatar-updated", handler);
-  }, []);
-
   // When modal opens, reset edit-name to the current display name
   const openModal = useCallback(() => {
     setEditName(displayName);
@@ -108,13 +79,8 @@ export function ProfileButton({
 
   // ── Avatar upload ─────────────────────────────────────────────────────────
   const handleAvatarUploaded = useCallback((url: string) => {
-    setHeaderAvatar(url);
-    setModalAvatar(url);
-    setAvatarError(false);
-    setAvatarVisible(false);
-    // Persist in localStorage so avatar survives page reloads
-    localStorage.setItem("govbidder_avatar_url_v1", url);
-    // Notify progress-bar avatar + HeaderAvatar (if still mounted elsewhere)
+    // El hook useUserAvatar (vía el evento) actualiza estado + localStorage en
+    // la barra de progreso y el sidebar a la vez.
     window.dispatchEvent(new CustomEvent("avatar-updated", { detail: { url } }));
   }, []);
 
@@ -196,7 +162,8 @@ export function ProfileButton({
             position: "relative",
           }}
         >
-          {/* Fallback — misma imagen que usa el ProgressBar para consistencia */}
+          {/* Fallback — siempre detrás. La foto (si existe) lo tapa al pintar.
+              No se gatea con onLoad (eso causaba el bug del águila al remontar). */}
           <img
             src="/aguila.png"
             alt=""
@@ -207,20 +174,17 @@ export function ProfileButton({
               height: "100%",
               objectFit: "cover",
               objectPosition: "center top",
-              opacity: avatarVisible && !avatarError ? 0 : 1,
-              transition: "opacity 0.2s",
               background: "#0A2540",
             }}
           />
 
-          {/* User avatar — fades in on top of the eagle once loaded */}
-          {headerAvatar && !avatarError && (
+          {/* Foto del usuario — encima del águila. Si carga, la tapa; si falla, se oculta. */}
+          {photoUrl && !imgError && (
             <img
-              key={headerAvatar}
-              src={headerAvatar}
+              key={photoUrl}
+              src={photoUrl}
               alt=""
-              onLoad={() => setAvatarVisible(true)}
-              onError={() => setAvatarError(true)}
+              onError={() => setImgError(true)}
               style={{
                 position: "absolute",
                 inset: 0,
@@ -228,8 +192,6 @@ export function ProfileButton({
                 height: "100%",
                 objectFit: "cover",
                 objectPosition: "center top",
-                opacity: avatarVisible ? 1 : 0,
-                transition: "opacity 0.25s",
               }}
             />
           )}
@@ -360,9 +322,9 @@ export function ProfileButton({
                       justifyContent: "center",
                     }}
                   >
-                    {modalAvatar ? (
+                    {photoUrl ? (
                       <img
-                        src={modalAvatar}
+                        src={photoUrl}
                         alt=""
                         style={{
                           width: "100%",
@@ -407,7 +369,7 @@ export function ProfileButton({
               </div>
 
               {/* ── Delete avatar button (only shown when avatar exists) ── */}
-              {modalAvatar && (
+              {photoUrl && (
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: "4px", marginTop: "-12px" }}>
                   <button
                     onClick={handleDeleteAvatar}
