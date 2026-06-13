@@ -63,10 +63,12 @@ export function CountdownTimer() {
       .order("day_number", { ascending: true })
       .limit(1)
       .maybeSingle()
-      .then(({ data }) => {
-        if (data?.scheduled_unlock_at) setEntry(data as { day_number: number; scheduled_unlock_at: string });
-      })
-      .catch(() => {}); // Column may not exist yet
+      .then(
+        ({ data }) => {
+          if (data?.scheduled_unlock_at) setEntry(data as { day_number: number; scheduled_unlock_at: string });
+        },
+        () => {}, // Column may not exist yet — swallow (el query builder no expone .catch)
+      );
   }, []);
 
   if (!entry) return null;

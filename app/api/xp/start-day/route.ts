@@ -23,23 +23,20 @@ export async function POST(req: NextRequest) {
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-  // Idempotent: if a day_progress row already exists, the day was already started
-  const { data: existing } = await supabase
+  // Idempotente y atómico: insertamos la fila; si ya existe (UNIQUE user_id,day_number)
+  // el INSERT falla con 23505 → el día ya se inició y NO se vuelve a otorgar XP.
+  // Esto evita la carrera del SELECT→upsert (dos requests dando +25 en el primer hit).
+  const { error: insertError } = await supabase
     .from("day_progress")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("day_number", day)
-    .maybeSingle();
+    .insert({ user_id: user.id, day_number: day, is_unlocked: true, is_completed: false });
 
-  if (existing) {
-    return NextResponse.json({ awarded: false, alreadyStarted: true });
+  if (insertError) {
+    if ((insertError as { code?: string }).code === "23505") {
+      return NextResponse.json({ awarded: false, alreadyStarted: true });
+    }
+    console.error("[start-day] insert error:", insertError);
+    return NextResponse.json({ awarded: false }, { status: 500 });
   }
-
-  // Create the row
-  await supabase.from("day_progress").upsert(
-    { user_id: user.id, day_number: day, is_unlocked: true, is_completed: false },
-    { onConflict: "user_id,day_number" }
-  );
 
   // A3 fix: atomic increment — no read-then-write race on total_points
   const { data: newTotal, error } = await supabase.rpc("add_points", {

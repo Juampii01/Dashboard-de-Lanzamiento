@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { isDayUnlocked } from "@/lib/supabase/day-access";
 import { z } from "zod";
 
 /**
@@ -49,15 +50,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "not_a_podcast" }, { status: 400 });
   }
 
-  // ── Day access gate ───────────────────────────────────────────────────────────
-  const { data: dayAccess } = await service
-    .from("day_progress")
-    .select("is_unlocked")
-    .eq("user_id", user.id)
-    .eq("day_number", capsule.day_number)
-    .maybeSingle();
-
-  if (!dayAccess?.is_unlocked) {
+  // ── Day access gate (honra toggle global de admin + rol admin) ─────────────────
+  if (!(await isDayUnlocked(user.id, capsule.day_number))) {
     return NextResponse.json({ error: "day_locked" }, { status: 403 });
   }
 

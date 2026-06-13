@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { isDayUnlocked } from "@/lib/supabase/day-access";
 
 const POINTS = 30;
 
@@ -13,6 +14,11 @@ export async function POST(req: Request) {
   const { day } = (await req.json()) as { day?: number };
   if (!day || day < 1 || day > 4) {
     return NextResponse.json({ error: "invalid_day" }, { status: 400 });
+  }
+
+  // Day-unlock gate: no reclamar XP de la llamada de un día bloqueado.
+  if (!(await isDayUnlocked(user.id, day))) {
+    return NextResponse.json({ error: "day_locked" }, { status: 403 });
   }
 
   const service = createServiceClient();

@@ -31,9 +31,13 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files
+.env
+.env*.local
 .env.local
 .env.production
 .env.staging
+# pero versionar el ejemplo con placeholders
+!.env.example
 
 # vercel
 .vercel
