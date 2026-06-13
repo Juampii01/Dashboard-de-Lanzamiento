@@ -155,7 +155,10 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
         OUTPUT_SIZE            // dHeight
       );
 
-      const base64 = canvas.toDataURL("image/png");
+      // JPEG comprimido en vez de PNG: el canvas tiene fondo sólido (#030303),
+      // así que no se pierde transparencia. Un avatar 256×256 baja de ~200KB (PNG)
+      // a ~20KB (JPEG) → carga rápido y confiable desde el storage.
+      const base64 = canvas.toDataURL("image/jpeg", 0.82);
 
       const res = await fetch("/api/profile/avatar", {
         method: "POST",
@@ -234,7 +237,7 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
               }}>
                 CAMBIAR AVATAR
               </p>
-              <p style={{ fontSize: "11px", color: "#7A9AC0", lineHeight: 1.4 }}>
+              <p style={{ fontSize: "11px", color: "#A0BCDE", lineHeight: 1.4 }}>
                 Arrastrá para centrar · Scroll para zoom
               </p>
             </div>
@@ -345,7 +348,7 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                   borderRadius: "8px",
                   padding: "8px",
                   cursor: "pointer",
-                  color: "#A8B5CC",
+                  color: "#C9D6EC",
                   display: "flex",
                 }}
               >
@@ -381,7 +384,7 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                   borderRadius: "8px",
                   padding: "8px",
                   cursor: "pointer",
-                  color: "#A8B5CC",
+                  color: "#C9D6EC",
                   display: "flex",
                 }}
               >
@@ -399,7 +402,7 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                   borderRadius: "8px",
                   border: "1px solid #1E3A5C",
                   background: "transparent",
-                  color: "#7A9AC0",
+                  color: "#A0BCDE",
                   fontSize: "13px",
                   cursor: "pointer",
                   fontWeight: 500,
