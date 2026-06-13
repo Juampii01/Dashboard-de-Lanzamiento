@@ -66,6 +66,8 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
   const [allDone,     setAllDone]     = useState(false);
   const [apiError,    setApiError]    = useState<string | null>(null);
   const [podcastState, setPodcastState] = useState<"idle" | "claiming" | "done">("idle");
+  // Resultado por pregunta (índice → correcta/incorrecta) para colorear los dots.
+  const [results,     setResults]     = useState<Record<number, "correct" | "wrong">>({});
   const totalXpRef                   = useRef(0); // XP newly awarded this session
   const correctXpRef                 = useRef(0); // XP value of all correct answers (incl. already-earned)
 
@@ -112,6 +114,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
     setAllDone(false);
     setApiError(null);
     setPodcastState("idle");
+    setResults({});
     totalXpRef.current = 0;
     correctXpRef.current = 0;
 
@@ -183,6 +186,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
         setXpThisQ(data.xp_awarded);
         totalXpRef.current += data.xp_awarded;
         correctXpRef.current += data.xp_awarded;
+        setResults((r) => ({ ...r, [qIndex]: "correct" }));
         setPhase("correct");
 
         if (data.xp_awarded > 0 && data.total_points != null) {
@@ -199,10 +203,12 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
       } else if (data.already_correct) {
         // Already earned before — count its value so the summary shows total XP
         correctXpRef.current += q.xp_reward;
+        setResults((r) => ({ ...r, [qIndex]: "correct" }));
         setPhase("already_correct");
         setTimeout(advance, 900);
 
       } else {
+        setResults((r) => ({ ...r, [qIndex]: "wrong" }));
         setPhase("wrong");
       }
     } catch (err) {
@@ -275,9 +281,11 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                   height:       "8px",
                   borderRadius: "4px",
                   background:
-                    i < qIndex  ? "#00D67A" :
-                    i === qIndex ? "#FFD60A" :
-                                  "rgba(255,255,255,0.1)",
+                    i === qIndex          ? "#FFD60A" :          // pregunta actual
+                    results[i] === "correct" ? "#00D67A" :        // acertada → verde
+                    results[i] === "wrong"   ? "#D7263D" :        // fallada → rojo
+                    i < qIndex            ? "#00D67A" :           // fallback
+                                            "rgba(255,255,255,0.1)", // pendiente
                   transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)",
                 }}
               />
