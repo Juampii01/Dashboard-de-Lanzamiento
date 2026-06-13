@@ -105,6 +105,8 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
   // Video locking — unlocks when video ends (IFrame API) or fallback timer fires
   const [videoUnlocked, setVideoUnlocked] = useState(false);
+  const [podcastClaiming, setPodcastClaiming] = useState(false);
+  const [podcastDone, setPodcastDone] = useState(false);
   const iframeRef    = useRef<HTMLIFrameElement>(null);
   const fallbackRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const markBtnRef   = useRef<HTMLButtonElement>(null);
@@ -279,6 +281,31 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
       setTimeout(() => handleWatchCapsule(mission2Cap.id), 180);
     }
   }, [mission2Cap, handleWatchCapsule]);
+
+  // Handler: claim the podcast XP from the widget (idempotent server-side) and
+  // open the podcast link. Lets the user claim even after missions are locked.
+  const podcastLink = podcastCap?.podcast_url ?? podcastCap?.youtube_url ?? null;
+  const handleClaimPodcastWidget = useCallback(async () => {
+    if (!podcastCap) return;
+    if (podcastLink) window.open(podcastLink, "_blank", "noopener,noreferrer");
+    if (podcastClaiming || podcastDone) return;
+    setPodcastClaiming(true);
+    try {
+      const res = await fetch("/api/xp/claim-podcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ capsuleId: podcastCap.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data?.ok && data.points > 0) {
+        window.dispatchEvent(new CustomEvent("xp-gained", {
+          detail: { delta: data.points, total: data.total, source: "podcast" },
+        }));
+      }
+      setPodcastDone(true);
+    } catch { /* silent */ }
+    finally { setPodcastClaiming(false); }
+  }, [podcastCap, podcastLink, podcastClaiming, podcastDone]);
 
   if (loading) {
     return (
@@ -464,9 +491,27 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
             {/* Status row — only shown when cooldown active or all done */}
             {allDone && (
-              <p className="text-sm font-semibold mb-3" style={{ color: "var(--success)" }}>
-                🏆 ¡Todas las misiones completadas!
-              </p>
+              <div className="mb-3">
+                <p className="text-sm font-semibold mb-2" style={{ color: "var(--success)" }}>
+                  🏆 ¡Todas las misiones completadas!
+                </p>
+                {podcastLink && (
+                  <button
+                    onClick={handleClaimPodcastWidget}
+                    disabled={podcastClaiming}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg font-bold text-xs transition-all disabled:opacity-60"
+                    style={{
+                      background: podcastDone ? "color-mix(in srgb, var(--success) 12%, transparent)" : "var(--secondary)",
+                      color: podcastDone ? "var(--success)" : "var(--secondary-foreground)",
+                      border: podcastDone ? "1px solid color-mix(in srgb, var(--success) 30%, transparent)" : "none",
+                      fontFamily: "var(--font-sans)",
+                      cursor: podcastClaiming ? "default" : "pointer",
+                    }}
+                  >
+                    🎙 {podcastDone ? "Volver a escuchar el podcast" : "Escuchar el podcast completo"}
+                  </button>
+                )}
+              </div>
             )}
             {!allDone && onCooldown && (
               <div className="flex items-center gap-2 mb-3 pb-3" style={{ borderBottom: "1px solid var(--border)" }}>
@@ -525,19 +570,19 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
                     {/* Per-capsule action button */}
                     {c.completed ? (
-                      <button
-                        onClick={() => handleWatchCapsule(c.id)}
-                        className="shrink-0 flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold transition-all"
+                      <span
+                        className="shrink-0 flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold"
+                        title="Misión completada — solo se puede hacer una vez"
                         style={{
                           color: "var(--success)",
                           background: "color-mix(in srgb, var(--success) 10%, transparent)",
                           border: "1px solid color-mix(in srgb, var(--success) 25%, transparent)",
                           fontFamily: "var(--font-mono)",
-                          cursor: "pointer",
+                          cursor: "default",
                         }}
                       >
-                        ✓ Ver de nuevo
-                      </button>
+                        ✓ Completada
+                      </span>
                     ) : (
                       <button
                         onClick={() => handleWatchCapsule(c.id)}
