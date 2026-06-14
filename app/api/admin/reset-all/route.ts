@@ -39,7 +39,17 @@ export async function POST(req: Request) {
   // 3. Borrar user_events (call joins, etc.)
   await service.from("user_events").delete().eq("user_id", targetUserId);
 
-  // 4. Resetear puntos, timestamps y contadores de heartbeat
+  // 4. Borrar TODOS los artefactos generados por día — si no, al restablecer
+  //    quedaban cargados (ej: los códigos del Día 2 reaparecían sin rehacerlo).
+  await service.from("naics_expansions").delete().eq("user_id", targetUserId);      // Día 2: códigos + keywords
+  await service.from("web_previews").delete().eq("user_id", targetUserId);          // Día 3: preview web
+  await service.from("capability_statements").delete().eq("user_id", targetUserId); // Día 4: capability statement
+  await service.from("sorteo_submissions").delete().eq("user_id", targetUserId);    // Día 4: entregable del sorteo
+  await service.from("video_quiz_attempts").delete().eq("user_id", targetUserId);   // intentos de quiz
+  await service.from("podcast_xp_claims").delete().eq("user_id", targetUserId);     // claims de podcast
+  await service.from("company_profiles").delete().eq("user_id", targetUserId);      // Día 1: perfil de empresa
+
+  // 5. Resetear puntos, timestamps y contadores de heartbeat
   await service
     .from("users")
     .update({
