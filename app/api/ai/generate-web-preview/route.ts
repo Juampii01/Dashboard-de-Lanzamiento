@@ -12,6 +12,11 @@ const bodySchema = z.object({
   primaryNaics: z.string().optional(),
   keywords: z.array(z.string()).optional(),
   usState: z.string().optional(),
+  address: z.string().optional(),
+  zipCode: z.string().optional(),
+  phone: z.string().optional(),
+  corporateEmail: z.string().optional(),
+  website: z.string().optional(),
   logoUrl: z.string().url().optional(),
 });
 
@@ -72,6 +77,17 @@ export async function POST(request: Request) {
   const problemSolved = sanitizeInput(parsed.data.problemSolved);
   const keywords      = parsed.data.keywords?.map(sanitizeInput);
   const usState       = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
+  const address        = parsed.data.address ? sanitizeInput(parsed.data.address) : undefined;
+  const zipCode        = parsed.data.zipCode ? sanitizeInput(parsed.data.zipCode) : undefined;
+  const phone          = parsed.data.phone ? sanitizeInput(parsed.data.phone) : undefined;
+  const corporateEmail = parsed.data.corporateEmail ? sanitizeInput(parsed.data.corporateEmail) : undefined;
+  const website        = parsed.data.website ? sanitizeInput(parsed.data.website) : undefined;
+  const contactLines = [
+    address ? `Dirección: ${address}${zipCode ? `, ${zipCode}` : ""}` : "",
+    phone ? `Teléfono: ${phone}` : "",
+    corporateEmail ? `Email: ${corporateEmail}` : "",
+    website ? `Website: ${website}` : "",
+  ].filter(Boolean).join("\n");
   const logoUrl       = parsed.data.logoUrl ?? null;  // already validated as URL by zod
 
   // Fetch real photos for the site (degrades to [] without UNSPLASH_ACCESS_KEY).
@@ -156,6 +172,7 @@ Qué vende/hace: ${niche}
 Problema que resuelve para sus clientes: ${problemSolved}
 ${keywords?.length ? `Servicios clave: ${keywords.slice(0, 6).join(", ")}` : ""}
 ${usState ? `Zona de operación: ${usState} y alrededores — mencionalo naturalmente en el hero/footer.` : ""}
+${contactLines ? `\nDatos de contacto REALES (usalos en la sección de contacto y el footer, NO inventes placeholders):\n${contactLines}` : ""}
 
 Generá el sitio web COMERCIAL premium de esta empresa, para atraer clientes. Que se vea como hecho por la mejor agencia del mundo. Recordá: NADA de NAICS, capability statement ni datos de procurement.`
     , 14000);

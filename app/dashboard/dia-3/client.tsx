@@ -162,6 +162,11 @@ ${webResult.html}
           primaryNaics: profile.primary_naics ?? "",
           keywords: keywordsExpanded.slice(0, 5),
           usState: usState || undefined,
+          address: (profile as Record<string, unknown>).address as string | undefined || undefined,
+          zipCode: (profile as Record<string, unknown>).zip_code as string | undefined || undefined,
+          phone: (profile as Record<string, unknown>).phone as string | undefined || undefined,
+          corporateEmail: (profile as Record<string, unknown>).corporate_email as string | undefined || undefined,
+          website: (profile as Record<string, unknown>).website as string | undefined || undefined,
           logoUrl: (profile as Record<string, unknown>).logo_url as string | undefined || undefined,
         }),
       });

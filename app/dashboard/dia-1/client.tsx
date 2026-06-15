@@ -12,19 +12,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
-import { CheckCircle2, Download, Loader2, PlayCircle, ImagePlus, Trash2, ArrowRight, ListChecks } from "lucide-react";
+import { CheckCircle2, Download, Loader2, PlayCircle, ImagePlus, Trash2, ArrowRight, ListChecks, Plus, X, RefreshCw } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
+import { FieldHelp } from "@/components/field-help";
 
 const US_STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","Washington D.C.","Puerto Rico"];
 
-const CERTS = [
-  { id: "SAM.gov", label: "SAM.gov activo" },
-  { id: "WOSB", label: "WOSB" },
-  { id: "SDVOSB", label: "SDVOSB" },
-  { id: "HUBZone", label: "HUBZone" },
-  { id: "8(a)", label: "8(a) SBA" },
-  { id: "MBE", label: "MBE" },
-];
+// Certificaciones divididas por nivel (sin SAM.gov).
+const FEDERAL_CERTS = ["Small Business", "8(a)", "WOSB", "EDWOSB", "HUBZone", "VOSB", "SDVOSB"];
+const STATE_CERTS   = ["MBE", "WBE", "MWBE", "SBE", "DBE", "VBE", "SDVBE/DVBE", "LGBTBE", "DOBE", "ACDBE"];
 
 const selectClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring";
 import type { Database } from "@/lib/supabase/types";
@@ -110,21 +106,67 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
     }
   }
 
+  const p0 = (existingProfile ?? {}) as Record<string, unknown>;
   const [form, setForm] = useState({
     company_name: existingProfile?.company_name ?? "",
+    legal_structure: (p0.legal_structure as string) ?? "",
     year_founded: existingProfile?.year_founded?.toString() ?? "",
-    employee_count: existingProfile?.employee_count?.toString() ?? "",
-    niche: existingProfile?.niche ?? "",
-    problem_solved: existingProfile?.problem_solved ?? "",
-    target_avatar: existingProfile?.target_avatar ?? "",
-    previous_acquisition_methods: existingProfile?.previous_acquisition_methods ?? "",
+    us_state: (p0.us_state as string) ?? "",
+    address: (p0.address as string) ?? "",
+    zip_code: (p0.zip_code as string) ?? "",
+    phone: (p0.phone as string) ?? "",
+    corporate_email: (p0.corporate_email as string) ?? "",
+    website: (p0.website as string) ?? "",
+    duns_number: (p0.duns_number as string) ?? "",
+    cage_code: (p0.cage_code as string) ?? "",
+    uei: (p0.uei as string) ?? "",
     primary_naics: existingProfile?.primary_naics ?? "",
-    us_state: (existingProfile as { us_state?: string | null } | null)?.us_state ?? "",
-    legal_structure: (existingProfile as { legal_structure?: string | null } | null)?.legal_structure ?? "",
+    niche: existingProfile?.niche ?? "",
+    business_category: (p0.business_category as string) ?? "",
+    problem_solved: existingProfile?.problem_solved ?? "",
+    current_offering: (p0.current_offering as string) ?? "",
   });
   const [certifications, setCertifications] = useState<string[]>(
-    (existingProfile as { existing_certifications?: string[] | null } | null)?.existing_certifications ?? []
+    (p0.existing_certifications as string[] | null) ?? []
   );
+  const [keywords, setKeywords] = useState<string[]>((p0.keywords as string[] | null) ?? []);
+  const [keywordInput, setKeywordInput] = useState("");
+
+  const addKeyword = () => {
+    const kw = keywordInput.trim();
+    if (kw && !keywords.includes(kw)) { setKeywords((p) => [...p, kw]); setKeywordInput(""); }
+  };
+  const toggleCert = (id: string) =>
+    setCertifications((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
+
+  // ── Actualizar NAICS (solo visible tras completar el Día 1) ──
+  const [naicsEditOpen, setNaicsEditOpen] = useState(false);
+  const [naicsEditValue, setNaicsEditValue] = useState(existingProfile?.primary_naics ?? "");
+  const [savingNaics, setSavingNaics] = useState(false);
+
+  async function handleUpdateNaics() {
+    const code = naicsEditValue.trim();
+    if (!code) return;
+    setSavingNaics(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("company_profiles")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update({ primary_naics: code } as any)
+        .eq("user_id", userId);
+      if (error) throw new Error(error.message);
+      setForm((prev) => ({ ...prev, primary_naics: code }));
+      setNaicsResult((prev) => prev ? { ...prev, naics_code: code } : prev);
+      setNaicsEditOpen(false);
+      toast.success("Código NAICS actualizado.");
+      router.refresh();
+    } catch {
+      toast.error("No se pudo actualizar el NAICS. Intentá de nuevo.");
+    } finally {
+      setSavingNaics(false);
+    }
+  }
 
   function setField(field: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -171,12 +213,24 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       gameError("Ingresá el nombre de tu empresa para continuar");
       return;
     }
+    if (!form.legal_structure.trim()) {
+      gameError("Elegí el tipo de empresa (estructura legal)");
+      return;
+    }
+    if (!form.phone.trim()) {
+      gameError("Ingresá el teléfono de la empresa");
+      return;
+    }
+    if (!form.corporate_email.trim()) {
+      gameError("Ingresá el email corporativo de la empresa");
+      return;
+    }
     if (!form.niche.trim()) {
-      gameError("Contanos qué vende o hace tu empresa");
+      gameError("Contanos qué producto o servicio ofrece tu empresa");
       return;
     }
     if (!form.problem_solved.trim()) {
-      gameError("Describí qué problema resolvés para tus clientes");
+      gameError("Describí qué problema resuelve tu empresa");
       return;
     }
 
@@ -192,8 +246,10 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           body: JSON.stringify({
             companyName: form.company_name,
             niche: form.niche,
+            businessCategory: form.business_category,
             problemSolved: form.problem_solved,
-            targetAvatar: form.target_avatar,
+            currentOffering: form.current_offering,
+            keywords,
             usState: form.us_state,
             legalStructure: form.legal_structure,
           }),
@@ -220,15 +276,23 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       const profileData = {
         user_id: userId,
         company_name: form.company_name,
-        year_founded: form.year_founded ? parseInt(form.year_founded) : null,
-        employee_count: form.employee_count ? parseInt(form.employee_count) : null,
-        niche: form.niche,
-        problem_solved: form.problem_solved,
-        target_avatar: form.target_avatar,
-        previous_acquisition_methods: form.previous_acquisition_methods,
-        primary_naics: primaryNaics || null,
-        us_state: form.us_state || null,
         legal_structure: form.legal_structure || null,
+        year_founded: form.year_founded ? parseInt(form.year_founded) : null,
+        us_state: form.us_state || null,
+        address: form.address || null,
+        zip_code: form.zip_code || null,
+        phone: form.phone || null,
+        corporate_email: form.corporate_email || null,
+        website: form.website || null,
+        duns_number: form.duns_number || null,
+        cage_code: form.cage_code || null,
+        uei: form.uei || null,
+        primary_naics: primaryNaics || null,
+        niche: form.niche,
+        business_category: form.business_category || null,
+        problem_solved: form.problem_solved,
+        current_offering: form.current_offering || null,
+        keywords: keywords.length > 0 ? keywords : null,
         existing_certifications: certifications.length > 0 ? certifications : null,
       };
 
@@ -382,6 +446,31 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             </Card>
           )}
 
+          {/* Actualizar NAICS — solo disponible tras completar el Día 1 */}
+          <Card>
+            <CardContent className="py-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold">Tu código NAICS</p>
+                  <p className="text-sm text-muted-foreground">
+                    Actual: <span className="font-mono font-semibold text-foreground">{form.primary_naics || "—"}</span>
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => { setNaicsEditValue(form.primary_naics); setNaicsEditOpen((v) => !v); }}>
+                  <RefreshCw className="w-4 h-4" /> Actualizar NAICS
+                </Button>
+              </div>
+              {naicsEditOpen && (
+                <div className="flex gap-2 pt-1">
+                  <Input value={naicsEditValue} onChange={(e) => setNaicsEditValue(e.target.value)} placeholder="Ej: 561720" maxLength={6} />
+                  <Button onClick={handleUpdateNaics} disabled={savingNaics || !naicsEditValue.trim()}>
+                    {savingNaics ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card className="border-accent/30 bg-accent/5">
             <CardContent className="flex items-center justify-between py-5">
               <div>
@@ -427,65 +516,122 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
         steps={[
           {
             label: "Tu empresa",
-            isValid: () => form.company_name.trim().length > 0,
+            isValid: () =>
+              form.company_name.trim().length > 0 &&
+              form.legal_structure.trim().length > 0 &&
+              form.phone.trim().length > 0 &&
+              form.corporate_email.trim().length > 0,
             content: (
               <div className="space-y-5">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="company_name">Nombre de la empresa *</Label>
+                    <Label htmlFor="company_name">Nombre de la empresa *<FieldHelp text="El nombre legal completo de tu empresa, tal cual figura en tu registro (incluí LLC, Inc., Corp., etc.)." /></Label>
                     <Input id="company_name" value={form.company_name} onChange={setField("company_name")} placeholder="Ej: ABC Services LLC" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="year_founded">Año de fundación</Label>
-                    <Input id="year_founded" type="number" value={form.year_founded} onChange={setField("year_founded")} placeholder="Ej: 2018" min={1900} max={2025} />
+                    <Label htmlFor="legal_structure">Tipo de empresa *<FieldHelp text="La estructura legal con la que está registrada tu empresa. Determina a qué tipos de contrato podés acceder." /></Label>
+                    <select id="legal_structure" value={form.legal_structure} onChange={(e) => setForm((p) => ({ ...p, legal_structure: e.target.value }))} className={selectClass}>
+                      <option value="">Seleccioná una opción</option>
+                      <option value="LLC">LLC (Limited Liability Company)</option>
+                      <option value="S-Corp">S-Corporation</option>
+                      <option value="C-Corp">C-Corporation</option>
+                      <option value="Sole Proprietor">Sole Proprietor (Autónomo)</option>
+                      <option value="Partnership">Partnership</option>
+                      <option value="Nonprofit">Nonprofit / 501(c)(3)</option>
+                      <option value="Other">Otro</option>
+                    </select>
                   </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="employee_count">Cantidad de empleados</Label>
-                    <Input id="employee_count" type="number" value={form.employee_count} onChange={setField("employee_count")} placeholder="Ej: 5" min={1} />
+                    <Label htmlFor="year_founded">¿En qué año se constituyó?<FieldHelp text="El año en que tu empresa fue legalmente constituida / registrada (no el año en que empezaste a operar informalmente)." /></Label>
+                    <Input id="year_founded" type="number" value={form.year_founded} onChange={setField("year_founded")} placeholder="Ej: 2018" min={1900} max={2025} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="us_state">Estado donde operás</Label>
+                    <Label htmlFor="us_state">Estado donde opera<FieldHelp text="El estado de EE.UU. donde tu empresa está registrada u opera principalmente. Mejora la precisión del análisis de mercado." /></Label>
                     <select id="us_state" value={form.us_state} onChange={(e) => setForm((p) => ({ ...p, us_state: e.target.value }))} className={selectClass}>
                       <option value="">Seleccioná un estado</option>
                       {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
-                    <p className="text-xs text-muted-foreground">Mejora la precisión del análisis de mercado</p>
                   </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Dirección (opcional)<FieldHelp text="La dirección de tu empresa (calle y número). Aparecerá en tu web y en tu Capability Statement." /></Label>
+                    <Input id="address" value={form.address} onChange={setField("address")} placeholder="Ej: 123 Main St, Miami" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="zip_code">ZIP code (opcional)<FieldHelp text="El código postal (ZIP) de la dirección de tu empresa." /></Label>
+                    <Input id="zip_code" value={form.zip_code} onChange={setField("zip_code")} placeholder="Ej: 33101" />
+                  </div>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Teléfono *<FieldHelp text="El teléfono de contacto de tu empresa. Un Contracting Officer lo usa para verificarte y contactarte." /></Label>
+                    <Input id="phone" value={form.phone} onChange={setField("phone")} placeholder="Ej: (844) 555-0100" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="corporate_email">Email corporativo *<FieldHelp text="El email oficial de tu empresa (idealmente con tu dominio, ej: info@tuempresa.com). Aparecerá en tus documentos." /></Label>
+                    <Input id="corporate_email" type="email" value={form.corporate_email} onChange={setField("corporate_email")} placeholder="Ej: info@tuempresa.com" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website (opcional)<FieldHelp text="El sitio web de tu empresa, si tenés. Si no tenés, en el Día 3 generamos uno para vos." /></Label>
+                  <Input id="website" value={form.website} onChange={setField("website")} placeholder="Ej: www.tuempresa.com" />
                 </div>
               </div>
             ),
           },
           {
-            label: "Estructura y certificaciones",
+            label: "Registro y códigos",
             content: (
               <div className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="legal_structure">Estructura legal de la empresa</Label>
-                  <select id="legal_structure" value={form.legal_structure} onChange={(e) => setForm((p) => ({ ...p, legal_structure: e.target.value }))} className={selectClass}>
-                    <option value="">Seleccioná una opción</option>
-                    <option value="LLC">LLC (Limited Liability Company)</option>
-                    <option value="S-Corp">S-Corporation</option>
-                    <option value="C-Corp">C-Corporation</option>
-                    <option value="Sole Proprietor">Sole Proprietor (Autónomo)</option>
-                    <option value="Partnership">Partnership</option>
-                    <option value="Nonprofit">Nonprofit / 501(c)(3)</option>
-                    <option value="Other">Otro</option>
-                  </select>
-                  <p className="text-xs text-muted-foreground">Determina a qué tipos de contratos podés acceder</p>
-                </div>
-                <div className="space-y-2">
-                  <Label>Certificaciones que ya tenés (opcional)</Label>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {CERTS.map((cert) => (
-                      <label key={cert.id} className="flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
-                        <input type="checkbox" checked={certifications.includes(cert.id)} onChange={(e) => setCertifications((prev) => e.target.checked ? [...prev, cert.id] : prev.filter((c) => c !== cert.id))} className="accent-primary" />
-                        {cert.label}
-                      </label>
-                    ))}
+                <p className="text-sm text-muted-foreground">Todo este paso es opcional — pero cargar tus identificadores hace tu perfil más profesional ante el gobierno.</p>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="duns_number">DUNS Number<FieldHelp text="Data Universal Numbering System (DUNS): identificador de 9 dígitos de tu empresa. Opcional." /></Label>
+                    <Input id="duns_number" value={form.duns_number} onChange={setField("duns_number")} placeholder="Ej: 123456789" />
                   </div>
-                  <p className="text-xs text-muted-foreground">Evitamos recomendarte lo que ya tenés</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="cage_code">CAGE Code<FieldHelp text="Commercial and Government Entity (CAGE) Code: código de 5 caracteres que asigna el gobierno de EE.UU. Opcional." /></Label>
+                    <Input id="cage_code" value={form.cage_code} onChange={setField("cage_code")} placeholder="Ej: 1A2B3" maxLength={5} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="uei">UEI Number<FieldHelp text="Unique Entity ID (UEI): identificador único de 12 caracteres que reemplazó al DUNS en SAM.gov. Opcional." /></Label>
+                    <Input id="uei" value={form.uei} onChange={setField("uei")} placeholder="Ej: ABC123DEF456" maxLength={12} />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="primary_naics">Código NAICS (opcional)<FieldHelp text="Si ya conocés tu código NAICS (6 dígitos), cargalo. Si lo dejás vacío, la IA lo genera por vos según tu negocio." /></Label>
+                  <Input id="primary_naics" value={form.primary_naics} onChange={setField("primary_naics")} placeholder="Ej: 561720" maxLength={6} />
+                  <p className="text-xs text-muted-foreground">Si lo dejás vacío, la IA te sugiere el más apropiado.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Certificaciones (opcional)<FieldHelp text="Marcá las certificaciones que YA tenés. Las dividimos en federales y estatales/locales — tocá cada sección para desplegarla." /></Label>
+                  <details className="rounded-lg border border-border overflow-hidden" open>
+                    <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold bg-muted/50">Federales</summary>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 p-3">
+                      {FEDERAL_CERTS.map((c) => (
+                        <label key={c} className="flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
+                          <input type="checkbox" checked={certifications.includes(c)} onChange={() => toggleCert(c)} className="accent-primary" />
+                          {c}
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                  <details className="rounded-lg border border-border overflow-hidden">
+                    <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold bg-muted/50">Estatales / locales</summary>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 p-3">
+                      {STATE_CERTS.map((c) => (
+                        <label key={c} className="flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
+                          <input type="checkbox" checked={certifications.includes(c)} onChange={() => toggleCert(c)} className="accent-primary" />
+                          {c}
+                        </label>
+                      ))}
+                    </div>
+                  </details>
                 </div>
               </div>
             ),
@@ -496,25 +642,39 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             content: (
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="niche">¿Qué vende / hace tu empresa? *</Label>
-                  <Textarea id="niche" value={form.niche} onChange={setField("niche")} placeholder="Ej: Servicios de limpieza comercial para oficinas y edificios" rows={2} />
+                  <Label htmlFor="niche">¿Qué producto o servicio ofrece tu empresa? *<FieldHelp text="Describí concretamente lo que ofrecés. Ej: 'Mi empresa ofrece productos de personal care: pasta dental, cepillos, enjuague bucal e hilo dental.' Cuanto más específico, mejor identifica la IA tu código." /></Label>
+                  <Textarea id="niche" value={form.niche} onChange={setField("niche")} placeholder="Ej: Mi empresa ofrece productos de personal care: pasta dental, cepillos de dientes, enjuague bucal e hilo dental." rows={3} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="problem_solved">¿Qué problema resolvés para tus clientes? *</Label>
-                  <Textarea id="problem_solved" value={form.problem_solved} onChange={setField("problem_solved")} placeholder="Ej: Mantenemos los espacios de trabajo higiénicos y seguros para los empleados" rows={2} />
+                  <Label htmlFor="business_category">¿Cuál es tu rubro o nicho de mercado?<FieldHelp text="El sector/industria general en el que se mueve tu empresa. Ej: cuidado personal, construcción, servicios de limpieza, tecnología, alimentos." /></Label>
+                  <Input id="business_category" value={form.business_category} onChange={setField("business_category")} placeholder="Ej: Cuidado personal e higiene (consumer goods)" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="target_avatar">¿Quién es tu cliente ideal?</Label>
-                  <Textarea id="target_avatar" value={form.target_avatar} onChange={setField("target_avatar")} placeholder="Ej: Oficinas corporativas, hospitales, instalaciones gubernamentales" rows={2} />
+                  <Label htmlFor="problem_solved">¿Qué problema resuelve tu empresa para sus clientes? *<FieldHelp text="Qué necesidad o dolor concreto resolvés. Ej: 'Damos acceso a productos de higiene de calidad a precio accesible para distribuidores y comercios.'" /></Label>
+                  <Textarea id="problem_solved" value={form.problem_solved} onChange={setField("problem_solved")} placeholder="Ej: Proveemos productos de higiene confiables y a buen precio, con stock constante para distribuidores." rows={2} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="previous_acquisition_methods">¿Cómo conseguiste clientes hasta ahora?</Label>
-                  <Textarea id="previous_acquisition_methods" value={form.previous_acquisition_methods} onChange={setField("previous_acquisition_methods")} placeholder="Ej: Referencias, redes sociales, directorio de empresas locales" rows={2} />
+                  <Label htmlFor="kw">Palabras clave (keywords)<FieldHelp text="Agregá términos que describan tu negocio (en inglés es ideal para el gobierno). Ayudan a la IA a identificar mejor tu código NAICS. Tocá + para sumar cada una." /></Label>
+                  <div className="flex gap-2">
+                    <Input id="kw" value={keywordInput} onChange={(e) => setKeywordInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeyword())}
+                      placeholder="Ej: oral care, toothpaste, personal hygiene" />
+                    <Button type="button" variant="outline" size="icon" onClick={addKeyword}><Plus className="w-4 h-4" /></Button>
+                  </div>
+                  {keywords.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {keywords.map((kw) => (
+                        <Badge key={kw} variant="secondary" className="flex items-center gap-1">
+                          {kw}
+                          <button onClick={() => setKeywords((p) => p.filter((k) => k !== kw))} className="ml-1 hover:text-destructive"><X className="w-3 h-3" /></button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="primary_naics">Código NAICS (opcional — si no lo sabés, la IA lo sugiere)</Label>
-                  <Input id="primary_naics" value={form.primary_naics} onChange={setField("primary_naics")} placeholder="Ej: 561720" maxLength={6} />
-                  <p className="text-xs text-muted-foreground">6 dígitos. Si lo dejás vacío, usamos IA para sugerirte el más apropiado.</p>
+                  <Label htmlFor="current_offering">Contanos con tus palabras qué le ofrecés hoy a tus clientes<FieldHelp text="Explicá libremente, como se lo contarías a un conocido, qué producto o servicio le das hoy a tus clientes actuales. Esto enriquece tu análisis." /></Label>
+                  <Textarea id="current_offering" value={form.current_offering} onChange={setField("current_offering")} placeholder="Ej: Hoy les vendo a farmacias y minimercados packs de productos de higiene bucal; entrego semanalmente y manejo precios mayoristas." rows={3} />
                 </div>
               </div>
             ),

@@ -7,7 +7,10 @@ import { z } from "zod";
 const bodySchema = z.object({
   companyName: z.string(),
   niche: z.string(),
+  businessCategory: z.string().optional(),
   problemSolved: z.string(),
+  currentOffering: z.string().optional(),
+  keywords: z.array(z.string()).optional(),
   targetAvatar: z.string().optional(),
   usState: z.string().optional(),
   legalStructure: z.string().optional(),
@@ -68,8 +71,10 @@ export async function POST(request: Request) {
   // A6: sanitize all user-supplied fields before passing to the model
   const companyName      = sanitizeInput(parsed.data.companyName);
   const niche            = sanitizeInput(parsed.data.niche);
+  const businessCategory = parsed.data.businessCategory ? sanitizeInput(parsed.data.businessCategory) : undefined;
   const problemSolved    = sanitizeInput(parsed.data.problemSolved);
-  const targetAvatar     = parsed.data.targetAvatar ? sanitizeInput(parsed.data.targetAvatar) : undefined;
+  const currentOffering  = parsed.data.currentOffering ? sanitizeInput(parsed.data.currentOffering) : undefined;
+  const keywords         = (parsed.data.keywords ?? []).map((k) => sanitizeInput(k)).filter(Boolean).slice(0, 12);
   const usState          = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
   const legalStructure   = parsed.data.legalStructure ? sanitizeInput(parsed.data.legalStructure) : undefined;
 
@@ -84,9 +89,11 @@ Responde SIEMPRE en JSON con esta estructura exacta:
   "reasoning": "explicación breve de por qué este código es el más adecuado (2-3 oraciones)"
 }`,
       `Empresa: ${companyName}
-Nicho / qué vende: ${niche}
+Producto / servicio que ofrece: ${niche}
+${businessCategory ? `Rubro / nicho de mercado: ${businessCategory}` : ""}
 Problema que resuelve: ${problemSolved}
-${targetAvatar ? `Cliente objetivo: ${targetAvatar}` : ""}
+${currentOffering ? `Qué ofrece hoy a sus clientes (en sus palabras): ${currentOffering}` : ""}
+${keywords.length ? `Palabras clave del negocio: ${keywords.join(", ")}` : ""}
 ${usState ? `Estado de operación: ${usState}` : ""}
 ${legalStructure ? `Estructura legal: ${legalStructure}` : ""}
 
