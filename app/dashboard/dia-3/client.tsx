@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, PlayCircle, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, PlayCircle, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw, Gift, ChevronDown } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
@@ -22,34 +22,39 @@ interface WebResult {
   css: string;
 }
 
-type PortalTier = "obligatorio" | "alto" | "oportunista";
+type PortalCategory = "privado" | "estatal" | "federal";
 
 interface Portal {
   name: string;
   url: string;
   description: string;
-  tier: PortalTier;
+  category: PortalCategory;
   prereq?: string;
 }
 
 const PORTALS: Portal[] = [
-  // ── Tier 1: Obligatorios — sin esto no podés contratar ──
-  { name: "SAM.gov", url: "https://sam.gov", description: "Registro federal obligatorio. Tu UEI y CAGE Code salen de acá.", tier: "obligatorio", prereq: "EIN / Tax ID + datos bancarios (ACH)" },
-  { name: "SBA Dynamic Small Business Search", url: "https://dsbs.sba.gov/search/dsp_dsbs.cfm", description: "Directorio donde los Contracting Officers buscan small businesses.", tier: "obligatorio", prereq: "Registro activo en SAM.gov" },
-  // ── Tier 2: Alto ROI ──
-  { name: "GSA eBuy", url: "https://www.ebuy.gsa.gov", description: "RFQs de agencias buscando proveedores. Alto volumen de servicios.", tier: "alto", prereq: "Registro en SAM.gov" },
-  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Investigá quién gana contratos en tu NAICS y por cuánto.", tier: "alto" },
-  { name: "GSA Advantage", url: "https://gsaadvantage.gov", description: "Catálogo de compras pre-aprobadas del gobierno.", tier: "alto" },
-  // ── Tier 3: Oportunistas ──
-  { name: "Grants.gov", url: "https://grants.gov", description: "Subvenciones federales (proceso distinto a contratos).", tier: "oportunista" },
-  { name: "SBA.gov", url: "https://sba.gov", description: "Certificaciones (8a, WOSB, HUBZone) y recursos para small business.", tier: "oportunista" },
+  // ── Privados (incluye el de Santo / Govbidder) ──
+  { name: "Govbidder — Comunidad de Santo", url: "https://govbidder.net", description: "El espacio de Santo y el equipo Govbidder para seguir aprendiendo y conseguir tu primer contrato.", category: "privado" },
+  // (el equipo puede agregar más portales privados acá)
+
+  // ── Estatales / locales ──
+  // (el equipo cargará los portales estatales/locales acá)
+
+  // ── Federales ──
+  { name: "SAM.gov", url: "https://sam.gov", description: "Registro federal obligatorio. Tu UEI y CAGE Code salen de acá.", category: "federal", prereq: "EIN / Tax ID + datos bancarios (ACH)" },
+  { name: "SBA Dynamic Small Business Search", url: "https://dsbs.sba.gov/search/dsp_dsbs.cfm", description: "Directorio donde los Contracting Officers buscan small businesses.", category: "federal", prereq: "Registro activo en SAM.gov" },
+  { name: "GSA eBuy", url: "https://www.ebuy.gsa.gov", description: "RFQs de agencias buscando proveedores. Alto volumen de servicios.", category: "federal", prereq: "Registro en SAM.gov" },
+  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Investigá quién gana contratos en tu NAICS y por cuánto.", category: "federal" },
+  { name: "GSA Advantage", url: "https://gsaadvantage.gov", description: "Catálogo de compras pre-aprobadas del gobierno.", category: "federal" },
+  { name: "Grants.gov", url: "https://grants.gov", description: "Subvenciones federales (proceso distinto a contratos).", category: "federal" },
+  { name: "SBA.gov", url: "https://sba.gov", description: "Certificaciones (8a, WOSB, HUBZone) y recursos para small business.", category: "federal" },
 ];
 
-const TIER_META: Record<PortalTier, { label: string; color: string; bg: string; border: string; desc: string }> = {
-  obligatorio: { label: "OBLIGATORIO", color: "#D7263D", bg: "rgba(215,38,61,0.08)", border: "rgba(215,38,61,0.3)", desc: "Sin estos registros no podés recibir un contrato. Empezá por acá." },
-  alto:        { label: "ALTO ROI",    color: "#0056D6", bg: "rgba(0,86,214,0.06)",  border: "rgba(0,86,214,0.25)",  desc: "Donde están las oportunidades reales para tu perfil." },
-  oportunista: { label: "OPORTUNISTA", color: "#8DA2C4", bg: "rgba(90,107,133,0.06)", border: "rgba(90,107,133,0.25)", desc: "Útiles según tu situación específica." },
-};
+const CATEGORY_ORDER: { key: PortalCategory; label: string }[] = [
+  { key: "privado", label: "Portales privados" },
+  { key: "estatal", label: "Estatales / locales" },
+  { key: "federal", label: "Federales" },
+];
 
 const LOADING_STEPS = [
   "Analizando tu Perfil Estratégico...",
@@ -85,6 +90,7 @@ export function Dia3Client({
   const [wizardOpen, setWizardOpen] = useState(false);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const { missionsDone } = useMissionsDone(3, devMode);
+  const [portalsOpen, setPortalsOpen] = useState(false);
   const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [webResult, setWebResult] = useState<WebResult | null>(
     existingPreview
@@ -411,60 +417,99 @@ ${webResult.html}
         </div>
       )}
 
-      {/* Portales — priorizados por tier */}
-      <Card>
-        <CardHeader>
-          <CardTitle>🏛️ Dónde Registrarte — En Orden de Prioridad</CardTitle>
-          <CardDescription>
-            No todos los portales valen lo mismo. Empezá por los obligatorios y bajá desde ahí.
-            {usState && <> Las oportunidades de tu NAICS en <strong>{usState}</strong> aparecen en estos portales.</>}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {(["obligatorio", "alto", "oportunista"] as const).map((tier) => {
-            const portals = PORTALS.filter((p) => p.tier === tier);
-            if (portals.length === 0) return null;
-            const meta = TIER_META[tier];
-            return (
-              <div key={tier}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ color: meta.color, background: meta.bg, border: `1px solid ${meta.border}` }}
-                  >
-                    {meta.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{meta.desc}</span>
-                </div>
-                <div className="space-y-2">
-                  {portals.map((portal) => (
-                    <div
-                      key={portal.name}
-                      className="flex items-center justify-between gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                      style={{ borderColor: meta.border }}
-                    >
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm">{portal.name}</p>
-                        <p className="text-xs text-muted-foreground">{portal.description}</p>
-                        {portal.prereq && (
-                          <p className="text-[11px] mt-1" style={{ color: meta.color }}>
-                            📋 Tené listo: {portal.prereq}
-                          </p>
-                        )}
-                      </div>
-                      <Button variant="outline" size="sm" asChild className="flex-shrink-0">
-                        <a href={portal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                          Ir <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </Button>
+      {/* ── Sorpresa: portales (se desbloquea al completar el Día 3) ── */}
+      {(() => {
+        const unlocked = isCompleted || !!webResult;
+        return (
+          <div>
+            <button
+              type="button"
+              onClick={() => unlocked && setPortalsOpen((v) => !v)}
+              disabled={!unlocked}
+              aria-expanded={portalsOpen}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 14,
+                padding: "18px 22px", borderRadius: 16, border: "none",
+                cursor: unlocked ? "pointer" : "not-allowed",
+                background: unlocked
+                  ? "linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%)"
+                  : "var(--muted)",
+                color: unlocked ? "#fff" : "var(--muted-foreground)",
+                boxShadow: unlocked ? "0 10px 30px -10px color-mix(in srgb, var(--primary) 55%, transparent)" : "none",
+                opacity: unlocked ? 1 : 0.85,
+                transition: "transform var(--dur-fast) var(--ease-out)",
+              }}
+            >
+              <span style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: unlocked ? "rgba(255,255,255,0.18)" : "var(--card)",
+              }}>
+                {unlocked ? <Gift className="w-6 h-6" style={{ color: "#FFD700" }} /> : <Lock className="w-5 h-5" />}
+              </span>
+              <span style={{ flex: 1, textAlign: "left" }}>
+                <span style={{ display: "block", fontWeight: 800, fontSize: 16 }}>
+                  {unlocked ? "🎁 Tu sorpresa: dónde registrarte para conseguir contratos" : "Sorpresa bloqueada"}
+                </span>
+                <span style={{ display: "block", fontSize: 13, opacity: 0.85, marginTop: 2 }}>
+                  {unlocked
+                    ? (portalsOpen ? "Tocá para ocultar los portales" : "Tocá para desplegar todos los portales donde registrarte")
+                    : "Completá la tarea del Día 3 para desbloquearla"}
+                </span>
+              </span>
+              {unlocked && (
+                <ChevronDown className="w-5 h-5" style={{ flexShrink: 0, transform: portalsOpen ? "rotate(180deg)" : "none", transition: "transform var(--dur-fast) var(--ease-out)" }} />
+              )}
+            </button>
+
+            {unlocked && portalsOpen && (
+              <div className="gb-preview-reveal" style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 18 }}>
+                {usState && (
+                  <p className="text-xs text-muted-foreground">
+                    Las oportunidades de tu NAICS en <strong>{usState}</strong> suelen aparecer en estos portales.
+                  </p>
+                )}
+                {CATEGORY_ORDER.map((cat) => {
+                  const list = PORTALS.filter((p) => p.category === cat.key);
+                  return (
+                    <div key={cat.key}>
+                      <p className="text-sm font-bold mb-2" style={{ color: "var(--foreground)" }}>{cat.label}</p>
+                      {list.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic px-3 py-3 rounded-lg border border-dashed" style={{ borderColor: "var(--border)" }}>
+                          Próximamente — el equipo cargará estos portales.
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          {list.map((portal) => {
+                            const accent = portal.category === "privado" ? "var(--accent)" : "var(--secondary)";
+                            return (
+                              <div key={portal.name} className="flex items-center justify-between gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                                style={{ borderColor: `color-mix(in srgb, ${accent} 30%, transparent)` }}>
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-sm text-foreground">{portal.name}</p>
+                                  <p className="text-xs text-muted-foreground">{portal.description}</p>
+                                  {portal.prereq && (
+                                    <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>📋 Tené listo: {portal.prereq}</p>
+                                  )}
+                                </div>
+                                <Button variant="outline" size="sm" asChild className="flex-shrink-0">
+                                  <a href={portal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                                    Ir <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </CardContent>
-      </Card>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Wizard modal — confirmar perfil y generar ── */}
       <WizardModal

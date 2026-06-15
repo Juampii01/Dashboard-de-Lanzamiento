@@ -642,9 +642,9 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                 <div className="space-y-2">
                   <Label>Certificaciones (opcional)<FieldHelp text="Marcá las certificaciones que YA tenés. Las dividimos en federales y estatales/locales — tocá cada sección para desplegarla." /></Label>
                   <details className="rounded-lg border border-border overflow-hidden" open>
-                    <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold bg-muted/50">Federales</summary>
+                    <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold bg-muted/50">Estatales / locales</summary>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 p-3">
-                      {FEDERAL_CERTS.map((c) => (
+                      {STATE_CERTS.map((c) => (
                         <label key={c} className="flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
                           <input type="checkbox" checked={certifications.includes(c)} onChange={() => toggleCert(c)} className="accent-primary" />
                           {c}
@@ -653,9 +653,9 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                     </div>
                   </details>
                   <details className="rounded-lg border border-border overflow-hidden">
-                    <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold bg-muted/50">Estatales / locales</summary>
+                    <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold bg-muted/50">Federales</summary>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 p-3">
-                      {STATE_CERTS.map((c) => (
+                      {FEDERAL_CERTS.map((c) => (
                         <label key={c} className="flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
                           <input type="checkbox" checked={certifications.includes(c)} onChange={() => toggleCert(c)} className="accent-primary" />
                           {c}
