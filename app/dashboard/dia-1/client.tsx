@@ -143,6 +143,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   const [naicsEditOpen, setNaicsEditOpen] = useState(false);
   const [naicsEditValue, setNaicsEditValue] = useState(existingProfile?.primary_naics ?? "");
   const [savingNaics, setSavingNaics] = useState(false);
+  const [naicsChanged, setNaicsChanged] = useState(false); // avisar que re-descarguen el PDF
 
   async function handleUpdateNaics() {
     const code = naicsEditValue.trim();
@@ -159,7 +160,8 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       setForm((prev) => ({ ...prev, primary_naics: code }));
       setNaicsResult((prev) => prev ? { ...prev, naics_code: code } : prev);
       setNaicsEditOpen(false);
-      toast.success("Código NAICS actualizado.");
+      setNaicsChanged(true);
+      toast.success("Código NAICS actualizado — volvé a descargar tu PDF para reflejar el cambio.");
       router.refresh();
     } catch {
       toast.error("No se pudo actualizar el NAICS. Intentá de nuevo.");
@@ -363,6 +365,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       a.download = "govbidder-dia-1-analisis.pdf";
       a.click();
       URL.revokeObjectURL(url);
+      setNaicsChanged(false);
     } catch {
       toast.error("Error al generar el PDF. Intentá de nuevo.");
     } finally {
@@ -478,6 +481,11 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                 <p className="text-sm text-muted-foreground">
                   Tu Perfil Estratégico + código NAICS en PDF.
                 </p>
+                {naicsChanged && (
+                  <p className="text-sm font-semibold mt-1" style={{ color: "var(--primary)" }}>
+                    ⚠️ Actualizaste tu NAICS — volvé a descargar el PDF para reflejar el cambio.
+                  </p>
+                )}
               </div>
               <Button
                 onClick={handleDownloadPdf}

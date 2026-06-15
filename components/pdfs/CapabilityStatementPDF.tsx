@@ -131,6 +131,9 @@ export interface CapabilityCompanyData {
   website?: string | null;
   uei?: string | null;
   cageCode?: string | null;
+  dunsNumber?: string | null;
+  address?: string | null;
+  zipCode?: string | null;
   usState?: string | null;
   certifications?: string[] | null;
   yearFounded?: number | null;
@@ -379,12 +382,14 @@ export function CapabilityStatementPDF({
               {cd.legalStructure ? <DataRow label="ENTITY TYPE" value={cd.legalStructure} /> : null}
               <DataRow label="CAGE CODE" value={cd.cageCode || "[Pending]"} />
               <DataRow label="UEI" value={cd.uei || "[Register on SAM.gov]"} />
+              {cd.dunsNumber ? <DataRow label="DUNS" value={cd.dunsNumber} /> : null}
               {setAsides.length ? <DataRow label="SET-ASIDES" value={setAsides.join(", ")} /> : null}
               <DataRow label="SAM.GOV" value={samActive ? "Active Registration" : "Registration in progress"} />
               {cd.contactName ? <DataRow label="CONTACT" value={cd.contactName} /> : null}
               {cd.email ? <DataRow label="EMAIL" value={cd.email} /> : null}
               <DataRow label="PHONE" value={cd.phone || "[Add phone]"} />
               {cd.website ? <DataRow label="WEBSITE" value={cd.website} /> : null}
+              {cd.address ? <DataRow label="ADDRESS" value={cd.address + (cd.zipCode ? `, ${cd.zipCode}` : "")} /> : null}
               {cd.usState ? <DataRow label="LOCATION" value={cd.usState} /> : null}
             </View>
 

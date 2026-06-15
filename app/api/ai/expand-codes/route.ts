@@ -6,6 +6,7 @@ import { z } from "zod";
 
 const bodySchema = z.object({
   primaryNaics: z.string(),
+  extraNaics: z.array(z.string()).optional(),
   keywords: z.array(z.string()),
   niche: z.string().optional(),
   usState: z.string().optional(),
@@ -70,6 +71,7 @@ export async function POST(request: Request) {
 
   // A6: sanitize user-supplied strings
   const primaryNaics = sanitizeInput(parsed.data.primaryNaics);
+  const extraNaics   = (parsed.data.extraNaics ?? []).map(sanitizeInput).filter(Boolean).slice(0, 8);
   const keywords     = parsed.data.keywords.map(sanitizeInput);
   const niche        = parsed.data.niche ? sanitizeInput(parsed.data.niche) : undefined;
   const usState      = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
@@ -94,6 +96,7 @@ REGLAS:
 - NIGP: 1-2 códigos del National Institute of Governmental Purchasing usados por estados/counties/school districts (formato NNN-NN, ej: 910-39)
 - keywords_expanded: 15-20 términos que el gobierno federal y estatal usa para buscar estos servicios`,
       `NAICS primario: ${primaryNaics}
+${extraNaics.length ? `NAICS adicionales del usuario (incluilos y expandilos también): ${extraNaics.join(", ")}` : ""}
 ${niche ? `Nicho/servicio: ${niche}` : ""}
 ${usState ? `Estado de operación: ${usState} — priorizá agencias y contratos activos en ese estado.` : ""}
 Keywords del usuario: ${keywords.join(", ")}

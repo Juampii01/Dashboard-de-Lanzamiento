@@ -36,8 +36,8 @@ const TYPE_META: Record<string, {
   color: string;       // vivid bg color for the header band
   lightBg: string;     // subtle bg for the code card body
   textColor: string;   // color for the code number
-  samUrl: (code: string) => string;
-  externalLabel: string;
+  externalUrl: string;   // página oficial de referencia (no deep-link roto)
+  externalLabel: string; // texto del botón
 }> = {
   NAICS: {
     abbr: "NAICS",
@@ -46,8 +46,8 @@ const TYPE_META: Record<string, {
     color: "#1E3A8A",
     lightBg: "rgba(30,58,138,0.12)",
     textColor: "#60A5FA",
-    samUrl: (code) => `https://sam.gov/search/?index=opp&naicsCode=${code}`,
-    externalLabel: "SAM.gov",
+    externalUrl: "https://www.census.gov/naics/",
+    externalLabel: "Census.gov",
   },
   PSC: {
     abbr: "PSC",
@@ -56,8 +56,8 @@ const TYPE_META: Record<string, {
     color: "#065F46",
     lightBg: "rgba(6,95,70,0.12)",
     textColor: "#34D399",
-    samUrl: (code) => `https://sam.gov/search/?index=opp&pscCode=${code}`,
-    externalLabel: "SAM.gov",
+    externalUrl: "https://www.acquisition.gov/psc-manual",
+    externalLabel: "Acquisition.gov",
   },
   SIC: {
     abbr: "SIC",
@@ -66,8 +66,8 @@ const TYPE_META: Record<string, {
     color: "#92400E",
     lightBg: "rgba(146,64,14,0.12)",
     textColor: "#FBBF24",
-    samUrl: (code) => `https://sam.gov/search/?index=opp&q=${code}`,
-    externalLabel: "SAM.gov",
+    externalUrl: "https://www.sec.gov/search-filings/standard-industrial-classification-sic-code-list",
+    externalLabel: "SEC.gov",
   },
   UNSPSC: {
     abbr: "UNSPSC",
@@ -76,7 +76,7 @@ const TYPE_META: Record<string, {
     color: "#4C1D95",
     lightBg: "rgba(76,29,149,0.12)",
     textColor: "#C084FC",
-    samUrl: (code) => `https://www.ungm.org/UNSPSCCodes?q=${code}`,
+    externalUrl: "https://www.ungm.org/Public/UNSPSC",
     externalLabel: "UNGM",
   },
   NIGP: {
@@ -86,8 +86,8 @@ const TYPE_META: Record<string, {
     color: "#881337",
     lightBg: "rgba(136,19,55,0.12)",
     textColor: "#FB7185",
-    samUrl: (code) => `https://www.nigp.org/home/commodity-code/commodity-code-details?code=${code}`,
-    externalLabel: "NIGP",
+    externalUrl: "https://www.nigp.org/",
+    externalLabel: "NIGP.org",
   },
 };
 
@@ -122,10 +122,20 @@ export function Dia2Client({
   const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [naicsInput, setNaicsInput] = useState(primaryNaics);
+  const [extraNaics, setExtraNaics] = useState<string[]>([]);
+  const [extraNaicsInput, setExtraNaicsInput] = useState("");
   const [keywords, setKeywords] = useState<string[]>(
     existingExpansion?.keywords_input ?? []
   );
   const [keywordInput, setKeywordInput] = useState("");
+
+  const addExtraNaics = () => {
+    const code = extraNaicsInput.trim();
+    if (code && code !== naicsInput && !extraNaics.includes(code)) {
+      setExtraNaics((p) => [...p, code]);
+      setExtraNaicsInput("");
+    }
+  };
   const [result, setResult] = useState<ExpandResult | null>(
     existingExpansion
       ? {
@@ -202,6 +212,7 @@ export function Dia2Client({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           primaryNaics: naicsInput,
+          extraNaics,
           keywords,
           niche: companyNiche,
           usState: usState || undefined,
@@ -426,9 +437,10 @@ export function Dia2Client({
                             )}
                           </button>
                           <a
-                            href={meta.samUrl(code.code)}
+                            href={meta.externalUrl}
                             target="_blank"
                             rel="noopener noreferrer"
+                            title={`Buscá tu código ${code.code} en ${meta.externalLabel}`}
                             className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded transition-all"
                             style={{
                               background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
@@ -543,6 +555,38 @@ export function Dia2Client({
                   />
                   <p className="text-xs text-muted-foreground">
                     Es el código que generaste en el Día 1. La IA lo expande a PSC, SIC, UNSPSC y NIGP.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="extra-naics">Códigos NAICS extra (opcional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="extra-naics"
+                      value={extraNaicsInput}
+                      onChange={(e) => setExtraNaicsInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addExtraNaics())}
+                      placeholder="Ej: 561730"
+                      maxLength={6}
+                    />
+                    <Button type="button" variant="outline" onClick={addExtraNaics} size="icon">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {extraNaics.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {extraNaics.map((code) => (
+                        <Badge key={code} variant="secondary" className="flex items-center gap-1 font-mono">
+                          {code}
+                          <button onClick={() => setExtraNaics((p) => p.filter((c) => c !== code))} className="ml-1 hover:text-destructive">
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Si tu empresa abarca más rubros, agregá otros NAICS y la IA también los expande.
                   </p>
                 </div>
               </div>
