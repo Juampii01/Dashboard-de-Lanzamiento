@@ -10,6 +10,7 @@ import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { DayTabs } from "@/components/day-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { PreLaunchLock, LAUNCH_ISO } from "@/components/pre-launch-lock";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -163,6 +164,14 @@ export default async function DashboardLayout({
     if (!hasPurchase) {
       redirect("/sin-acceso");
     }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // ── Lock de pre-lanzamiento ──────────────────────────────────────────────
+  // Hasta LAUNCH_ISO (29 jun, 4 PM Miami) los USUARIOS (no admins) ven solo el
+  // contador — sin sidebar, días, ranking ni nada. Los admins entran normal.
+  if (!devMode && profile && !profile.is_admin && Date.now() < Date.parse(LAUNCH_ISO)) {
+    return <PreLaunchLock />;
   }
   // ─────────────────────────────────────────────────────────────────────────
 
