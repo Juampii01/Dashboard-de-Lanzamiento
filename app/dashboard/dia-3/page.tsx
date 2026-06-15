@@ -18,8 +18,8 @@ export default async function Dia3Page() {
     const isAdmin = true;
     return (
       <div className="space-y-8">
-        <Dia3Client userId="dev" isCompleted={isDone} existingPreview={null} profile={null} keywordsExpanded={[]} devMode />
         <VideoCapsules day={3} isAdmin={isAdmin} />
+        <Dia3Client userId="dev" isCompleted={isDone} existingPreview={null} profile={null} keywordsExpanded={[]} devMode />
       </div>
     );
   }
@@ -50,7 +50,8 @@ export default async function Dia3Page() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={3} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
+      <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={3} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
+      <VideoCapsules day={3} isAdmin={isAdmin} />
       <Dia3Client
       userId={user.id}
       isCompleted={progress?.is_completed ?? false}
@@ -58,7 +59,6 @@ export default async function Dia3Page() {
       profile={profile}
       keywordsExpanded={(expansion?.keywords_expanded as string[]) ?? []}
     />
-      <VideoCapsules day={3} isAdmin={isAdmin} />
     </div>
   );
 }

@@ -18,8 +18,8 @@ export default async function Dia4Page() {
     const isAdmin = true;
     return (
       <div className="space-y-8">
-        <Dia4Client userId="dev" isCompleted={isDone} existingStatement={null} existingSorteo={null} profile={null} expansion={null} fullName="Dev Preview" accessExpiresAt={null} devMode />
         <VideoCapsules day={4} isAdmin={isAdmin} />
+        <Dia4Client userId="dev" isCompleted={isDone} existingStatement={null} existingSorteo={null} profile={null} expansion={null} fullName="Dev Preview" accessExpiresAt={null} devMode />
       </div>
     );
   }
@@ -55,7 +55,8 @@ export default async function Dia4Page() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={4} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
+      <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={4} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
+      <VideoCapsules day={4} isAdmin={isAdmin} />
       <Dia4Client
       userId={user.id}
       isCompleted={progress?.is_completed ?? false}
@@ -66,7 +67,6 @@ export default async function Dia4Page() {
       fullName={userProfile?.full_name ?? user.email ?? ""}
       accessExpiresAt={userProfile?.access_expires_at ?? null}
     />
-      <VideoCapsules day={4} isAdmin={isAdmin} />
     </div>
   );
 }

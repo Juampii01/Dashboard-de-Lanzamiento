@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, PlayCircle, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
+import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 
@@ -83,6 +84,7 @@ export function Dia3Client({
   const [copiedHtml, setCopiedHtml] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  const { missionsDone } = useMissionsDone(3, devMode);
   const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [webResult, setWebResult] = useState<WebResult | null>(
     existingPreview
@@ -260,6 +262,24 @@ ${webResult.html}
 
       {/* ── Launch (sin web) / Showcase (con web) ── */}
       {!webResult ? (
+        !missionsDone ? (
+          <Card>
+            <CardContent className="py-8 flex flex-col items-center text-center gap-3">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "var(--muted)" }}>
+                <Lock className="w-6 h-6" style={{ color: "var(--muted-foreground)" }} />
+              </div>
+              <div>
+                <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Mirá los videos de la misión de hoy y respondé las preguntas para desbloquear la tarea.
+                </p>
+              </div>
+              <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
+                <Lock className="w-4 h-4" /> Generar mi web — Día 3
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
         <Card>
           <CardContent className="py-8 flex flex-col items-center text-center gap-3">
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
@@ -276,6 +296,7 @@ ${webResult.html}
             </Button>
           </CardContent>
         </Card>
+        )
       ) : (
         <div className="space-y-4 gb-preview-reveal">
           {/* ── Showcase: la web como un producto ── */}

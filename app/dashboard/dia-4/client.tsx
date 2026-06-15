@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Search, Send, Sparkles, FileText, ArrowRight, RefreshCw } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Search, Send, Sparkles, FileText, ArrowRight, RefreshCw, Lock } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
+import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 import { isExpired } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
@@ -78,6 +79,7 @@ export function Dia4Client({
   });
   const [hasGovContracts, setHasGovContracts] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const { missionsDone } = useMissionsDone(4, devMode);
   const setCompanyField = (field: keyof typeof companyForm) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setCompanyForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -289,6 +291,24 @@ export function Dia4Client({
 
       {/* Generar Capability Statement — launch / resultado */}
       {!statement ? (
+        !missionsDone ? (
+          <Card>
+            <CardContent className="py-8 flex flex-col items-center text-center gap-3">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "var(--muted)" }}>
+                <Lock className="w-6 h-6" style={{ color: "var(--muted-foreground)" }} />
+              </div>
+              <div>
+                <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Mirá los videos de la misión de hoy y respondé las preguntas para desbloquear la tarea.
+                </p>
+              </div>
+              <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
+                <Lock className="w-4 h-4" /> Generar mi Capability Statement — Día 4
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
         <Card>
           <CardContent className="py-8 flex flex-col items-center text-center gap-3">
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
@@ -305,6 +325,7 @@ export function Dia4Client({
             </Button>
           </CardContent>
         </Card>
+        )
       ) : (
         <div className="space-y-4">
           <div className="border rounded-xl p-5 space-y-4 bg-card">

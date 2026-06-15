@@ -39,8 +39,8 @@ export default async function Dia1Page() {
     const isDone = devCompleted.split(",").includes("1");
     return (
       <div className="space-y-8">
-        <Dia1Client userId="dev" isCompleted={isDone} existingProfile={null} devMode />
         <VideoCapsules day={1} />
+        <Dia1Client userId="dev" isCompleted={isDone} existingProfile={null} devMode />
       </div>
     );
   }
@@ -66,18 +66,18 @@ export default async function Dia1Page() {
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-2 text-sm transition-colors"
-          style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+          style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}
         >
           ← Dashboard
         </Link>
         <AdminForceComplete day={1} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} />
       </div>
+      <VideoCapsules day={1} isAdmin={isAdmin} />
       <Dia1Client
         userId={user.id}
         isCompleted={progress?.is_completed ?? false}
         existingProfile={profile}
       />
-      <VideoCapsules day={1} isAdmin={isAdmin} />
     </div>
   );
 }

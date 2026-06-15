@@ -1,16 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 /**
  * FieldHelp — ícono "?" con un tooltip que explica cómo completar el campo.
- * Aparece al pasar el mouse (desktop) o al tocar (mobile). Presentación pura.
+ * Usa posición `fixed` calculada desde el botón y clampeada al viewport, así
+ * NUNCA se corta ni se sale del modal (que recorta con overflow). Presentación pura.
  */
 export function FieldHelp({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const WIDTH = 250;
+
+  useLayoutEffect(() => {
+    if (!open || !btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    const left = Math.min(Math.max(8, r.left), window.innerWidth - WIDTH - 8);
+    const top = r.top - 8; // el tooltip se ubica arriba (translateY(-100%))
+    setPos({ top, left });
+  }, [open]);
+
   return (
-    <span style={{ position: "relative", display: "inline-flex", verticalAlign: "middle", marginLeft: 6 }}>
+    <span style={{ display: "inline-flex", verticalAlign: "middle", marginLeft: 6 }}>
       <button
+        ref={btnRef}
         type="button"
         aria-label="Ayuda"
         onMouseEnter={() => setOpen(true)}
@@ -26,17 +40,17 @@ export function FieldHelp({ text }: { text: string }) {
       >
         ?
       </button>
-      {open && (
+      {open && pos && (
         <span
           role="tooltip"
           style={{
-            position: "absolute", bottom: "calc(100% + 6px)", left: 0, zIndex: 60,
-            width: 250, maxWidth: "70vw",
+            position: "fixed", top: pos.top, left: pos.left, transform: "translateY(-100%)",
+            width: WIDTH, maxWidth: "92vw", zIndex: 100000,
             background: "var(--secondary)", color: "#fff",
             fontSize: 11.5, lineHeight: 1.45, fontWeight: 400,
             padding: "9px 11px", borderRadius: 8,
-            boxShadow: "0 8px 26px rgba(0,0,0,0.35)",
-            whiteSpace: "normal",
+            boxShadow: "0 8px 26px rgba(0,0,0,0.4)",
+            whiteSpace: "normal", pointerEvents: "none",
           }}
         >
           {text}

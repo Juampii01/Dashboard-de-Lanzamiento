@@ -9,9 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, PlayCircle, ArrowRight, Map, RefreshCw } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, PlayCircle, ArrowRight, Map, RefreshCw, Lock } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
+import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 
@@ -151,6 +152,7 @@ export function Dia2Client({
   const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const { missionsDone } = useMissionsDone(2, devMode);
 
   // Clean up loading interval on unmount
   useEffect(() => () => { if (loadingRef.current) clearInterval(loadingRef.current); }, []);
@@ -317,6 +319,24 @@ export function Dia2Client({
       </Card>
 
       {!result && (
+        !missionsDone ? (
+          <Card>
+            <CardContent className="py-8 flex flex-col items-center text-center gap-3">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "var(--muted)" }}>
+                <Lock className="w-6 h-6" style={{ color: "var(--muted-foreground)" }} />
+              </div>
+              <div>
+                <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Mirá los videos de la misión de hoy y respondé las preguntas para desbloquear la tarea.
+                </p>
+              </div>
+              <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
+                <Lock className="w-4 h-4" /> Generar mi mapa — Día 2
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
         <Card>
           <CardContent className="py-8 flex flex-col items-center text-center gap-3">
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
@@ -333,6 +353,7 @@ export function Dia2Client({
             </Button>
           </CardContent>
         </Card>
+        )
       )}
 
       {/* Resultados */}
