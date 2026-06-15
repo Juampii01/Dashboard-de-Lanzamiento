@@ -147,7 +147,7 @@ export function RankingClient() {
           borderBottom: "1px solid #1E3A5C",
           display: "flex", alignItems: "center", gap: "8px",
         }}>
-          <span style={{ fontFamily: "var(--font-arcade)", fontSize: "9px", fontWeight: 700, color: "#FFD60A", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 800, color: "#FFD60A", textTransform: "uppercase", letterSpacing: "0.1em" }}>
             Premios del Challenge
           </span>
         </div>
@@ -169,7 +169,7 @@ export function RankingClient() {
             </p>
           </div>
           <span style={{
-            fontFamily: "var(--font-arcade)", fontSize: "9px", fontWeight: 700,
+            fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800,
             color: "#FFD60A", background: "rgba(255,214,10,0.12)",
             border: "1px solid rgba(255,214,10,0.3)",
             borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap",
@@ -193,7 +193,7 @@ export function RankingClient() {
             </p>
           </div>
           <span style={{
-            fontFamily: "var(--font-arcade)", fontSize: "9px", fontWeight: 700,
+            fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800,
             color: "#C0C0C0", background: "rgba(192,192,192,0.08)",
             border: "1px solid rgba(192,192,192,0.25)",
             borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap",
@@ -216,7 +216,7 @@ export function RankingClient() {
             </p>
           </div>
           <span style={{
-            fontFamily: "var(--font-arcade)", fontSize: "9px", fontWeight: 700,
+            fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800,
             color: "#00D67A", background: "rgba(0,214,122,0.08)",
             border: "1px solid rgba(0,214,122,0.2)",
             borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap",
