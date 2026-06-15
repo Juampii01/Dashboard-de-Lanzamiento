@@ -719,7 +719,7 @@ export function Dia4Client({
       <WizardModal
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
-        title="Día 4 — Capability Statement"
+        title="Día 4 — Capability Statement + Cierre"
         subtitle="Sumá tus datos de registro y generamos el documento."
         finishLabel={statement ? "Regenerar documento" : "Generar mi Capability Statement"}
         finishing={generating}
