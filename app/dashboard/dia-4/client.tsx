@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Search, Send, Sparkles, FileText, ArrowRight, RefreshCw, Lock } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Search, Send, Sparkles, FileText, ArrowRight, RefreshCw, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
@@ -28,6 +28,15 @@ const LOADING_STEPS = [
   "Identificando tus Core Competencies...",
   "Formulando tus diferenciadores...",
   "Ensamblando tu Capability Statement profesional...",
+];
+
+// Portales "premio" — se regalan al completar el Día 4 (incluye los que estaban en Día 3).
+const BONUS_PORTALS: { name: string; url: string; description: string }[] = [
+  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Investigá quién gana contratos en tu NAICS y por cuánto." },
+  { name: "SBA Dynamic Small Business Search", url: "https://dsbs.sba.gov/search/dsp_dsbs.cfm", description: "Directorio donde los Contracting Officers buscan small businesses." },
+  { name: "Grants.gov", url: "https://grants.gov", description: "Subvenciones federales (proceso distinto a contratos)." },
+  { name: "FPDS.gov", url: "https://www.fpds.gov", description: "Datos históricos de adjudicaciones federales — quién ganó qué." },
+  { name: "GSA Forecast of Contracting Opportunities", url: "https://www.acquisition.gov/gsa-forecast", description: "Oportunidades de contratación próximas, por agencia." },
 ];
 
 interface Dia4ClientProps {
@@ -80,6 +89,7 @@ export function Dia4Client({
   const [hasGovContracts, setHasGovContracts] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const { missionsDone } = useMissionsDone(4, devMode);
+  const [bonusOpen, setBonusOpen] = useState(false);
   const setCompanyField = (field: keyof typeof companyForm) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setCompanyForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -515,6 +525,74 @@ export function Dia4Client({
           </CardContent>
         </Card>
       )}
+
+      {/* ── Premio: portales para encontrar oportunidades (se desbloquea al completar el Día 4) ── */}
+      {(() => {
+        const unlocked = isCompleted || !!statement;
+        return (
+          <div>
+            <button
+              type="button"
+              onClick={() => unlocked && setBonusOpen((v) => !v)}
+              disabled={!unlocked}
+              aria-expanded={bonusOpen}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 14,
+                padding: "18px 22px", borderRadius: 16, border: "none",
+                cursor: unlocked ? "pointer" : "not-allowed",
+                background: unlocked
+                  ? "linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%)"
+                  : "var(--muted)",
+                color: unlocked ? "#fff" : "var(--muted-foreground)",
+                boxShadow: unlocked ? "0 10px 30px -10px color-mix(in srgb, var(--primary) 55%, transparent)" : "none",
+                opacity: unlocked ? 1 : 0.85,
+              }}
+            >
+              <span style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: unlocked ? "rgba(255,255,255,0.18)" : "var(--card)",
+              }}>
+                {unlocked ? <Gift className="w-6 h-6" style={{ color: "#FFD700" }} /> : <Lock className="w-5 h-5" />}
+              </span>
+              <span style={{ flex: 1, textAlign: "left" }}>
+                <span style={{ display: "block", fontWeight: 800, fontSize: 16 }}>
+                  {unlocked ? "🎁 Tu premio: herramientas para encontrar oportunidades" : "Premio bloqueado"}
+                </span>
+                <span style={{ display: "block", fontSize: 13, opacity: 0.85, marginTop: 2 }}>
+                  {unlocked
+                    ? (bonusOpen ? "Tocá para ocultar las herramientas" : "Tocá para desplegar los portales donde buscar contratos")
+                    : "Completá la tarea del Día 4 para desbloquearlo"}
+                </span>
+              </span>
+              {unlocked && (
+                <ChevronDown className="w-5 h-5" style={{ flexShrink: 0, transform: bonusOpen ? "rotate(180deg)" : "none", transition: "transform var(--dur-fast) var(--ease-out)" }} />
+              )}
+            </button>
+
+            {unlocked && bonusOpen && (
+              <div className="gb-preview-reveal" style={{ marginTop: 14 }}>
+                <div className="space-y-2">
+                  {BONUS_PORTALS.map((portal) => (
+                    <div key={portal.name} className="flex items-center justify-between gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                      style={{ borderColor: "color-mix(in srgb, var(--secondary) 30%, transparent)" }}>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-foreground">{portal.name}</p>
+                        <p className="text-xs text-muted-foreground">{portal.description}</p>
+                      </div>
+                      <Button variant="outline" size="sm" asChild className="flex-shrink-0">
+                        <a href={portal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                          Ir <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Sorteo */}
       <Card style={{ borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)", background: "color-mix(in srgb, var(--accent) 8%, var(--card))" }}>
