@@ -55,7 +55,7 @@ export function SocialProof() {
       style={{
         background: "rgba(0,214,122,0.08)",
         border: "1px solid rgba(0,214,122,0.2)",
-        color: "#A8B5CC",
+        color: "#C9D6EC",
         fontFamily: "var(--font-sans)",
       }}
     >

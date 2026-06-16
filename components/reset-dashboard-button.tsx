@@ -67,7 +67,7 @@ export function ResetDashboardButton() {
           className="text-[10px] px-2 py-0.5 rounded transition-colors"
           style={{
             background: "rgba(90,107,133,0.15)",
-            color: "#A8B5CC",
+            color: "#C9D6EC",
             border: "1px solid rgba(90,107,133,0.3)",
             fontFamily: "var(--font-mono)",
           }}
@@ -82,7 +82,7 @@ export function ResetDashboardButton() {
     return (
       <span
         className="text-[10px] font-bold"
-        style={{ color: "#A8B5CC", fontFamily: "var(--font-mono)" }}
+        style={{ color: "#C9D6EC", fontFamily: "var(--font-mono)" }}
       >
         Reiniciando…
       </span>

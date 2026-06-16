@@ -58,7 +58,7 @@ export function HeaderAvatar({
         style={{
           fontSize: "11px",
           fontWeight: 700,
-          color: "#A8B5CC",
+          color: "#C9D6EC",
           lineHeight: 1,
           position: "absolute",
           opacity: visible && !error ? 0 : 1,

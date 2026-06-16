@@ -11,7 +11,7 @@
 | Estilos | Tailwind CSS v4 (sin `tailwind.config.js` — config en CSS) |
 | DB / Auth | Supabase (PostgreSQL + Auth + Storage) |
 | ORM | Supabase JS Client v2 (`@supabase/ssr ^0.10.3`) |
-| Deploy | Vercel → `https://govbidder-challenge.vercel.app` |
+| Deploy | Vercel → `https://dboard.govbidder.net` |
 | Repo | `https://github.com/Juampii01/Dashboard-de-Lanzamiento` (rama `main`) |
 
 ## Estructura de carpetas clave
@@ -148,7 +148,7 @@ El tutorial persiste el step en `localStorage` (`govbidder_tour_step_v1`) para s
 NEXT_PUBLIC_SUPABASE_URL=https://....supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
-NEXT_PUBLIC_APP_URL=https://govbidder-challenge.vercel.app
+NEXT_PUBLIC_APP_URL=https://dboard.govbidder.net
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 

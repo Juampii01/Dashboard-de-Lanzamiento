@@ -43,7 +43,7 @@ El **Govbidder Challenge** es un programa de 4 días donde los participantes apr
 
 ### URL del dashboard
 ```
-https://govbidder-challenge.vercel.app
+https://dboard.govbidder.net
 ```
 
 ---
@@ -397,7 +397,7 @@ El comprador recibe email → hace clic → accede al dashboard
 
 1. Registrar el URL del webhook en el panel de Hotmart:
    ```
-   https://govbidder-challenge.vercel.app/api/webhooks/hotmart
+   https://dboard.govbidder.net/api/webhooks/hotmart
    ```
 2. Configurar la variable de entorno `HOTMART_WEBHOOK_SECRET` con el secreto del webhook de Hotmart
 3. Verificar que el tiempo de acceso (actualmente 7 días) sea el correcto para el challenge
@@ -532,7 +532,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...    (clave anónima, segura para el cliente)
 SUPABASE_SERVICE_ROLE_KEY=eyJ...        (⚠️ SECRETO — solo en servidor)
 
 # App
-NEXT_PUBLIC_APP_URL=https://govbidder-challenge.vercel.app
+NEXT_PUBLIC_APP_URL=https://dboard.govbidder.net
 
 # IA
 ANTHROPIC_API_KEY=sk-ant-...            (⚠️ SECRETO — solo en servidor)
@@ -549,7 +549,7 @@ HOTMART_WEBHOOK_SECRET=...              (⚠️ SECRETO — pendiente)
 
 ### Deploy automático
 
-Cada vez que se hace `git push origin main`, Vercel detecta el cambio y despliega automáticamente en `https://govbidder-challenge.vercel.app`. El proceso tarda ~2 minutos.
+Cada vez que se hace `git push origin main`, Vercel detecta el cambio y despliega automáticamente en `https://dboard.govbidder.net`. El proceso tarda ~2 minutos.
 
 ### Repositorio
 
@@ -587,7 +587,7 @@ Ver sección [18. Pendientes antes del lanzamiento](#18-pendientes-antes-del-lan
 
 #### Cada día, antes de la sesión:
 
-1. Ir a `https://govbidder-challenge.vercel.app/admin`
+1. Ir a `https://dboard.govbidder.net/admin`
 2. En la sección "Control de Días", hacer clic en "Desbloquear" para el día correspondiente
 3. Verificar que el toggle quedó activo (verde)
 

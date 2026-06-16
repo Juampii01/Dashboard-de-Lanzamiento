@@ -48,7 +48,7 @@ export function CertificatePreview({ completedDays, userName }: CertificatePrevi
             >
               {isComplete ? "¡Certificado listo!" : "Tu certificado se está construyendo"}
             </h3>
-            <p className="text-xs mt-0.5" style={{ color: "#A8B5CC" }}>
+            <p className="text-xs mt-0.5" style={{ color: "#C9D6EC" }}>
               {isComplete
                 ? "Podés descargarlo desde el Día 4"
                 : `Completá los 4 retos para desbloquearlo — ${pct}% listo`}
@@ -80,14 +80,14 @@ export function CertificatePreview({ completedDays, userName }: CertificatePrevi
               style={{
                 fontFamily: "var(--font-arcade)",
                 fontSize: "7px",
-                color: "#A8B5CC",
+                color: "#C9D6EC",
                 letterSpacing: "0.18em",
               }}
             >
               CERTIFICADO DE FINALIZACIÓN
             </p>
 
-            <p className="text-xs" style={{ color: "#5A6B85", fontFamily: "var(--font-sans)" }}>
+            <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-sans)" }}>
               Este certificado se otorga a
             </p>
 
@@ -103,7 +103,7 @@ export function CertificatePreview({ completedDays, userName }: CertificatePrevi
               {userName || "Tu nombre aquí"}
             </p>
 
-            <p className="text-[10px]" style={{ color: "#5A6B85", fontFamily: "var(--font-sans)" }}>
+            <p className="text-[10px]" style={{ color: "#8DA2C4", fontFamily: "var(--font-sans)" }}>
               por completar exitosamente el
             </p>
 
@@ -127,7 +127,7 @@ export function CertificatePreview({ completedDays, userName }: CertificatePrevi
                     className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all duration-500"
                     style={{
                       background: completedDays >= d ? "#00D67A" : "#1E3A5C",
-                      color: completedDays >= d ? "#0A2540" : "#3D4E6B",
+                      color: completedDays >= d ? "#0A2540" : "#647FA8",
                       boxShadow: completedDays >= d ? "0 0 10px rgba(0,214,122,0.45)" : "none",
                     }}
                   >
@@ -137,7 +137,7 @@ export function CertificatePreview({ completedDays, userName }: CertificatePrevi
                     className="text-[8px]"
                     style={{
                       fontFamily: "var(--font-sans)",
-                      color: completedDays >= d ? "#00D67A" : "#3D4E6B",
+                      color: completedDays >= d ? "#00D67A" : "#647FA8",
                     }}
                   >
                     D{d}
@@ -157,7 +157,7 @@ export function CertificatePreview({ completedDays, userName }: CertificatePrevi
                   style={{
                     fontFamily: "var(--font-sans)",
                     fontSize: "8px",
-                    color: "#5A6B85",
+                    color: "#8DA2C4",
                   }}
                 >
                   Govbidder Academy

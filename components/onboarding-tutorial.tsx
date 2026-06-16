@@ -316,7 +316,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
             <h2 className="text-lg font-bold text-white mb-3 leading-tight" style={{ fontFamily: "var(--font-display)" }}>
               {current.title}
             </h2>
-            <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}>
+            <p className="text-sm leading-relaxed" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>
               {current.body}
             </p>
           </div>
@@ -326,7 +326,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
             <button
               onClick={() => complete()}
               className="text-xs transition-colors"
-              style={{ color: "#3A5070", fontFamily: "var(--font-sans)" }}
+              style={{ color: "#647FA8", fontFamily: "var(--font-sans)" }}
             >
               Saltar
             </button>
@@ -335,7 +335,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
               <button
                 onClick={prev}
                 className="text-xs px-4 py-2 rounded-lg transition-all"
-                style={{ color: "#A8B5CC", border: "1px solid #1E3A5C", fontFamily: "var(--font-sans)" }}
+                style={{ color: "#C9D6EC", border: "1px solid #1E3A5C", fontFamily: "var(--font-sans)" }}
               >
                 ← Atrás
               </button>

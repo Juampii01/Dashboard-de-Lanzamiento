@@ -99,7 +99,7 @@ export function SamContractsWidget() {
           <div>
             <p
               className="text-xs uppercase tracking-widest font-medium mb-1"
-              style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+              style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}
             >
               Contratos federales activos · NAICS {data.naicsCode}
               {data.source === "demo" && (
@@ -123,13 +123,13 @@ export function SamContractsWidget() {
                   {formatUSD(displayAmount)}
                 </span>
               )}
-              <span className="text-sm font-semibold" style={{ color: "#A8B5CC" }}>
+              <span className="text-sm font-semibold" style={{ color: "#C9D6EC" }}>
                 {data.totalCount.toLocaleString()} contratos
               </span>
             </div>
 
             {data.sector && (
-              <p className="text-xs mt-1" style={{ color: "#5A6B85", fontFamily: "var(--font-sans)" }}>
+              <p className="text-xs mt-1" style={{ color: "#8DA2C4", fontFamily: "var(--font-sans)" }}>
                 {data.sector}
               </p>
             )}
@@ -156,7 +156,7 @@ export function SamContractsWidget() {
             <div
               key={i}
               className="flex items-start gap-2 text-xs"
-              style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+              style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}
             >
               <span style={{ color: "#D7263D" }}>›</span>
               <span className="truncate">{opp.title}</span>

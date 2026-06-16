@@ -70,7 +70,7 @@ export function LeaderboardMini() {
             fontFamily: "var(--font-arcade)",
             fontSize: "8px",
             fontWeight: 700,
-            color: "#5A6B85",
+            color: "#8DA2C4",
             textTransform: "uppercase",
             letterSpacing: "0.14em",
           }}
@@ -96,7 +96,7 @@ export function LeaderboardMini() {
 
       {/* Top 5 rows */}
       {top.map((entry) => {
-        const rankColor = RANK_COLORS[entry.rank] ?? "#5A6B85";
+        const rankColor = RANK_COLORS[entry.rank] ?? "#8DA2C4";
         return (
           <div
             key={entry.rank}
@@ -149,7 +149,7 @@ export function LeaderboardMini() {
                   ? "#FFD60A"
                   : entry.rank <= 3
                   ? rankColor
-                  : "#A8B5CC",
+                  : "#C9D6EC",
                 flexShrink: 0,
               }}
             >
@@ -180,7 +180,7 @@ export function LeaderboardMini() {
                 background: "#0A2540",
                 padding: "0 6px",
                 fontSize: "10px",
-                color: "#5A6B85",
+                color: "#8DA2C4",
                 letterSpacing: "3px",
               }}
             >

@@ -45,8 +45,8 @@ const P = {
   orange:  "#FF9500",
   red:     "#FF453A",
   text:    "#E8F0FE",
-  muted:   "#5A6B85",
-  subtle:  "#A8B5CC",
+  muted:   "#8DA2C4",
+  subtle:  "#C9D6EC",
 };
 
 // ─── Tiny helpers ─────────────────────────────────────────────────────────────

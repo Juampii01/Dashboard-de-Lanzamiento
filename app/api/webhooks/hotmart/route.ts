@@ -129,7 +129,7 @@ export async function POST(request: Request) {
     type: "magiclink",
     email,
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://govbidder-challenge.vercel.app"}/dashboard`,
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://dboard.govbidder.net"}/dashboard`,
     },
   });
 

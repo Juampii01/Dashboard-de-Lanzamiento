@@ -166,7 +166,7 @@ export function DayCard({
         {/* Row: label + state badge */}
         <div className="flex items-center justify-between mb-5">
           <span
-            className="text-[10px] uppercase tracking-[0.18em] text-[#A8B5CC] font-medium"
+            className="text-[10px] uppercase tracking-[0.18em] text-[#C9D6EC] font-medium"
             style={{ fontFamily: "var(--font-sans)" }}
           >
             Reto {day}
@@ -187,7 +187,7 @@ export function DayCard({
               Activo
             </span>
           ) : (
-            <Lock className="w-4 h-4 text-[#5A6B85]" />
+            <Lock className="w-4 h-4 text-[#8DA2C4]" />
           )}
         </div>
 
@@ -196,7 +196,7 @@ export function DayCard({
           className="text-8xl font-bold leading-none mb-4 select-none tabular-nums"
           style={{
             fontFamily: "var(--font-display)",
-            color: isCompleted ? "#00D67A" : isUnlocked ? "#FFFFFF" : "#3D4E6B",
+            color: isCompleted ? "#00D67A" : isUnlocked ? "#FFFFFF" : "#647FA8",
             textShadow: isUnlocked && !isCompleted
               ? "0 0 40px rgba(255,214,10,0.12)"
               : isCompleted
@@ -212,7 +212,7 @@ export function DayCard({
           className="font-bold text-lg leading-snug mb-2"
           style={{
             fontFamily: "var(--font-display)",
-            color: isUnlocked ? "#FFFFFF" : "#5A6B85",
+            color: isUnlocked ? "#FFFFFF" : "#8DA2C4",
           }}
         >
           {title}
@@ -221,7 +221,7 @@ export function DayCard({
         {/* Description */}
         <p
           className="text-sm leading-relaxed"
-          style={{ color: isUnlocked ? "#A8B5CC" : "#5A6B85" }}
+          style={{ color: isUnlocked ? "#C9D6EC" : "#8DA2C4" }}
         >
           {description}
         </p>
@@ -255,7 +255,7 @@ export function DayCard({
             )}
           </div>
         ) : (
-          <p className="text-center text-[11px] text-[#5A6B85] py-1 flex items-center justify-center gap-1.5">
+          <p className="text-center text-[11px] text-[#8DA2C4] py-1 flex items-center justify-center gap-1.5">
             <Lock className="w-3 h-3" />
             Se desbloquea en vivo
           </p>

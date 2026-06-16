@@ -90,7 +90,7 @@ export default function ConfirmPage() {
           />
           <p
             className="text-sm"
-            style={{ color: "#A8B5CC", fontFamily: "var(--font-mono)" }}
+            style={{ color: "#C9D6EC", fontFamily: "var(--font-mono)" }}
           >
             Verificando acceso…
           </p>
@@ -103,7 +103,7 @@ export default function ConfirmPage() {
           >
             ✕ Link expirado
           </p>
-          <p className="text-xs" style={{ color: "#5A6B85" }}>
+          <p className="text-xs" style={{ color: "#8DA2C4" }}>
             Redirigiendo al login…
           </p>
         </>

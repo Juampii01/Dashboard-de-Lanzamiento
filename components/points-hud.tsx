@@ -216,7 +216,7 @@ export function PointsHUD({
                 justifyContent: "space-between",
                 fontFamily: "var(--font-mono)",
                 fontSize: "10px",
-                color: i >= 2 ? "#FFD60A" : "#A8B5CC",
+                color: i >= 2 ? "#FFD60A" : "#C9D6EC",
                 fontWeight: i >= 2 ? 700 : 500,
                 borderTop: i === 2 ? "1px solid #1E3A5C" : undefined,
                 paddingTop: i === 2 ? "6px" : undefined,
@@ -231,7 +231,7 @@ export function PointsHUD({
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: "9px",
-              color: "#3A5070",
+              color: "#647FA8",
               marginTop: "8px",
               borderTop: "1px solid #1E3A5C",
               paddingTop: "6px",

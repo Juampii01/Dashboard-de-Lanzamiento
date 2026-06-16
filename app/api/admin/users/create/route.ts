@@ -78,7 +78,7 @@ export async function POST(req: Request) {
   const admin = createServiceClient();
 
   const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://govbidder-challenge.vercel.app";
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://dboard.govbidder.net";
 
   type Result = {
     email: string;

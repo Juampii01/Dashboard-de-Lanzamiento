@@ -213,7 +213,7 @@ function AdModal({
               📺 ANUNCIO
             </span>
             {ad.title && (
-              <span style={{ fontSize: "12px", color: "#5A6B85" }}>· {ad.title}</span>
+              <span style={{ fontSize: "12px", color: "#8DA2C4" }}>· {ad.title}</span>
             )}
           </div>
 
@@ -329,17 +329,17 @@ function AdModal({
                   borderRadius: "10px",
                   border: "1px solid #1E3A5C",
                   background: "transparent",
-                  color: "#5A6B85",
+                  color: "#8DA2C4",
                   fontSize: "13px",
                   cursor: "pointer",
                   flexShrink: 0,
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.color = "#A8B5CC";
+                  (e.currentTarget as HTMLElement).style.color = "#C9D6EC";
                   (e.currentTarget as HTMLElement).style.borderColor = "#2E4A6B";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.color = "#5A6B85";
+                  (e.currentTarget as HTMLElement).style.color = "#8DA2C4";
                   (e.currentTarget as HTMLElement).style.borderColor = "#1E3A5C";
                 }}
               >
@@ -541,7 +541,7 @@ export function AdButton({ initialLastAdAt }: AdButtonProps) {
           background: isCooldown
             ? "rgba(10,37,64,0.5)"
             : "rgba(0,214,122,0.08)",
-          color: isCooldown ? "#3A5070" : "#00D67A",
+          color: isCooldown ? "#647FA8" : "#00D67A",
           fontFamily: "var(--font-mono)",
           fontSize: "10px",
           fontWeight: 600,

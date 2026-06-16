@@ -26,7 +26,7 @@ export function ResetTutorialButton() {
       disabled={loading}
       title="Ver tutorial de bienvenida otra vez"
       className="text-xs transition-colors disabled:opacity-50"
-      style={{ color: "#3A5070", fontFamily: "var(--font-sans)" }}
+      style={{ color: "#647FA8", fontFamily: "var(--font-sans)" }}
     >
       {loading ? "..." : "🎮 Tutorial"}
     </button>

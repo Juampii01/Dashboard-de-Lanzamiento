@@ -758,7 +758,7 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
               <div style={{ textAlign: "center", flex: "1 1 0", minWidth: 0 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=https://govbidder-challenge.vercel.app"
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=https://dboard.govbidder.net"
                   alt="QR grupo de graduados"
                   style={{ width: "clamp(54px, 9vw, 82px)", height: "auto", display: "block", margin: "0 auto 4px" }}
                 />

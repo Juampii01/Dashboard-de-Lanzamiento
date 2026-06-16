@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 
 const LINES = [
-  { text: "> Inicializando sistema Govbidder...", color: "#A8B5CC" },
-  { text: "> Verificando credenciales gubernamentales...", color: "#A8B5CC" },
-  { text: "> Conectando con SAM.gov...", color: "#A8B5CC" },
-  { text: "> Cargando oportunidades de contratos...", color: "#A8B5CC" },
+  { text: "> Inicializando sistema Govbidder...", color: "#C9D6EC" },
+  { text: "> Verificando credenciales gubernamentales...", color: "#C9D6EC" },
+  { text: "> Conectando con SAM.gov...", color: "#C9D6EC" },
+  { text: "> Cargando oportunidades de contratos...", color: "#C9D6EC" },
   { text: "> [OK] Perfil de contratista: VERIFICADO", color: "#00D67A" },
   { text: "> ACCESO CONCEDIDO. Bienvenido a Govbidder.", color: "#FFD60A" },
 ];
@@ -98,7 +98,7 @@ export function BootSequence() {
 
         <p
           className="mt-10 text-[10px]"
-          style={{ color: "#3D4E6B", fontFamily: "var(--font-mono)" }}
+          style={{ color: "#647FA8", fontFamily: "var(--font-mono)" }}
         >
           Click para saltar
         </p>
