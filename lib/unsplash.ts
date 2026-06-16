@@ -45,23 +45,61 @@ export async function fetchNicheImageUrls(
 ): Promise<string[]> {
   const key = process.env.UNSPLASH_ACCESS_KEY?.trim();
   const cleanNiche = niche?.trim();
-  if (!key || !cleanNiche) return [];
+  if (!cleanNiche) return [];
 
-  // 1. Distinct photos straight from the niche
-  const out = await searchMany(cleanNiche, key, count + 2);
+  let out: string[] = [];
 
-  // 2. Top up with niche-anchored refinements if needed
-  if (out.length < count) {
-    for (const term of refineTerms) {
-      if (out.length >= count) break;
-      const t = term?.trim();
-      if (!t) continue;
-      const u = await searchOne(`${cleanNiche} ${t}`, key, "squarish");
-      if (u && !out.includes(u)) out.push(u);
+  // 1. Unsplash (mejor calidad) — solo si hay API key configurada.
+  if (key) {
+    out = await searchMany(cleanNiche, key, count + 2);
+
+    // Top up con refinamientos anclados al nicho
+    if (out.length < count) {
+      for (const term of refineTerms) {
+        if (out.length >= count) break;
+        const t = term?.trim();
+        if (!t) continue;
+        const u = await searchOne(`${cleanNiche} ${t}`, key, "squarish");
+        if (u && !out.includes(u)) out.push(u);
+      }
     }
   }
 
+  // 2. Fallback SIN key (LoremFlickr): garantiza que el sitio SIEMPRE tenga
+  //    fotos reales relevantes al rubro, aunque no haya UNSPLASH_ACCESS_KEY.
+  if (out.length < count) {
+    out = out.concat(loremFlickrUrls(cleanNiche, refineTerms, count - out.length));
+  }
+
   return out.slice(0, count);
+}
+
+/**
+ * URLs de imágenes keyless (LoremFlickr) basadas en el rubro. No requiere API
+ * key. Cada URL usa un `lock` distinto para devolver una foto diferente pero
+ * siempre del mismo tema. Sirve de red de seguridad cuando Unsplash no está.
+ */
+function loremFlickrUrls(niche: string, refineTerms: string[], count: number): string[] {
+  // Etiquetas concisas: priorizar keywords (cortas) sobre el niche (párrafo largo).
+  const toTag = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").trim().split(/\s+/).slice(0, 2).join(",");
+
+  const tags = refineTerms
+    .map((t) => toTag(t))
+    .filter(Boolean);
+
+  if (tags.length === 0) {
+    const nicheTag = toTag(niche);
+    if (nicheTag) tags.push(nicheTag);
+  }
+  if (tags.length === 0) tags.push("business,office");
+
+  const urls: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const tag = tags[i % tags.length];
+    urls.push(`https://loremflickr.com/1200/800/${encodeURIComponent(tag)}?lock=${i + 1}`);
+  }
+  return urls;
 }
 
 /** Fetch up to `count` DISTINCT photo URLs from a single query. */
