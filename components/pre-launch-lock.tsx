@@ -55,7 +55,11 @@ export function PreLaunchLock({ targetIso = LAUNCH_ISO }: { targetIso?: string }
         position: "fixed", inset: 0, zIndex: 100000,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 24, textAlign: "center", overflow: "auto",
-        background: "radial-gradient(900px circle at 50% 25%, rgba(228,45,44,0.10), transparent 60%), linear-gradient(160deg, #0d1a3d 0%, #080f24 100%)",
+        // Overlay: el dashboard se ve DETRÁS (atenuado + blur), el contador adelante.
+        // El div ocupa toda la pantalla → bloquea la interacción con el dashboard.
+        background: "radial-gradient(900px circle at 50% 25%, rgba(228,45,44,0.12), transparent 60%), rgba(8,15,36,0.82)",
+        backdropFilter: "blur(7px)",
+        WebkitBackdropFilter: "blur(7px)",
       }}
     >
       <div style={{ width: "min(680px, 100%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>

@@ -169,11 +169,11 @@ export default async function DashboardLayout({
   // ─────────────────────────────────────────────────────────────────────────
 
   // ── Lock de pre-lanzamiento ──────────────────────────────────────────────
-  // Hasta LAUNCH_ISO (29 jun, 4 PM Miami) los USUARIOS (no admins) ven solo el
-  // contador — sin sidebar, días, ranking ni nada. Los admins entran normal.
-  if (!devMode && profile && !profile.is_admin && Date.now() < Date.parse(LAUNCH_ISO)) {
-    return <PreLaunchLock />;
-  }
+  // Hasta LAUNCH_ISO (29 jun, 4 PM Miami) los USUARIOS (no admins) ven el
+  // dashboard DETRÁS, con el contador como overlay encima (bloquea interacción).
+  // Los admins entran normal.
+  const preLaunchLocked =
+    !devMode && !!profile && !profile.is_admin && Date.now() < Date.parse(LAUNCH_ISO);
   // ─────────────────────────────────────────────────────────────────────────
 
   const remaining = daysLeft(profile?.access_expires_at ?? null);
@@ -188,6 +188,7 @@ export default async function DashboardLayout({
         overflow: "hidden",
       }}
     >
+      {preLaunchLocked && <PreLaunchLock />}
       {/* Invisible global effects */}
       <UnlockEventListener />
       {!devMode && <XpEngine />}
