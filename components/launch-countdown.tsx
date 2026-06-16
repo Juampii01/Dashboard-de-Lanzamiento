@@ -67,9 +67,8 @@ export function LaunchCountdown({
         pointerEvents: "auto", // bloquea la interacción con el contenido de abajo
         display: "flex", alignItems: "flex-start", justifyContent: "center",
         padding: "clamp(20px, 6vh, 64px) 14px",
-        // Semi-transparente: se ve el dashboard detrás, atenuado, sin molestar.
-        background: "rgba(8,15,36,0.45)",
-        backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)",
+        // Bien semi-transparente: el dashboard se ve nítido detrás (sin blur).
+        background: "rgba(8,15,36,0.22)",
         borderRadius: 16,
       }}
     >
