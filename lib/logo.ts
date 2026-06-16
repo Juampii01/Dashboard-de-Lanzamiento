@@ -20,3 +20,27 @@ export async function fetchLogoDataUri(logoUrl: string | null | undefined): Prom
     return null;
   }
 }
+
+/**
+ * Reads a static asset from /public and returns it as a base64 data URI so
+ * react-pdf can embed it during SSR. Used for the Govbidder brand logo.
+ */
+export async function readPublicImageDataUri(
+  fileName: string,
+  mime = "image/png"
+): Promise<string | null> {
+  try {
+    const { readFile } = await import("fs/promises");
+    const path = await import("path");
+    const filePath = path.join(process.cwd(), "public", fileName);
+    const buf = await readFile(filePath);
+    return `data:${mime};base64,${buf.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
+/** Govbidder brand logo (halcón) como data URI, listo para react-pdf. */
+export async function getBrandLogoDataUri(): Promise<string | null> {
+  return readPublicImageDataUri("halcon.png");
+}

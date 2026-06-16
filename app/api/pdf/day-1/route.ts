@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { Day1AnalysisPDF } from "@/components/pdfs/Day1AnalysisPDF";
 import { createElement } from "react";
-import { fetchLogoDataUri } from "@/lib/logo";
+import { fetchLogoDataUri, getBrandLogoDataUri } from "@/lib/logo";
 
 export async function GET() {
   const supabase = await createClient();
@@ -27,7 +27,10 @@ export async function GET() {
     day: "numeric",
   });
 
-  const logoDataUri = await fetchLogoDataUri(p.logo_url as string | null);
+  const [logoDataUri, brandLogoDataUri] = await Promise.all([
+    fetchLogoDataUri(p.logo_url as string | null),
+    getBrandLogoDataUri(),
+  ]);
 
   const buffer = await renderToBuffer(
     createElement(Day1AnalysisPDF, {
@@ -40,6 +43,7 @@ export async function GET() {
       primaryNaics: profile.primary_naics,
       generatedAt,
       logoDataUri,
+      brandLogoDataUri,
     })
   );
 

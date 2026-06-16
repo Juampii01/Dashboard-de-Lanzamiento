@@ -92,6 +92,7 @@ interface Day1PDFProps {
   naicsReasoning?: string;
   generatedAt: string;
   logoDataUri?: string | null;
+  brandLogoDataUri?: string | null;
 }
 
 function SectionTitle({ children }: { children: string }) {
@@ -124,6 +125,7 @@ export function Day1AnalysisPDF({
   naicsReasoning,
   generatedAt,
   logoDataUri,
+  brandLogoDataUri,
 }: Day1PDFProps) {
   return (
     <Document>
@@ -143,7 +145,15 @@ export function Day1AnalysisPDF({
                 <Text style={styles.tagline}>Govbidder Challenge — Perfil Estratégico Día 1</Text>
               </View>
             </View>
-            <Text style={styles.docTitle}>STRATEGIC{"\n"}PROFILE{"\n"}DAY 1</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+              <Text style={styles.docTitle}>STRATEGIC{"\n"}PROFILE{"\n"}DAY 1</Text>
+              {brandLogoDataUri ? (
+                <Image
+                  src={brandLogoDataUri}
+                  style={{ width: 34, height: 34, objectFit: "contain", backgroundColor: "#fff", borderRadius: 5, padding: 3 }}
+                />
+              ) : null}
+            </View>
           </View>
         </View>
         <View style={styles.goldBar} />
