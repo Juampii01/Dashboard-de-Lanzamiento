@@ -407,23 +407,24 @@ function VideoTutorial() {
                 alt="Govbidder"
                 style={{ height: "38px", width: "auto", objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.75))" }}
               />
-              {/* Botón de play (decorativo) */}
+              {/* Botón de play */}
               <div
                 style={{
                   width: "62px", height: "62px", borderRadius: "999px",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   background: "rgba(228,45,44,0.92)",
                   boxShadow: "0 0 0 8px rgba(228,45,44,0.18), 0 8px 24px rgba(0,0,0,0.5)",
+                  cursor: "pointer",
                 }}
               >
                 <span style={{ color: "#fff", fontSize: "24px", marginLeft: "4px", lineHeight: 1 }}>▶</span>
               </div>
               <div style={{ textAlign: "center" }}>
                 <p style={{ color: "#fff", fontSize: "16px", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>
-                  Tu video tutorial está en camino
+                  Presioná para ver el tutorial
                 </p>
                 <p style={{ color: "#C9D6EC", fontSize: "13px", marginTop: "5px", maxWidth: "42ch", textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>
-                  Te vamos a mostrar cómo aprovechar el dashboard al máximo. Muy pronto disponible acá.
+                  Te mostramos cómo aprovechar el dashboard al máximo en pocos minutos.
                 </p>
               </div>
               <span style={{
@@ -432,7 +433,7 @@ function VideoTutorial() {
                 background: "rgba(228,45,44,0.92)", border: "1px solid rgba(255,255,255,0.25)",
                 borderRadius: "999px", padding: "5px 14px",
               }}>
-                Próximamente
+                ▶ Ver tutorial
               </span>
             </div>
           </div>
