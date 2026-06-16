@@ -12,11 +12,25 @@
 const UNSPLASH_API = "https://api.unsplash.com/search/photos";
 
 /**
+ * Resuelve la API key de Unsplash tolerando distintos nombres de env var
+ * (por si en Vercel quedó cargada como UNSPLASH_API_KEY, etc.).
+ */
+function getUnsplashKey(): string | undefined {
+  return (
+    process.env.UNSPLASH_ACCESS_KEY ||
+    process.env.UNSPLASH_API_KEY ||
+    process.env.UNSPLASH_KEY ||
+    process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY ||
+    ""
+  ).trim() || undefined;
+}
+
+/**
  * Fetch plain image URLs (not data URIs) for use in <img src> in a web page
  * rendered in the browser. Returns up to `count` Unsplash URLs.
  */
 export async function fetchWebImageUrls(keywords: string[], count = 4): Promise<string[]> {
-  const key = process.env.UNSPLASH_ACCESS_KEY?.trim();
+  const key = getUnsplashKey();
   if (!key || keywords.length === 0) return [];
   const out: string[] = [];
   for (let i = 0; i < count; i++) {
@@ -43,35 +57,49 @@ export async function fetchNicheImageUrls(
   refineTerms: string[] = [],
   count = 4
 ): Promise<string[]> {
-  const key = process.env.UNSPLASH_ACCESS_KEY?.trim();
+  const key = getUnsplashKey();
   const cleanNiche = niche?.trim();
-  if (!cleanNiche) return [];
+
+  // Queries CONCISAS para Unsplash. Las keywords (Día 2, en inglés) son las
+  // mejores búsquedas; el `niche` suele ser un párrafo largo que devuelve 0
+  // resultados. Por eso usamos keywords primero y el niche solo como respaldo.
+  const queries = [
+    ...refineTerms.map((t) => t?.trim()).filter(Boolean) as string[],
+    shortNiche(cleanNiche),
+  ].filter(Boolean) as string[];
+
+  if (queries.length === 0) return [];
 
   let out: string[] = [];
 
   // 1. Unsplash (mejor calidad) — solo si hay API key configurada.
   if (key) {
-    out = await searchMany(cleanNiche, key, count + 2);
-
-    // Top up con refinamientos anclados al nicho
-    if (out.length < count) {
-      for (const term of refineTerms) {
+    for (const q of queries) {
+      if (out.length >= count) break;
+      const found = await searchMany(q, key, 2);
+      for (const u of found) {
+        if (!out.includes(u)) out.push(u);
         if (out.length >= count) break;
-        const t = term?.trim();
-        if (!t) continue;
-        const u = await searchOne(`${cleanNiche} ${t}`, key, "squarish");
-        if (u && !out.includes(u)) out.push(u);
       }
     }
   }
 
   // 2. Fallback SIN key (LoremFlickr): garantiza que el sitio SIEMPRE tenga
-  //    fotos reales relevantes al rubro, aunque no haya UNSPLASH_ACCESS_KEY.
+  //    fotos reales relevantes al rubro, aunque Unsplash falle o no esté.
   if (out.length < count) {
-    out = out.concat(loremFlickrUrls(cleanNiche, refineTerms, count - out.length));
+    out = out.concat(loremFlickrUrls(cleanNiche ?? "", refineTerms, count - out.length));
   }
 
   return out.slice(0, count);
+}
+
+/** Reduce un niche largo (párrafo) a una query corta de ~4 palabras útiles. */
+function shortNiche(niche?: string): string {
+  if (!niche) return "";
+  const stop = new Set(["de","la","el","los","las","y","para","con","que","una","un","del","en","servicios","ofrecemos","resolvemos"]);
+  const words = niche.toLowerCase().replace(/[^a-záéíóúñ0-9\s]/gi, " ").split(/\s+/)
+    .filter((w) => w.length > 3 && !stop.has(w));
+  return words.slice(0, 4).join(" ");
 }
 
 /**
@@ -161,7 +189,7 @@ export async function fetchCapabilityImages(
   keywords: string[],
   count = 2
 ): Promise<string[]> {
-  const key = process.env.UNSPLASH_ACCESS_KEY?.trim();
+  const key = getUnsplashKey();
   if (!key || keywords.length === 0) return [];
 
   const queries: string[] = [];
