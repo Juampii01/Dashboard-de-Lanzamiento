@@ -159,6 +159,7 @@ REGLAS TÉCNICAS
 - NO Tailwind, NO frameworks, NO <script>, NO CDN, NO JavaScript.
 - Las ÚNICAS URLs de imagen permitidas son: (1) las URLs de Unsplash provistas arriba, (2) la LOGO_URL del cliente si fue provista. No inventes otras URLs.
 - TODO el estilo en el campo "css" (CSS plano, completo, abundante y detallado).
+- RESPONSIVE OBLIGATORIO: el sitio se verá en escritorio Y en celular. Incluí media queries (@media (max-width: 768px) y @media (max-width: 480px)) que apilen los grids en 1 columna, reduzcan el tamaño del hero/títulos y los paddings, y conviertan la nav en algo simple. NUNCA generes scroll horizontal: usá width:100%/max-width en contenedores, "img{max-width:100%;height:auto;display:block}", evitá anchos fijos en px que excedan la pantalla, y "box-sizing:border-box" global. El hero y todas las secciones deben verse perfectas a 390px de ancho.
 - HTML con clases semánticas claras.
 - Copy en INGLÉS, cálido y profesional, orientado a vender al cliente. Sin relleno genérico — específico al negocio.
 

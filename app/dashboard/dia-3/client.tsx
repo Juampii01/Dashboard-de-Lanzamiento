@@ -129,6 +129,17 @@ ${webResult.html}
 </html>`;
   }
 
+  // HTML para el iframe del PREVIEW: agrega un "guard" que evita el scroll
+  // horizontal / desborde cuando el sitio no es 100% responsive (sobre todo en
+  // la vista Móvil). El archivo descargado (buildFullHtml) queda intacto.
+  function buildPreviewHtml(): string {
+    const full = buildFullHtml();
+    if (!full) return "";
+    const guard =
+      "<style>html,body{max-width:100%!important;overflow-x:hidden!important;margin:0;}*{box-sizing:border-box;}img,svg,video,iframe,table{max-width:100%!important;height:auto;}</style>";
+    return full.replace("</head>", `${guard}</head>`);
+  }
+
   async function handleCopyHtml() {
     const html = buildFullHtml();
     if (!html) return;
@@ -360,7 +371,7 @@ ${webResult.html}
               </div>
               <iframe
                 key={device}
-                srcDoc={buildFullHtml()}
+                srcDoc={buildPreviewHtml()}
                 style={{ width: "100%", height: device === "mobile" ? 700 : 620, background: "#fff", border: "none", display: "block" }}
                 sandbox="allow-same-origin"
                 title="Website preview"

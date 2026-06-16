@@ -403,7 +403,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
               <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: collapsed ? "4px 6px" : "2px 6px" }}>
                 <EntregableRow name="Análisis Día 1" sub="NAICS + Perfil · PDF" href="/api/pdf/day-1" available={day1Done} collapsed={collapsed} />
                 <EntregableRow name="Códigos NAICS" sub="Keywords · PDF" href="/api/pdf/day-2" available={day2Done} collapsed={collapsed} />
-                <EntregableRow name="Web Preview" sub="Disponible en Día 3" href="/api/pdf/day-3" available={day3Done} collapsed={collapsed} />
+                <EntregableRow name="Web Preview" sub="Descargar HTML · Día 3" href="/api/web/day-3" available={day3Done} collapsed={collapsed} />
                 <EntregableRow name="Capability Statement" sub="Disponible en Día 4" href="/api/pdf/capability-statement" available={day4Done} collapsed={collapsed} />
               </div>
             </div>
