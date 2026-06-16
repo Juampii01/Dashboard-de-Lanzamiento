@@ -271,38 +271,6 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
             boxShadow: "0 24px 80px rgba(0,0,0,0.7), 0 0 40px rgba(255,214,10,0.15)",
           }}
         >
-          {/* Banner bandera USA + logo Govbidder */}
-          <div style={{ position: "relative", height: 88, overflow: "hidden" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/flag-usa.jpg"
-              alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 35%" }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "linear-gradient(180deg, rgba(13,31,54,0.40) 0%, rgba(13,31,54,0.94) 100%)",
-              }}
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/halcon.png"
-              alt="Govbidder"
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                height: 42,
-                width: "auto",
-                objectFit: "contain",
-                filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.75))",
-              }}
-            />
-          </div>
-
           {/* Dots de progreso */}
           <div className="flex justify-center gap-1.5 pt-4">
             {STEPS.map((_, i) => (

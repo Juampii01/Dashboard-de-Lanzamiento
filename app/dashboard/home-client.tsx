@@ -379,33 +379,62 @@ function VideoTutorial() {
         }}
       >
         {isPlaceholder ? (
-          /* Placeholder cuando no hay video configurado */
-          <div
-            style={{
-              position: "absolute", inset: 0,
-              display: "flex", flexDirection: "column",
-              alignItems: "center", justifyContent: "center",
-              gap: "14px", padding: "20px",
-              background: "radial-gradient(600px circle at 50% 20%, rgba(228,45,44,0.10), transparent 60%), linear-gradient(135deg, #0D2E4D 0%, #060D1A 100%)",
-            }}
-          >
-            <div style={{ fontSize: "46px" }}>🎬</div>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ color: "#fff", fontSize: "16px", fontWeight: 700 }}>
-                Tu video tutorial está en camino
-              </p>
-              <p style={{ color: "#C9D6EC", fontSize: "13px", marginTop: "5px", maxWidth: "42ch" }}>
-                Te vamos a mostrar cómo aprovechar el dashboard al máximo. Muy pronto disponible acá.
-              </p>
+          /* Placeholder cuando no hay video configurado — poster con imagen */
+          <div style={{ position: "absolute", inset: 0 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/flag-usa.jpg"
+              alt=""
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 35%" }}
+            />
+            <div
+              style={{
+                position: "absolute", inset: 0,
+                background: "radial-gradient(700px circle at 50% 18%, rgba(228,45,44,0.18), transparent 60%), linear-gradient(135deg, rgba(13,46,77,0.86) 0%, rgba(6,13,26,0.94) 100%)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute", inset: 0,
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                gap: "14px", padding: "20px",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/halcon.png"
+                alt="Govbidder"
+                style={{ height: "38px", width: "auto", objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.75))" }}
+              />
+              {/* Botón de play (decorativo) */}
+              <div
+                style={{
+                  width: "62px", height: "62px", borderRadius: "999px",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: "rgba(228,45,44,0.92)",
+                  boxShadow: "0 0 0 8px rgba(228,45,44,0.18), 0 8px 24px rgba(0,0,0,0.5)",
+                }}
+              >
+                <span style={{ color: "#fff", fontSize: "24px", marginLeft: "4px", lineHeight: 1 }}>▶</span>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ color: "#fff", fontSize: "16px", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>
+                  Tu video tutorial está en camino
+                </p>
+                <p style={{ color: "#C9D6EC", fontSize: "13px", marginTop: "5px", maxWidth: "42ch", textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>
+                  Te vamos a mostrar cómo aprovechar el dashboard al máximo. Muy pronto disponible acá.
+                </p>
+              </div>
+              <span style={{
+                fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 800,
+                letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff",
+                background: "rgba(228,45,44,0.92)", border: "1px solid rgba(255,255,255,0.25)",
+                borderRadius: "999px", padding: "5px 14px",
+              }}>
+                Próximamente
+              </span>
             </div>
-            <span style={{
-              fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 800,
-              letterSpacing: "0.1em", textTransform: "uppercase", color: "#E42D2C",
-              background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.4)",
-              borderRadius: "999px", padding: "5px 14px",
-            }}>
-              Próximamente
-            </span>
           </div>
         ) : (
           <iframe
