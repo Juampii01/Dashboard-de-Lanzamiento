@@ -5,6 +5,8 @@ import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia3Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
+import { LaunchCountdown } from "@/components/launch-countdown";
+import { DAY_UNLOCK_ISO, isDayDateUnlocked } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -39,8 +41,19 @@ export default async function Dia3Page() {
     ]);
 
   const isAdmin = adminUser?.is_admin === true;
+
+  if (!isAdmin && !isDayDateUnlocked(3)) {
+    return (
+      <div className="space-y-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
+        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[3]} title="Día 3 — Web + Portales" subtitle="Tu presencia profesional y dónde registrarte para conseguir contratos. Se viene." />
+      </div>
+    );
+  }
+
   const isUnlocked =
     isAdmin ||
+    isDayDateUnlocked(3) ||
     (toggle?.is_globally_unlocked === true && prevProgress?.is_completed === true) ||
     progress?.is_unlocked === true;
 

@@ -5,6 +5,8 @@ import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia2Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
+import { LaunchCountdown } from "@/components/launch-countdown";
+import { DAY_UNLOCK_ISO, isDayDateUnlocked } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -38,10 +40,20 @@ export default async function Dia2Page() {
     ]);
 
   const isAdmin = adminUser?.is_admin === true;
+
+  if (!isAdmin && !isDayDateUnlocked(2)) {
+    return (
+      <div className="space-y-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
+        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[2]} title="Día 2 — Mapa de Códigos" subtitle="Vas a expandir tu código en todos los formatos que el gobierno usa para encontrarte. Falta poco." />
+      </div>
+    );
+  }
+
   const globallyUnlocked = toggle?.is_globally_unlocked === true;
   const prevCompleted = prevProgress?.is_completed === true;
   const userUnlocked = progress?.is_unlocked === true;
-  const isUnlocked = isAdmin || (globallyUnlocked && prevCompleted) || userUnlocked;
+  const isUnlocked = isAdmin || isDayDateUnlocked(2) || (globallyUnlocked && prevCompleted) || userUnlocked;
 
   if (!isUnlocked) redirect("/dashboard");
 

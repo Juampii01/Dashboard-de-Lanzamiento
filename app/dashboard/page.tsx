@@ -2,6 +2,8 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { HomeClient } from "./home-client";
+import { LaunchCountdown } from "@/components/launch-countdown";
+import { LAUNCH_ISO } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -17,6 +19,7 @@ export default async function DashboardPage() {
   let initialPoints = 0;
   let fullName = "Usuario";
   let avatarUrl: string | null = null;
+  let isAdmin = false;
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -36,21 +39,34 @@ export default async function DashboardPage() {
 
     const { data: profile } = await createServiceClient()
       .from("users")
-      .select("full_name, total_points, avatar_url")
+      .select("full_name, total_points, avatar_url, is_admin")
       .eq("id", user.id)
       .maybeSingle();
 
     fullName = profile?.full_name ?? "Usuario";
     initialPoints = (profile?.total_points as number | null) ?? 0;
     avatarUrl = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
+    isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin === true;
   }
 
+  // Contador de lanzamiento dentro del Inicio (solo usuarios, antes del Día 1).
+  const beforeLaunch = !devMode && !isAdmin && Date.now() < Date.parse(LAUNCH_ISO);
+
   return (
-    <HomeClient
-      initialPoints={initialPoints}
-      fullName={fullName}
-      devMode={devMode}
-      avatarUrl={avatarUrl}
-    />
+    <div className="space-y-8">
+      {beforeLaunch && (
+        <LaunchCountdown
+          targetIso={LAUNCH_ISO}
+          title="El dashboard se desbloquea pronto"
+          subtitle="Estamos terminando de prepararlo todo. Recorré lo que se viene — tu Día 1 arranca muy pronto."
+        />
+      )}
+      <HomeClient
+        initialPoints={initialPoints}
+        fullName={fullName}
+        devMode={devMode}
+        avatarUrl={avatarUrl}
+      />
+    </div>
   );
 }

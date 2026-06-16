@@ -4,6 +4,8 @@ import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia1Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
+import { LaunchCountdown } from "@/components/launch-countdown";
+import { DAY_UNLOCK_ISO, isDayDateUnlocked } from "@/lib/launch";
 import Link from "next/link";
 
 async function getDia1Data(userId: string) {
@@ -51,14 +53,27 @@ export default async function Dia1Page() {
 
   const { progress, profile, toggle } = await getDia1Data(user.id);
 
-  const isUnlocked =
-    toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
-
-  if (!isUnlocked) redirect("/dashboard");
-
   const { data: userProfile } = await createServiceClient()
     .from("users").select("is_admin").eq("id", user.id).maybeSingle();
   const isAdmin = userProfile?.is_admin ?? false;
+
+  // Bloqueo por fecha (pre-lanzamiento): visible pero bloqueado, con contador.
+  if (!isAdmin && !isDayDateUnlocked(1)) {
+    return (
+      <div className="space-y-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
+        <LaunchCountdown
+          targetIso={DAY_UNLOCK_ISO[1]}
+          title="Día 1 — Perfil Estratégico"
+          subtitle="Tu primer día está por arrancar. En cuanto se desbloquee vas a descubrir tu oportunidad en el mercado del Gobierno de USA."
+        />
+      </div>
+    );
+  }
+
+  const isUnlocked =
+    isAdmin || isDayDateUnlocked(1) || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
+  if (!isUnlocked) redirect("/dashboard");
 
   return (
     <div className="space-y-8">

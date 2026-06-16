@@ -10,8 +10,6 @@ import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { DayTabs } from "@/components/day-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { PreLaunchLock } from "@/components/pre-launch-lock";
-import { LAUNCH_ISO } from "@/lib/launch";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -168,14 +166,6 @@ export default async function DashboardLayout({
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-  // ── Banner de pre-lanzamiento ────────────────────────────────────────────
-  // Hasta LAUNCH_ISO (29 jun, 4 PM Miami) los USUARIOS (no admins) pueden
-  // recorrer todo el dashboard, con un contador flotante (no-bloqueante) hacia
-  // el lanzamiento. Los admins no lo ven.
-  const preLaunchLocked =
-    !devMode && !!profile && !profile.is_admin && Date.now() < Date.parse(LAUNCH_ISO);
-  // ─────────────────────────────────────────────────────────────────────────
-
   const remaining = daysLeft(profile?.access_expires_at ?? null);
 
   return (
@@ -188,7 +178,6 @@ export default async function DashboardLayout({
         overflow: "hidden",
       }}
     >
-      {preLaunchLocked && <PreLaunchLock />}
       {/* Invisible global effects */}
       <UnlockEventListener />
       {!devMode && <XpEngine />}
