@@ -1,4 +1,5 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { sendAccessEmail } from "@/lib/email/send-access-email";
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------
@@ -151,17 +152,24 @@ export async function POST(req: Request) {
         options: { redirectTo: `${appUrl}/auth/confirm` },
       });
 
-      const emailSent = !linkError;
       const magicLink = (linkData as { properties?: { action_link?: string } } | null)
         ?.properties?.action_link ?? null;
 
-      if (linkError) {
+      // generateLink NO envía email — lo mandamos explícitamente por Resend.
+      let emailSent = false;
+      if (linkError || !magicLink) {
         console.warn(
-          `[create-user] magic link failed for ${userData.email}:`,
-          linkError.message
+          `[create-user] magic link gen failed for ${userData.email}:`,
+          linkError?.message
         );
-        // Non-fatal — user still created. Return link info so admin can share manually.
+      } else {
+        const sent = await sendAccessEmail({ to: userData.email, magicLink, appUrl });
+        emailSent = sent.ok;
+        if (!sent.ok) {
+          console.warn(`[create-user] Resend send failed for ${userData.email}: ${sent.error}`);
+        }
       }
+      // Non-fatal si falla: el usuario igual se crea y devolvemos magic_link de fallback.
 
       // 4e. Audit log — success
       await admin.from("admin_user_creation_log").insert({
