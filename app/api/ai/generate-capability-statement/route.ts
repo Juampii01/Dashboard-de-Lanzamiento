@@ -15,13 +15,13 @@ const bodySchema = z.object({
     description: z.string(),
     type: z.string(),
   })).optional(),
-  keywordsExpanded: z.array(z.string()).optional(),
-  yearFounded: z.number().optional(),
-  employeeCount: z.number().optional(),
-  usState: z.string().optional(),
-  legalStructure: z.string().optional(),
-  certifications: z.array(z.string()).optional(),
-  hasGovernmentContracts: z.boolean().optional(),
+  keywordsExpanded: z.array(z.string()).nullable().optional(),
+  yearFounded: z.number().nullable().optional(),
+  employeeCount: z.number().nullable().optional(),
+  usState: z.string().nullable().optional(),
+  legalStructure: z.string().nullable().optional(),
+  certifications: z.array(z.string()).nullable().optional(),
+  hasGovernmentContracts: z.boolean().nullable().optional(),
 });
 
 interface CodeWithDesc {

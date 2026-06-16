@@ -141,8 +141,8 @@ export function Dia4Client({
           primaryNaics: profile.primary_naics ?? "",
           relatedCodes,
           keywordsExpanded: expansion?.keywords_expanded ?? [],
-          yearFounded: profile.year_founded,
-          employeeCount: profile.employee_count,
+          yearFounded: profile.year_founded ?? undefined,
+          employeeCount: profile.employee_count ?? undefined,
           usState: (p.us_state as string) ?? undefined,
           legalStructure: (p.legal_structure as string) ?? undefined,
           certifications: (p.existing_certifications as string[]) ?? undefined,
@@ -150,7 +150,11 @@ export function Dia4Client({
         }),
       });
 
-      if (!res.ok) throw new Error("API error");
+      if (!res.ok) {
+        let msg = "API error";
+        try { const e = await res.json(); msg = e?.message || e?.error || msg; } catch { /* keep */ }
+        throw new Error(msg);
+      }
       const data: CapabilityStatementData = await res.json();
       setStatement(data);
 
@@ -182,8 +186,11 @@ export function Dia4Client({
       setWizardOpen(false);
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Capability Statement generado!");
-    } catch {
-      toast.error("Estamos teniendo un problema. Intentá de nuevo.");
+    } catch (err) {
+      const msg = err instanceof Error && err.message && err.message !== "API error"
+        ? err.message
+        : "Estamos teniendo un problema. Intentá de nuevo.";
+      toast.error(msg);
     } finally {
       stopLoadingCycle();
       setGenerating(false);
