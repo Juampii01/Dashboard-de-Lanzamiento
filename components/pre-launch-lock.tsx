@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-/**
- * Fecha de habilitación del dashboard: 29 de junio, 4:00 PM hora Miami.
- * Miami en junio = EDT (UTC-4) → 16:00 EDT = 20:00 UTC.
- */
-export const LAUNCH_ISO = "2026-06-29T20:00:00Z";
+import { LAUNCH_ISO } from "@/lib/launch";
 
 function diffParts(targetMs: number) {
   const total = Math.max(0, targetMs - Date.now());

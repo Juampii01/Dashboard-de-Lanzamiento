@@ -10,7 +10,8 @@ import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { DayTabs } from "@/components/day-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { PreLaunchLock, LAUNCH_ISO } from "@/components/pre-launch-lock";
+import { PreLaunchLock } from "@/components/pre-launch-lock";
+import { LAUNCH_ISO } from "@/lib/launch";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
