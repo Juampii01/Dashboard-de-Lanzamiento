@@ -44,7 +44,7 @@ export default function SinAccesoPage() {
             >
               Acceso no verificado
             </h1>
-            <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC" }}>
+            <p className="text-sm leading-relaxed" style={{ color: "#C9D6EC" }}>
               Tu cuenta no tiene una compra verificada asociada a{" "}
               <strong className="text-white">Govbidder</strong>.
             </p>
@@ -58,14 +58,16 @@ export default function SinAccesoPage() {
             }}
           >
             <p className="font-semibold text-white">¿Ya compraste el acceso?</p>
-            <p style={{ color: "#A8B5CC" }}>
+            <p style={{ color: "#C9D6EC" }}>
               Asegurate de iniciar sesión con el mismo email que usaste al
-              comprar. Si el problema persiste, escribinos a{" "}
+              comprar. Si el problema persiste, contactanos en{" "}
               <a
-                href="mailto:soporte@govbidder.com"
+                href="https://govbidder.net"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-[#FFD60A] underline"
               >
-                soporte@govbidder.com
+                GovBidder.net
               </a>
               .
             </p>
@@ -92,7 +94,7 @@ export default function SinAccesoPage() {
                 className="w-full py-2.5 rounded-lg text-sm font-medium text-center"
                 style={{
                   background: "transparent",
-                  color: "#A8B5CC",
+                  color: "#C9D6EC",
                   border: "1px solid #1E3A5C",
                   cursor: "pointer",
                 }}

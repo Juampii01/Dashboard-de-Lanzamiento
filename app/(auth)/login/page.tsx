@@ -117,37 +117,22 @@ export default function LoginPage() {
               <p className="font-semibold text-white text-sm mb-2">
                 No pudimos verificar tu acceso
               </p>
-              <p className="text-sm mb-3" style={{ color: "#A8B5CC" }}>
+              <p className="text-sm mb-3" style={{ color: "#C9D6EC" }}>
                 Tu link de acceso expiró o no es válido. Por seguridad, no podemos
                 darte acceso automáticamente sin verificar tu cuenta.
               </p>
-              <p className="text-sm mb-2" style={{ color: "#A8B5CC" }}>
-                Si tenés problemas para ingresar, contactá a soporte:
+              <p className="text-sm" style={{ color: "#C9D6EC" }}>
+                Si tenés problemas para ingresar, contactanos en{" "}
+                <a
+                  href="https://govbidder.net"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                  style={{ color: "#00D67A" }}
+                >
+                  GovBidder.net
+                </a>
               </p>
-              <ul className="text-sm space-y-1" style={{ color: "#A8B5CC" }}>
-                <li>
-                  📧{" "}
-                  <a
-                    href="mailto:soporte@govbidder.com"
-                    className="underline"
-                    style={{ color: "#00D67A" }}
-                  >
-                    soporte@govbidder.com
-                  </a>
-                </li>
-                <li>
-                  📱 WhatsApp:{" "}
-                  <a
-                    href="https://wa.me/5492355693601"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                    style={{ color: "#00D67A" }}
-                  >
-                    +54 9 2355 693601
-                  </a>
-                </li>
-              </ul>
             </div>
           )}
 
@@ -160,12 +145,12 @@ export default function LoginPage() {
               >
                 ¡Revisá tu email!
               </p>
-              <p className="text-sm leading-relaxed" style={{ color: "#A8B5CC" }}>
+              <p className="text-sm leading-relaxed" style={{ color: "#C9D6EC" }}>
                 Te enviamos un link de acceso a{" "}
                 <span className="text-white font-semibold">{email}</span>.
                 Hacé clic en el link para entrar al dashboard.
               </p>
-              <p className="text-xs" style={{ color: "#5A6B85" }}>
+              <p className="text-xs" style={{ color: "#8DA2C4" }}>
                 Si no lo ves, revisá la carpeta de spam.
               </p>
             </div>
@@ -175,7 +160,7 @@ export default function LoginPage() {
                 <label
                   htmlFor="email"
                   className="block text-xs uppercase tracking-[0.12em] font-medium"
-                  style={{ color: "#A8B5CC", fontFamily: "var(--font-sans)" }}
+                  style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}
                 >
                   Email con el que compraste el acceso
                 </label>
@@ -187,7 +172,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="w-full px-4 py-3 rounded-lg text-white placeholder:text-[#5A6B85] outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-lg text-white placeholder:text-[#8DA2C4] outline-none transition-all"
                   style={{
                     background: "#0A2540",
                     border: "1.5px solid #1E3A5C",
@@ -229,7 +214,7 @@ export default function LoginPage() {
                 {loading ? "Enviando..." : "Entrar con Magic Link →"}
               </button>
 
-              <p className="text-center text-xs" style={{ color: "#5A6B85" }}>
+              <p className="text-center text-xs" style={{ color: "#8DA2C4" }}>
                 Te enviamos un link seguro. No necesitás contraseña.
               </p>
             </form>
