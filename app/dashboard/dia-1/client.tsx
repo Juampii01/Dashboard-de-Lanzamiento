@@ -300,6 +300,9 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
         current_offering: form.current_offering || null,
         keywords: keywords.length > 0 ? keywords : null,
         existing_certifications: certifications.length > 0 ? certifications : null,
+        // Persistir el logo subido en el Paso 4. Necesario porque /api/profile/logo
+        // hace UPDATE y si la fila aún no existía (usuario nuevo) ese update era no-op.
+        logo_url: logoUrl,
       };
 
       const { error: profileError } = await supabase

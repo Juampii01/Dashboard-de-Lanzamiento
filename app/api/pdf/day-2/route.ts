@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { Day2CodeMapPDF } from "@/components/pdfs/Day2CodeMapPDF";
 import { createElement } from "react";
-import { fetchLogoDataUri, getBrandLogoDataUri } from "@/lib/logo";
+import { fetchLogoDataUri } from "@/lib/logo";
 
 export async function GET() {
   const supabase = await createClient();
@@ -26,10 +26,7 @@ export async function GET() {
   });
 
   const p = (profile ?? {}) as Record<string, unknown>;
-  const [logoDataUri, brandLogoDataUri] = await Promise.all([
-    fetchLogoDataUri(p.logo_url as string | null),
-    getBrandLogoDataUri(),
-  ]);
+  const logoDataUri = await fetchLogoDataUri(p.logo_url as string | null);
 
   const buffer = await renderToBuffer(
     createElement(Day2CodeMapPDF, {
@@ -39,7 +36,6 @@ export async function GET() {
       keywordsExpanded: expansion.keywords_expanded,
       generatedAt,
       logoDataUri,
-      brandLogoDataUri,
     })
   );
 

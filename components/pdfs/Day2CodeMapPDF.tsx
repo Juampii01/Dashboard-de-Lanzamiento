@@ -118,7 +118,6 @@ interface Day2PDFProps {
   keywordsExpanded: string[];
   generatedAt: string;
   logoDataUri?: string | null;
-  brandLogoDataUri?: string | null;
 }
 
 const TYPE_ORDER = ["NAICS", "PSC", "SIC", "UNSPSC", "NIGP"];
@@ -147,7 +146,6 @@ export function Day2CodeMapPDF({
   keywordsExpanded,
   generatedAt,
   logoDataUri,
-  brandLogoDataUri,
 }: Day2PDFProps) {
   const byType = TYPE_ORDER.map((t) => ({
     type: t,
@@ -179,15 +177,7 @@ export function Day2CodeMapPDF({
                 <Text style={styles.tagline}>Govbidder Challenge — Mapa de Códigos Día 2</Text>
               </View>
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
-              <Text style={styles.docTitle}>CODE MAP{"\n"}DAY 2</Text>
-              {brandLogoDataUri ? (
-                <Image
-                  src={brandLogoDataUri}
-                  style={{ width: 34, height: 34, objectFit: "contain", backgroundColor: "#fff", borderRadius: 5, padding: 3 }}
-                />
-              ) : null}
-            </View>
+            <Text style={styles.docTitle}>CODE MAP{"\n"}DAY 2</Text>
           </View>
           <Text style={styles.naicsLine}>Primary NAICS: {primaryNaics}</Text>
         </View>
