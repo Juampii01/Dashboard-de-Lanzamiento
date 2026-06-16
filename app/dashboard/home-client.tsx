@@ -385,19 +385,27 @@ function VideoTutorial() {
               position: "absolute", inset: 0,
               display: "flex", flexDirection: "column",
               alignItems: "center", justifyContent: "center",
-              gap: "12px",
-              background: "linear-gradient(135deg, #0D2E4D 0%, #060D1A 100%)",
+              gap: "14px", padding: "20px",
+              background: "radial-gradient(600px circle at 50% 20%, rgba(228,45,44,0.10), transparent 60%), linear-gradient(135deg, #0D2E4D 0%, #060D1A 100%)",
             }}
           >
-            <div style={{ fontSize: "48px" }}>🎬</div>
+            <div style={{ fontSize: "46px" }}>🎬</div>
             <div style={{ textAlign: "center" }}>
-              <p style={{ color: "#C9D6EC", fontSize: "14px", fontWeight: 600 }}>
-                Video tutorial próximamente
+              <p style={{ color: "#fff", fontSize: "16px", fontWeight: 700 }}>
+                Tu video tutorial está en camino
               </p>
-              <p style={{ color: "#8DA2C4", fontSize: "12px", marginTop: "4px" }}>
-                Reemplazá <code style={{ color: "#FFD60A" }}>LOOM_VIDEO_ID</code> en <code style={{ color: "#00D4FF" }}>home-client.tsx</code>
+              <p style={{ color: "#C9D6EC", fontSize: "13px", marginTop: "5px", maxWidth: "42ch" }}>
+                Te vamos a mostrar cómo aprovechar el dashboard al máximo. Muy pronto disponible acá.
               </p>
             </div>
+            <span style={{
+              fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 800,
+              letterSpacing: "0.1em", textTransform: "uppercase", color: "#E42D2C",
+              background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.4)",
+              borderRadius: "999px", padding: "5px 14px",
+            }}>
+              Próximamente
+            </span>
           </div>
         ) : (
           <iframe

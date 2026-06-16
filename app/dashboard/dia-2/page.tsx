@@ -41,26 +41,20 @@ export default async function Dia2Page() {
 
   const isAdmin = adminUser?.is_admin === true;
 
-  if (!isAdmin && !isDayDateUnlocked(2)) {
-    return (
-      <div className="space-y-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
-        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[2]} title="Día 2 — Mapa de Códigos" subtitle="Vas a expandir tu código en todos los formatos que el gobierno usa para encontrarte. Falta poco." />
-      </div>
-    );
-  }
+  // Pre-lanzamiento: se VE el día detrás, con el contador como overlay encima.
+  const preLocked = !isAdmin && !isDayDateUnlocked(2);
 
   const globallyUnlocked = toggle?.is_globally_unlocked === true;
   const prevCompleted = prevProgress?.is_completed === true;
   const userUnlocked = progress?.is_unlocked === true;
   const isUnlocked = isAdmin || isDayDateUnlocked(2) || (globallyUnlocked && prevCompleted) || userUnlocked;
 
-  if (!isUnlocked) redirect("/dashboard");
+  if (!preLocked && !isUnlocked) redirect("/dashboard");
 
-  const { data: expansion } = await supabase.from("naics_expansions").select("*").eq("user_id", user.id).single();
+  const { data: expansion } = await supabase.from("naics_expansions").select("*").eq("user_id", user.id).maybeSingle();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" style={{ position: "relative" }}>
       <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={2} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
       <VideoCapsules day={2} isAdmin={isAdmin} />
       <Dia2Client
@@ -71,6 +65,9 @@ export default async function Dia2Page() {
       companyNiche={profile?.niche ?? ""}
       usState={(profile as { us_state?: string | null } | null)?.us_state ?? ""}
     />
+      {preLocked && (
+        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[2]} title="Día 2 — Mapa de Códigos" subtitle="Vas a expandir tu código en todos los formatos que el gobierno usa para encontrarte. Falta poco." />
+      )}
     </div>
   );
 }

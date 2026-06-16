@@ -57,26 +57,16 @@ export default async function Dia1Page() {
     .from("users").select("is_admin").eq("id", user.id).maybeSingle();
   const isAdmin = userProfile?.is_admin ?? false;
 
-  // Bloqueo por fecha (pre-lanzamiento): visible pero bloqueado, con contador.
-  if (!isAdmin && !isDayDateUnlocked(1)) {
-    return (
-      <div className="space-y-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
-        <LaunchCountdown
-          targetIso={DAY_UNLOCK_ISO[1]}
-          title="Día 1 — Perfil Estratégico"
-          subtitle="Tu primer día está por arrancar. En cuanto se desbloquee vas a descubrir tu oportunidad en el mercado del Gobierno de USA."
-        />
-      </div>
-    );
-  }
+  // Bloqueo por fecha (pre-lanzamiento): el día se VE completo detrás, con el
+  // contador como overlay semi-transparente encima (no se puede interactuar).
+  const preLocked = !isAdmin && !isDayDateUnlocked(1);
 
   const isUnlocked =
     isAdmin || isDayDateUnlocked(1) || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
-  if (!isUnlocked) redirect("/dashboard");
+  if (!preLocked && !isUnlocked) redirect("/dashboard");
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" style={{ position: "relative" }}>
       <div className="flex items-center justify-between">
         <Link
           href="/dashboard"
@@ -93,6 +83,13 @@ export default async function Dia1Page() {
         isCompleted={progress?.is_completed ?? false}
         existingProfile={profile}
       />
+      {preLocked && (
+        <LaunchCountdown
+          targetIso={DAY_UNLOCK_ISO[1]}
+          title="Día 1 — Perfil Estratégico"
+          subtitle="Tu primer día está por arrancar. En cuanto se desbloquee vas a descubrir tu oportunidad en el mercado del Gobierno de USA."
+        />
+      )}
     </div>
   );
 }

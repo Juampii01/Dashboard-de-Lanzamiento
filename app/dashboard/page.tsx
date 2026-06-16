@@ -53,7 +53,13 @@ export default async function DashboardPage() {
   const beforeLaunch = !devMode && !isAdmin && Date.now() < Date.parse(LAUNCH_ISO);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" style={{ position: "relative" }}>
+      <HomeClient
+        initialPoints={initialPoints}
+        fullName={fullName}
+        devMode={devMode}
+        avatarUrl={avatarUrl}
+      />
       {beforeLaunch && (
         <LaunchCountdown
           targetIso={LAUNCH_ISO}
@@ -61,12 +67,6 @@ export default async function DashboardPage() {
           subtitle="Estamos terminando de prepararlo todo. Recorré lo que se viene — tu Día 1 arranca muy pronto."
         />
       )}
-      <HomeClient
-        initialPoints={initialPoints}
-        fullName={fullName}
-        devMode={devMode}
-        avatarUrl={avatarUrl}
-      />
     </div>
   );
 }

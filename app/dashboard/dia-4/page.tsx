@@ -42,14 +42,8 @@ export default async function Dia4Page() {
 
   const isAdmin = adminUser?.is_admin === true;
 
-  if (!isAdmin && !isDayDateUnlocked(4)) {
-    return (
-      <div className="space-y-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
-        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[4]} title="Día 4 — Capability Statement + Cierre" subtitle="El documento que te abre las puertas del gobierno y el cierre del programa. Ya casi." />
-      </div>
-    );
-  }
+  // Pre-lanzamiento: se VE el día detrás, con el contador como overlay encima.
+  const preLocked = !isAdmin && !isDayDateUnlocked(4);
 
   const isUnlocked =
     isAdmin ||
@@ -57,17 +51,17 @@ export default async function Dia4Page() {
     (toggle?.is_globally_unlocked === true && prevProgress?.is_completed === true) ||
     progress?.is_unlocked === true;
 
-  if (!isUnlocked) redirect("/dashboard");
+  if (!preLocked && !isUnlocked) redirect("/dashboard");
 
   const [{ data: capabilityStatement }, { data: sorteoSubmission }, { data: userProfile }] =
     await Promise.all([
-      supabase.from("capability_statements").select("*").eq("user_id", user.id).single(),
-      supabase.from("sorteo_submissions").select("*").eq("user_id", user.id).single(),
-      supabase.from("users").select("full_name, access_expires_at").eq("id", user.id).single(),
+      supabase.from("capability_statements").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("sorteo_submissions").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("users").select("full_name, access_expires_at").eq("id", user.id).maybeSingle(),
     ]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" style={{ position: "relative" }}>
       <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={4} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
       <VideoCapsules day={4} isAdmin={isAdmin} />
       <Dia4Client
@@ -80,6 +74,9 @@ export default async function Dia4Page() {
       fullName={userProfile?.full_name ?? user.email ?? ""}
       accessExpiresAt={userProfile?.access_expires_at ?? null}
     />
+      {preLocked && (
+        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[4]} title="Día 4 — Capability Statement + Cierre" subtitle="El documento que te abre las puertas del gobierno y el cierre del programa. Ya casi." />
+      )}
     </div>
   );
 }

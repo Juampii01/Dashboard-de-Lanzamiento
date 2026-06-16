@@ -42,14 +42,8 @@ export default async function Dia3Page() {
 
   const isAdmin = adminUser?.is_admin === true;
 
-  if (!isAdmin && !isDayDateUnlocked(3)) {
-    return (
-      <div className="space-y-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link>
-        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[3]} title="Día 3 — Web + Portales" subtitle="Tu presencia profesional y dónde registrarte para conseguir contratos. Se viene." />
-      </div>
-    );
-  }
+  // Pre-lanzamiento: se VE el día detrás, con el contador como overlay encima.
+  const preLocked = !isAdmin && !isDayDateUnlocked(3);
 
   const isUnlocked =
     isAdmin ||
@@ -57,12 +51,12 @@ export default async function Dia3Page() {
     (toggle?.is_globally_unlocked === true && prevProgress?.is_completed === true) ||
     progress?.is_unlocked === true;
 
-  if (!isUnlocked) redirect("/dashboard");
+  if (!preLocked && !isUnlocked) redirect("/dashboard");
 
-  const { data: webPreview } = await supabase.from("web_previews").select("*").eq("user_id", user.id).single();
+  const { data: webPreview } = await supabase.from("web_previews").select("*").eq("user_id", user.id).maybeSingle();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" style={{ position: "relative" }}>
       <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={3} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
       <VideoCapsules day={3} isAdmin={isAdmin} />
       <Dia3Client
@@ -72,6 +66,9 @@ export default async function Dia3Page() {
       profile={profile}
       keywordsExpanded={(expansion?.keywords_expanded as string[]) ?? []}
     />
+      {preLocked && (
+        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[3]} title="Día 3 — Web + Portales" subtitle="Tu presencia profesional y dónde registrarte para conseguir contratos. Se viene." />
+      )}
     </div>
   );
 }
