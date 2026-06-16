@@ -168,10 +168,10 @@ export default async function DashboardLayout({
   }
   // ─────────────────────────────────────────────────────────────────────────
 
-  // ── Lock de pre-lanzamiento ──────────────────────────────────────────────
-  // Hasta LAUNCH_ISO (29 jun, 4 PM Miami) los USUARIOS (no admins) ven el
-  // dashboard DETRÁS, con el contador como overlay encima (bloquea interacción).
-  // Los admins entran normal.
+  // ── Banner de pre-lanzamiento ────────────────────────────────────────────
+  // Hasta LAUNCH_ISO (29 jun, 4 PM Miami) los USUARIOS (no admins) pueden
+  // recorrer todo el dashboard, con un contador flotante (no-bloqueante) hacia
+  // el lanzamiento. Los admins no lo ven.
   const preLaunchLocked =
     !devMode && !!profile && !profile.is_admin && Date.now() < Date.parse(LAUNCH_ISO);
   // ─────────────────────────────────────────────────────────────────────────

@@ -16,9 +16,10 @@ function diffParts(targetMs: number) {
 }
 
 /**
- * Pantalla de pre-lanzamiento que reemplaza TODO el dashboard para usuarios
- * (no admins) hasta LAUNCH_ISO. Muestra un contador en rojo de marca.
- * Al llegar a 0 recarga para que el layout (server) re-evalúe y desbloquee.
+ * Banner flotante de pre-lanzamiento para usuarios (no admins).
+ * NO bloquea: el usuario puede recorrer todo el dashboard ("sentir que lo tiene")
+ * mientras ve un contador en rojo de marca hacia LAUNCH_ISO.
+ * Al llegar a 0 recarga para que el server re-evalúe.
  */
 export function PreLaunchLock({ targetIso = LAUNCH_ISO }: { targetIso?: string }) {
   const targetMs = Date.parse(targetIso);
@@ -30,7 +31,6 @@ export function PreLaunchLock({ targetIso = LAUNCH_ISO }: { targetIso?: string }
       setT(next);
       if (next.total <= 0) {
         clearInterval(id);
-        // El momento llegó → recargar para que el server desbloquee el dashboard.
         window.location.reload();
       }
     }, 1000);
@@ -43,79 +43,68 @@ export function PreLaunchLock({ targetIso = LAUNCH_ISO }: { targetIso?: string }
   });
 
   const blocks: { value: number; label: string }[] = [
-    { value: t.days, label: "Días" },
-    { value: t.hours, label: "Horas" },
-    { value: t.mins, label: "Min" },
-    { value: t.secs, label: "Seg" },
+    { value: t.days, label: "D" },
+    { value: t.hours, label: "H" },
+    { value: t.mins, label: "M" },
+    { value: t.secs, label: "S" },
   ];
 
   return (
     <div
       style={{
-        position: "fixed", inset: 0, zIndex: 100000,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 24, textAlign: "center", overflow: "auto",
-        // Overlay: el dashboard se ve DETRÁS (atenuado + blur), el contador adelante.
-        // El div ocupa toda la pantalla → bloquea la interacción con el dashboard.
-        background: "radial-gradient(900px circle at 50% 25%, rgba(228,45,44,0.12), transparent 60%), rgba(8,15,36,0.82)",
-        backdropFilter: "blur(7px)",
-        WebkitBackdropFilter: "blur(7px)",
+        position: "fixed", bottom: 18, left: "50%", transform: "translateX(-50%)",
+        zIndex: 99990, width: "min(660px, calc(100vw - 28px))",
+        pointerEvents: "auto", // solo el banner capta clicks; el dashboard queda libre
       }}
     >
-      <div style={{ width: "min(680px, 100%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
+      <div style={{
+        display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+        padding: "12px 18px", borderRadius: 16,
+        background: "linear-gradient(135deg, rgba(13,26,61,0.97) 0%, rgba(8,15,36,0.97) 100%)",
+        border: "1px solid rgba(228,45,44,0.45)",
+        boxShadow: "0 16px 40px -12px rgba(0,0,0,0.6), 0 0 28px -10px rgba(228,45,44,0.5)",
+        backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)",
+      }}>
         {/* Logo */}
-        <div style={{ background: "#fff", borderRadius: 18, padding: "12px 18px", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/halcon.png" alt="Govbidder Challenge" style={{ height: 78, width: "auto", display: "block" }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/halcon.png" alt="" style={{ height: 34, width: "auto", flexShrink: 0 }} />
+
+        {/* Texto */}
+        <div style={{ flex: "1 1 180px", minWidth: 0, textAlign: "left" }}>
+          <div style={{
+            fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 800,
+            letterSpacing: "0.12em", textTransform: "uppercase", color: "#E42D2C",
+          }}>
+            El dashboard se desbloquea
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginTop: 1 }}>
+            {fechaTexto} <span style={{ color: "rgba(255,255,255,0.6)", fontWeight: 400 }}>(hora Miami)</span>
+          </div>
         </div>
 
-        <p style={{
-          fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700,
-          letterSpacing: "0.18em", textTransform: "uppercase", color: "#E42D2C",
-        }}>
-          Govbidder Challenge
-        </p>
-
-        <h1 style={{
-          fontFamily: "var(--font-display)", fontSize: "clamp(26px, 5vw, 40px)", fontWeight: 800,
-          color: "#fff", lineHeight: 1.1, margin: 0,
-        }}>
-          El dashboard se desbloquea pronto
-        </h1>
-
-        <p style={{ fontSize: 15, color: "rgba(255,255,255,0.78)", maxWidth: "46ch", margin: 0 }}>
-          Estamos terminando de prepararlo todo. Falta poco para que arranque tu desafío.
-        </p>
-
-        {/* Contador */}
-        <div style={{ display: "flex", gap: "clamp(8px, 2.5vw, 18px)", marginTop: 6, flexWrap: "wrap", justifyContent: "center" }}>
+        {/* Contador compacto */}
+        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
           {blocks.map((b) => (
             <div key={b.label} style={{
-              minWidth: 78, padding: "16px 14px", borderRadius: 16,
+              minWidth: 44, padding: "6px 8px", borderRadius: 10, textAlign: "center",
               background: "rgba(228,45,44,0.10)", border: "1px solid rgba(228,45,44,0.35)",
-              boxShadow: "0 0 28px -8px rgba(228,45,44,0.45)",
             }}>
               <div style={{
-                fontFamily: "var(--font-mono)", fontSize: "clamp(30px, 7vw, 46px)", fontWeight: 900,
-                color: "#E42D2C", lineHeight: 1, fontVariantNumeric: "tabular-nums",
-                textShadow: "0 0 22px rgba(228,45,44,0.5)",
+                fontFamily: "var(--font-mono)", fontSize: 18, fontWeight: 900, lineHeight: 1,
+                color: "#E42D2C", fontVariantNumeric: "tabular-nums",
+                textShadow: "0 0 14px rgba(228,45,44,0.5)",
               }}>
                 {String(b.value).padStart(2, "0")}
               </div>
               <div style={{
-                fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700,
-                letterSpacing: "0.14em", textTransform: "uppercase",
-                color: "rgba(255,255,255,0.65)", marginTop: 8,
+                fontFamily: "var(--font-mono)", fontSize: 8.5, fontWeight: 700,
+                letterSpacing: "0.1em", color: "rgba(255,255,255,0.55)", marginTop: 3,
               }}>
                 {b.label}
               </div>
             </div>
           ))}
         </div>
-
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>
-          Se habilita el <strong style={{ color: "#fff" }}>{fechaTexto}</strong> (hora Miami).
-        </p>
       </div>
     </div>
   );
