@@ -52,7 +52,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock } from "lucide-react";
+import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
 
@@ -60,6 +60,7 @@ interface AdminToggle {
   day_number: number;
   is_globally_unlocked: boolean;
   unlocked_at: string | null;
+  scheduled_unlock_at: string | null;
   updated_at: string;
 }
 
@@ -359,6 +360,116 @@ function DashboardLockControl() {
 }
 
 // ---------------------------------------------------------------------------
+// Programación de lanzamiento (fecha y hora por día)
+// ---------------------------------------------------------------------------
+
+/** ISO (UTC) → valor para <input type="datetime-local"> en hora LOCAL del admin. */
+function isoToLocalInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function LaunchScheduleControl({ initialToggles }: { initialToggles: AdminToggle[] }) {
+  const days = [1, 2, 3, 4];
+  const byDay = Object.fromEntries(initialToggles.map((t) => [t.day_number, t]));
+
+  // Estado de inputs por día (hora local del admin).
+  const [inputs, setInputs] = useState<Record<number, string>>(() =>
+    Object.fromEntries(days.map((d) => [d, isoToLocalInput(byDay[d]?.scheduled_unlock_at ?? null)]))
+  );
+  const [savedIso, setSavedIso] = useState<Record<number, string | null>>(() =>
+    Object.fromEntries(days.map((d) => [d, byDay[d]?.scheduled_unlock_at ?? null]))
+  );
+  const [savingDay, setSavingDay] = useState<number | null>(null);
+
+  // Zona horaria del admin, para que sepa en qué hora está escribiendo.
+  const tz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "";
+
+  async function save(day: number) {
+    setSavingDay(day);
+    const raw = inputs[day]?.trim();
+    const unlock_at = raw ? new Date(raw).toISOString() : null;
+    try {
+      const res = await fetch("/api/admin/launch-schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day_number: day, unlock_at }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "error");
+      const { row } = await res.json();
+      setSavedIso((prev) => ({ ...prev, [day]: row?.scheduled_unlock_at ?? null }));
+      toast.success(
+        unlock_at
+          ? `Día ${day}: se desbloquea el ${new Date(unlock_at).toLocaleString()}`
+          : `Día ${day}: sin fecha (usa el valor por defecto).`
+      );
+    } catch {
+      toast.error("No se pudo guardar la fecha. Reintentá.");
+    }
+    setSavingDay(null);
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Definí la fecha y hora exacta en que cada día se desbloquea solo. Escribís en
+        <strong> tu hora local{tz ? ` (${tz})` : ""}</strong> y a cada usuario le aparece el contador en
+        <strong> su propia hora local</strong>. El bloqueo <strong>NO aplica a admins</strong>. Vaciar el
+        campo deja la fecha por defecto.
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {days.map((day) => {
+          const iso = savedIso[day];
+          const isPast = iso ? Date.parse(iso) <= Date.now() : false;
+          const dirty = isoToLocalInput(iso ?? null) !== (inputs[day] ?? "");
+          return (
+            <div key={day} className="p-4 border rounded-xl bg-card space-y-2" style={{ borderColor: "#1E3A5C" }}>
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-sm">{DAY_LABELS[day]}</p>
+                {iso && (
+                  <span
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
+                    style={
+                      isPast
+                        ? { background: "rgba(0,214,122,0.12)", color: "#00D67A" }
+                        : { background: "rgba(215,38,61,0.15)", color: "#D7263D" }
+                    }
+                  >
+                    {isPast ? "ABIERTO" : "PROGRAMADO"}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="datetime-local"
+                  value={inputs[day] ?? ""}
+                  onChange={(e) => setInputs((prev) => ({ ...prev, [day]: e.target.value }))}
+                  disabled={savingDay === day}
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+                  style={{ borderColor: "#1E3A5C" }}
+                />
+                <Button size="sm" onClick={() => save(day)} disabled={savingDay === day || !dirty}>
+                  {savingDay === day ? "..." : "Guardar"}
+                </Button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                {iso
+                  ? `Se desbloquea: ${new Date(iso).toLocaleString()}`
+                  : "Sin fecha personalizada (usa el valor por defecto)."}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 
 interface AdminClientProps {
   initialToggles: AdminToggle[];
@@ -460,6 +571,23 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </CardHeader>
         <CardContent>
           <DashboardLockControl />
+        </CardContent>
+      </Card>
+
+      {/* Programación de lanzamiento (fecha y hora por día) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarClock className="w-5 h-5 text-[#00D4FF]" />
+            Programación de Lanzamiento por Día
+          </CardTitle>
+          <CardDescription>
+            Fecha y hora exacta en que cada día se abre solo para los usuarios (a los admins nunca se les bloquea).
+            Cada usuario ve el contador en su hora local.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LaunchScheduleControl initialToggles={toggles} />
         </CardContent>
       </Card>
 

@@ -6,7 +6,7 @@ import { Dia3Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
-import { DAY_UNLOCK_ISO, isDayDateUnlocked } from "@/lib/launch";
+import { dayUnlockIso, isIsoUnlocked } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -43,11 +43,13 @@ export default async function Dia3Page() {
   const isAdmin = adminUser?.is_admin === true;
 
   // Pre-lanzamiento: se VE el día detrás, con el contador como overlay encima.
-  const preLocked = !isAdmin && !isDayDateUnlocked(3);
+  const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 3);
+  const dateUnlocked = isIsoUnlocked(targetIso);
+  const preLocked = !isAdmin && !dateUnlocked;
 
   const isUnlocked =
     isAdmin ||
-    isDayDateUnlocked(3) ||
+    dateUnlocked ||
     (toggle?.is_globally_unlocked === true && prevProgress?.is_completed === true) ||
     progress?.is_unlocked === true;
 
@@ -67,7 +69,7 @@ export default async function Dia3Page() {
       keywordsExpanded={(expansion?.keywords_expanded as string[]) ?? []}
     />
       {preLocked && (
-        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[3]} title="Día 3 — Web + Portales" subtitle="Tu presencia profesional y dónde registrarte para conseguir contratos. Se viene." />
+        <LaunchCountdown targetIso={targetIso} title="Día 3 — Web + Portales" subtitle="Tu presencia profesional y dónde registrarte para conseguir contratos. Se viene." />
       )}
     </div>
   );

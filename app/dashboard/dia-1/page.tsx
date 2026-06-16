@@ -5,7 +5,7 @@ import { Dia1Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
-import { DAY_UNLOCK_ISO, isDayDateUnlocked } from "@/lib/launch";
+import { dayUnlockIso, isIsoUnlocked } from "@/lib/launch";
 import Link from "next/link";
 
 async function getDia1Data(userId: string) {
@@ -59,10 +59,12 @@ export default async function Dia1Page() {
 
   // Bloqueo por fecha (pre-lanzamiento): el día se VE completo detrás, con el
   // contador como overlay semi-transparente encima (no se puede interactuar).
-  const preLocked = !isAdmin && !isDayDateUnlocked(1);
+  const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 1);
+  const dateUnlocked = isIsoUnlocked(targetIso);
+  const preLocked = !isAdmin && !dateUnlocked;
 
   const isUnlocked =
-    isAdmin || isDayDateUnlocked(1) || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
+    isAdmin || dateUnlocked || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
   if (!preLocked && !isUnlocked) redirect("/dashboard");
 
   return (
@@ -85,7 +87,7 @@ export default async function Dia1Page() {
       />
       {preLocked && (
         <LaunchCountdown
-          targetIso={DAY_UNLOCK_ISO[1]}
+          targetIso={targetIso}
           title="Día 1 — Perfil Estratégico"
           subtitle="Tu primer día está por arrancar. En cuanto se desbloquee vas a descubrir tu oportunidad en el mercado del Gobierno de USA."
         />

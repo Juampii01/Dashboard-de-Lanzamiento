@@ -4,6 +4,8 @@ export interface AdminToggleRow {
   day_number: number;
   is_globally_unlocked: boolean;
   unlocked_at: string | null;
+  /** Fecha/hora programada (UTC ISO) en que el día se desbloquea solo. Editable desde el panel admin. */
+  scheduled_unlock_at: string | null;
   updated_at: string;
 }
 

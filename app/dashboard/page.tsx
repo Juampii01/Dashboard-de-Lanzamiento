@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { HomeClient } from "./home-client";
 import { LaunchCountdown } from "@/components/launch-countdown";
-import { LAUNCH_ISO } from "@/lib/launch";
+import { getAdminToggle } from "@/lib/supabase/helpers";
+import { dayUnlockIso, isIsoUnlocked } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -50,7 +51,13 @@ export default async function DashboardPage() {
   }
 
   // Contador de lanzamiento dentro del Inicio (solo usuarios, antes del Día 1).
-  const beforeLaunch = !devMode && !isAdmin && Date.now() < Date.parse(LAUNCH_ISO);
+  // La fecha/hora la configura el admin (admin_toggles.scheduled_unlock_at del Día 1).
+  let launchIso = dayUnlockIso(null, 1);
+  if (!devMode) {
+    const toggle1 = await getAdminToggle(createServiceClient(), 1);
+    launchIso = dayUnlockIso(toggle1?.scheduled_unlock_at, 1);
+  }
+  const beforeLaunch = !devMode && !isAdmin && !isIsoUnlocked(launchIso);
 
   return (
     <div className="space-y-8" style={{ position: "relative" }}>
@@ -62,7 +69,7 @@ export default async function DashboardPage() {
       />
       {beforeLaunch && (
         <LaunchCountdown
-          targetIso={LAUNCH_ISO}
+          targetIso={launchIso}
           title="El dashboard se desbloquea pronto"
           subtitle="Estamos terminando de prepararlo todo. Recorré lo que se viene — tu Día 1 arranca muy pronto."
         />

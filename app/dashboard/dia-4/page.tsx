@@ -6,7 +6,7 @@ import { Dia4Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
-import { DAY_UNLOCK_ISO, isDayDateUnlocked } from "@/lib/launch";
+import { dayUnlockIso, isIsoUnlocked } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -43,11 +43,13 @@ export default async function Dia4Page() {
   const isAdmin = adminUser?.is_admin === true;
 
   // Pre-lanzamiento: se VE el día detrás, con el contador como overlay encima.
-  const preLocked = !isAdmin && !isDayDateUnlocked(4);
+  const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 4);
+  const dateUnlocked = isIsoUnlocked(targetIso);
+  const preLocked = !isAdmin && !dateUnlocked;
 
   const isUnlocked =
     isAdmin ||
-    isDayDateUnlocked(4) ||
+    dateUnlocked ||
     (toggle?.is_globally_unlocked === true && prevProgress?.is_completed === true) ||
     progress?.is_unlocked === true;
 
@@ -75,7 +77,7 @@ export default async function Dia4Page() {
       accessExpiresAt={userProfile?.access_expires_at ?? null}
     />
       {preLocked && (
-        <LaunchCountdown targetIso={DAY_UNLOCK_ISO[4]} title="Día 4 — Capability Statement + Cierre" subtitle="El documento que te abre las puertas del gobierno y el cierre del programa. Ya casi." />
+        <LaunchCountdown targetIso={targetIso} title="Día 4 — Capability Statement + Cierre" subtitle="El documento que te abre las puertas del gobierno y el cierre del programa. Ya casi." />
       )}
     </div>
   );

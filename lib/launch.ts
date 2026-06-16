@@ -15,8 +15,24 @@ export const DAY_UNLOCK_ISO: Record<number, string> = {
 /** El "dashboard se desbloquea" = arranca el Día 1. */
 export const LAUNCH_ISO = DAY_UNLOCK_ISO[1];
 
-/** true si la fecha de desbloqueo del día YA pasó. */
-export function isDayDateUnlocked(day: number): boolean {
-  const iso = DAY_UNLOCK_ISO[day];
+/**
+ * Fecha/hora efectiva de desbloqueo de un día. Prioriza lo configurado por el
+ * admin en `admin_toggles.scheduled_unlock_at`; si no hay nada, cae al default.
+ * Se guarda y compara en UTC (ISO); cada cliente lo muestra en su hora local.
+ */
+export function dayUnlockIso(
+  scheduledUnlockAt: string | null | undefined,
+  day: number
+): string {
+  return scheduledUnlockAt ?? DAY_UNLOCK_ISO[day] ?? "";
+}
+
+/** true si la fecha ISO ya pasó (o si no hay fecha → siempre desbloqueado). */
+export function isIsoUnlocked(iso: string): boolean {
   return !iso || Date.now() >= Date.parse(iso);
+}
+
+/** true si la fecha de desbloqueo del día YA pasó (usa defaults hardcodeados). */
+export function isDayDateUnlocked(day: number): boolean {
+  return isIsoUnlocked(DAY_UNLOCK_ISO[day] ?? "");
 }

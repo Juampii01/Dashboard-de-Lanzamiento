@@ -34,8 +34,17 @@ export function LaunchCountdown({
 }) {
   const targetMs = Date.parse(targetIso);
   const [t, setT] = useState(() => diffParts(targetMs));
+  // La fecha legible se calcula tras montar para usar la zona horaria LOCAL del
+  // navegador de cada usuario (evita además mismatch de hidratación SSR).
+  const [fechaTexto, setFechaTexto] = useState("");
 
   useEffect(() => {
+    setFechaTexto(
+      new Date(targetMs).toLocaleString(undefined, {
+        weekday: "long", day: "numeric", month: "long",
+        hour: "numeric", minute: "2-digit", timeZoneName: "short",
+      })
+    );
     const id = setInterval(() => {
       const next = diffParts(targetMs);
       setT(next);
@@ -46,11 +55,6 @@ export function LaunchCountdown({
     }, 1000);
     return () => clearInterval(id);
   }, [targetMs]);
-
-  const fechaTexto = new Date(targetMs).toLocaleString("es-US", {
-    timeZone: "America/New_York",
-    day: "numeric", month: "long", hour: "numeric", minute: "2-digit", hour12: true,
-  });
 
   const blocks: { value: number; label: string }[] = [
     { value: t.days, label: "Días" },
@@ -134,8 +138,10 @@ export function LaunchCountdown({
           ))}
         </div>
 
-        <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", marginTop: 2 }}>
-          Se desbloquea el <strong style={{ color: "#fff" }}>{fechaTexto}</strong> (hora Miami).
+        <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", marginTop: 2, minHeight: 18 }}>
+          {fechaTexto && (
+            <>Se desbloquea el <strong style={{ color: "#fff" }}>{fechaTexto}</strong> (tu hora local).</>
+          )}
         </p>
       </div>
     </div>
