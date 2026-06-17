@@ -294,7 +294,7 @@ export function Dia4Client({
       </div>
 
       <Card style={{ background: "color-mix(in srgb, var(--primary) 7%, var(--card))", borderColor: "color-mix(in srgb, var(--primary) 28%, transparent)" }}>
-        <CardContent className="flex items-center gap-4 py-4">
+        <CardContent className="flex flex-wrap items-center gap-4 py-4">
           <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}>
             <PlayCircle className="w-6 h-6" style={{ color: "var(--primary)" }} />
           </div>
