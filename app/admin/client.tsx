@@ -70,6 +70,7 @@ interface User {
   full_name: string | null;
   total_points: number;
   access_expires_at: string | null;
+  last_seen_at: string | null;
 }
 
 interface Progress {
@@ -491,6 +492,15 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
 
   const sorteoMap = Object.fromEntries(sorteos.map((s) => [s.user_id, s]));
 
+  // Métricas de ingreso al dashboard
+  const totalUsers = users.length;
+  const enteredCount = users.filter((u) => !!u.last_seen_at).length;
+  const todayStr = new Date().toDateString();
+  const activeTodayCount = users.filter(
+    (u) => u.last_seen_at && new Date(u.last_seen_at).toDateString() === todayStr
+  ).length;
+  const enteredPct = totalUsers > 0 ? Math.round((enteredCount / totalUsers) * 100) : 0;
+
   async function toggleDay(dayNumber: number, value: boolean) {
     setUpdatingDay(dayNumber);
     try {
@@ -555,6 +565,33 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
             Crear usuario
           </Link>
         </div>
+      </div>
+
+      {/* Métricas de ingreso */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-3xl font-bold text-primary">{totalUsers}</p>
+            <p className="text-sm text-muted-foreground mt-1">Usuarios con acceso</p>
+          </CardContent>
+        </Card>
+        <Card style={{ borderColor: "color-mix(in srgb, var(--success) 40%, var(--border))" }}>
+          <CardContent className="pt-6">
+            <p className="text-3xl font-bold" style={{ color: "var(--success)" }}>
+              {enteredCount}
+              <span className="text-base font-medium text-muted-foreground"> / {totalUsers}</span>
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Ingresaron al dashboard <span className="font-semibold">({enteredPct}%)</span>
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-3xl font-bold text-primary">{activeTodayCount}</p>
+            <p className="text-sm text-muted-foreground mt-1">Activos hoy</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Bloqueo de dashboard */}

@@ -86,7 +86,7 @@ function CooldownBadge({ seconds }: { seconds: number }) {
   if (remaining <= 0) return null;
 
   return (
-    <span className="text-[10px] tabular-nums" style={{ color: "#C9D6EC", fontFamily: "var(--font-mono)" }}>
+    <span className="text-[10px] tabular-nums" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
       ⏳ {m}:{String(s).padStart(2, "0")}
     </span>
   );

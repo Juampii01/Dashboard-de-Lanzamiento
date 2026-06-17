@@ -13,7 +13,20 @@ async function getAdminData() {
       supabase.from("sorteo_submissions").select("user_id, eligible, submitted_at"),
     ]);
 
-  return { toggles, users, allProgress, sorteos };
+  // last_seen_at en query separada y tolerante (por si la columna aún no existe).
+  let seenMap: Record<string, string | null> = {};
+  const { data: seenRows } = await supabase.from("users").select("id, last_seen_at");
+  if (seenRows) {
+    seenMap = Object.fromEntries(
+      (seenRows as Array<{ id: string; last_seen_at: string | null }>).map((r) => [r.id, r.last_seen_at])
+    );
+  }
+  const usersWithSeen = (users ?? []).map((u) => ({
+    ...(u as Record<string, unknown>),
+    last_seen_at: seenMap[(u as { id: string }).id] ?? null,
+  }));
+
+  return { toggles, users: usersWithSeen, allProgress, sorteos };
 }
 
 export default async function AdminPage() {

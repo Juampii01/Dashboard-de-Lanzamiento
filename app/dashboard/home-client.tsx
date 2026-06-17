@@ -1040,7 +1040,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
         }}>
           ¡Mirá contratos gubernamentales ganados!
         </h2>
-        <p style={{ fontSize: "13px", color: "#C9D6EC", marginTop: "4px" }}>
+        <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
           Estos son contratos reales adjudicados a pequeñas empresas como la tuya. Seleccioná tu sector.
         </p>
       </div>
@@ -1129,7 +1129,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
       >
         <span style={{ fontSize: "18px" }}>📜</span>
         Ver Certificado de Participación
-        <span style={{ fontSize: "11px", color: "#C9D6EC", fontWeight: 400, fontFamily: "var(--font-sans)" }}>
+        <span style={{ fontSize: "11px", color: "var(--muted-foreground)", fontWeight: 400, fontFamily: "var(--font-sans)" }}>
           — boceto
         </span>
       </button>

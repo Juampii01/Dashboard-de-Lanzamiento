@@ -57,7 +57,7 @@ export default async function Dia2Page() {
 
   return (
     <div className="space-y-8" style={{ position: "relative" }}>
-      <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={2} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
+      <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={2} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
       <VideoCapsules day={2} isAdmin={isAdmin} />
       <Dia2Client
       userId={user.id}

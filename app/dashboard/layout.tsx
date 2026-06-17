@@ -59,6 +59,24 @@ async function getLayoutData(userId: string) {
       .select("day_number, is_globally_unlocked"),
   ]);
 
+  // Registrar "ingreso al dashboard": marca last_seen_at la primera vez y luego
+  // como máximo cada 10 min (evita un write por navegación). Query separada y
+  // tolerante: si la columna last_seen_at aún no existe, no rompe el dashboard.
+  if (user) {
+    const { data: seenRow, error: seenErr } = await supabase
+      .from("users")
+      .select("last_seen_at")
+      .eq("id", userId)
+      .maybeSingle();
+    if (!seenErr) {
+      const lastSeen = (seenRow as { last_seen_at?: string | null } | null)?.last_seen_at ?? null;
+      const seenStale = !lastSeen || Date.now() - Date.parse(lastSeen) > 10 * 60 * 1000;
+      if (seenStale) {
+        await supabase.from("users").update({ last_seen_at: new Date().toISOString() }).eq("id", userId);
+      }
+    }
+  }
+
   const completedDays = progress?.filter((p) => p.is_completed).length ?? 0;
 
   // Build toggle map { [dayNumber]: is_globally_unlocked }

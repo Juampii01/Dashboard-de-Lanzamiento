@@ -6,7 +6,7 @@ export default function ProximoPasoPage() {
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-2 text-sm transition-colors"
-        style={{ color: "#C9D6EC", fontFamily: "var(--font-sans)" }}
+        style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-sans)" }}
       >
         ← Dashboard
       </Link>
