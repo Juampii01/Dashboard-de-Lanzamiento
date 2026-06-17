@@ -1057,8 +1057,8 @@ function ContractModels({ fullName }: { fullName?: string }) {
             key={niche.id}
             onClick={() => setSelected(niche.id)}
             style={{
-              background: "rgba(20,58,107,0.5)",
-              border: "1px solid #1E3A5C",
+              background: "var(--muted)",
+              border: "1px solid var(--border)",
               borderRadius: "10px",
               padding: "14px 12px",
               cursor: "pointer",
@@ -1069,13 +1069,13 @@ function ContractModels({ fullName }: { fullName?: string }) {
             onMouseEnter={(e) => {
               const el = e.currentTarget;
               el.style.background = "rgba(215,38,61,0.12)";
-              el.style.borderColor = "rgba(215,38,61,0.4)";
+              el.style.borderColor = "rgba(215,38,61,0.45)";
               el.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
               const el = e.currentTarget;
-              el.style.background = "rgba(20,58,107,0.5)";
-              el.style.borderColor = "#1E3A5C";
+              el.style.background = "var(--muted)";
+              el.style.borderColor = "var(--border)";
               el.style.transform = "none";
             }}
           >
@@ -1083,12 +1083,11 @@ function ContractModels({ fullName }: { fullName?: string }) {
             <div style={{ minWidth: 0 }}>
               <div style={{
                 fontSize: "12px", fontWeight: 700,
-                color: "#FFFFFF", whiteSpace: "nowrap",
-                overflow: "hidden", textOverflow: "ellipsis",
+                color: "var(--foreground)", lineHeight: 1.2,
               }}>
                 {niche.label}
               </div>
-              <div style={{ fontSize: "9px", color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
+              <div style={{ fontSize: "9px", color: "var(--muted-foreground)", fontFamily: "var(--font-mono)", marginTop: "1px" }}>
                 NAICS {niche.naics}
               </div>
             </div>
