@@ -70,8 +70,8 @@ export default async function DashboardPage() {
       {beforeLaunch && (
         <LaunchCountdown
           targetIso={launchIso}
-          title="El dashboard se desbloquea pronto"
-          subtitle="Estamos terminando de prepararlo todo. Recorré lo que se viene — tu Día 1 arranca muy pronto."
+          title="El dashboard se habilita el día del lanzamiento"
+          subtitle="Todavía no se puede usar: se desbloquea cuando arranque el challenge. Mientras tanto podés recorrerlo y ver todo lo que se viene."
         />
       )}
     </div>
