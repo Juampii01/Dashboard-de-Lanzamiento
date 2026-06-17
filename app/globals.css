@@ -106,6 +106,13 @@
   --sidebar-accent-foreground:  #0d1a3d;
   --sidebar-border:             rgba(13, 26, 61, 0.10);
   --sidebar-ring:               #E42D2C;
+
+  /* Card de puntos (scoreboard) — modo claro: superficie clara, número navy */
+  --score-bg:      #ffffff;
+  --score-border:  rgba(13, 26, 61, 0.12);
+  --score-num:     #0d1a3d;
+  --score-label:   #5A6B85;
+  --score-bracket: rgba(13, 26, 61, 0.14);
 }
 
 .dark {
@@ -153,6 +160,13 @@
   --sidebar-accent-foreground:  #ffffff;
   --sidebar-border:             rgba(255, 255, 255, 0.10);
   --sidebar-ring:               #E42D2C;
+
+  /* Card de puntos (scoreboard) — modo oscuro: gradiente navy + dorado (igual a hoy) */
+  --score-bg:      linear-gradient(135deg, rgba(20,58,107,0.8) 0%, rgba(10,37,64,0.9) 100%);
+  --score-border:  rgba(255,214,10,0.25);
+  --score-num:     #FFD60A;
+  --score-label:   #C9D6EC;
+  --score-bracket: rgba(255,214,10,0.4);
 }
 
 /* ── Raw brand tokens (theme-independent) ─────────────────────────── */

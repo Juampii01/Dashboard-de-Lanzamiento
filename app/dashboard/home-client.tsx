@@ -252,8 +252,8 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, rgba(20,58,107,0.8) 0%, rgba(10,37,64,0.9) 100%)",
-        border: "1px solid rgba(255,214,10,0.25)",
+        background: "var(--score-bg)",
+        border: "1px solid var(--score-border)",
         borderRadius: "14px",
         padding: "16px 20px",
         display: "flex",
@@ -277,10 +277,10 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
             bottom: pos.startsWith("b") ? 0 : "auto",
             left: pos.endsWith("l") ? 0 : "auto",
             right: pos.endsWith("r") ? 0 : "auto",
-            borderTop: pos.startsWith("t") ? "2px solid rgba(255,214,10,0.4)" : "none",
-            borderBottom: pos.startsWith("b") ? "2px solid rgba(255,214,10,0.4)" : "none",
-            borderLeft: pos.endsWith("l") ? "2px solid rgba(255,214,10,0.4)" : "none",
-            borderRight: pos.endsWith("r") ? "2px solid rgba(255,214,10,0.4)" : "none",
+            borderTop: pos.startsWith("t") ? "2px solid var(--score-bracket)" : "none",
+            borderBottom: pos.startsWith("b") ? "2px solid var(--score-bracket)" : "none",
+            borderLeft: pos.endsWith("l") ? "2px solid var(--score-bracket)" : "none",
+            borderRight: pos.endsWith("r") ? "2px solid var(--score-bracket)" : "none",
           }}
         />
       ))}
@@ -318,7 +318,7 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
         <div style={{
           fontFamily: "var(--font-arcade)",
           fontSize: "8px", fontWeight: 700,
-          color: "#C9D6EC", letterSpacing: "0.1em",
+          color: "var(--score-label)", letterSpacing: "0.1em",
           textTransform: "uppercase", marginBottom: "2px",
         }}>
           TUS PUNTOS ACUMULADOS
@@ -326,12 +326,12 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
         <div style={{
           fontFamily: "var(--font-mono)",
           fontSize: "36px", fontWeight: 900,
-          color: "#FFD60A", letterSpacing: "-1px", lineHeight: 1,
+          color: "var(--score-num)", letterSpacing: "-1px", lineHeight: 1,
         }}>
           {points.toLocaleString()}
         </div>
         <div style={{
-          fontSize: "10px", color: "#8DA2C4",
+          fontSize: "10px", color: "var(--muted-foreground)",
           fontWeight: 600, marginTop: "2px",
         }}>
           Seguí completando retos y viendo videos para subir en el ranking
@@ -518,8 +518,8 @@ function CommentsSection() {
 
       <div
         style={{
-          background: "rgba(10,37,64,0.8)",
-          border: "1px solid #1E3A5C",
+          background: "var(--card)",
+          border: "1px solid var(--border)",
           borderRadius: "14px",
           overflow: "hidden",
         }}
@@ -530,7 +530,7 @@ function CommentsSection() {
             onSubmit={handleSubmit}
             style={{
               padding: "16px",
-              borderBottom: "1px solid #1E3A5C",
+              borderBottom: "1px solid var(--border)",
             }}
           >
             <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
@@ -539,8 +539,8 @@ function CommentsSection() {
                   display: "flex", alignItems: "center", gap: "6px",
                   marginBottom: "6px",
                 }}>
-                  <MessageCircle style={{ width: "13px", height: "13px", color: "#8DA2C4" }} />
-                  <span style={{ fontSize: "11px", color: "#8DA2C4", fontWeight: 600 }}>
+                  <MessageCircle style={{ width: "13px", height: "13px", color: "var(--muted-foreground)" }} />
+                  <span style={{ fontSize: "11px", color: "var(--muted-foreground)", fontWeight: 600 }}>
                     Tu comentario
                   </span>
                 </div>
@@ -552,10 +552,10 @@ function CommentsSection() {
                   rows={2}
                   style={{
                     width: "100%",
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid #1E3A5C",
+                    background: "var(--background)",
+                    border: "1px solid var(--border)",
                     borderRadius: "8px",
-                    color: "#FFFFFF",
+                    color: "var(--foreground)",
                     fontSize: "13px",
                     padding: "8px 12px",
                     resize: "none",
@@ -563,10 +563,10 @@ function CommentsSection() {
                     fontFamily: "var(--font-sans)",
                     boxSizing: "border-box",
                   }}
-                  onFocus={(e) => { e.target.style.borderColor = "#00D4FF"; }}
-                  onBlur={(e) => { e.target.style.borderColor = "#1E3A5C"; }}
+                  onFocus={(e) => { e.target.style.borderColor = "var(--primary)"; }}
+                  onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
                 />
-                <p style={{ fontSize: "10px", color: "#647FA8", marginTop: "3px", textAlign: "right" }}>
+                <p style={{ fontSize: "10px", color: "var(--muted-foreground)", marginTop: "3px", textAlign: "right" }}>
                   {content.length}/500
                 </p>
               </div>
@@ -579,7 +579,7 @@ function CommentsSection() {
                   background: content.trim() ? "#D7263D" : "rgba(215,38,61,0.2)",
                   border: "1px solid rgba(215,38,61,0.4)",
                   borderRadius: "8px",
-                  color: content.trim() ? "#FFFFFF" : "#8DA2C4",
+                  color: content.trim() ? "#FFFFFF" : "var(--muted-foreground)",
                   fontSize: "12px", fontWeight: 700,
                   cursor: content.trim() ? "pointer" : "not-allowed",
                   transition: "all 0.15s",
@@ -599,10 +599,10 @@ function CommentsSection() {
           {!available ? (
             <div style={{
               padding: "32px 16px", textAlign: "center",
-              color: "#8DA2C4", fontSize: "13px",
+              color: "var(--muted-foreground)", fontSize: "13px",
             }}>
               <MessageCircle style={{ width: "24px", height: "24px", margin: "0 auto 8px", opacity: 0.4 }} />
-              <p style={{ color: "#C9D6EC", fontWeight: 600 }}>Sección de comentarios próximamente</p>
+              <p style={{ color: "var(--foreground)", fontWeight: 600 }}>Sección de comentarios próximamente</p>
               <p style={{ fontSize: "11px", marginTop: "4px" }}>
                 Ejecutá la migración SQL para activarla.
               </p>
@@ -610,10 +610,10 @@ function CommentsSection() {
           ) : comments.length === 0 ? (
             <div style={{
               padding: "32px 16px", textAlign: "center",
-              color: "#8DA2C4", fontSize: "13px",
+              color: "var(--muted-foreground)", fontSize: "13px",
             }}>
-              <p style={{ color: "#C9D6EC", fontWeight: 600 }}>Sé el primero en comentar 👆</p>
-              <p style={{ fontSize: "11px", marginTop: "4px", color: "#8DA2C4" }}>
+              <p style={{ color: "var(--foreground)", fontWeight: 600 }}>Sé el primero en comentar 👆</p>
+              <p style={{ fontSize: "11px", marginTop: "4px", color: "var(--muted-foreground)" }}>
                 Tu opinión ayuda a mejorar el programa.
               </p>
             </div>
@@ -623,7 +623,7 @@ function CommentsSection() {
                 key={c.id}
                 style={{
                   padding: "12px 16px",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  borderBottom: "1px solid var(--border)",
                   display: "flex", gap: "10px", alignItems: "flex-start",
                 }}
               >
@@ -632,9 +632,9 @@ function CommentsSection() {
                   style={{
                     width: "28px", height: "28px", borderRadius: "50%",
                     background: "linear-gradient(135deg, #143A6B 0%, #0A2540 100%)",
-                    border: "1px solid #1E3A5C",
+                    border: "1px solid var(--border)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "11px", fontWeight: 700, color: "#C9D6EC",
+                    fontSize: "11px", fontWeight: 700, color: "#E5ECF7",
                     flexShrink: 0,
                   }}
                 >
@@ -642,16 +642,16 @@ function CommentsSection() {
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
-                    <span style={{ fontSize: "12px", fontWeight: 700, color: "#C8D6E8" }}>
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--foreground)" }}>
                       {c.display_name}
                     </span>
-                    <span style={{ fontSize: "10px", color: "#647FA8" }}>
+                    <span style={{ fontSize: "10px", color: "var(--muted-foreground)" }}>
                       {new Date(c.created_at).toLocaleDateString("es-AR", {
                         day: "numeric", month: "short",
                       })}
                     </span>
                   </div>
-                  <p style={{ fontSize: "13px", color: "#C9D6EC", lineHeight: 1.5, margin: 0 }}>
+                  <p style={{ fontSize: "13px", color: "var(--foreground)", lineHeight: 1.5, margin: 0 }}>
                     {c.content}
                   </p>
                 </div>
