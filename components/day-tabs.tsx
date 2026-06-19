@@ -14,6 +14,7 @@ const TABS = [
   { day: 2, label: "Día 2",     sub: "Mapa de Códigos",       href: "/dashboard/dia-2" },
   { day: 3, label: "Día 3",     sub: "Web + Portales",        href: "/dashboard/dia-3" },
   { day: 4, label: "Día 4",     sub: "Cap. Statement",        href: "/dashboard/dia-4" },
+  { day: 7, label: "Suma Puntos", sub: "Ganá más XP",          href: "/dashboard/suma-puntos" },
   { day: 5, label: "Ranking",   sub: "Premios y Posiciones",  href: "/dashboard/ranking" },
   { day: 6, label: "Tu próximo paso", sub: "Después del challenge", href: "/dashboard/proximo-paso" },
 ];
@@ -49,12 +50,13 @@ export function DayTabs({ progressMap }: DayTabsProps) {
         const isHome      = day === 0;
         const isRanking   = day === 5;
         const isNextStep  = day === 6;
+        const isSumaPuntos = day === 7;
         const prog        = progressMap[day];
         const isActive    = isHome
           ? pathname === "/dashboard"
           : pathname === href || pathname.startsWith(href + "/");
         const isCompleted = prog?.is_completed ?? false;
-        const isUnlocked  = isHome || isRanking || isNextStep ? true : (prog?.is_unlocked ?? false);
+        const isUnlocked  = isHome || isRanking || isNextStep || isSumaPuntos ? true : (prog?.is_unlocked ?? false);
         const isLocked    = !isUnlocked;
 
         return (
@@ -113,6 +115,8 @@ export function DayTabs({ progressMap }: DayTabsProps) {
                 <span style={{ fontSize: "12px" }}>🏆</span>
               ) : isNextStep ? (
                 <span style={{ fontSize: "12px" }}>🚀</span>
+              ) : isSumaPuntos ? (
+                <span style={{ fontSize: "12px" }}>⚡</span>
               ) : (
                 <span
                   style={{
