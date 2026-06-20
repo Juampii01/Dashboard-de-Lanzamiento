@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-const POINTS = 3;
+const POINTS = 30;
 const COOLDOWN_MINUTES = 60;
 
 export async function POST() {

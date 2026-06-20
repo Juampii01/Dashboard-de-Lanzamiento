@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     .eq("id", capsuleId)
     .single();
 
-  const points = capsule?.points_reward ?? 10;
+  const points = capsule?.points_reward ?? 100;
 
   // ── Day-unlock gate ───────────────────────────────────────────────────────
   // Derive day_number from the capsule and verify the user (or a global toggle)

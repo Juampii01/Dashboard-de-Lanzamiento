@@ -8,7 +8,7 @@ interface JoinCallButtonProps {
   callUrl?: string;
 }
 
-const POINTS = 30;
+const POINTS = 300;
 
 // C6 fix: call URL comes from env var so it can be swapped without a code deploy.
 // Set NEXT_PUBLIC_CALL_URL in Vercel to the actual live-stream / Zoom link

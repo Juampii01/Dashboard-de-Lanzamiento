@@ -562,7 +562,7 @@ function CapsuleEditor({ capsule: initial }: { capsule: Capsule }) {
 
         {/* Row 4: podcast_url (shown when type = podcast) */}
         {cap.video_type === "podcast" && (
-          <Field label="URL del podcast completo (opcional — para botón +30 XP)">
+          <Field label="URL del podcast completo (opcional — para botón +300 XP)">
             <input
               type="url"
               value={cap.podcast_url ?? ""}
@@ -711,7 +711,7 @@ export function ContentAdminClient({ days }: { days: Day[] }) {
           color: P.muted,
         }}
       >
-        <span>🎙 Podcast = video tipo podcast (habilita botón +30 XP)</span>
+        <span>🎙 Podcast = video tipo podcast (habilita botón +300 XP)</span>
         <span>📹 Normal = video educativo estándar</span>
       </div>
 

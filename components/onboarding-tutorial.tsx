@@ -39,7 +39,7 @@ const STEPS: Step[] = [
   },
   {
     title: "Tus fases del programa 🗓️",
-    body: "Usá los botones de arriba para navegar entre los días. Empezá por Día 1 — completá el formulario y desbloqueás el siguiente. Cada fase suma +25 XP.",
+    body: "Usá los botones de arriba para navegar entre los días. Empezá por Día 1 — completá el formulario y desbloqueás el siguiente. Cada fase suma +250 XP.",
     targetId: "day-tab-1",
     santoMood: "thumbs",
     highlightPadding: 10,
@@ -55,7 +55,7 @@ const STEPS: Step[] = [
   },
   {
     title: "Misiones en Video 📺",
-    body: "¡Acá están! Marcá cada video como visto y sumás +10 XP — uno cada 5 minutos. Son 4 videos por fase. ¡Volvé seguido para acumular puntos!",
+    body: "¡Acá están! Marcá cada video como visto y sumás +100 XP — uno cada 5 minutos. Son 4 videos por fase. ¡Volvé seguido para acumular puntos!",
     targetId: "capsules",
     santoMood: "star",
     highlightPadding: 16,

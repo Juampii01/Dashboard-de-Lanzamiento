@@ -237,7 +237,7 @@ export function PointsHUD({
               paddingTop: "6px",
             }}
           >
-            +5 pts cada 10 min · +3 avatar · +25 pts/día
+            +50 pts cada 10 min · +30 avatar · +250 pts/día
           </p>
         </div>
       )}

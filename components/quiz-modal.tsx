@@ -413,10 +413,10 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                         }}
                       >
                         {podcastState === "done"
-                          ? "✓ Podcast abierto · +30 XP"
+                          ? "✓ Podcast abierto · +300 XP"
                           : podcastState === "claiming"
                           ? "..."
-                          : "🎙 Ver podcast → +30 XP ↗"}
+                          : "🎙 Ver podcast → +300 XP ↗"}
                       </button>
                       {/* Cerrar solo aparece después de abrir el podcast */}
                       {podcastState === "done" && (

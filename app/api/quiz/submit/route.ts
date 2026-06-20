@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   if (!quiz) return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
 
   // Every correct answer awards XP — default to 10 if the admin left it at 0/null.
-  const effectiveXp = quiz.xp_reward && quiz.xp_reward > 0 ? quiz.xp_reward : 10;
+  const effectiveXp = quiz.xp_reward && quiz.xp_reward > 0 ? quiz.xp_reward : 100;
 
   // ── Day-unlock gate ─────────────────────────────────────────────────────────
   // Derive day_number from the capsule, then verify the user has that day unlocked.

@@ -15,7 +15,7 @@ const bodySchema = z.object({
   capsuleId: z.string().min(1),
 });
 
-const PODCAST_XP = 30;
+const PODCAST_XP = 300;
 
 export async function POST(req: NextRequest) {
   // ── Auth ──────────────────────────────────────────────────────────────────────

@@ -371,7 +371,7 @@ function AdModal({
                   flex: 1,
                 }}
               >
-                {claimed ? "✓ ¡XP cobrado!" : claiming ? "Procesando..." : <>📺 Cobrar +20 XP</>}
+                {claimed ? "✓ ¡XP cobrado!" : claiming ? "Procesando..." : <>📺 Cobrar +200 XP</>}
               </button>
             </>
           ) : (
@@ -527,7 +527,7 @@ export function AdButton({ initialLastAdAt }: AdButtonProps) {
         title={
           isCooldown
             ? `Próximo anuncio en ${cooldownDisplay}`
-            : "Ver anuncio y ganar +20 XP"
+            : "Ver anuncio y ganar +200 XP"
         }
         style={{
           display: "flex",
@@ -572,7 +572,7 @@ export function AdButton({ initialLastAdAt }: AdButtonProps) {
         ) : (
           <>
             <span style={{ fontSize: "9px" }}>📺</span>
-            <span>+20 XP</span>
+            <span>+200 XP</span>
           </>
         )}
       </button>

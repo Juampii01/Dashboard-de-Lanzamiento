@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
   const title = String(body.title ?? "").trim();
   if (!title) return NextResponse.json({ error: "title_required" }, { status: 400 });
-  const points = Number.isFinite(body.points_reward) ? Math.max(0, Math.min(500, Number(body.points_reward))) : 20;
+  const points = Number.isFinite(body.points_reward) ? Math.max(0, Math.min(5000, Number(body.points_reward))) : 200;
 
   const { data, error } = await auth.service
     .from("daily_missions")

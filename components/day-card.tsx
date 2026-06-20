@@ -74,7 +74,7 @@ export function DayCard({
         triggerScreenShake();
       }
 
-      // Award +25 XP for starting the day (fire-and-forget, non-blocking)
+      // Award +250 XP for starting the day (fire-and-forget, non-blocking)
       fetch("/api/xp/start-day", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

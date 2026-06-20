@@ -2,7 +2,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { isDayUnlocked } from "@/lib/supabase/day-access";
 
-const POINTS_PER_DAY = 50;
+const POINTS_PER_DAY = 500;
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
