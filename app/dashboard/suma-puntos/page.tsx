@@ -1,16 +1,21 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { ReferralLinkCard } from "@/components/referral-link-card";
+import { DailyMissionAdmin } from "@/components/daily-mission-admin";
+import { DailyMissionUser } from "@/components/daily-mission-user";
 import Link from "next/link";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
-async function getContext(): Promise<{ isAdmin: boolean; refLink: string | null }> {
-  if (DEV_MODE) return { isAdmin: true, refLink: null }; // dev preview = admin sin usuario real
+interface Mission { id: string; title: string; description: string | null; points_reward: number; }
+interface Ctx { isAdmin: boolean; refLink: string | null; mission: Mission | null; missionDone: boolean; }
+
+async function getContext(): Promise<Ctx> {
+  if (DEV_MODE) return { isAdmin: true, refLink: null, mission: null, missionDone: false };
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { isAdmin: false, refLink: null };
+  if (!user) return { isAdmin: false, refLink: null, mission: null, missionDone: false };
 
   const service = createServiceClient();
   const { data } = await service.from("users").select("is_admin").eq("id", user.id).maybeSingle();
@@ -20,11 +25,29 @@ async function getContext(): Promise<{ isAdmin: boolean; refLink: string | null 
   const code = await getOrCreateReferralCode(service, user.id);
   if (code) refLink = referralLink(code);
 
-  return { isAdmin, refLink };
+  const { data: missionRow } = await service
+    .from("daily_missions")
+    .select("id, title, description, points_reward")
+    .eq("is_active", true)
+    .maybeSingle();
+  const mission = (missionRow as Mission | null) ?? null;
+
+  let missionDone = false;
+  if (mission && !isAdmin) {
+    const { data: sub } = await service
+      .from("mission_submissions")
+      .select("status")
+      .eq("user_id", user.id)
+      .eq("mission_id", mission.id)
+      .maybeSingle();
+    missionDone = (sub as { status?: string } | null)?.status === "approved";
+  }
+
+  return { isAdmin, refLink, mission, missionDone };
 }
 
 export default async function SumaPuntosPage() {
-  const { isAdmin, refLink } = await getContext();
+  const { isAdmin, refLink, mission, missionDone } = await getContext();
 
   return (
     <div className="space-y-8">
@@ -36,7 +59,13 @@ export default async function SumaPuntosPage() {
         ← Dashboard
       </Link>
 
-      {isAdmin ? <AdminView refLink={refLink} /> : <ComingSoon />}
+      {isAdmin ? (
+        <AdminView refLink={refLink} mission={mission} />
+      ) : mission ? (
+        <DailyMissionUser mission={mission} alreadyDone={missionDone} />
+      ) : (
+        <ComingSoon />
+      )}
     </div>
   );
 }
@@ -107,7 +136,7 @@ const PLANNED = [
   },
 ];
 
-function AdminView({ refLink }: { refLink: string | null }) {
+function AdminView({ refLink, mission }: { refLink: string | null; mission: Mission | null }) {
   return (
     <div className="space-y-6">
       {/* Banner admin */}
@@ -146,6 +175,9 @@ function AdminView({ refLink }: { refLink: string | null }) {
           Mecánicas planificadas para que los usuarios sumen puntos más allá de las 4 fases del challenge.
         </p>
       </div>
+
+      {/* Misión diaria — Santo setea la misión y los usuarios suben captura */}
+      <DailyMissionAdmin initialMission={mission} />
 
       {/* Referidos — backend ya funcional (la XP se acredita por webhook) */}
       <div className="space-y-2">
