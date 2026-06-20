@@ -1,7 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { ReferralLinkCard } from "@/components/referral-link-card";
-import { DailyMissionAdmin } from "@/components/daily-mission-admin";
 import { DailyMissionUser } from "@/components/daily-mission-user";
 import Link from "next/link";
 
@@ -60,7 +59,7 @@ export default async function SumaPuntosPage() {
       </Link>
 
       {isAdmin ? (
-        <AdminView refLink={refLink} mission={mission} />
+        <AdminView refLink={refLink} />
       ) : mission ? (
         <DailyMissionUser mission={mission} alreadyDone={missionDone} />
       ) : (
@@ -136,7 +135,7 @@ const PLANNED = [
   },
 ];
 
-function AdminView({ refLink, mission }: { refLink: string | null; mission: Mission | null }) {
+function AdminView({ refLink }: { refLink: string | null }) {
   return (
     <div className="space-y-6">
       {/* Banner admin */}
@@ -175,9 +174,6 @@ function AdminView({ refLink, mission }: { refLink: string | null; mission: Miss
           Mecánicas planificadas para que los usuarios sumen puntos más allá de las 4 fases del challenge.
         </p>
       </div>
-
-      {/* Misión diaria — Santo setea la misión y los usuarios suben captura */}
-      <DailyMissionAdmin initialMission={mission} />
 
       {/* Referidos — backend ya funcional (la XP se acredita por webhook) */}
       <div className="space-y-2">

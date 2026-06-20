@@ -19,7 +19,7 @@ interface Submission {
   email: string;
 }
 
-export function DailyMissionAdmin({ initialMission }: { initialMission: Mission | null }) {
+export function DailyMissionAdmin({ initialMission = null }: { initialMission?: Mission | null }) {
   const [mission, setMission] = useState<Mission | null>(initialMission);
   const [title, setTitle] = useState(initialMission?.title ?? "");
   const [desc, setDesc] = useState(initialMission?.description ?? "");
@@ -27,6 +27,21 @@ export function DailyMissionAdmin({ initialMission }: { initialMission: Mission 
   const [saving, setSaving] = useState(false);
   const [subs, setSubs] = useState<Submission[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+
+  // Cargar la misión activa al montar (permite usarlo sin pasar initialMission).
+  useEffect(() => {
+    fetch("/api/admin/daily-mission")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok && d.mission) {
+          setMission(d.mission);
+          setTitle(d.mission.title ?? "");
+          setDesc(d.mission.description ?? "");
+          setPoints(d.mission.points_reward ?? 20);
+        }
+      })
+      .catch(() => { /* noop */ });
+  }, []);
 
   async function loadSubs() {
     try {
@@ -72,10 +87,10 @@ export function DailyMissionAdmin({ initialMission }: { initialMission: Mission 
   };
 
   return (
-    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: 18 }} className="space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 16, fontFamily: "var(--font-display)" }}>
-          📸 Misión del día
+        <p style={{ fontWeight: 700, color: "var(--muted-foreground)", fontSize: 13 }}>
+          {mission ? "Misión activa" : "Sin misión activa"}
         </p>
         {mission && (
           <span style={{
