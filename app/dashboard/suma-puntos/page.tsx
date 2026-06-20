@@ -1,24 +1,30 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/referrals";
+import { ReferralLinkCard } from "@/components/referral-link-card";
 import Link from "next/link";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
-async function getIsAdmin(): Promise<boolean> {
-  if (DEV_MODE) return true; // dev preview = admin
+async function getContext(): Promise<{ isAdmin: boolean; refLink: string | null }> {
+  if (DEV_MODE) return { isAdmin: true, refLink: null }; // dev preview = admin sin usuario real
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return false;
-  const { data } = await createServiceClient()
-    .from("users")
-    .select("is_admin")
-    .eq("id", user.id)
-    .maybeSingle();
-  return (data as { is_admin?: boolean } | null)?.is_admin ?? false;
+  if (!user) return { isAdmin: false, refLink: null };
+
+  const service = createServiceClient();
+  const { data } = await service.from("users").select("is_admin").eq("id", user.id).maybeSingle();
+  const isAdmin = (data as { is_admin?: boolean } | null)?.is_admin ?? false;
+
+  let refLink: string | null = null;
+  const code = await getOrCreateReferralCode(service, user.id);
+  if (code) refLink = referralLink(code);
+
+  return { isAdmin, refLink };
 }
 
 export default async function SumaPuntosPage() {
-  const isAdmin = await getIsAdmin();
+  const { isAdmin, refLink } = await getContext();
 
   return (
     <div className="space-y-8">
@@ -30,7 +36,7 @@ export default async function SumaPuntosPage() {
         ← Dashboard
       </Link>
 
-      {isAdmin ? <AdminView /> : <ComingSoon />}
+      {isAdmin ? <AdminView refLink={refLink} /> : <ComingSoon />}
     </div>
   );
 }
@@ -94,12 +100,6 @@ const PLANNED = [
     status: "En diseño",
   },
   {
-    icon: "🤝",
-    title: "Referidos",
-    desc: "Cada usuario tiene un link propio. Cuando un referido completa el formulario verificado en la landing, el referidor suma XP.",
-    status: "En desarrollo",
-  },
-  {
     icon: "🔥",
     title: "Racha diaria",
     desc: "Entrar todos los días del challenge otorga un bonus creciente (usa last_seen_at).",
@@ -107,7 +107,7 @@ const PLANNED = [
   },
 ];
 
-function AdminView() {
+function AdminView({ refLink }: { refLink: string | null }) {
   return (
     <div className="space-y-6">
       {/* Banner admin */}
@@ -144,6 +144,24 @@ function AdminView() {
         </h1>
         <p style={{ fontSize: 14, color: "var(--muted-foreground)", marginTop: 6, maxWidth: "60ch" }}>
           Mecánicas planificadas para que los usuarios sumen puntos más allá de las 4 fases del challenge.
+        </p>
+      </div>
+
+      {/* Referidos — backend ya funcional (la XP se acredita por webhook) */}
+      <div className="space-y-2">
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--success)" }}>
+          🤝 Referidos · backend activo
+        </p>
+        {refLink ? (
+          <ReferralLinkCard link={refLink} xp={REFERRAL_LEAD_XP} />
+        ) : (
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "16px", fontSize: 13, color: "var(--muted-foreground)" }}>
+            Tu link de referido aparece acá con un usuario real (no en modo dev).
+          </div>
+        )}
+        <p style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+          Cuando un lead verificado entra con un link, el referidor suma <strong>+{REFERRAL_LEAD_XP} XP</strong>.
+          Falta conectar el webhook de GHL (lo configura Cristian) y cargar <code>REFERRAL_WEBHOOK_SECRET</code> + <code>NEXT_PUBLIC_LANDING_URL</code> en Vercel.
         </p>
       </div>
 
