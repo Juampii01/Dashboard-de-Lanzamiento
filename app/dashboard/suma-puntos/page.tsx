@@ -7,6 +7,11 @@ import Link from "next/link";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
+// Referidos "en vivo" para usuarios solo cuando la landing real está configurada
+// (evita mostrarles un link con dominio placeholder antes de cargar la env var).
+const LANDING_URL = process.env.NEXT_PUBLIC_LANDING_URL ?? "";
+const REFERRALS_LIVE = LANDING_URL.startsWith("http") && !LANDING_URL.includes("tu-landing");
+
 interface Mission { id: string; title: string; description: string | null; points_reward: number; }
 interface Ctx { isAdmin: boolean; refLink: string | null; mission: Mission | null; missionDone: boolean; }
 
@@ -60,10 +65,33 @@ export default async function SumaPuntosPage() {
 
       {isAdmin ? (
         <AdminView refLink={refLink} />
-      ) : mission ? (
-        <DailyMissionUser mission={mission} alreadyDone={missionDone} />
       ) : (
-        <ComingSoon />
+        <UserView mission={mission} missionDone={missionDone} refLink={REFERRALS_LIVE ? refLink : null} />
+      )}
+    </div>
+  );
+}
+
+// ─── Vista usuarios ─────────────────────────────────────────────────────────
+function UserView({
+  mission, missionDone, refLink,
+}: { mission: Mission | null; missionDone: boolean; refLink: string | null }) {
+  // Si no hay misión activa ni referidos en vivo → "Próximamente".
+  if (!mission && !refLink) return <ComingSoon />;
+
+  return (
+    <div className="space-y-6">
+      {mission && <DailyMissionUser mission={mission} alreadyDone={missionDone} />}
+      {refLink && (
+        <div className="space-y-2">
+          <p style={{
+            fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
+            letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)",
+          }}>
+            🤝 Invitá y ganá
+          </p>
+          <ReferralLinkCard link={refLink} xp={REFERRAL_LEAD_XP} />
+        </div>
       )}
     </div>
   );
@@ -122,12 +150,6 @@ function ComingSoon() {
 // ─── Vista admin: sección en construcción (visible solo para admins) ─────────
 const PLANNED = [
   {
-    icon: "📸",
-    title: "Compartí y ganá",
-    desc: "El usuario interactúa con una publicación de Govbidder, sube una captura y suma XP. Con moderación desde el panel admin.",
-    status: "En diseño",
-  },
-  {
     icon: "🔥",
     title: "Racha diaria",
     desc: "Entrar todos los días del challenge otorga un bonus creciente (usa last_seen_at).",
@@ -138,26 +160,6 @@ const PLANNED = [
 function AdminView({ refLink }: { refLink: string | null }) {
   return (
     <div className="space-y-6">
-      {/* Banner admin */}
-      <div
-        style={{
-          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
-          padding: "14px 18px", borderRadius: 14,
-          background: "color-mix(in srgb, var(--accent) 12%, var(--card))",
-          border: "1px solid color-mix(in srgb, var(--accent) 40%, var(--border))",
-        }}
-      >
-        <span style={{ fontSize: 22 }}>🛠️</span>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 15, fontFamily: "var(--font-display)" }}>
-            Vista admin · sección en construcción
-          </p>
-          <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-            Los usuarios ven un <strong>“Próximamente”</strong>. Acá vas a ir viendo las mecánicas a medida que se construyan.
-          </p>
-        </div>
-      </div>
-
       {/* Encabezado */}
       <div>
         <p style={{
@@ -165,15 +167,35 @@ function AdminView({ refLink }: { refLink: string | null }) {
           letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted-foreground)",
           marginBottom: 4,
         }}>
-          ⚡ Suma Puntos
+          ⚡ Suma Puntos · vista admin
         </p>
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 800, color: "var(--foreground)", lineHeight: 1.15 }}>
-          Nuevas formas de ganar XP
+          Formas de ganar XP extra
         </h1>
         <p style={{ fontSize: 14, color: "var(--muted-foreground)", marginTop: 6, maxWidth: "60ch" }}>
-          Mecánicas planificadas para que los usuarios sumen puntos más allá de las 4 fases del challenge.
+          Lo que ven los usuarios acá: la misión diaria (si hay una activa) y su link de referido.
         </p>
       </div>
+
+      {/* Puntero a gestión de misiones */}
+      <Link
+        href="/admin"
+        style={{
+          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", textDecoration: "none",
+          padding: "14px 18px", borderRadius: 14,
+          background: "var(--card)", border: "1px solid var(--border)",
+        }}
+      >
+        <span style={{ fontSize: 22 }}>📸</span>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 15 }}>
+            Misión diaria — activa ✅
+          </p>
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+            Se publica y modera desde <strong>Panel Admin → Misiones Diarias</strong>. (Clic para ir.)
+          </p>
+        </div>
+      </Link>
 
       {/* Referidos — backend ya funcional (la XP se acredita por webhook) */}
       <div className="space-y-2">
