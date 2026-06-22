@@ -12,6 +12,10 @@ const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes
 const LANDING_URL = process.env.NEXT_PUBLIC_LANDING_URL ?? "";
 const REFERRALS_LIVE = LANDING_URL.startsWith("http") && !LANDING_URL.includes("tu-landing");
 
+// Mientras esté en false, los USUARIOS ven "Próximamente" aunque haya misión
+// activa; el ADMIN igual la ve (vista previa). Poner en true para lanzarla a todos.
+const MISSIONS_LIVE_FOR_USERS = false;
+
 interface Mission { id: string; title: string; description: string | null; points_reward: number; }
 interface Ctx { isAdmin: boolean; refLink: string | null; mission: Mission | null; missionDone: boolean; }
 
@@ -37,7 +41,7 @@ async function getContext(): Promise<Ctx> {
   const mission = (missionRow as Mission | null) ?? null;
 
   let missionDone = false;
-  if (mission && !isAdmin) {
+  if (mission) {
     const { data: sub } = await service
       .from("mission_submissions")
       .select("status")
@@ -64,9 +68,13 @@ export default async function SumaPuntosPage() {
       </Link>
 
       {isAdmin ? (
-        <AdminView refLink={refLink} />
+        <AdminView refLink={refLink} mission={mission} missionDone={missionDone} />
       ) : (
-        <UserView mission={mission} missionDone={missionDone} refLink={REFERRALS_LIVE ? refLink : null} />
+        <UserView
+          mission={MISSIONS_LIVE_FOR_USERS ? mission : null}
+          missionDone={missionDone}
+          refLink={REFERRALS_LIVE ? refLink : null}
+        />
       )}
     </div>
   );
@@ -157,7 +165,7 @@ const PLANNED = [
   },
 ];
 
-function AdminView({ refLink }: { refLink: string | null }) {
+function AdminView({ refLink, mission, missionDone }: { refLink: string | null; mission: Mission | null; missionDone: boolean }) {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
@@ -173,7 +181,7 @@ function AdminView({ refLink }: { refLink: string | null }) {
           Formas de ganar XP extra
         </h1>
         <p style={{ fontSize: 14, color: "var(--muted-foreground)", marginTop: 6, maxWidth: "60ch" }}>
-          Lo que ven los usuarios acá: la misión diaria (si hay una activa) y su link de referido.
+          Por ahora los usuarios ven “Próximamente”. Acá ves la misión en vista previa antes de lanzarla a todos.
         </p>
       </div>
 
@@ -189,13 +197,23 @@ function AdminView({ refLink }: { refLink: string | null }) {
         <span style={{ fontSize: 22 }}>📸</span>
         <div style={{ minWidth: 0 }}>
           <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 15 }}>
-            Misión diaria — activa ✅
+            {mission ? "Misión diaria — activa ✅" : "Misión diaria — sin misión activa"}
           </p>
           <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
             Se publica y modera desde <strong>Panel Admin → Misiones Diarias</strong>. (Clic para ir.)
           </p>
         </div>
       </Link>
+
+      {/* Vista previa de la misión (solo admin la ve; los usuarios siguen en "Próximamente") */}
+      {mission && (
+        <div className="space-y-2">
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+            👁️ Vista previa · los usuarios todavía ven “Próximamente”
+          </p>
+          <DailyMissionUser mission={mission} alreadyDone={missionDone} />
+        </div>
+      )}
 
       {/* Referidos — backend ya funcional (la XP se acredita por webhook) */}
       <div className="space-y-2">
