@@ -386,12 +386,15 @@ export function RankingClient() {
                   {meEntry.display_name}
                   <span style={{ marginLeft: "8px", fontSize: "9px", opacity: 0.6 }}>(vos)</span>
                 </span>
-                <span style={{
-                  fontFamily: "var(--font-mono)", fontSize: "12px",
-                  fontWeight: 700, color: "#C9D6EC",
-                }}>
-                  {meEntry.total_points} pts
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                  <RankBadge points={meEntry.total_points} />
+                  <span style={{
+                    fontFamily: "var(--font-mono)", fontSize: "12px",
+                    fontWeight: 700, color: "#C9D6EC",
+                  }}>
+                    {meEntry.total_points} pts
+                  </span>
+                </div>
               </div>
             </>
           )}
