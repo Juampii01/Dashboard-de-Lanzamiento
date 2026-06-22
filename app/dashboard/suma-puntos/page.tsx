@@ -68,7 +68,8 @@ export default async function SumaPuntosPage() {
       </Link>
 
       {isAdmin ? (
-        <AdminView refLink={refLink} mission={mission} missionDone={missionDone} />
+        // Admin ve la misión real directo (vista previa), sin gating.
+        <UserView mission={mission} missionDone={missionDone} refLink={refLink} admin />
       ) : (
         <UserView
           mission={MISSIONS_LIVE_FOR_USERS ? mission : null}
@@ -80,15 +81,26 @@ export default async function SumaPuntosPage() {
   );
 }
 
-// ─── Vista usuarios ─────────────────────────────────────────────────────────
+// ─── Vista usuarios (y admin en modo preview) ───────────────────────────────
 function UserView({
-  mission, missionDone, refLink,
-}: { mission: Mission | null; missionDone: boolean; refLink: string | null }) {
-  // Si no hay misión activa ni referidos en vivo → "Próximamente".
-  if (!mission && !refLink) return <ComingSoon />;
+  mission, missionDone, refLink, admin = false,
+}: { mission: Mission | null; missionDone: boolean; refLink: string | null; admin?: boolean }) {
+  // Sin misión ni referidos: usuarios ven "Próximamente"; admin ve una nota.
+  if (!mission && !refLink) {
+    return admin ? (
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px", fontSize: 14, color: "var(--muted-foreground)" }}>
+        No hay misión activa. Publicala desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.
+      </div>
+    ) : <ComingSoon />;
+  }
 
   return (
     <div className="space-y-6">
+      {admin && (
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+          👁️ Vista admin · gestionar en <Link href="/admin" style={{ color: "var(--primary)" }}>/admin</Link>
+        </p>
+      )}
       {mission && <DailyMissionUser mission={mission} alreadyDone={missionDone} />}
       {refLink && (
         <div className="space-y-2">
@@ -134,12 +146,12 @@ function ComingSoon() {
         fontFamily: "var(--font-display)", fontSize: "clamp(24px, 4.5vw, 38px)", fontWeight: 800,
         color: "#fff", lineHeight: 1.12, margin: 0,
       }}>
-        ⚡ Suma Puntos
+        ⚡ Misiones Extra
       </h2>
 
       <p style={{ fontSize: 15, color: "rgba(255,255,255,0.82)", maxWidth: "48ch", margin: 0, lineHeight: 1.55 }}>
-        Estamos armando <strong style={{ color: "#fff" }}>nuevas formas de ganar puntos</strong> y subir
-        en el ranking. Muy pronto vas a poder sumar XP extra desde acá.
+        Estamos armando <strong style={{ color: "#fff" }}>misiones extra</strong> para ganar XP y subir
+        en el ranking. Muy pronto vas a poder sumar puntos desde acá.
       </p>
 
       <span style={{
@@ -151,119 +163,6 @@ function ComingSoon() {
       }}>
         🔧 Próximamente
       </span>
-    </div>
-  );
-}
-
-// ─── Vista admin: sección en construcción (visible solo para admins) ─────────
-const PLANNED = [
-  {
-    icon: "🔥",
-    title: "Racha diaria",
-    desc: "Entrar todos los días del challenge otorga un bonus creciente (usa last_seen_at).",
-    status: "Idea",
-  },
-];
-
-function AdminView({ refLink, mission, missionDone }: { refLink: string | null; mission: Mission | null; missionDone: boolean }) {
-  return (
-    <div className="space-y-6">
-      {/* Encabezado */}
-      <div>
-        <p style={{
-          fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
-          letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted-foreground)",
-          marginBottom: 4,
-        }}>
-          ⚡ Suma Puntos · vista admin
-        </p>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 800, color: "var(--foreground)", lineHeight: 1.15 }}>
-          Formas de ganar XP extra
-        </h1>
-        <p style={{ fontSize: 14, color: "var(--muted-foreground)", marginTop: 6, maxWidth: "60ch" }}>
-          Por ahora los usuarios ven “Próximamente”. Acá ves la misión en vista previa antes de lanzarla a todos.
-        </p>
-      </div>
-
-      {/* Puntero a gestión de misiones */}
-      <Link
-        href="/admin"
-        style={{
-          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", textDecoration: "none",
-          padding: "14px 18px", borderRadius: 14,
-          background: "var(--card)", border: "1px solid var(--border)",
-        }}
-      >
-        <span style={{ fontSize: 22 }}>📸</span>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 15 }}>
-            {mission ? "Misión diaria — activa ✅" : "Misión diaria — sin misión activa"}
-          </p>
-          <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-            Se publica y modera desde <strong>Panel Admin → Misiones Diarias</strong>. (Clic para ir.)
-          </p>
-        </div>
-      </Link>
-
-      {/* Vista previa de la misión (solo admin la ve; los usuarios siguen en "Próximamente") */}
-      {mission && (
-        <div className="space-y-2">
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
-            👁️ Vista previa · los usuarios todavía ven “Próximamente”
-          </p>
-          <DailyMissionUser mission={mission} alreadyDone={missionDone} />
-        </div>
-      )}
-
-      {/* Referidos — backend ya funcional (la XP se acredita por webhook) */}
-      <div className="space-y-2">
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--success)" }}>
-          🤝 Referidos · backend activo
-        </p>
-        {refLink ? (
-          <ReferralLinkCard link={refLink} xp={REFERRAL_LEAD_XP} />
-        ) : (
-          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "16px", fontSize: 13, color: "var(--muted-foreground)" }}>
-            Tu link de referido aparece acá con un usuario real (no en modo dev).
-          </div>
-        )}
-        <p style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-          Cuando un lead verificado entra con un link, el referidor suma <strong>+{REFERRAL_LEAD_XP} XP</strong>.
-          Falta conectar el webhook de GHL (lo configura Cristian) y cargar <code>REFERRAL_WEBHOOK_SECRET</code> + <code>NEXT_PUBLIC_LANDING_URL</code> en Vercel.
-        </p>
-      </div>
-
-      {/* Mecánicas planificadas */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
-        {PLANNED.map((m) => (
-          <div
-            key={m.title}
-            style={{
-              background: "var(--card)", border: "1px solid var(--border)",
-              borderRadius: 14, padding: "18px 16px",
-              display: "flex", flexDirection: "column", gap: 8,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-              <span style={{ fontSize: 26 }}>{m.icon}</span>
-              <span style={{
-                fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 800,
-                letterSpacing: "0.08em", textTransform: "uppercase",
-                color: "var(--accent-foreground)", background: "var(--accent)",
-                borderRadius: 999, padding: "3px 10px",
-              }}>
-                {m.status}
-              </span>
-            </div>
-            <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 16 }}>{m.title}</p>
-            <p style={{ fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5 }}>{m.desc}</p>
-          </div>
-        ))}
-      </div>
-
-      <p style={{ fontSize: 12, color: "var(--muted-foreground)", fontStyle: "italic" }}>
-        Esta sección es solo visible para admins. Cuando una mecánica esté lista, se publica para todos los usuarios.
-      </p>
     </div>
   );
 }

@@ -602,7 +602,7 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
             📸 Misiones Diarias
           </CardTitle>
           <CardDescription>
-            Publicá la misión del día. Los participantes la ven en “Suma Puntos”, suben su captura y suman XP al instante.
+            Publicá la misión del día. Los participantes la ven en “Misiones Extra”, suben su captura y suman XP al instante.
             Moderá las capturas acá (rechazar descuenta los puntos).
           </CardDescription>
         </CardHeader>
