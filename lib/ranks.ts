@@ -10,12 +10,13 @@ export interface Rank {
   max: number;          // puntos máximos (exclusive); Infinity en el último
   color: string;
   emoji: string;
+  prize: string;        // premio que se sortea dentro de este rango
 }
 
 export const RANKS: Rank[] = [
-  { key: "elevate", name: "Elevate", min: 0,     max: 4000,     color: "#CD7F32", emoji: "🔥" },
-  { key: "prime",   name: "Prime",   min: 4000,  max: 8000,     color: "#C0C0C0", emoji: "⚡" },
-  { key: "legacy",  name: "Legacy",  min: 8000,  max: Infinity, color: "#FFD700", emoji: "👑" },
+  { key: "elevate", name: "Elevate", min: 0,     max: 4000,     color: "#CD7F32", emoji: "🔥", prize: "10 auditorías con el Team Govbidder" },
+  { key: "prime",   name: "Prime",   min: 4000,  max: 8000,     color: "#C0C0C0", emoji: "⚡", prize: "Consultoría 1:1 de 1h con Santo" },
+  { key: "legacy",  name: "Legacy",  min: 8000,  max: Infinity, color: "#FFD700", emoji: "👑", prize: "Servicio «Te conseguimos tu contrato» · $15K" },
 ];
 
 export function getRank(points: number): Rank {

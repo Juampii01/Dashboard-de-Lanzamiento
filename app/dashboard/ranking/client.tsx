@@ -74,6 +74,9 @@ function MyRankCard({ points, entries }: { points: number; entries: number }) {
           <p style={{ fontSize: "13px", color: "#C8D6E8", marginTop: 2 }}>
             {points.toLocaleString()} pts · <strong style={{ color: "#FFD700" }}>{entries.toLocaleString()} chances</strong> en el sorteo
           </p>
+          <p style={{ fontSize: "12.5px", color: "#C8D6E8", marginTop: 6 }}>
+            🎁 Tu premio en juego: <strong style={{ color: rank.color }}>{rank.prize}</strong>
+          </p>
         </div>
         {next && (
           <div style={{ textAlign: "right" }}>
@@ -90,8 +93,8 @@ function MyRankCard({ points, entries }: { points: number; entries: number }) {
         </div>
         <p style={{ fontSize: "11.5px", color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
           {next
-            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para <strong style={{ color: next.color }}>{next.name}</strong> y más chances.</>
-            : <>¡Estás en el rango máximo! 🎉 Tenés las mejores chances en el sorteo.</>}
+            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para subir a <strong style={{ color: next.color }}>{next.name}</strong> y competir por <strong style={{ color: next.color }}>{next.prize}</strong>.</>
+            : <>¡Estás en <strong style={{ color: rank.color }}>Legacy</strong>, el rango máximo! 🎉 Competís por el premio mayor.</>}
         </p>
       </div>
     </div>
@@ -148,7 +151,7 @@ export function RankingClient() {
           Subí de rango, ganá chances
         </h1>
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.78)", maxWidth: "52ch" }}>
-          Acumulá puntos y subí de rango. Al cierre del challenge los premios se <strong style={{ color: "#fff" }}>sortean</strong> — cuanto más alto tu rango, <strong style={{ color: "#fff" }}>más chances</strong>.
+          Acumulá puntos y subí de rango. <strong style={{ color: "#fff" }}>Cada rango compite por su propio premio</strong> — se <strong style={{ color: "#fff" }}>sortea</strong> al cierre del challenge.
         </p>
       </FlagBanner>
       <div style={{ height: "24px" }} />
@@ -172,7 +175,7 @@ export function RankingClient() {
             Premios del Challenge
           </span>
           <p style={{ fontSize: "12px", color: "#8DA2C4", marginTop: "3px" }}>
-            Se sortean al cierre. Cuanto más alto tu rango, más chances de ganarlos. 🎲
+            Cada premio se sortea entre los de su rango al cierre. Subí de rango para competir por uno más grande. 🎲
           </p>
         </div>
 
@@ -186,7 +189,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🥇</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#FFD60A", marginBottom: "2px" }}>
-              Premio mayor
+              👑 Legacy · Premio mayor
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Servicio completo <strong style={{ color: "#FFFFFF" }}>«Te conseguimos tu contrato»</strong>
@@ -210,7 +213,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🥈</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#C0C0C0", marginBottom: "2px" }}>
-              Segundo premio
+              ⚡ Prime · Segundo premio
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Consultoría 1:1 de 1 hora con <strong style={{ color: "#FFFFFF" }}>Santo</strong> — el roadmap exacto para venderle al gobierno
@@ -233,7 +236,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🏆</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#00D67A", marginBottom: "2px" }}>
-              10 auditorías
+              🔥 Elevate · 10 auditorías
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Auditoría con el <strong style={{ color: "#FFFFFF" }}>Team Govbidder</strong> — el roadmap exacto para venderle al gobierno
