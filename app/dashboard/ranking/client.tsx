@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { FlagBanner } from "@/components/flag-banner";
+import { getRank, rankProgress } from "@/lib/ranks";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,46 +38,64 @@ function rowBg(rank: number, isCurrentUser: boolean): string {
   return "transparent";
 }
 
-// ─── PrizeBadge ──────────────────────────────────────────────────────────────
+// ─── RankBadge ───────────────────────────────────────────────────────────────
+// Badge del rango (Elevate/Prime/Legacy) según los puntos del usuario.
+function RankBadge({ points }: { points: number }) {
+  const r = getRank(points);
+  return (
+    <span style={{
+      fontSize: "10px", fontWeight: 700,
+      color: r.color,
+      background: `color-mix(in srgb, ${r.color} 14%, transparent)`,
+      border: `1px solid color-mix(in srgb, ${r.color} 40%, transparent)`,
+      borderRadius: "5px", padding: "2px 7px",
+      whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
+    }}>{r.emoji} {r.name}</span>
+  );
+}
 
-function PrizeBadge({ rank }: { rank: number }) {
-  if (rank === 1) {
-    return (
-      <span style={{
-        fontSize: "10px", fontWeight: 700,
-        color: "#FFD60A",
-        background: "rgba(255,214,10,0.15)",
-        border: "1px solid rgba(255,214,10,0.4)",
-        borderRadius: "5px", padding: "2px 7px",
-        whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🥇 Servicio $15K</span>
-    );
-  }
-  if (rank === 2) {
-    return (
-      <span style={{
-        fontSize: "10px", fontWeight: 700,
-        color: "#C0C0C0",
-        background: "rgba(192,192,192,0.1)",
-        border: "1px solid rgba(192,192,192,0.3)",
-        borderRadius: "5px", padding: "2px 7px",
-        whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🥈 1h con Santo</span>
-    );
-  }
-  if (rank >= 3 && rank <= 12) {
-    return (
-      <span style={{
-        fontSize: "10px", fontWeight: 700,
-        color: "#00D67A",
-        background: "rgba(0,214,122,0.08)",
-        border: "1px solid rgba(0,214,122,0.25)",
-        borderRadius: "5px", padding: "2px 7px",
-        whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-      }}>🏆 Auditoría 1:1</span>
-    );
-  }
-  return null;
+// ─── MyRankCard ──────────────────────────────────────────────────────────────
+function MyRankCard({ points, entries }: { points: number; entries: number }) {
+  const { rank, next, pointsToNext, pct } = rankProgress(points);
+  return (
+    <div style={{
+      background: `radial-gradient(600px circle at 0% 0%, color-mix(in srgb, ${rank.color} 18%, transparent), transparent 60%), linear-gradient(135deg, rgba(20,58,107,0.85) 0%, rgba(10,37,64,0.92) 100%)`,
+      border: `1px solid color-mix(in srgb, ${rank.color} 45%, transparent)`,
+      borderRadius: "14px", padding: "18px 20px", marginBottom: "24px",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
+            Tu rango
+          </p>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: rank.color, lineHeight: 1.1, textShadow: `0 0 18px color-mix(in srgb, ${rank.color} 50%, transparent)` }}>
+            {rank.emoji} {rank.name}
+          </p>
+          <p style={{ fontSize: "13px", color: "#C8D6E8", marginTop: 2 }}>
+            {points.toLocaleString()} pts · <strong style={{ color: "#FFD700" }}>{entries.toLocaleString()} chances</strong> en el sorteo
+          </p>
+        </div>
+        {next && (
+          <div style={{ textAlign: "right" }}>
+            <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.65)" }}>Próximo rango</p>
+            <p style={{ fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "14px", color: next.color }}>{next.emoji} {next.name}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Progreso al próximo rango */}
+      <div style={{ marginTop: 14 }}>
+        <div style={{ height: 8, borderRadius: 999, background: "rgba(255,255,255,0.12)", overflow: "hidden" }}>
+          <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: `linear-gradient(90deg, ${rank.color}, ${next?.color ?? rank.color})`, transition: "width .5s ease" }} />
+        </div>
+        <p style={{ fontSize: "11.5px", color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
+          {next
+            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para <strong style={{ color: next.color }}>{next.name}</strong> y más chances.</>
+            : <>¡Estás en el rango máximo! 🎉 Tenés las mejores chances en el sorteo.</>}
+        </p>
+      </div>
+    </div>
+  );
 }
 
 // ─── RankingClient ────────────────────────────────────────────────────────────
@@ -118,7 +137,7 @@ export function RankingClient() {
           color: "#FFD700", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "8px",
         }}>
-          🏆 Ranking Final
+          🏆 Rangos y Sorteo
         </p>
         <h1 style={{
           fontFamily: "var(--font-display)",
@@ -126,13 +145,16 @@ export function RankingClient() {
           color: "#ffffff", lineHeight: 1.15,
           marginBottom: "6px",
         }}>
-          Premios y Posiciones
+          Subí de rango, ganá chances
         </h1>
-        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.78)", maxWidth: "48ch" }}>
-          Los mejores ranqueados al cierre del challenge ganan premios reales.
+        <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.78)", maxWidth: "52ch" }}>
+          Acumulá puntos y subí de rango. Al cierre del challenge los premios se <strong style={{ color: "#fff" }}>sortean</strong> — cuanto más alto tu rango, <strong style={{ color: "#fff" }}>más chances</strong>.
         </p>
       </FlagBanner>
       <div style={{ height: "24px" }} />
+
+      {/* Tu rango */}
+      {!loading && <MyRankCard points={me?.total_points ?? 0} entries={me?.raffle_entries ?? 0} />}
 
       {/* Prize tiers */}
       <div style={{
@@ -145,11 +167,13 @@ export function RankingClient() {
         <div style={{
           padding: "12px 16px",
           borderBottom: "1px solid #1E3A5C",
-          display: "flex", alignItems: "center", gap: "8px",
         }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 800, color: "#FFD60A", textTransform: "uppercase", letterSpacing: "0.1em" }}>
             Premios del Challenge
           </span>
+          <p style={{ fontSize: "12px", color: "#8DA2C4", marginTop: "3px" }}>
+            Se sortean al cierre. Cuanto más alto tu rango, más chances de ganarlos. 🎲
+          </p>
         </div>
 
         {/* 1st place */}
@@ -162,7 +186,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🥇</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#FFD60A", marginBottom: "2px" }}>
-              1er lugar
+              Premio mayor
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Servicio completo <strong style={{ color: "#FFFFFF" }}>«Te conseguimos tu contrato»</strong>
@@ -186,7 +210,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🥈</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#C0C0C0", marginBottom: "2px" }}>
-              2do lugar
+              Segundo premio
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Consultoría 1:1 de 1 hora con <strong style={{ color: "#FFFFFF" }}>Santo</strong> — el roadmap exacto para venderle al gobierno
@@ -209,7 +233,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🏆</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#00D67A", marginBottom: "2px" }}>
-              3ro al 12vo lugar
+              10 auditorías
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Auditoría con el <strong style={{ color: "#FFFFFF" }}>Team Govbidder</strong> — el roadmap exacto para venderle al gobierno
@@ -317,7 +341,7 @@ export function RankingClient() {
 
                 {/* Prize badge + points */}
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-                  <PrizeBadge rank={entry.rank} />
+                  <RankBadge points={entry.total_points} />
                   <span style={{
                     fontFamily: "var(--font-mono)", fontSize: "12px",
                     fontWeight: 700,
@@ -385,7 +409,7 @@ export function RankingClient() {
             </p>
           )}
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8" }}>
-            Los mejores ranqueados al final del challenge ganan premios reales
+            Al cierre del challenge los premios se sortean — más rango, más chances
           </p>
         </div>
       </div>

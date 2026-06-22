@@ -1376,7 +1376,7 @@ function LeaderboardHome() {
           </p>
         )}
         <p style={{ fontFamily: "var(--font-mono)", fontSize: "8px", color: "#647FA8" }}>
-          Los mejores ranqueados al final del challenge ganan premios reales
+          Al cierre los premios se sortean — más rango, más chances
         </p>
       </div>
     </div>

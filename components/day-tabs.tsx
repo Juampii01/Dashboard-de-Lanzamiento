@@ -15,7 +15,7 @@ const TABS = [
   { day: 3, label: "Día 3",     sub: "Web + Portales",        href: "/dashboard/dia-3" },
   { day: 4, label: "Día 4",     sub: "Cap. Statement",        href: "/dashboard/dia-4" },
   { day: 7, label: "Suma Puntos", sub: "Ganá más XP",          href: "/dashboard/suma-puntos" },
-  { day: 5, label: "Ranking",   sub: "Premios y Posiciones",  href: "/dashboard/ranking" },
+  { day: 5, label: "Ranking",   sub: "Rangos y Premios"    ,  href: "/dashboard/ranking" },
   { day: 6, label: "Tu próximo paso", sub: "Después del challenge", href: "/dashboard/proximo-paso" },
 ];
 

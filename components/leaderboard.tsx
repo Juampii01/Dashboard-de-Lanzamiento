@@ -322,7 +322,7 @@ export function Leaderboard() {
           </p>
         )}
         <p className="text-[9px]" style={{ color: "#647FA8", fontFamily: "var(--font-mono)" }}>
-          Los mejores ranqueados al final del challenge ganan premios reales
+          Al cierre los premios se sortean — más rango, más chances
         </p>
       </div>
     </div>

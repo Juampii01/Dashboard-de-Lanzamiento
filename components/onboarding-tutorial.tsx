@@ -46,7 +46,7 @@ const STEPS: Step[] = [
   },
   {
     title: "Tu rango y los premios 🏆",
-    body: "Los mejores ranqueados ganan premios reales. Más XP acumulás, mejor tu posición. Mirá el ranking para ver dónde estás.",
+    body: "Acumulá XP y subí de rango (Elevate → Prime → Legacy). Al cierre los premios se sortean — cuanto más alto tu rango, más chances. Mirá el ranking para ver el tuyo.",
     targetId: "xp-pill",
     santoMood: "star",
     highlightPadding: 12,
