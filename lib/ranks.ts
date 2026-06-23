@@ -5,7 +5,8 @@
  */
 export interface Rank {
   key: "elevate" | "prime" | "legacy";
-  name: string;
+  name: string;         // nombre completo ("Govbidder Elevate")
+  short: string;        // nombre corto para badges chicos ("Elevate")
   min: number;          // puntos mínimos (inclusive)
   max: number;          // puntos máximos (exclusive); Infinity en el último
   color: string;
@@ -14,10 +15,13 @@ export interface Rank {
 }
 
 export const RANKS: Rank[] = [
-  { key: "elevate", name: "Elevate", min: 0,     max: 4000,     color: "#CD7F32", emoji: "🔥", prize: "10 auditorías con el Team Govbidder" },
-  { key: "prime",   name: "Prime",   min: 4000,  max: 8000,     color: "#C0C0C0", emoji: "⚡", prize: "Consultoría 1:1 de 1h con Santo" },
-  { key: "legacy",  name: "Legacy",  min: 8000,  max: Infinity, color: "#FFD700", emoji: "👑", prize: "Servicio «Te conseguimos tu contrato» · $15K" },
+  { key: "elevate", name: "Govbidder Elevate", short: "Elevate", min: 0,     max: 4000,     color: "#CD7F32", emoji: "🔥", prize: "10 auditorías con el Team Govbidder" },
+  { key: "prime",   name: "Govbidder Prime",   short: "Prime",   min: 4000,  max: 8000,     color: "#C0C0C0", emoji: "⚡", prize: "Consultoría 1:1 de 1h con Santo" },
+  { key: "legacy",  name: "Govbidder Legacy",  short: "Legacy",  min: 8000,  max: Infinity, color: "#FFD700", emoji: "👑", prize: "Servicio «Te conseguimos tu contrato» · $15K" },
 ];
+
+// El #1 del ranking lleva un título especial (no es un rango por puntos).
+export const EXPERT = { name: "Govbidder Expert", short: "Expert", color: "#FFD700", emoji: "🏆" };
 
 export function getRank(points: number): Rank {
   const p = Math.max(0, points || 0);

@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // ── Configuración (un único lugar) ──────────────────────────────────────────
-/** XP que gana el referidor por cada lead verificado. Santo la calibra. */
-export const REFERRAL_LEAD_XP = 250;
+/** XP que gana el referidor por cada referido que paga (al crear el usuario). */
+export const REFERRAL_LEAD_XP = 1000;
 /** Tope de referidos que suman al ranking por referidor. 0 = sin límite. */
 export const REFERRAL_CAP = 0;
 

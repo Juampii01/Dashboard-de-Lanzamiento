@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { FlagBanner } from "@/components/flag-banner";
-import { getRank, rankProgress } from "@/lib/ranks";
+import { getRank, rankProgress, EXPERT } from "@/lib/ranks";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,45 +31,53 @@ const TOP_COLORS: Record<number, string> = {
 };
 
 function rowBg(rank: number, isCurrentUser: boolean): string {
+  // Solo se remarcan los primeros 3 lugares.
   if (isCurrentUser) return "rgba(255,214,10,0.07)";
   if (rank === 1)    return "rgba(255,214,10,0.12)";
   if (rank === 2)    return "rgba(192,192,192,0.08)";
-  if (rank >= 3 && rank <= 12) return "rgba(0,214,122,0.06)";
+  if (rank === 3)    return "rgba(205,127,50,0.08)";
   return "transparent";
 }
 
 // ─── RankBadge ───────────────────────────────────────────────────────────────
-// Badge del rango (Elevate/Prime/Legacy) según los puntos del usuario.
-function RankBadge({ points }: { points: number }) {
-  const r = getRank(points);
+// Badge del rango por puntos. El #1 lleva el título especial "Expert".
+function RankBadge({ points, position }: { points: number; position?: number }) {
+  const isExpert = position === 1;
+  const c = isExpert ? EXPERT.color : getRank(points).color;
+  const emoji = isExpert ? EXPERT.emoji : getRank(points).emoji;
+  const label = isExpert ? EXPERT.short : getRank(points).short;
   return (
     <span style={{
       fontSize: "10px", fontWeight: 700,
-      color: r.color,
-      background: `color-mix(in srgb, ${r.color} 14%, transparent)`,
-      border: `1px solid color-mix(in srgb, ${r.color} 40%, transparent)`,
+      color: c,
+      background: `color-mix(in srgb, ${c} 14%, transparent)`,
+      border: `1px solid color-mix(in srgb, ${c} 40%, transparent)`,
       borderRadius: "5px", padding: "2px 7px",
       whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-    }}>{r.emoji} {r.name}</span>
+    }}>{emoji} {label}</span>
   );
 }
 
 // ─── MyRankCard ──────────────────────────────────────────────────────────────
-function MyRankCard({ points, entries }: { points: number; entries: number }) {
+function MyRankCard({ points, entries, myRank }: { points: number; entries: number; myRank?: number | null }) {
   const { rank, next, pointsToNext, pct } = rankProgress(points);
+  const isExpert = myRank === 1;
+  const titleColor = isExpert ? EXPERT.color : rank.color;
+  const titleEmoji = isExpert ? EXPERT.emoji : rank.emoji;
+  const titleName  = isExpert ? EXPERT.name  : rank.name;
   return (
     <div style={{
-      background: `radial-gradient(600px circle at 0% 0%, color-mix(in srgb, ${rank.color} 18%, transparent), transparent 60%), linear-gradient(135deg, rgba(20,58,107,0.85) 0%, rgba(10,37,64,0.92) 100%)`,
-      border: `1px solid color-mix(in srgb, ${rank.color} 45%, transparent)`,
+      background: `radial-gradient(600px circle at 0% 0%, color-mix(in srgb, ${titleColor} 18%, transparent), transparent 60%), linear-gradient(135deg, rgba(20,58,107,0.85) 0%, rgba(10,37,64,0.92) 100%)`,
+      border: `1px solid color-mix(in srgb, ${titleColor} 45%, transparent)`,
       borderRadius: "14px", padding: "18px 20px", marginBottom: "24px",
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
-            Tu rango
+            {isExpert ? "Sos el #1" : "Tu rango"}
           </p>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: rank.color, lineHeight: 1.1, textShadow: `0 0 18px color-mix(in srgb, ${rank.color} 50%, transparent)` }}>
-            {rank.emoji} {rank.name}
+          <p style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: titleColor, lineHeight: 1.1, textShadow: `0 0 18px color-mix(in srgb, ${titleColor} 50%, transparent)` }}>
+            {titleEmoji} {titleName}
           </p>
           <p style={{ fontSize: "13px", color: "#C8D6E8", marginTop: 2 }}>
             {points.toLocaleString()} pts · <strong style={{ color: "#FFD700" }}>{entries.toLocaleString()} chances</strong> en el sorteo
@@ -157,7 +165,7 @@ export function RankingClient() {
       <div style={{ height: "24px" }} />
 
       {/* Tu rango */}
-      {!loading && <MyRankCard points={me?.total_points ?? 0} entries={me?.raffle_entries ?? 0} />}
+      {!loading && <MyRankCard points={me?.total_points ?? 0} entries={me?.raffle_entries ?? 0} myRank={myRank} />}
 
       {/* Prize tiers */}
       <div style={{
@@ -189,7 +197,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🥇</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#FFD60A", marginBottom: "2px" }}>
-              👑 Legacy · Premio mayor
+              👑 Govbidder Legacy · Premio mayor
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Servicio completo <strong style={{ color: "#FFFFFF" }}>«Te conseguimos tu contrato»</strong>
@@ -213,7 +221,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🥈</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#C0C0C0", marginBottom: "2px" }}>
-              ⚡ Prime · Segundo premio
+              ⚡ Govbidder Prime · Segundo premio
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Consultoría 1:1 de 1 hora con <strong style={{ color: "#FFFFFF" }}>Santo</strong> — el roadmap exacto para venderle al gobierno
@@ -236,7 +244,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🏆</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#00D67A", marginBottom: "2px" }}>
-              🔥 Elevate · 10 auditorías
+              🔥 Govbidder Elevate · 10 auditorías
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Auditoría con el <strong style={{ color: "#FFFFFF" }}>Team Govbidder</strong> — el roadmap exacto para venderle al gobierno
@@ -310,7 +318,7 @@ export function RankingClient() {
                   background: bg,
                   borderLeft: entry.is_current_user
                     ? "3px solid #FFD60A"
-                    : entry.rank <= 12
+                    : entry.rank <= 3
                     ? `3px solid ${color}30`
                     : "3px solid transparent",
                   borderBottom: "1px solid rgba(255,255,255,0.04)",
@@ -344,7 +352,7 @@ export function RankingClient() {
 
                 {/* Prize badge + points */}
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-                  <RankBadge points={entry.total_points} />
+                  <RankBadge points={entry.total_points} position={entry.rank} />
                   <span style={{
                     fontFamily: "var(--font-mono)", fontSize: "12px",
                     fontWeight: 700,
@@ -390,7 +398,7 @@ export function RankingClient() {
                   <span style={{ marginLeft: "8px", fontSize: "9px", opacity: 0.6 }}>(vos)</span>
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
-                  <RankBadge points={meEntry.total_points} />
+                  <RankBadge points={meEntry.total_points} position={meEntry.rank} />
                   <span style={{
                     fontFamily: "var(--font-mono)", fontSize: "12px",
                     fontWeight: 700, color: "#C9D6EC",
