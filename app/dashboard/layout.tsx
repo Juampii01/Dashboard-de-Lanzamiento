@@ -77,6 +77,20 @@ async function getLayoutData(userId: string) {
     }
   }
 
+  // Racha diaria (+300 desde el día 2). Idempotente por fecha. Tolerante si la
+  // RPC/columnas aún no existen.
+  let streak = 0;
+  if (user) {
+    try {
+      const { data: streakRes, error: streakErr } = await supabase.rpc("claim_daily_streak", { p_user_id: userId });
+      if (!streakErr && streakRes) {
+        const r = streakRes as { streak?: number; total?: number };
+        streak = r.streak ?? 0;
+        if (typeof r.total === "number") (user as { total_points?: number }).total_points = r.total;
+      }
+    } catch { /* RPC no existe aún → ignorar */ }
+  }
+
   const completedDays = progress?.filter((p) => p.is_completed).length ?? 0;
 
   // Build toggle map { [dayNumber]: is_globally_unlocked }
@@ -106,7 +120,7 @@ async function getLayoutData(userId: string) {
     progressMap[1] = { ...progressMap[1], is_unlocked: true };
   }
 
-  return { user, completedDays, progressMap };
+  return { user, completedDays, progressMap, streak };
 }
 
 export default async function DashboardLayout({
@@ -122,6 +136,7 @@ export default async function DashboardLayout({
   let profile: typeof DEV_PROFILE | null = devMode ? DEV_PROFILE : null;
   let completedDays = 0;
   let userEmail = "";
+  let streak = 0;
   let progressMapFromLayout: Record<number, { is_unlocked: boolean; is_completed: boolean }> = {};
 
   if (devMode) {
@@ -152,6 +167,7 @@ export default async function DashboardLayout({
     profile = layoutData.user ?? SAFE_EMPTY_PROFILE;
     completedDays = layoutData.completedDays;
     progressMapFromLayout = layoutData.progressMap;
+    streak = layoutData.streak ?? 0;
 
     // Admins see all days unlocked
     if (profile?.is_admin) {
@@ -241,6 +257,21 @@ export default async function DashboardLayout({
                 avatarUrl={(profile as { avatar_url?: string | null })?.avatar_url ?? null}
               />
             </div>
+            {streak > 0 && (
+              <span
+                title={`${streak} día${streak !== 1 ? "s" : ""} seguido${streak !== 1 ? "s" : ""} · +300 XP/día desde el 2º`}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0,
+                  fontFamily: "var(--font-mono)", fontSize: 12.5, fontWeight: 800,
+                  color: "#FF7A00",
+                  background: "color-mix(in srgb, #FF7A00 12%, transparent)",
+                  border: "1px solid color-mix(in srgb, #FF7A00 35%, transparent)",
+                  borderRadius: 999, padding: "5px 11px", whiteSpace: "nowrap",
+                }}
+              >
+                🔥 {streak} {streak === 1 ? "día" : "días"}
+              </span>
+            )}
             <ThemeToggle />
           </div>
 
