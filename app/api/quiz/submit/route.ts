@@ -183,6 +183,7 @@ export async function POST(request: Request) {
   const { data: newTotal, error: xpErr } = await (service as any).rpc("add_points", {
     p_user_id: user.id,
     p_delta: effectiveXp,
+    p_category: "quiz",
   });
 
   if (xpErr) {

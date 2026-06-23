@@ -79,7 +79,7 @@ export async function POST(req: Request) {
   if (action === "reject") {
     // Descontar los puntos y borrar la fila → el usuario puede reintentar.
     if (s.points_awarded > 0) {
-      await auth.service.rpc("add_points", { p_user_id: s.user_id, p_delta: -s.points_awarded });
+      await auth.service.rpc("add_points", { p_user_id: s.user_id, p_delta: -s.points_awarded, p_category: "mission" });
     }
     await auth.service.from("mission_submissions").delete().eq("id", id);
     return NextResponse.json({ ok: true, status: "rejected" });

@@ -41,6 +41,7 @@ export async function POST() {
   const { data: newTotal, error } = await supabase.rpc("add_points", {
     p_user_id: user.id,
     p_delta: POINTS,
+    p_category: "avatar",
   });
 
   if (error) {

@@ -157,7 +157,7 @@ export async function POST(req: Request) {
           .maybeSingle();
         const l = lead as { id: string; referrer_id: string; credited_at: string | null } | null;
         if (l && !l.credited_at && l.referrer_id !== newUserId) {
-          await admin.rpc("add_points", { p_user_id: l.referrer_id, p_delta: REFERRAL_LEAD_XP });
+          await admin.rpc("add_points", { p_user_id: l.referrer_id, p_delta: REFERRAL_LEAD_XP, p_category: "referral" });
           await admin
             .from("referral_leads")
             .update({ credited_at: new Date().toISOString(), xp_awarded: REFERRAL_LEAD_XP } as Record<string, unknown>)

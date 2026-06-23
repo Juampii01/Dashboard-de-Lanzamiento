@@ -90,7 +90,7 @@ export async function POST(req: Request) {
   }
 
   // 4. Acreditar XP (atómico).
-  const { data: total, error: rpcErr } = await service.rpc("add_points", { p_user_id: user.id, p_delta: reward });
+  const { data: total, error: rpcErr } = await service.rpc("add_points", { p_user_id: user.id, p_delta: reward, p_category: "mission" });
   if (rpcErr) {
     console.error("[missions/submit] add_points error:", rpcErr);
     return NextResponse.json({ ok: true, awarded: false, reason: "award_failed" });

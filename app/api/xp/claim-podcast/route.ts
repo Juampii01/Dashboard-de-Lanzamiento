@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
   const { data: newTotal, error: xpErr } = await service.rpc("add_points", {
     p_user_id: user.id,
     p_delta:   PODCAST_XP,
+    p_category: "podcast",
   });
 
   if (xpErr) {

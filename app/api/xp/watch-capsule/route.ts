@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
   const { data: newTotal, error: pointsError } = await supabase.rpc("add_points", {
     p_user_id: user.id,
     p_delta: points,
+    p_category: "video",
   });
 
   if (pointsError) {

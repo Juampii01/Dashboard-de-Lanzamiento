@@ -42,6 +42,7 @@ export async function POST(req: Request) {
   const { data: newTotal, error: pointsError } = await service.rpc("add_points", {
     p_user_id: user.id,
     p_delta: POINTS,
+    p_category: "call",
   });
 
   if (pointsError) {

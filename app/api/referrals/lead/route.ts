@@ -85,6 +85,7 @@ export async function POST(req: Request) {
   const { error: rpcErr } = await service.rpc("add_points", {
     p_user_id: (referrer as { id: string }).id,
     p_delta: REFERRAL_LEAD_XP,
+    p_category: "referral",
   });
   if (rpcErr) {
     console.error("[referrals/lead] add_points error:", rpcErr);

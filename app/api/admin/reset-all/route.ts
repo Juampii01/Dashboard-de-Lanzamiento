@@ -48,8 +48,9 @@ export async function POST(req: Request) {
   await service.from("video_quiz_attempts").delete().eq("user_id", targetUserId);   // intentos de quiz
   await service.from("podcast_xp_claims").delete().eq("user_id", targetUserId);     // claims de podcast
   await service.from("company_profiles").delete().eq("user_id", targetUserId);      // Día 1: perfil de empresa
+  await service.from("point_events").delete().eq("user_id", targetUserId);          // ledger del desglose de puntos
 
-  // 5. Resetear puntos, timestamps y contadores de heartbeat
+  // 5. Resetear puntos, timestamps, racha y contadores de heartbeat
   await service
     .from("users")
     .update({
@@ -59,6 +60,8 @@ export async function POST(req: Request) {
       has_seen_onboarding: false,
       heartbeat_count_today: 0,
       heartbeat_count_day: null,
+      streak_count: 0,
+      streak_day: null,
     })
     .eq("id", targetUserId);
 

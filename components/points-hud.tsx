@@ -15,6 +15,25 @@ function getXpLevel(pts: number) {
   return            { name: "Rookie",           emoji: "🔰", min: 0,   max: 100 };
 }
 
+// Desglose: etiqueta + orden de presentación de cada origen de puntos.
+const CATEGORY_LABEL: Record<string, string> = {
+  time:     "⏱️ Tiempo en el dashboard",
+  video:    "🎬 Videos",
+  day:      "🚀 Días del challenge",
+  mission:  "🎯 Misiones",
+  streak:   "🔥 Racha diaria",
+  referral: "🤝 Referidos",
+  avatar:   "🕺 Avatar",
+  quiz:     "🧠 Quizzes",
+  call:     "📞 Llamadas en vivo",
+  podcast:  "🎧 Podcast",
+  ad:       "📺 Anuncios",
+  other:    "✨ Otros",
+};
+const CATEGORY_ORDER = ["time", "video", "day", "mission", "streak", "referral", "avatar", "quiz", "call", "podcast", "ad", "other"];
+
+interface Breakdown { total: number; tracked: number; by_category: Record<string, number>; }
+
 export function PointsHUD({
   points: initialPoints,
 }: PointsHUDProps) {
@@ -23,8 +42,22 @@ export function PointsHUD({
   const [currentPoints, setCurrentPoints] = useState(initialPoints);
   const [levelUp, setLevelUp]           = useState(false);
   const [tooltipPos, setTooltipPos]     = useState({ top: 0, right: 0 });
+  const [breakdown, setBreakdown]       = useState<Breakdown | null>(null);
+  const [bdLoading, setBdLoading]       = useState(false);
   const pillRef = useRef<HTMLDivElement>(null);
   const prevPointsRef = useRef(initialPoints);
+
+  const fetchBreakdown = useCallback(async () => {
+    setBdLoading(true);
+    try {
+      const r = await fetch("/api/xp/breakdown");
+      const d = await r.json();
+      if (d.ok) {
+        setBreakdown({ total: d.total ?? 0, tracked: d.tracked ?? 0, by_category: d.by_category ?? {} });
+      }
+    } catch { /* noop */ }
+    setBdLoading(false);
+  }, []);
 
   // Recompute level from current points
   const lvl = getXpLevel(currentPoints);
@@ -91,10 +124,11 @@ export function PointsHUD({
           top:   Math.max(rect.bottom + 10, headerBottom + 8),
           right: window.innerWidth - rect.right,
         });
+        fetchBreakdown();
       }
       return next;
     });
-  }, []);
+  }, [fetchBreakdown]);
 
   // Close on outside click or scroll
   useEffect(() => {
@@ -186,61 +220,83 @@ export function PointsHUD({
       </div>
 
       {/* Detail tooltip — fixed position to escape header stacking context */}
-      {open && (
-        <div
-          className="pts-detail-show"
-          style={{
-            position: "fixed",
-            top:   tooltipPos.top,
-            right: tooltipPos.right,
-            zIndex: 99999,
-            background: "#061528",
-            border: "2px solid #FFD60A",
-            borderRadius: "10px",
-            padding: "10px 14px",
-            minWidth: "170px",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.6), 0 0 20px rgba(255,214,10,0.3)",
-            transformOrigin: "top right",
-          }}
-        >
-          {[
-            ["RANGO",  lvl.name],
-            ["NIVEL",  `LVL ${Math.floor(currentPoints / 100) + 1}`],
-            ["PUNTOS", `${currentPoints} pts`],
-            ["SORTEO", `${Math.max(1, Math.floor(currentPoints / 10))} entradas`],
-          ].map(([label, val], i) => (
-            <div
-              key={label}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                color: i >= 2 ? "#FFD60A" : "#C9D6EC",
-                fontWeight: i >= 2 ? 700 : 500,
-                borderTop: i === 2 ? "1px solid #1E3A5C" : undefined,
-                paddingTop: i === 2 ? "6px" : undefined,
-                marginTop: i === 2 ? "6px" : "3px",
-              }}
-            >
-              <span>{label}</span>
-              <span>{val}</span>
-            </div>
-          ))}
-          <p
+      {open && (() => {
+        const remainder = breakdown ? Math.max(0, breakdown.total - breakdown.tracked) : 0;
+        const rows: [string, number][] = breakdown
+          ? CATEGORY_ORDER
+              .filter((k) => (breakdown.by_category[k] ?? 0) !== 0)
+              .map((k) => [CATEGORY_LABEL[k] ?? k, breakdown.by_category[k]] as [string, number])
+          : [];
+        if (remainder > 0) rows.push([CATEGORY_LABEL.other, remainder]);
+        const rowStyle: React.CSSProperties = {
+          display: "flex", justifyContent: "space-between", gap: 14,
+          fontFamily: "var(--font-mono)", fontSize: "10px", color: "#C9D6EC",
+          fontWeight: 500, marginTop: "4px",
+        };
+        return (
+          <div
+            className="pts-detail-show"
             style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "9px",
-              color: "#647FA8",
-              marginTop: "8px",
-              borderTop: "1px solid #1E3A5C",
-              paddingTop: "6px",
+              position: "fixed",
+              top:   tooltipPos.top,
+              right: tooltipPos.right,
+              zIndex: 99999,
+              background: "#061528",
+              border: "2px solid #FFD60A",
+              borderRadius: "10px",
+              padding: "11px 14px",
+              minWidth: "224px",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.6), 0 0 20px rgba(255,214,10,0.3)",
+              transformOrigin: "top right",
             }}
           >
-            +50 pts cada 10 min · +30 avatar · +250 pts/día
-          </p>
-        </div>
-      )}
+            {/* Total */}
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 14,
+              fontFamily: "var(--font-mono)", fontWeight: 700,
+            }}>
+              <span style={{ fontSize: "10px", color: "#647FA8", letterSpacing: "0.06em" }}>TUS PUNTOS</span>
+              <span style={{ fontSize: "14px", color: "#FFD60A" }}>{currentPoints}</span>
+            </div>
+
+            {/* Desglose por origen */}
+            <p style={{
+              fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8",
+              letterSpacing: "0.1em", marginTop: "9px", marginBottom: "1px",
+              borderTop: "1px solid #1E3A5C", paddingTop: "7px",
+            }}>
+              DE DÓNDE SALIERON
+            </p>
+
+            {bdLoading && rows.length === 0 ? (
+              <p style={{ ...rowStyle, color: "#647FA8", justifyContent: "flex-start" }}>Cargando…</p>
+            ) : rows.length > 0 ? (
+              rows.map(([label, pts]) => (
+                <div key={label} style={rowStyle}>
+                  <span>{label}</span>
+                  <span style={{ color: pts < 0 ? "#FF6B6B" : "#9FE9C2", fontWeight: 700, whiteSpace: "nowrap" }}>
+                    {pts > 0 ? `+${pts}` : pts}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: "9.5px", color: "#647FA8", marginTop: "4px", lineHeight: 1.5 }}>
+                Todavía no sumaste puntos. Quedate en el dashboard, mirá los videos y completá misiones para empezar a sumar.
+              </p>
+            )}
+
+            {/* Sorteo */}
+            <div style={{
+              display: "flex", justifyContent: "space-between", gap: 14,
+              fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 700, color: "#FFD60A",
+              borderTop: "1px solid #1E3A5C", marginTop: "8px", paddingTop: "7px",
+            }}>
+              <span>🎟️ Entradas al sorteo</span>
+              <span>{Math.max(1, Math.floor(currentPoints / 10))}</span>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
