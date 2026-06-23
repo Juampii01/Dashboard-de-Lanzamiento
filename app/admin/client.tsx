@@ -594,20 +594,36 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </Card>
       </div>
 
-      {/* Misiones diarias → sección propia */}
-      <Link href="/admin/misiones">
-        <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2">📸 Misiones Diarias</span>
-              <span className="text-sm text-muted-foreground font-normal">Ir →</span>
-            </CardTitle>
-            <CardDescription>
-              Publicá y moderá la misión del día en su sección propia. Los participantes responden con captura, link o texto.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </Link>
+      {/* Secciones propias: misiones y referidos */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Link href="/admin/misiones">
+          <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">📸 Misiones Diarias</span>
+                <span className="text-sm text-muted-foreground font-normal">Ir →</span>
+              </CardTitle>
+              <CardDescription>
+                Publicá y moderá la misión del día en su sección propia. Los participantes responden con captura, link o texto.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link href="/admin/referidos">
+          <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">🤝 Referidos</span>
+                <span className="text-sm text-muted-foreground font-normal">Ir →</span>
+              </CardTitle>
+              <CardDescription>
+                Mirá quién refirió a quién, qué referidos ya pagaron y los puntos acreditados a cada referidor.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+      </div>
 
       {/* Bloqueo de dashboard */}
       <Card>
