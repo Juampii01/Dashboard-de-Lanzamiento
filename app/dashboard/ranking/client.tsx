@@ -59,7 +59,7 @@ function RankBadge({ points, position }: { points: number; position?: number }) 
 }
 
 // ─── MyRankCard ──────────────────────────────────────────────────────────────
-function MyRankCard({ points, entries, myRank }: { points: number; entries: number; myRank?: number | null }) {
+function MyRankCard({ points, myRank }: { points: number; myRank?: number | null }) {
   const { rank, next, pointsToNext, pct } = rankProgress(points);
   const isExpert = myRank === 1;
   const titleColor = isExpert ? EXPERT.color : rank.color;
@@ -80,10 +80,10 @@ function MyRankCard({ points, entries, myRank }: { points: number; entries: numb
             {titleEmoji} {titleName}
           </p>
           <p style={{ fontSize: "13px", color: "#C8D6E8", marginTop: 2 }}>
-            {points.toLocaleString()} pts · <strong style={{ color: "#FFD700" }}>{entries.toLocaleString()} chances</strong> en el sorteo
+            {points.toLocaleString()} pts
           </p>
           <p style={{ fontSize: "12.5px", color: "#C8D6E8", marginTop: 6 }}>
-            🎁 Tu premio en juego: <strong style={{ color: rank.color }}>{rank.prize}</strong>
+            🎁 Participando por: <strong style={{ color: rank.color }}>{rank.prize}</strong>
           </p>
         </div>
         {next && (
@@ -165,7 +165,7 @@ export function RankingClient() {
       <div style={{ height: "24px" }} />
 
       {/* Tu rango */}
-      {!loading && <MyRankCard points={me?.total_points ?? 0} entries={me?.raffle_entries ?? 0} myRank={myRank} />}
+      {!loading && <MyRankCard points={me?.total_points ?? 0} myRank={myRank} />}
 
       {/* Prize tiers */}
       <div style={{
