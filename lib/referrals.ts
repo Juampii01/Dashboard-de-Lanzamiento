@@ -16,10 +16,10 @@ export function generateReferralCode(len = 8): string {
   return out;
 }
 
-/** Link de referido del usuario. La landing de GHL se configura por env var. */
+/** Link de referido del usuario → página pública /referido del dashboard. */
 export function referralLink(code: string): string {
-  const base = (process.env.NEXT_PUBLIC_LANDING_URL || "https://govbidder.net").replace(/\/+$/, "");
-  return `${base}/?ref=${code}`;
+  const base = (process.env.NEXT_PUBLIC_APP_URL || "https://dboard.govbidder.net").replace(/\/+$/, "");
+  return `${base}/referido?ref=${code}`;
 }
 
 /**

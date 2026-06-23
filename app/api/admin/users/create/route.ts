@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { sendAccessEmail } from "@/lib/email/send-access-email";
+import { REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { z } from "zod";
 
 // ---------------------------------------------------------------------------
@@ -144,6 +145,27 @@ export async function POST(req: Request) {
         .update({ is_unlocked: true })
         .eq("user_id", newUserId)
         .eq("day_number", 1);
+
+      // 4c-bis. Si este email fue referido (formulario público), acreditar al
+      // referidor +REFERRAL_LEAD_XP. Solo una vez (credited_at) y nunca a sí mismo.
+      try {
+        const emailLc = userData.email.trim().toLowerCase();
+        const { data: lead } = await admin
+          .from("referral_leads")
+          .select("id, referrer_id, credited_at")
+          .eq("referred_email", emailLc)
+          .maybeSingle();
+        const l = lead as { id: string; referrer_id: string; credited_at: string | null } | null;
+        if (l && !l.credited_at && l.referrer_id !== newUserId) {
+          await admin.rpc("add_points", { p_user_id: l.referrer_id, p_delta: REFERRAL_LEAD_XP });
+          await admin
+            .from("referral_leads")
+            .update({ credited_at: new Date().toISOString(), xp_awarded: REFERRAL_LEAD_XP } as Record<string, unknown>)
+            .eq("id", l.id);
+        }
+      } catch (e) {
+        console.warn(`[create-user] referral credit failed for ${userData.email}:`, e);
+      }
 
       // 4d. Generate + send magic link
       const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
