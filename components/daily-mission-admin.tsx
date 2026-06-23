@@ -11,7 +11,9 @@ interface Mission {
 }
 interface Submission {
   id: string;
-  image_url: string;
+  image_url: string | null;
+  content_type: string;          // 'image' | 'link' | 'text'
+  content_text: string | null;
   status: string;
   points_awarded: number;
   created_at: string;
@@ -123,36 +125,48 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
         </p>
       </div>
 
-      {/* Capturas recibidas */}
+      {/* Respuestas pendientes de revisar */}
       <div className="space-y-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
         <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>
-          Capturas recibidas {subs.length > 0 && <span style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>· {subs.length}</span>}
+          Respuestas pendientes {subs.length > 0 && <span style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>· {subs.length}</span>}
+        </p>
+        <p style={{ fontSize: 11.5, color: "var(--muted-foreground)" }}>
+          Aceptar = queda cumplida (se borra el contenido). Rechazar = resta los puntos y la persona puede reintentar. Lo que no revises queda como cumplido.
         </p>
         {subs.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>Todavía no hay capturas.</p>
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>No hay respuestas para revisar.</p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: 12 }}>
             {subs.map((s) => (
-              <div key={s.id} style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden", opacity: s.status === "rejected" ? 0.55 : 1 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <a href={s.image_url} target="_blank" rel="noreferrer">
-                  <img src={s.image_url} alt="captura" style={{ width: "100%", height: 110, objectFit: "cover", display: "block", background: "var(--muted)" }} />
-                </a>
+              <div key={s.id} style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
+                {s.content_type === "image" && s.image_url ? (
+                  <a href={s.image_url} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={s.image_url} alt="captura" style={{ width: "100%", height: 110, objectFit: "cover", display: "block", background: "var(--muted)" }} />
+                  </a>
+                ) : (
+                  <div style={{ padding: "10px 12px", minHeight: 70, background: "var(--muted)", fontSize: 12.5, color: "var(--foreground)", wordBreak: "break-word" }}>
+                    {s.content_type === "link" && s.content_text ? (
+                      <a href={s.content_text} target="_blank" rel="noreferrer" style={{ color: "var(--primary)", textDecoration: "underline" }}>{s.content_text}</a>
+                    ) : (
+                      <span>{s.content_text || "—"}</span>
+                    )}
+                  </div>
+                )}
                 <div style={{ padding: "8px 10px" }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {s.full_name || s.email || "—"}
                   </p>
-                  {s.status === "rejected" ? (
+                  <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                     <button onClick={() => moderate(s.id, "approve")} disabled={busy === s.id}
-                      style={{ marginTop: 6, width: "100%", padding: "5px", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)", background: "transparent", color: "var(--success)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
-                      {busy === s.id ? <Loader2 size={12} className="animate-spin inline" /> : "Aprobar (+pts)"}
+                      style={{ flex: 1, padding: "5px", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)", background: "transparent", color: "var(--success)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
+                      {busy === s.id ? <Loader2 size={12} className="animate-spin inline" /> : "Aceptar"}
                     </button>
-                  ) : (
                     <button onClick={() => moderate(s.id, "reject")} disabled={busy === s.id}
-                      style={{ marginTop: 6, width: "100%", padding: "5px", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--destructive) 40%, transparent)", background: "transparent", color: "var(--destructive)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
-                      {busy === s.id ? <Loader2 size={12} className="animate-spin inline" /> : "Rechazar (−pts)"}
+                      style={{ flex: 1, padding: "5px", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--destructive) 40%, transparent)", background: "transparent", color: "var(--destructive)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
+                      {busy === s.id ? <Loader2 size={12} className="animate-spin inline" /> : "Rechazar"}
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}

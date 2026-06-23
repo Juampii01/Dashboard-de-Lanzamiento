@@ -55,7 +55,6 @@ import { toast } from "sonner";
 import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
-import { DailyMissionAdmin } from "@/components/daily-mission-admin";
 
 interface AdminToggle {
   day_number: number;
@@ -595,21 +594,20 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </Card>
       </div>
 
-      {/* Misiones diarias */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            📸 Misiones Diarias
-          </CardTitle>
-          <CardDescription>
-            Publicá la misión del día. Los participantes la ven en “Misiones Extra”, suben su captura y suman XP al instante.
-            Moderá las capturas acá (rechazar descuenta los puntos).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DailyMissionAdmin />
-        </CardContent>
-      </Card>
+      {/* Misiones diarias → sección propia */}
+      <Link href="/admin/misiones">
+        <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2">📸 Misiones Diarias</span>
+              <span className="text-sm text-muted-foreground font-normal">Ir →</span>
+            </CardTitle>
+            <CardDescription>
+              Publicá y moderá la misión del día en su sección propia. Los participantes responden con captura, link o texto.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </Link>
 
       {/* Bloqueo de dashboard */}
       <Card>

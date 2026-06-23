@@ -11,7 +11,7 @@ async function requireAdmin() {
   return { service };
 }
 
-/** GET → submissions de la misión activa (con nombre/email del autor). */
+/** GET → respuestas PENDIENTES de la misión activa (reviewed_at null). */
 export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
@@ -23,11 +23,12 @@ export async function GET() {
   const missionId = (mission as { id: string }).id;
   const { data: subs } = await auth.service
     .from("mission_submissions")
-    .select("id, user_id, image_url, status, points_awarded, created_at")
+    .select("id, user_id, image_url, content_type, content_text, status, points_awarded, created_at")
     .eq("mission_id", missionId)
+    .is("reviewed_at", null)
     .order("created_at", { ascending: false });
 
-  const rows = (subs ?? []) as Array<{ id: string; user_id: string; image_url: string; status: string; points_awarded: number; created_at: string }>;
+  const rows = (subs ?? []) as Array<{ id: string; user_id: string; image_url: string | null; content_type: string; content_text: string | null; status: string; points_awarded: number; created_at: string }>;
   const ids = [...new Set(rows.map((r) => r.user_id))];
   const nameMap: Record<string, { full_name: string | null; email: string }> = {};
   if (ids.length) {
@@ -45,9 +46,10 @@ export async function GET() {
 }
 
 /**
- * POST → moderar una submission.
- * Body: { submission_id, action: "reject" | "approve" }
- * reject: descuenta los puntos (si los tenía). approve: re-acredita si estaba rechazada.
+ * POST → moderar una respuesta. Body: { submission_id, action: "reject" | "approve" }
+ * - approve: la deja como cumplida + borra el contenido (storage) + marca revisada.
+ * - reject: descuenta los puntos + borra el contenido + borra la fila → el
+ *   usuario puede reintentar.
  */
 export async function POST(req: Request) {
   const auth = await requireAdmin();
@@ -63,35 +65,30 @@ export async function POST(req: Request) {
 
   const { data: sub } = await auth.service
     .from("mission_submissions")
-    .select("id, user_id, mission_id, status, points_awarded")
+    .select("id, user_id, points_awarded, storage_path")
     .eq("id", id)
     .maybeSingle();
   if (!sub) return NextResponse.json({ error: "not_found" }, { status: 404 });
+  const s = sub as { user_id: string; points_awarded: number; storage_path: string | null };
 
-  const s = sub as { user_id: string; mission_id: string; status: string; points_awarded: number };
+  // Borrar el archivo del storage (si había).
+  if (s.storage_path) {
+    await auth.service.storage.from("avatars").remove([s.storage_path]);
+  }
 
-  if (action === "reject" && s.status !== "rejected") {
+  if (action === "reject") {
+    // Descontar los puntos y borrar la fila → el usuario puede reintentar.
     if (s.points_awarded > 0) {
       await auth.service.rpc("add_points", { p_user_id: s.user_id, p_delta: -s.points_awarded });
     }
-    await auth.service.from("mission_submissions")
-      .update({ status: "rejected", points_awarded: 0, reviewed_at: new Date().toISOString() })
-      .eq("id", id);
+    await auth.service.from("mission_submissions").delete().eq("id", id);
     return NextResponse.json({ ok: true, status: "rejected" });
   }
 
-  if (action === "approve" && s.status === "rejected") {
-    const { data: mission } = await auth.service
-      .from("daily_missions").select("points_reward").eq("id", s.mission_id).maybeSingle();
-    const reward = (mission as { points_reward?: number } | null)?.points_reward ?? 0;
-    if (reward > 0) {
-      await auth.service.rpc("add_points", { p_user_id: s.user_id, p_delta: reward });
-    }
-    await auth.service.from("mission_submissions")
-      .update({ status: "approved", points_awarded: reward, reviewed_at: new Date().toISOString() })
-      .eq("id", id);
-    return NextResponse.json({ ok: true, status: "approved" });
-  }
-
-  return NextResponse.json({ ok: true, status: s.status }); // no-op
+  // approve: queda cumplida, se limpia el contenido y se marca revisada.
+  await auth.service
+    .from("mission_submissions")
+    .update({ status: "approved", reviewed_at: new Date().toISOString(), image_url: null, content_text: null, storage_path: null } as Record<string, unknown>)
+    .eq("id", id);
+  return NextResponse.json({ ok: true, status: "approved" });
 }

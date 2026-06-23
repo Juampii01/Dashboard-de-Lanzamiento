@@ -35,6 +35,20 @@ export async function POST(req: Request) {
   let body: { action?: string; title?: string; description?: string; points_reward?: number };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "invalid_json" }, { status: 400 }); }
 
+  // Reset de la misión anterior: borrar sus respuestas (storage + filas) al
+  // cambiar/quitar la misión. Las pendientes quedan validadas por defecto (los
+  // puntos ya acreditados se mantienen; no se descuenta nada). Así la DB no
+  // acumula 200 capturas por día.
+  const { data: active } = await auth.service.from("daily_missions").select("id").eq("is_active", true);
+  const activeIds = ((active ?? []) as Array<{ id: string }>).map((m) => m.id);
+  if (activeIds.length) {
+    const { data: subs } = await auth.service
+      .from("mission_submissions").select("storage_path").in("mission_id", activeIds);
+    const paths = ((subs ?? []) as Array<{ storage_path: string | null }>).map((s) => s.storage_path).filter(Boolean) as string[];
+    if (paths.length) await auth.service.storage.from("avatars").remove(paths);
+    await auth.service.from("mission_submissions").delete().in("mission_id", activeIds);
+  }
+
   // Apagar la(s) misión(es) activa(s).
   await auth.service.from("daily_missions").update({ is_active: false }).eq("is_active", true);
 
