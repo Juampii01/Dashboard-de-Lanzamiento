@@ -1,5 +1,5 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/referrals";
+import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP, REFERRAL_REDIRECT_URL } from "@/lib/referrals";
 import { ReferralLinkCard } from "@/components/referral-link-card";
 import { DailyMissionUser } from "@/components/daily-mission-user";
 import Link from "next/link";
@@ -10,8 +10,7 @@ const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes
 // Referidos "en vivo" para usuarios solo cuando la URL de pago/acceso está
 // configurada (el form público /referido redirige ahí). Hasta entonces, los
 // usuarios no ven el link (el admin sí, para testear).
-const REFERRAL_REDIRECT = process.env.NEXT_PUBLIC_REFERRAL_REDIRECT_URL ?? "";
-const REFERRALS_LIVE = REFERRAL_REDIRECT.startsWith("http");
+const REFERRALS_LIVE = REFERRAL_REDIRECT_URL.startsWith("http");
 
 // Mientras esté en false, los USUARIOS ven "Próximamente" aunque haya misión
 // activa; el ADMIN igual la ve (vista previa). Poner en true para lanzarla a todos.

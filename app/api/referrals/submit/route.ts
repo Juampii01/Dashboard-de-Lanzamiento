@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/server";
+import { REFERRAL_REDIRECT_URL } from "@/lib/referrals";
 import { NextResponse } from "next/server";
 
 /**
@@ -21,7 +22,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_email" }, { status: 400 });
   }
 
-  const redirectUrl = process.env.NEXT_PUBLIC_REFERRAL_REDIRECT_URL || "";
+  const redirectUrl = REFERRAL_REDIRECT_URL;
+  const service = createServiceClient();
+
+  // Si el email YA es un usuario (ya pagó / tiene acceso), no lo registramos
+  // como lead nuevo ni lo mandamos a pagar de nuevo.
+  const { data: existingUser } = await service
+    .from("users")
+    .select("id")
+    .ilike("email", email)
+    .maybeSingle();
+  if (existingUser) {
+    return NextResponse.json({ ok: true, alreadyUser: true });
+  }
 
   // Sin código de referido válido igual dejamos pasar (redirige), solo que no
   // se registra atribución.
@@ -29,7 +42,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, attributed: false, redirectUrl });
   }
 
-  const service = createServiceClient();
   const { data: referrer } = await service
     .from("users")
     .select("id, email")

@@ -22,6 +22,11 @@ export function referralLink(code: string): string {
   return `${base}/referido?ref=${code}`;
 }
 
+/** A dónde redirige el formulario público /referido tras enviar el email
+ *  (página de pago/acceso). Overrideable por env var. */
+export const REFERRAL_REDIRECT_URL =
+  (process.env.NEXT_PUBLIC_REFERRAL_REDIRECT_URL || "https://challenge.govbidder.net/challege-ref-page").trim();
+
 /**
  * Devuelve el referral_code del usuario; si no tiene (usuario nuevo creado
  * después de la migración), lo genera y persiste de forma idempotente.
