@@ -1106,24 +1106,24 @@ function ContractModels({ fullName }: { fullName?: string }) {
           width: "100%",
           padding: "12px 16px",
           borderRadius: "10px",
-          border: "1.5px solid rgba(255,214,10,0.35)",
-          background: "rgba(255,214,10,0.06)",
+          border: "1.5px solid color-mix(in srgb, var(--cert-gold) 45%, transparent)",
+          background: "color-mix(in srgb, var(--cert-gold) 10%, transparent)",
           cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
           transition: "all 0.15s",
-          color: "#FFD60A",
+          color: "var(--cert-gold)",
           fontSize: "13px", fontWeight: 700,
           fontFamily: "var(--font-display)",
         }}
         onMouseEnter={(e) => {
           const el = e.currentTarget as HTMLButtonElement;
-          el.style.background = "rgba(255,214,10,0.12)";
-          el.style.borderColor = "rgba(255,214,10,0.6)";
+          el.style.background = "color-mix(in srgb, var(--cert-gold) 18%, transparent)";
+          el.style.borderColor = "color-mix(in srgb, var(--cert-gold) 70%, transparent)";
         }}
         onMouseLeave={(e) => {
           const el = e.currentTarget as HTMLButtonElement;
-          el.style.background = "rgba(255,214,10,0.06)";
-          el.style.borderColor = "rgba(255,214,10,0.35)";
+          el.style.background = "color-mix(in srgb, var(--cert-gold) 10%, transparent)";
+          el.style.borderColor = "color-mix(in srgb, var(--cert-gold) 45%, transparent)";
         }}
       >
         <span style={{ fontSize: "18px" }}>📜</span>

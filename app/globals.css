@@ -78,6 +78,8 @@
   /* Accent: gold — badges/highlights only (never text on light) */
   --accent:               #FFD700;
   --accent-foreground:    #0d1a3d;
+  /* Dorado para texto/bordes que SÍ deben leerse en claro → ámbar oscuro */
+  --cert-gold:            #9A6A00;
 
   /* Success: brand green */
   --success:              #16A65F;
@@ -136,6 +138,7 @@
 
   --accent:               #FFD700;
   --accent-foreground:    #0d1a3d;
+  --cert-gold:            #FFD60A;
 
   --success:              #16A65F;
   --success-foreground:   #ffffff;
