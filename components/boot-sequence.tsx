@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 
 const LINES = [
-  { text: "> Inicializando sistema Govbidder...", color: "#C9D6EC" },
+  { text: "> Inicializando sistema GovBidder...", color: "#C9D6EC" },
   { text: "> Verificando credenciales gubernamentales...", color: "#C9D6EC" },
   { text: "> Conectando con SAM.gov...", color: "#C9D6EC" },
   { text: "> Cargando oportunidades de contratos...", color: "#C9D6EC" },
   { text: "> [OK] Perfil de contratista: VERIFICADO", color: "#00D67A" },
-  { text: "> ACCESO CONCEDIDO. Bienvenido a Govbidder.", color: "#FFD60A" },
+  { text: "> ACCESO CONCEDIDO. Bienvenido a GovBidder.", color: "#FFD60A" },
 ];
 
 const DELAYS = [0, 420, 820, 1200, 1680, 2200];
@@ -58,7 +58,7 @@ export function BootSequence() {
         <div className="flex items-center gap-3 mb-8">
           <img
             src="/halcon.png"
-            alt="Govbidder Challenge"
+            alt="GovBidder Challenge"
             style={{
               height: "40px",
               width: "auto",

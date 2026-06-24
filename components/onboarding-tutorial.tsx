@@ -26,7 +26,7 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    title: "¡Bienvenido a Govbidder! 🎮",
+    title: "¡Bienvenido a GovBidder! 🎮",
     body: "Soy Santo, tu guía en esta misión. En los próximos 4 días vas a construir tu presencia en el mercado gubernamental. Cada acción suma puntos — y los puntos determinan quién gana los premios finales.",
     santoMood: "wave",
   },
@@ -300,7 +300,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/aguila.png"
-                    alt="Govbidder"
+                    alt="GovBidder"
                     style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
                   />
                 </div>

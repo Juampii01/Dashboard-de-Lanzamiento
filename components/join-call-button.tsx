@@ -12,7 +12,7 @@ const POINTS = 300;
 
 // C6 fix: call URL comes from env var so it can be swapped without a code deploy.
 // Set NEXT_PUBLIC_CALL_URL in Vercel to the actual live-stream / Zoom link
-// before the event.  Falls back to the Govbidder YouTube channel.
+// before the event.  Falls back to the GovBidder YouTube channel.
 const DEFAULT_CALL_URL =
   process.env.NEXT_PUBLIC_CALL_URL ?? "https://youtube.com/@govbidder";
 

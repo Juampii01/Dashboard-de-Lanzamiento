@@ -140,7 +140,7 @@ export function Day1AnalysisPDF({
               ) : null}
               <View>
                 <Text style={styles.companyName}>{companyName}</Text>
-                <Text style={styles.tagline}>Govbidder Challenge — Perfil Estratégico Día 1</Text>
+                <Text style={styles.tagline}>GovBidder Challenge — Perfil Estratégico Día 1</Text>
               </View>
             </View>
             <Text style={styles.docTitle}>STRATEGIC{"\n"}PROFILE{"\n"}DAY 1</Text>
