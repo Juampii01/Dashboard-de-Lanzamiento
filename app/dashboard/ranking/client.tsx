@@ -93,20 +93,21 @@ function LeaderRow({
 }
 
 // ─── MyRankCard ──────────────────────────────────────────────────────────────
+// Bloque "Tu rango" — se renderiza DENTRO del FlagBanner (sobre la bandera),
+// separado del título por un divisor. Sin caja propia: el banner da el fondo.
 function MyRankCard({ points }: { points: number }) {
   const { rank, next, pointsToNext, pct } = rankProgress(points);
   return (
     <div style={{
-      background: `radial-gradient(600px circle at 0% 0%, color-mix(in srgb, ${rank.color} 18%, transparent), transparent 60%), linear-gradient(135deg, rgba(20,58,107,0.85) 0%, rgba(10,37,64,0.92) 100%)`,
-      border: `1px solid color-mix(in srgb, ${rank.color} 45%, transparent)`,
-      borderRadius: "14px", padding: "18px 20px", marginBottom: "24px",
+      marginTop: 18, paddingTop: 16,
+      borderTop: "1px solid rgba(255,255,255,0.16)",
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.6)" }}>
             Tu rango
           </p>
-          <p style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: rank.color, lineHeight: 1.1, textShadow: `0 0 18px color-mix(in srgb, ${rank.color} 50%, transparent)` }}>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: "27px", fontWeight: 800, color: rank.color, lineHeight: 1.1, textShadow: `0 0 18px color-mix(in srgb, ${rank.color} 50%, transparent)` }}>
             {rank.emoji} {rank.name}
           </p>
           <p style={{ fontSize: "13px", color: "#C8D6E8", marginTop: 2 }}>
@@ -270,11 +271,11 @@ export function RankingClient() {
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.78)", maxWidth: "52ch" }}>
           Acumulá puntos y subí de rango. <strong style={{ color: "#fff" }}>Cada rango compite por su propio premio</strong> — se <strong style={{ color: "#fff" }}>sortea</strong> al cierre del challenge.
         </p>
+
+        {/* Tu rango — fusionado dentro del banner, sobre la bandera */}
+        {!loading && <MyRankCard points={me?.total_points ?? 0} />}
       </FlagBanner>
       <div style={{ height: "24px" }} />
-
-      {/* Tu rango */}
-      {!loading && <MyRankCard points={me?.total_points ?? 0} />}
 
       {/* Prize tiers */}
       <div style={{

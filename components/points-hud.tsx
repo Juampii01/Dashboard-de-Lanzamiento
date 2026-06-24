@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flyPoints } from "@/lib/wow-effects";
+import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
 
 interface PointsHUDProps {
   points: number;
@@ -14,25 +15,6 @@ function getXpLevel(pts: number) {
   if (pts >= 100) return { name: "Contratista", emoji: "⚡",  min: 100, max: 250 };
   return            { name: "Rookie",           emoji: "🔰", min: 0,   max: 100 };
 }
-
-// Desglose: etiqueta + orden de presentación de cada origen de puntos.
-const CATEGORY_LABEL: Record<string, string> = {
-  time:     "⏱️ Tiempo en el dashboard",
-  video:    "🎬 Videos",
-  day:      "🚀 Días del challenge",
-  mission:  "🎯 Misiones",
-  streak:   "🔥 Racha diaria",
-  referral: "🤝 Referidos",
-  avatar:   "🕺 Avatar",
-  quiz:     "🧠 Quizzes",
-  call:     "📞 Llamadas en vivo",
-  podcast:  "🎧 Podcast",
-  ad:       "📺 Anuncios",
-  other:    "✨ Otros",
-};
-const CATEGORY_ORDER = ["time", "video", "day", "mission", "streak", "referral", "avatar", "quiz", "call", "podcast", "ad", "other"];
-
-interface Breakdown { total: number; tracked: number; by_category: Record<string, number>; }
 
 export function PointsHUD({
   points: initialPoints,
@@ -221,13 +203,7 @@ export function PointsHUD({
 
       {/* Detail tooltip — fixed position to escape header stacking context */}
       {open && (() => {
-        const remainder = breakdown ? Math.max(0, breakdown.total - breakdown.tracked) : 0;
-        const rows: [string, number][] = breakdown
-          ? CATEGORY_ORDER
-              .filter((k) => (breakdown.by_category[k] ?? 0) !== 0)
-              .map((k) => [CATEGORY_LABEL[k] ?? k, breakdown.by_category[k]] as [string, number])
-          : [];
-        if (remainder > 0) rows.push([CATEGORY_LABEL.other, remainder]);
+        const rows = breakdownRows(breakdown);
         const rowStyle: React.CSSProperties = {
           display: "flex", justifyContent: "space-between", gap: 14,
           fontFamily: "var(--font-mono)", fontSize: "10px", color: "#C9D6EC",

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Send, MessageCircle, X, FileText } from "lucide-react";
+import { Send, MessageCircle, X, FileText, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { FlagBanner } from "@/components/flag-banner";
+import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
+import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -215,29 +217,26 @@ const NICHES: Niche[] = [
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: string | null }) {
-  const LS_AVATAR_KEY = "govbidder_avatar_url_v1";
   const [points, setPoints] = useState(initial);
-  const [currentAvatar, setCurrentAvatar] = useState(avatarUrl ?? null);
-  const [avatarLoaded, setAvatarLoaded] = useState(false);
 
-  // localStorage fallback after mount
-  useEffect(() => {
-    if (!avatarUrl) {
-      const stored = localStorage.getItem(LS_AVATAR_KEY);
-      if (stored) setCurrentAvatar(stored);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Avatar: misma fuente de verdad que el sidebar / barra de progreso.
+  const { photoUrl } = useUserAvatar(avatarUrl);
+  const [imgError, setImgError] = useState(false);
+  useEffect(() => { setImgError(false); }, [photoUrl]);
 
-  // Keep in sync with uploads/deletions
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const url = (e as CustomEvent<{ url: string | null }>).detail?.url;
-      if (url) { setCurrentAvatar(url); setAvatarLoaded(false); }
-      else setCurrentAvatar(null);
-    };
-    window.addEventListener("avatar-updated", handler);
-    return () => window.removeEventListener("avatar-updated", handler);
+  // Desglose de puntos (se carga al abrir).
+  const [open, setOpen] = useState(false);
+  const [breakdown, setBreakdown] = useState<Breakdown | null>(null);
+  const [bdLoading, setBdLoading] = useState(false);
+
+  const fetchBreakdown = useCallback(async () => {
+    setBdLoading(true);
+    try {
+      const r = await fetch("/api/xp/breakdown");
+      const d = await r.json();
+      if (d.ok) setBreakdown({ total: d.total ?? 0, tracked: d.tracked ?? 0, by_category: d.by_category ?? {} });
+    } catch { /* noop */ }
+    setBdLoading(false);
   }, []);
 
   useEffect(() => {
@@ -249,6 +248,16 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
     return () => window.removeEventListener("xp-gained", handler);
   }, []);
 
+  const toggle = useCallback(() => {
+    setOpen((v) => {
+      const next = !v;
+      if (next && !breakdown) fetchBreakdown();
+      return next;
+    });
+  }, [breakdown, fetchBreakdown]);
+
+  const rows = breakdownRows(breakdown);
+
   return (
     <div
       style={{
@@ -256,9 +265,6 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
         border: "1px solid var(--score-border)",
         borderRadius: "14px",
         padding: "16px 20px",
-        display: "flex",
-        alignItems: "center",
-        gap: "16px",
         position: "relative",
         overflow: "hidden",
         alignSelf: "flex-start",
@@ -285,58 +291,103 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
         />
       ))}
 
-      {/* Avatar or trophy */}
-      <div style={{ flexShrink: 0, position: "relative" }}>
-        {currentAvatar ? (
-          <div style={{
-            width: "52px", height: "52px", borderRadius: "50%",
-            overflow: "hidden", position: "relative",
-            border: "2px solid rgba(255,214,10,0.5)",
-            boxShadow: "0 0 16px rgba(255,214,10,0.25)",
-          }}>
-            <img
-              key={currentAvatar}
-              src={currentAvatar}
-              alt=""
-              onLoad={() => setAvatarLoaded(true)}
-              onError={() => setCurrentAvatar(null)}
-              style={{ width: "100%", height: "100%", objectFit: "cover",
-                objectPosition: "center top",
-                opacity: avatarLoaded ? 1 : 0, transition: "opacity 0.25s" }}
-            />
-            {!avatarLoaded && (
-              <span style={{ position: "absolute", inset: 0, display: "flex",
-                alignItems: "center", justifyContent: "center", fontSize: "20px" }}>🏆</span>
-            )}
-          </div>
-        ) : (
-          <div style={{ fontSize: "40px" }}>🏆</div>
-        )}
-      </div>
+      {/* Fila clickeable: avatar + puntos + chevron → despliega el desglose */}
+      <button
+        onClick={toggle}
+        aria-expanded={open}
+        style={{
+          display: "flex", alignItems: "center", gap: "16px",
+          width: "100%", background: "none", border: "none", padding: 0,
+          cursor: "pointer", textAlign: "left", font: "inherit", color: "inherit",
+          position: "relative",
+        }}
+      >
+        {/* Avatar (águila de fondo + foto del usuario si tiene) */}
+        <div style={{
+          flexShrink: 0, width: "52px", height: "52px", borderRadius: "50%",
+          overflow: "hidden", position: "relative",
+          border: "2px solid color-mix(in srgb, var(--accent) 55%, transparent)",
+          boxShadow: "0 0 16px color-mix(in srgb, var(--accent) 22%, transparent)",
+          background: "var(--secondary)",
+        }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/aguila.png" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+          {photoUrl && !imgError && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={photoUrl} src={photoUrl} alt="" onError={() => setImgError(true)}
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+          )}
+        </div>
 
-      <div style={{ flex: 1 }}>
-        <div style={{
-          fontFamily: "var(--font-arcade)",
-          fontSize: "8px", fontWeight: 700,
-          color: "var(--score-label)", letterSpacing: "0.1em",
-          textTransform: "uppercase", marginBottom: "2px",
-        }}>
-          TUS PUNTOS ACUMULADOS
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontFamily: "var(--font-arcade)",
+            fontSize: "8px", fontWeight: 700,
+            color: "var(--score-label)", letterSpacing: "0.1em",
+            textTransform: "uppercase", marginBottom: "2px",
+          }}>
+            TUS PUNTOS ACUMULADOS
+          </div>
+          <div style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "36px", fontWeight: 900,
+            color: "var(--score-num)", letterSpacing: "-1px", lineHeight: 1,
+          }}>
+            {points.toLocaleString()}
+          </div>
+          <div style={{
+            fontSize: "10px", color: "var(--muted-foreground)",
+            fontWeight: 600, marginTop: "2px",
+          }}>
+            {open ? "Ocultar el desglose de puntos" : "Tocá para ver de dónde salieron tus puntos"}
+          </div>
         </div>
-        <div style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "36px", fontWeight: 900,
-          color: "var(--score-num)", letterSpacing: "-1px", lineHeight: 1,
-        }}>
-          {points.toLocaleString()}
+
+        <ChevronDown
+          size={20}
+          style={{
+            flexShrink: 0, color: "var(--muted-foreground)",
+            transition: "transform 0.2s",
+            transform: open ? "rotate(180deg)" : "none",
+          }}
+        />
+      </button>
+
+      {/* Panel de desglose */}
+      {open && (
+        <div style={{ borderTop: "1px solid var(--border)", marginTop: "14px", paddingTop: "12px" }}>
+          <p style={{
+            fontFamily: "var(--font-mono)", fontSize: "9px", fontWeight: 700,
+            color: "var(--muted-foreground)", letterSpacing: "0.1em",
+            textTransform: "uppercase", margin: "0 0 6px",
+          }}>
+            De dónde salieron
+          </p>
+
+          {bdLoading && rows.length === 0 ? (
+            <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Cargando…</p>
+          ) : rows.length > 0 ? (
+            rows.map(([label, pts]) => (
+              <div key={label} style={{
+                display: "flex", justifyContent: "space-between", gap: 14,
+                fontSize: 12.5, marginTop: 5,
+              }}>
+                <span style={{ color: "var(--foreground)" }}>{label}</span>
+                <span style={{
+                  fontFamily: "var(--font-mono)", fontWeight: 700, whiteSpace: "nowrap",
+                  color: pts < 0 ? "var(--destructive)" : "var(--success)",
+                }}>
+                  {pts > 0 ? `+${pts.toLocaleString()}` : pts.toLocaleString()}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0, lineHeight: 1.5 }}>
+              Todavía no sumaste puntos. Quedate en el dashboard, mirá los videos y completá misiones para empezar a sumar.
+            </p>
+          )}
         </div>
-        <div style={{
-          fontSize: "10px", color: "var(--muted-foreground)",
-          fontWeight: 600, marginTop: "2px",
-        }}>
-          Seguí completando retos y viendo videos para subir en el ranking
-        </div>
-      </div>
+      )}
     </div>
   );
 }
