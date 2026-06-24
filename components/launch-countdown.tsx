@@ -71,8 +71,10 @@ export function LaunchCountdown({
         pointerEvents: "auto", // bloquea la interacción con el contenido de abajo
         display: "flex", alignItems: "flex-start", justifyContent: "center",
         padding: "clamp(20px, 6vh, 64px) 14px",
-        // Bien semi-transparente: el dashboard se ve nítido detrás (sin blur).
-        background: "rgba(8,15,36,0.22)",
+        // Velo semi-transparente que sigue el tema: en claro tiñe hacia el fondo
+        // claro (sin "sombra" navy), en oscuro mantiene el dim oscuro. El dashboard
+        // se ve nítido detrás (sin blur).
+        background: "color-mix(in srgb, var(--background) 42%, transparent)",
         borderRadius: 16,
       }}
     >
