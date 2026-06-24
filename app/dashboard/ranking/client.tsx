@@ -6,20 +6,17 @@ import { getRank, rankProgress, RANKS } from "@/lib/ranks";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface LeaderEntry {
-  rank: number;
+interface FullEntry {
+  rank: number;            // posición global (no se usa para mostrar)
   display_name: string;
   total_points: number;
-  raffle_entries: number;
   is_current_user: boolean;
 }
 
-interface LeaderboardData {
-  top:     LeaderEntry[];
-  me:      Omit<LeaderEntry, "is_current_user"> | null;
-  my_rank: number | null;
-  in_top:  boolean;
-  total:   number;
+interface FullData {
+  all: FullEntry[];
+  my_global_rank: number | null;
+  total: number;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -30,26 +27,68 @@ const TOP_COLORS: Record<number, string> = {
   3: "#CD7F32",
 };
 
-function rowBg(rank: number, isCurrentUser: boolean): string {
-  if (isCurrentUser) return "rgba(255,214,10,0.07)";
-  if (rank === 1)    return "rgba(255,214,10,0.12)";
-  if (rank === 2)    return "rgba(192,192,192,0.08)";
-  if (rank === 3)    return "rgba(205,127,50,0.08)";
-  return "transparent";
-}
+const MAX_PER_RANK = 20;
+const RANK_ORDER = ["expert", "legacy", "prime", "elevate"] as const;
 
-// ─── RankBadge ───────────────────────────────────────────────────────────────
-function RankBadge({ points }: { points: number }) {
-  const r = getRank(points);
+// ─── PositionBadge — número de posición a la izquierda, bien legible ──────────
+function PositionBadge({ position }: { position: number }) {
+  const medal = TOP_COLORS[position];
+  if (medal) {
+    return (
+      <span style={{
+        width: 28, height: 28, flexShrink: 0,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        borderRadius: "50%",
+        background: `color-mix(in srgb, ${medal} 20%, transparent)`,
+        border: `1.5px solid ${medal}`,
+        color: medal, fontFamily: "var(--font-arcade)", fontSize: 12, fontWeight: 800,
+        textShadow: `0 0 8px ${medal}90`,
+      }}>{position}</span>
+    );
+  }
   return (
     <span style={{
-      fontSize: "10px", fontWeight: 700,
-      color: r.color,
-      background: `color-mix(in srgb, ${r.color} 14%, transparent)`,
-      border: `1px solid color-mix(in srgb, ${r.color} 40%, transparent)`,
-      borderRadius: "5px", padding: "2px 7px",
-      whiteSpace: "nowrap", fontFamily: "var(--font-mono)", flexShrink: 0,
-    }}>{r.emoji} {r.short}</span>
+      width: 28, height: 28, flexShrink: 0,
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      fontFamily: "var(--font-mono)", fontSize: 14, fontWeight: 800,
+      color: "#D6E2F5",
+    }}>{position}</span>
+  );
+}
+
+// ─── Row ───────────────────────────────────────────────────────────────────────
+function LeaderRow({
+  position, name, points, isCurrentUser,
+}: { position: number; name: string; points: number; isCurrentUser: boolean }) {
+  const medal = TOP_COLORS[position];
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 8,
+      padding: "8px 10px",
+      background: isCurrentUser ? "rgba(255,214,10,0.10)" : "transparent",
+      borderLeft: isCurrentUser ? "3px solid #FFD60A" : "3px solid transparent",
+      borderBottom: "1px solid rgba(255,255,255,0.04)",
+      minHeight: 42,
+    }}>
+      <PositionBadge position={position} />
+      <span style={{
+        flex: 1, minWidth: 0,
+        fontSize: 12.5,
+        color: isCurrentUser ? "#FFD60A" : "#C8D6E8",
+        fontWeight: isCurrentUser ? 700 : 500,
+        fontFamily: "var(--font-sans)",
+        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+      }}>
+        {name}
+        {isCurrentUser && <span style={{ marginLeft: 5, fontSize: 9, opacity: 0.6 }}>(vos)</span>}
+      </span>
+      <span style={{
+        fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 700,
+        color: medal ?? "#9FB4D4", flexShrink: 0,
+      }}>
+        {points.toLocaleString()}
+      </span>
+    </div>
   );
 }
 
@@ -99,159 +138,84 @@ function MyRankCard({ points }: { points: number }) {
   );
 }
 
-// ─── RankLeaderboard — tabla para un rango específico ─────────────────────────
-function RankLeaderboard({
-  rankKey,
-  entries,
-  loading,
-  meEntry,
-}: {
-  rankKey: string;
-  entries: LeaderEntry[];
-  loading: boolean;
-  meEntry: (LeaderEntry & { is_current_user: true }) | null;
-}) {
+// ─── RankColumn — una tabla por rango (top 20 + fila propia si está más abajo) ─
+function RankColumn({ rankKey, all, loading }: { rankKey: string; all: FullEntry[]; loading: boolean }) {
   const rankDef = RANKS.find((r) => r.key === rankKey);
   if (!rankDef) return null;
 
-  // Check if current user is in this rank table
-  const meInThisRank = meEntry && getRank(meEntry.total_points).key === rankKey;
-  const meInList = entries.some((e) => e.is_current_user);
-  const showMeRow = meInThisRank && !meInList && meEntry;
+  // `all` viene ordenado por puntos desc → el bucket también lo está.
+  const bucket = all.filter((e) => getRank(e.total_points).key === rankKey);
+  const top = bucket.slice(0, MAX_PER_RANK);
+  const meIdx = bucket.findIndex((e) => e.is_current_user);
+  const showMeRow = meIdx >= MAX_PER_RANK;          // está en el rango pero fuera del top 20
+  const meEntry = showMeRow ? bucket[meIdx] : null;
 
   return (
     <div style={{
       background: "linear-gradient(135deg, rgba(20,58,107,0.88) 0%, rgba(10,37,64,0.92) 100%)",
       border: `1px solid color-mix(in srgb, ${rankDef.color} 35%, #1E3A5C)`,
-      borderRadius: "14px",
+      borderRadius: "12px",
       overflow: "hidden",
-      marginBottom: "20px",
+      display: "flex", flexDirection: "column",
     }}>
       {/* Header */}
       <div style={{
-        display: "flex", alignItems: "center", gap: "10px",
-        padding: "12px 16px",
-        borderBottom: `1px solid color-mix(in srgb, ${rankDef.color} 20%, transparent)`,
-        background: `color-mix(in srgb, ${rankDef.color} 6%, transparent)`,
+        padding: "10px 12px",
+        borderBottom: `1px solid color-mix(in srgb, ${rankDef.color} 22%, transparent)`,
+        background: `color-mix(in srgb, ${rankDef.color} 8%, transparent)`,
       }}>
-        <span style={{ fontSize: "18px" }}>{rankDef.emoji}</span>
-        <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <span style={{ fontSize: 16 }}>{rankDef.emoji}</span>
           <span style={{
-            fontFamily: "var(--font-arcade)", fontSize: "10px",
-            fontWeight: 700, color: rankDef.color,
-            textTransform: "uppercase", letterSpacing: "0.1em",
-          }}>
-            {rankDef.name}
-          </span>
-          <p style={{ fontSize: "11px", color: "#8DA2C4", margin: "1px 0 0" }}>
-            🎁 {rankDef.prize}
-          </p>
+            fontFamily: "var(--font-arcade)", fontSize: 10, fontWeight: 700,
+            color: rankDef.color, textTransform: "uppercase", letterSpacing: "0.06em",
+          }}>{rankDef.short}</span>
         </div>
-        <span style={{
-          fontFamily: "var(--font-mono)", fontSize: "10px",
-          color: rankDef.color,
-          background: `color-mix(in srgb, ${rankDef.color} 12%, transparent)`,
-          border: `1px solid color-mix(in srgb, ${rankDef.color} 30%, transparent)`,
-          borderRadius: "5px", padding: "2px 8px",
-        }}>
-          {rankDef.min.toLocaleString()}+ pts
-        </span>
+        <p style={{ fontSize: 10.5, color: "#8DA2C4", margin: "4px 0 0", lineHeight: 1.3 }}>
+          {rankDef.min.toLocaleString()}{rankDef.max === Infinity ? "+" : `–${(rankDef.max - 1).toLocaleString()}`} pts
+        </p>
+        <p style={{ fontSize: 10.5, color: rankDef.color, margin: "2px 0 0", lineHeight: 1.3, opacity: 0.9 }}>
+          🎁 {rankDef.prize}
+        </p>
       </div>
 
       {/* Rows */}
-      <div>
-        {loading && Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px" }}>
-            <div className="skeleton" style={{ width: "32px", height: "12px", borderRadius: "4px" }} />
-            <div className="skeleton" style={{ flex: 1, height: "12px", borderRadius: "4px" }} />
-            <div className="skeleton" style={{ width: "60px", height: "12px", borderRadius: "4px" }} />
+      <div style={{ flex: 1 }}>
+        {loading && Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px" }}>
+            <div className="skeleton" style={{ width: 28, height: 12, borderRadius: 4 }} />
+            <div className="skeleton" style={{ flex: 1, height: 12, borderRadius: 4 }} />
           </div>
         ))}
 
-        {!loading && entries.length === 0 && !showMeRow && (
-          <p style={{ textAlign: "center", padding: "24px 16px", fontSize: "13px", color: "#8DA2C4" }}>
+        {!loading && top.length === 0 && !showMeRow && (
+          <p style={{ textAlign: "center", padding: "20px 12px", fontSize: 12, color: "#8DA2C4" }}>
             Nadie en este rango todavía.
           </p>
         )}
 
-        {!loading && entries.map((entry) => {
-          const color = TOP_COLORS[entry.rank] ?? "#8DA2C4";
-          const isTop3 = entry.rank <= 3;
-          const bg = rowBg(entry.rank, entry.is_current_user);
-          return (
-            <div
-              key={entry.rank}
-              style={{
-                display: "flex", alignItems: "center", gap: "12px",
-                padding: "10px 16px",
-                background: bg,
-                borderLeft: entry.is_current_user
-                  ? "3px solid #FFD60A"
-                  : isTop3
-                  ? `3px solid ${color}30`
-                  : "3px solid transparent",
-                borderBottom: "1px solid rgba(255,255,255,0.04)",
-                minHeight: "44px",
-              }}
-            >
-              <span style={{
-                width: "32px", textAlign: "center", flexShrink: 0,
-                fontFamily: "var(--font-arcade)",
-                fontSize: isTop3 ? "13px" : "10px",
-                color,
-                textShadow: isTop3 ? `0 0 10px ${color}90` : "none",
-              }}>
-                #{entry.rank}
-              </span>
-              <span style={{
-                flex: 1, fontSize: "13px",
-                color: entry.is_current_user ? "#FFD60A" : "#C8D6E8",
-                fontWeight: entry.is_current_user ? 700 : 400,
-                fontFamily: "var(--font-sans)",
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {entry.display_name}
-                {entry.is_current_user && (
-                  <span style={{ marginLeft: "8px", fontSize: "9px", opacity: 0.6 }}>(vos)</span>
-                )}
-              </span>
-              <span style={{
-                fontFamily: "var(--font-mono)", fontSize: "12px",
-                fontWeight: 700,
-                color: isTop3 ? color : "#C9D6EC",
-              }}>
-                {entry.total_points} pts
-              </span>
-            </div>
-          );
-        })}
+        {!loading && top.map((entry, idx) => (
+          <LeaderRow
+            key={idx}
+            position={idx + 1}
+            name={entry.display_name}
+            points={entry.total_points}
+            isCurrentUser={entry.is_current_user}
+          />
+        ))}
 
-        {/* Current user row if not in list but belongs to this rank */}
-        {!loading && showMeRow && (
+        {/* Fila propia cuando el usuario está fuera del top 20 de su rango */}
+        {!loading && showMeRow && meEntry && (
           <>
-            {entries.length > 0 && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "6px", background: "rgba(0,0,0,0.2)" }}>
-                <span style={{ fontFamily: "var(--font-mono)", fontSize: "10px", color: "#647FA8", letterSpacing: "0.3em" }}>• • •</span>
-              </div>
-            )}
-            <div style={{
-              display: "flex", alignItems: "center", gap: "12px",
-              padding: "10px 16px",
-              background: "rgba(255,214,10,0.07)",
-              borderLeft: "3px solid #FFD60A",
-              minHeight: "44px",
-            }}>
-              <span style={{ width: "32px", textAlign: "center", flexShrink: 0, fontFamily: "var(--font-arcade)", fontSize: "10px", color: "#8DA2C4" }}>
-                #{meEntry.rank}
-              </span>
-              <span style={{ flex: 1, fontSize: "13px", fontWeight: 700, color: "#FFD60A", fontFamily: "var(--font-sans)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {meEntry.display_name}
-                <span style={{ marginLeft: "8px", fontSize: "9px", opacity: 0.6 }}>(vos)</span>
-              </span>
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 700, color: "#C9D6EC" }}>
-                {meEntry.total_points} pts
-              </span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "6px", background: "rgba(0,0,0,0.22)" }}>
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "#647FA8", letterSpacing: "0.3em" }}>• • •</span>
             </div>
+            <LeaderRow
+              position={meIdx + 1}
+              name={meEntry.display_name}
+              points={meEntry.total_points}
+              isCurrentUser
+            />
           </>
         )}
       </div>
@@ -262,13 +226,13 @@ function RankLeaderboard({
 // ─── RankingClient ────────────────────────────────────────────────────────────
 
 export function RankingClient() {
-  const [board, setBoard]     = useState<LeaderboardData | null>(null);
+  const [board, setBoard]     = useState<FullData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     try {
-      const res  = await fetch("/api/leaderboard");
-      const data = await res.json() as LeaderboardData;
+      const res  = await fetch("/api/leaderboard/ranks");
+      const data = await res.json() as FullData;
       setBoard(data);
     } catch { /* silent */ }
     finally { setLoading(false); }
@@ -278,19 +242,12 @@ export function RankingClient() {
     load();
   }, [load]);
 
-  const top    = board?.top ?? [];
-  const me     = board?.me ?? null;
-  const myRank = board?.my_rank ?? null;
-  const total  = board?.total ?? 0;
-  const meEntry: (LeaderEntry & { is_current_user: true }) | null = me
-    ? { ...me, rank: myRank ?? me.rank, is_current_user: true }
-    : null;
-
-  // Filter entries per rank (from highest to lowest)
-  const rankOrder = ["expert", "legacy", "prime", "elevate"] as const;
+  const all   = board?.all ?? [];
+  const total = board?.total ?? 0;
+  const me    = all.find((e) => e.is_current_user) ?? null;
 
   return (
-    <div style={{ maxWidth: "680px", margin: "0 auto", padding: "24px 16px" }}>
+    <div style={{ maxWidth: "960px", margin: "0 auto", padding: "24px 16px" }}>
 
       {/* Page title */}
       <FlagBanner minHeight={170} priority contentStyle={{ padding: "26px 28px" }} className="gb-ranking-hero">
@@ -393,27 +350,25 @@ export function RankingClient() {
         </div>
       </div>
 
-      {/* 4 leaderboards separados por rango */}
+      {/* Tablas de líderes — 4 columnas, una por rango */}
       <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, color: "#8DA2C4", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "14px" }}>
-        Tablas de líderes por rango
+        Tablas de líderes por rango · top {MAX_PER_RANK} por rango
       </p>
 
-      {rankOrder.map((key) => {
-        const rankEntries = top.filter((e) => getRank(e.total_points).key === key);
-        return (
-          <RankLeaderboard
-            key={key}
-            rankKey={key}
-            entries={rankEntries}
-            loading={loading}
-            meEntry={meEntry}
-          />
-        );
-      })}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+        gap: 12,
+        alignItems: "start",
+      }}>
+        {RANK_ORDER.map((key) => (
+          <RankColumn key={key} rankKey={key} all={all} loading={loading} />
+        ))}
+      </div>
 
       {/* Footer */}
       {!loading && (
-        <p style={{ textAlign: "center", fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8", marginTop: 8 }}>
+        <p style={{ textAlign: "center", fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8", marginTop: 16 }}>
           {total > 0 ? `${total} participante${total !== 1 ? "s" : ""} · ` : ""}
           Al cierre del challenge los premios se sortean — más rango, más chances
         </p>
