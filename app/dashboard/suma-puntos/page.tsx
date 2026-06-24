@@ -178,7 +178,7 @@ export default async function SumaPuntosPage() {
 
       {/* 3. Historia Diaria */}
       <section className="space-y-3">
-        <SectionHeader emoji="📸" title="Historia Diaria" subtitle="+500 pts · se reinicia a las 8 AM hora Miami" />
+        <SectionHeader emoji="📸" title="Historia Diaria" subtitle="+500 pts · se reinicia cada día a la mañana" />
         <StoryUpload alreadyDone={ctx.storyDoneToday} />
       </section>
 

@@ -2,11 +2,42 @@
 
 import { useEffect, useRef, useState } from "react";
 
+// El reset ocurre a las 8:00 AM hora Miami (America/New_York). Devolvemos esa
+// MISMA hora expresada en la zona horaria LOCAL del navegador de quien lo ve
+// (p. ej. "9:00 a.m." en Argentina). Se calcula tras montar para no romper la
+// hidratación (server y cliente pueden estar en zonas distintas).
+function miamiResetLocalLabel(hour = 8): string {
+  try {
+    const tz = "America/New_York";
+    const now = new Date();
+    const nyYMD = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now); // YYYY-MM-DD
+    const [y, m, d] = nyYMD.split("-").map(Number);
+    const offsetMin = (date: Date) => {
+      const p = new Intl.DateTimeFormat("en-US", {
+        timeZone: tz, hour12: false,
+        year: "numeric", month: "2-digit", day: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit",
+      }).formatToParts(date).reduce<Record<string, string>>((a, x) => { a[x.type] = x.value; return a; }, {});
+      const asUTC = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+      return (asUTC - date.getTime()) / 60000;
+    };
+    const utcGuess = Date.UTC(y, m - 1, d, hour, 0, 0);
+    const instant = new Date(utcGuess - offsetMin(new Date(utcGuess)) * 60000);
+    return instant.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  } catch {
+    return `${hour}:00 AM`;
+  }
+}
+
 export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [phase, setPhase] = useState<"idle" | "loading" | "done" | "error">(alreadyDone ? "done" : "idle");
   const [errorMsg, setErrorMsg] = useState("");
+  // Hora del reset (8 AM Miami) expresada en la zona local del visitante.
+  const [resetLabel, setResetLabel] = useState("8:00 AM");
+
+  useEffect(() => { setResetLabel(miamiResetLocalLabel()); }, []);
 
   // Revoca el object URL anterior al cambiar/desmontar (evita memory leak de blobs).
   useEffect(() => {
@@ -85,7 +116,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
             ¡Historia subida! +500 pts
           </p>
           <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
-            Volvé mañana después de las 8 AM (hora Miami) para subir tu próxima historia.
+            Volvé mañana después de las {resetLabel} (tu hora local) para subir tu próxima historia.
           </p>
         </div>
       </div>
@@ -114,7 +145,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       </div>
 
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
-        Posteá una historia en tus redes sobre el challenge y subí una captura de pantalla. Se reinicia cada día a las 8 AM (hora Miami).
+        Posteá una historia en tus redes sobre el challenge y subí una captura de pantalla. Se reinicia cada día a las {resetLabel} (tu hora local).
       </p>
 
       {/* File picker zone */}
