@@ -130,7 +130,7 @@ export default function LoginPage() {
                   className="underline"
                   style={{ color: "#00D67A" }}
                 >
-                  GovBidder.net
+                  Govbidder.net
                 </a>
               </p>
             </div>

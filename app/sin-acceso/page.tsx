@@ -67,7 +67,7 @@ export default function SinAccesoPage() {
                 rel="noopener noreferrer"
                 className="text-[#FFD60A] underline"
               >
-                GovBidder.net
+                Govbidder.net
               </a>
               .
             </p>
