@@ -1,27 +1,24 @@
 /**
  * Rangos del challenge. Subís de rango acumulando puntos; al cierre el premio
  * se SORTEA (ponderado: más puntos/rango = más chances).
- * Umbrales pensados para la escala ×10 (techo ~13.000 XP). Ajustables acá.
  */
 export interface Rank {
-  key: "elevate" | "prime" | "legacy";
-  name: string;         // nombre completo ("GovBidder Elevate")
-  short: string;        // nombre corto para badges chicos ("Elevate")
-  min: number;          // puntos mínimos (inclusive)
-  max: number;          // puntos máximos (exclusive); Infinity en el último
+  key: "elevate" | "prime" | "legacy" | "expert";
+  name: string;
+  short: string;
+  min: number;
+  max: number;
   color: string;
   emoji: string;
-  prize: string;        // premio que se sortea dentro de este rango
+  prize: string;
 }
 
 export const RANKS: Rank[] = [
-  { key: "elevate", name: "GovBidder Elevate", short: "Elevate", min: 0,     max: 4000,     color: "#CD7F32", emoji: "🔥", prize: "10 auditorías con el Team GovBidder" },
-  { key: "prime",   name: "GovBidder Prime",   short: "Prime",   min: 4000,  max: 8000,     color: "#C0C0C0", emoji: "⚡", prize: "Consultoría 1:1 de 1h con Santo" },
-  { key: "legacy",  name: "GovBidder Legacy",  short: "Legacy",  min: 8000,  max: Infinity, color: "#FFD700", emoji: "👑", prize: "Servicio «Te conseguimos tu contrato» · $15K" },
+  { key: "elevate", name: "GovBidder Elevate", short: "Elevate", min: 0,      max: 5000,     color: "#CD7F32", emoji: "🔥", prize: "10 auditorías con el Team GovBidder" },
+  { key: "prime",   name: "GovBidder Prime",   short: "Prime",   min: 5000,   max: 10000,    color: "#C0C0C0", emoji: "⚡", prize: "Consultoría 1:1 de 1h con Santo" },
+  { key: "legacy",  name: "GovBidder Legacy",  short: "Legacy",  min: 10000,  max: 15000,    color: "#FFD700", emoji: "👑", prize: "Cupón $1,000 para productos GovBidder" },
+  { key: "expert",  name: "GovBidder Expert",  short: "Expert",  min: 15000,  max: Infinity, color: "#00D67A", emoji: "🏆", prize: "Servicio «Te conseguimos tu contrato» · $15K" },
 ];
-
-// El #1 del ranking lleva un título especial (no es un rango por puntos).
-export const EXPERT = { name: "GovBidder Expert", short: "Expert", color: "#FFD700", emoji: "🏆" };
 
 export function getRank(points: number): Rank {
   const p = Math.max(0, points || 0);

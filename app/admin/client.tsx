@@ -52,7 +52,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock } from "lucide-react";
+import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Zap } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
 
@@ -470,6 +470,255 @@ function LaunchScheduleControl({ initialToggles }: { initialToggles: AdminToggle
   );
 }
 
+// ─── KeywordsAdminPanel ─────────────────────────────────────────────────────
+
+interface KeywordRow { day_number: number; keyword?: string; updated_at?: string; }
+
+function KeywordsAdminPanel() {
+  const [rows, setRows] = useState<KeywordRow[]>([]);
+  const [inputs, setInputs] = useState<Record<number, string>>({});
+  const [saving, setSaving] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/keywords")
+      .then((r) => r.json())
+      .then((data: KeywordRow[]) => {
+        setRows(data);
+        const init: Record<number, string> = {};
+        data.forEach((r) => { if (r.keyword) init[r.day_number] = r.keyword; });
+        setInputs(init);
+      })
+      .catch(() => {});
+  }, []);
+
+  async function save(day: number) {
+    const keyword = (inputs[day] ?? "").trim();
+    if (!keyword) return;
+    setSaving(day);
+    try {
+      const res = await fetch("/api/admin/keywords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day_number: day, keyword }),
+      });
+      if (!res.ok) throw new Error();
+      setRows((prev) => {
+        const existing = prev.find((r) => r.day_number === day);
+        if (existing) return prev.map((r) => r.day_number === day ? { ...r, keyword } : r);
+        return [...prev, { day_number: day, keyword }];
+      });
+      toast.success(`Keyword del Día ${day} guardada.`);
+    } catch {
+      toast.error("Error al guardar keyword.");
+    }
+    setSaving(null);
+  }
+
+  const existing = Object.fromEntries(rows.map((r) => [r.day_number, r.keyword]));
+
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3, 4].map((day) => (
+        <div key={day} className="flex items-center gap-3 p-3 border rounded-xl bg-card" style={{ borderColor: "#1E3A5C" }}>
+          <span className="text-xs font-bold text-muted-foreground w-12 shrink-0">Día {day}</span>
+          <input
+            type="text"
+            placeholder={existing[day] ? `Actual: ${existing[day]}` : "Ingresá la keyword secreta..."}
+            value={inputs[day] ?? ""}
+            onChange={(e) => setInputs((prev) => ({ ...prev, [day]: e.target.value }))}
+            disabled={saving === day}
+            className="flex-1 min-w-0 px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+            style={{ borderColor: "#1E3A5C" }}
+          />
+          <Button size="sm" onClick={() => save(day)} disabled={saving === day || !(inputs[day] ?? "").trim()}>
+            {saving === day ? "..." : existing[day] ? "Actualizar" : "Guardar"}
+          </Button>
+          {existing[day] && (
+            <span className="text-[10px] font-bold text-green-500 shrink-0">✓</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── RafagaAdminPanel ────────────────────────────────────────────────────────
+
+interface RafagaRow {
+  id: string;
+  title: string;
+  description: string | null;
+  starts_at: string;
+  duration_minutes: number;
+  points_reward: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+function RafagaAdminPanel() {
+  const [missions, setMissions] = useState<RafagaRow[]>([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [duration, setDuration] = useState("120");
+  const [creating, setCreating] = useState(false);
+  const [deactivating, setDeactivating] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/rafaga")
+      .then((r) => r.json())
+      .then((data: RafagaRow[]) => setMissions(data))
+      .catch(() => {});
+  }, []);
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    if (!title.trim() || !startsAt) return;
+    setCreating(true);
+    try {
+      // Convert local datetime-local value to UTC ISO string
+      const localDate = new Date(startsAt);
+      const res = await fetch("/api/admin/rafaga", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || null,
+          starts_at: localDate.toISOString(),
+          duration_minutes: parseInt(duration, 10) || 120,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const json = await res.json() as { ok: boolean; id: string };
+      const newRow: RafagaRow = {
+        id: json.id,
+        title: title.trim(),
+        description: description.trim() || null,
+        starts_at: localDate.toISOString(),
+        duration_minutes: parseInt(duration, 10) || 120,
+        points_reward: 1000,
+        is_active: true,
+        created_at: new Date().toISOString(),
+      };
+      setMissions((prev) => [newRow, ...prev]);
+      setTitle(""); setDescription(""); setStartsAt(""); setDuration("120");
+      toast.success("Misión ráfaga creada.");
+    } catch {
+      toast.error("Error al crear misión ráfaga.");
+    }
+    setCreating(false);
+  }
+
+  async function deactivate(id: string) {
+    setDeactivating(id);
+    try {
+      const res = await fetch("/api/admin/rafaga", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) throw new Error();
+      setMissions((prev) => prev.map((m) => m.id === id ? { ...m, is_active: false } : m));
+      toast.success("Misión desactivada.");
+    } catch {
+      toast.error("Error al desactivar misión.");
+    }
+    setDeactivating(null);
+  }
+
+  function getMissionStatus(m: RafagaRow): "upcoming" | "active" | "expired" {
+    const now = Date.now();
+    const start = new Date(m.starts_at).getTime();
+    const end = start + m.duration_minutes * 60 * 1000;
+    if (now < start) return "upcoming";
+    if (now <= end) return "active";
+    return "expired";
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Create form */}
+      <form onSubmit={create} className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Título</label>
+          <input
+            type="text" placeholder="Ej: Ráfaga del Día 2" value={title}
+            onChange={(e) => setTitle(e.target.value)} required
+            className="w-full px-3 py-2.5 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+            style={{ borderColor: "#1E3A5C" }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Descripción (opcional)</label>
+          <input
+            type="text" placeholder="Instrucciones para los participantes" value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            style={{ borderColor: "#1E3A5C" }}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Fecha y hora de inicio</label>
+          <input
+            type="datetime-local" value={startsAt}
+            onChange={(e) => setStartsAt(e.target.value)} required
+            className="w-full px-3 py-2.5 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            style={{ borderColor: "#1E3A5C" }}
+          />
+          <p className="text-[11px] text-muted-foreground">Se usa tu hora local (se convierte a UTC).</p>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Duración (minutos)</label>
+          <input
+            type="number" min={5} max={720} value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            style={{ borderColor: "#1E3A5C" }}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Button type="submit" disabled={creating || !title.trim() || !startsAt} className="w-full">
+            {creating ? "Creando..." : "Crear misión ráfaga +1,000 pts"}
+          </Button>
+        </div>
+      </form>
+
+      {/* List */}
+      {missions.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Misiones creadas</p>
+          {missions.map((m) => {
+            const status = !m.is_active ? "inactive" : getMissionStatus(m);
+            const statusLabel = status === "inactive" ? "🚫 Desactivada" : status === "active" ? "⚡ Activa" : status === "upcoming" ? "⏳ Programada" : "🔒 Expirada";
+            const statusColor = status === "inactive" ? "#E07A5F" : status === "active" ? "#FFD700" : status === "upcoming" ? "#8DA2C4" : "#647FA8";
+            return (
+              <div key={m.id} className="flex items-center justify-between gap-3 p-3 border rounded-xl bg-card" style={{ borderColor: "#1E3A5C", opacity: !m.is_active ? 0.5 : 1 }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{m.title}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {new Date(m.starts_at).toLocaleString("es-US", { dateStyle: "short", timeStyle: "short" })} · {m.duration_minutes} min
+                  </p>
+                </div>
+                <span className="text-[10px] font-bold shrink-0" style={{ color: statusColor }}>{statusLabel}</span>
+                {m.is_active && status !== "expired" && (
+                  <Button
+                    variant="outline" size="sm"
+                    disabled={deactivating === m.id}
+                    onClick={() => deactivate(m.id)}
+                    className="text-xs shrink-0"
+                  >
+                    {deactivating === m.id ? "..." : "Desactivar"}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 
 interface AdminClientProps {
@@ -624,6 +873,38 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
           </Card>
         </Link>
       </div>
+
+      {/* Palabras Clave de Llamadas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="w-5 h-5 text-[#FFD700]" />
+            Palabras Clave de Llamadas
+          </CardTitle>
+          <CardDescription>
+            Configurá la keyword secreta de cada día de llamada. Los participantes la ingresan en Misiones Extra para ganar +1,000 pts. Solo puede haber una keyword por día.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <KeywordsAdminPanel />
+        </CardContent>
+      </Card>
+
+      {/* Misiones Ráfaga */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-[#FFD700]" />
+            Misiones Ráfaga
+          </CardTitle>
+          <CardDescription>
+            Programá misiones de ventana corta (defecto 2 horas). Los participantes las ven en Misiones Extra y pueden reclamar +1,000 pts durante la ventana. Nada se muestra hasta que empiece.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RafagaAdminPanel />
+        </CardContent>
+      </Card>
 
       {/* Bloqueo de dashboard */}
       <Card>

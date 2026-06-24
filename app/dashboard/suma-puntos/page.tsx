@@ -1,45 +1,106 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP, REFERRAL_REDIRECT_URL } from "@/lib/referrals";
+import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { ReferralLinkCard } from "@/components/referral-link-card";
 import { DailyMissionUser } from "@/components/daily-mission-user";
+import { KeywordCards } from "@/components/keyword-cards";
+import { StoryUpload } from "@/components/story-upload";
+import { RafagaSection } from "@/components/rafaga-section";
+import type { RafagaMission } from "@/components/rafaga-section";
 import Link from "next/link";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
-// Referidos "en vivo" para usuarios solo cuando la URL de pago/acceso está
-// configurada (el form público /referido redirige ahí). Hasta entonces, los
-// usuarios no ven el link (el admin sí, para testear).
-const REFERRALS_LIVE = REFERRAL_REDIRECT_URL.startsWith("http");
+// Función para calcular la fecha Miami con reset 8AM
+function getMiamiStoryDate(): string {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", hourCycle: "h23",
+  }).formatToParts(now);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const hour = parseInt(get("hour"), 10);
 
-// Mientras esté en false, los USUARIOS ven "Próximamente" aunque haya misión
-// activa; el ADMIN igual la ve (vista previa). Poner en true para lanzarla a todos.
-const MISSIONS_LIVE_FOR_USERS = false;
+  if (hour < 8) {
+    const prev = new Date(now);
+    prev.setUTCHours(prev.getUTCHours() - 24);
+    return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(prev);
+  }
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
 
 interface Mission { id: string; title: string; description: string | null; points_reward: number; }
-interface Ctx { isAdmin: boolean; refLink: string | null; mission: Mission | null; missionDone: boolean; }
 
-async function getContext(): Promise<Ctx> {
-  if (DEV_MODE) return { isAdmin: true, refLink: null, mission: null, missionDone: false };
+interface PageCtx {
+  isAdmin: boolean;
+  refLink: string | null;
+  mission: Mission | null;
+  missionDone: boolean;
+  keywordDays: { day_number: number; hasKeyword: boolean; done: boolean }[];
+  storyDoneToday: boolean;
+  rafagas: RafagaMission[];
+  rafagaClaimedIds: string[];
+}
+
+async function getContext(): Promise<PageCtx> {
+  const emptyKeywordDays = [1, 2, 3, 4].map((d) => ({ day_number: d, hasKeyword: false, done: false }));
+
+  if (DEV_MODE) {
+    return {
+      isAdmin: true,
+      refLink: "https://dboard.govbidder.net/referido?ref=DEVTEST",
+      mission: null,
+      missionDone: false,
+      keywordDays: emptyKeywordDays,
+      storyDoneToday: false,
+      rafagas: [],
+      rafagaClaimedIds: [],
+    };
+  }
+
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { isAdmin: false, refLink: null, mission: null, missionDone: false };
+  if (!user) {
+    return {
+      isAdmin: false, refLink: null, mission: null, missionDone: false,
+      keywordDays: emptyKeywordDays, storyDoneToday: false,
+      rafagas: [], rafagaClaimedIds: [],
+    };
+  }
 
   const service = createServiceClient();
-  const { data } = await service.from("users").select("is_admin").eq("id", user.id).maybeSingle();
-  const isAdmin = (data as { is_admin?: boolean } | null)?.is_admin ?? false;
 
-  let refLink: string | null = null;
-  const code = await getOrCreateReferralCode(service, user.id);
-  if (code) refLink = referralLink(code);
+  // Fetch all data in parallel
+  const [
+    userRow,
+    refCode,
+    missionRow,
+    keywordsRows,
+    keywordSubsRows,
+    storyRow,
+    rafagaRows,
+    rafagaSubsRows,
+  ] = await Promise.all([
+    service.from("users").select("is_admin").eq("id", user.id).maybeSingle(),
+    getOrCreateReferralCode(service, user.id),
+    service.from("daily_missions").select("id, title, description, points_reward").eq("is_active", true).maybeSingle(),
+    service.from("call_keywords").select("day_number").order("day_number"),
+    service.from("keyword_submissions").select("day_number").eq("user_id", user.id),
+    service.from("story_submissions").select("id").eq("user_id", user.id).eq("submission_date", getMiamiStoryDate()).maybeSingle(),
+    service.from("rafaga_missions")
+      .select("id, title, description, starts_at, duration_minutes, points_reward")
+      .eq("is_active", true)
+      .gte("starts_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      .order("starts_at", { ascending: false }),
+    service.from("rafaga_submissions").select("rafaga_id").eq("user_id", user.id),
+  ]);
 
-  const { data: missionRow } = await service
-    .from("daily_missions")
-    .select("id, title, description, points_reward")
-    .eq("is_active", true)
-    .maybeSingle();
-  const mission = (missionRow as Mission | null) ?? null;
+  const isAdmin = (userRow.data as { is_admin?: boolean } | null)?.is_admin ?? false;
+  const refLink = refCode ? referralLink(refCode) : null;
+  const mission = (missionRow.data as Mission | null) ?? null;
 
+  // Check mission done
   let missionDone = false;
   if (mission) {
     const { data: sub } = await service
@@ -51,11 +112,27 @@ async function getContext(): Promise<Ctx> {
     missionDone = (sub as { status?: string } | null)?.status === "approved";
   }
 
-  return { isAdmin, refLink, mission, missionDone };
+  const kwSet = new Set(
+    ((keywordsRows.data ?? []) as { day_number: number }[]).map((r) => r.day_number)
+  );
+  const doneKwSet = new Set(
+    ((keywordSubsRows.data ?? []) as { day_number: number }[]).map((r) => r.day_number)
+  );
+  const keywordDays = [1, 2, 3, 4].map((d) => ({
+    day_number: d,
+    hasKeyword: kwSet.has(d),
+    done: doneKwSet.has(d),
+  }));
+
+  const storyDoneToday = !!(storyRow.data);
+  const rafagas = (rafagaRows.data ?? []) as RafagaMission[];
+  const rafagaClaimedIds = ((rafagaSubsRows.data ?? []) as { rafaga_id: string }[]).map((r) => r.rafaga_id);
+
+  return { isAdmin, refLink, mission, missionDone, keywordDays, storyDoneToday, rafagas, rafagaClaimedIds };
 }
 
 export default async function SumaPuntosPage() {
-  const { isAdmin, refLink, mission, missionDone } = await getContext();
+  const ctx = await getContext();
 
   return (
     <div className="space-y-8">
@@ -67,102 +144,88 @@ export default async function SumaPuntosPage() {
         ← Dashboard
       </Link>
 
-      {isAdmin ? (
-        // Admin ve la misión real directo (vista previa), sin gating.
-        <UserView mission={mission} missionDone={missionDone} refLink={refLink} admin />
-      ) : (
-        <UserView
-          mission={MISSIONS_LIVE_FOR_USERS ? mission : null}
-          missionDone={missionDone}
-          refLink={REFERRALS_LIVE ? refLink : null}
-        />
-      )}
-    </div>
-  );
-}
-
-// ─── Vista usuarios (y admin en modo preview) ───────────────────────────────
-function UserView({
-  mission, missionDone, refLink, admin = false,
-}: { mission: Mission | null; missionDone: boolean; refLink: string | null; admin?: boolean }) {
-  // Sin misión ni referidos: usuarios ven "Próximamente"; admin ve una nota.
-  if (!mission && !refLink) {
-    return admin ? (
-      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px", fontSize: 14, color: "var(--muted-foreground)" }}>
-        No hay misión activa. Publicala desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.
+      <div>
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "#FFD700" }}>
+          GovBidder Challenge
+        </p>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, color: "#fff", margin: "4px 0 0" }}>
+          ⚡ Misiones Extra
+        </h1>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 6 }}>
+          Completá estas misiones para ganar XP adicional y subir en el ranking.
+        </p>
       </div>
-    ) : <ComingSoon />;
-  }
 
-  return (
-    <div className="space-y-6">
-      {admin && (
+      {ctx.isAdmin && (
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
           👁️ Vista admin · gestionar en <Link href="/admin" style={{ color: "var(--primary)" }}>/admin</Link>
         </p>
       )}
-      {mission && <DailyMissionUser mission={mission} alreadyDone={missionDone} />}
-      {refLink && (
-        <div className="space-y-2">
-          <p style={{
-            fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
-            letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--muted-foreground)",
-          }}>
-            🤝 Invitá y ganá
-          </p>
-          <ReferralLinkCard link={refLink} xp={REFERRAL_LEAD_XP} />
-        </div>
+
+      {/* 1. Referidos */}
+      {ctx.refLink && (
+        <section className="space-y-3">
+          <SectionHeader emoji="🤝" title="Invitá y ganá" subtitle={`+${REFERRAL_LEAD_XP.toLocaleString()} pts por cada referido que pague`} />
+          <ReferralLinkCard link={ctx.refLink} xp={REFERRAL_LEAD_XP} />
+        </section>
       )}
+
+      {/* 2. Palabras Clave */}
+      <section className="space-y-3">
+        <SectionHeader emoji="📞" title="Palabras Clave de Llamadas" subtitle="+1,000 pts por keyword · una vez por día de llamada" />
+        <KeywordCards days={ctx.keywordDays} />
+      </section>
+
+      {/* 3. Historia Diaria */}
+      <section className="space-y-3">
+        <SectionHeader emoji="📸" title="Historia Diaria" subtitle="+500 pts · se reinicia a las 8 AM hora Miami" />
+        <StoryUpload alreadyDone={ctx.storyDoneToday} />
+      </section>
+
+      {/* 4. Misiones Diarias */}
+      <section className="space-y-3">
+        <SectionHeader emoji="🎯" title="Misión Diaria" subtitle="El admin publica una misión activa por día" />
+        {ctx.mission ? (
+          <DailyMissionUser mission={ctx.mission} alreadyDone={ctx.missionDone} />
+        ) : (
+          <div style={{
+            padding: "18px 20px",
+            background: "rgba(10,37,64,0.5)",
+            border: "1px dashed #1E3A5C",
+            borderRadius: 12,
+          }}>
+            <p style={{ fontSize: 13, color: "#8DA2C4", margin: 0 }}>
+              {ctx.isAdmin
+                ? <>No hay misión activa. Publicala desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.</>
+                : "No hay misión activa por el momento. Volvé más tarde."}
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* 5. Misiones Ráfaga */}
+      <section className="space-y-3">
+        <SectionHeader emoji="⚡" title="Misiones Ráfaga" subtitle="+1,000 pts · ventanas de 2 horas programadas por el admin" />
+        <RafagaSection rafagas={ctx.rafagas} claimedIds={ctx.rafagaClaimedIds} />
+      </section>
     </div>
   );
 }
 
-// ─── Vista usuarios: coming soon ────────────────────────────────────────────
-function ComingSoon() {
+// ─── Header de sección ────────────────────────────────────────────────────────
+function SectionHeader({ emoji, title, subtitle }: { emoji: string; title: string; subtitle: string }) {
   return (
-    <div
-      style={{
-        position: "relative", overflow: "hidden",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        textAlign: "center", gap: 18, padding: "clamp(32px, 7vw, 64px) 24px",
-        borderRadius: 20, minHeight: "min(60vh, 520px)",
-        background: "radial-gradient(700px circle at 50% 0%, rgba(228,45,44,0.12), transparent 60%), linear-gradient(160deg, #0d1a3d 0%, #080f24 100%)",
-        border: "1px solid rgba(228,45,44,0.25)",
-      }}
-    >
-      <div style={{ background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 28px rgba(0,0,0,0.35)" }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/halcon.png" alt="GovBidder Challenge" style={{ height: 60, width: "auto", display: "block" }} />
-      </div>
-
+    <div>
       <p style={{
-        fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 800,
-        letterSpacing: "0.16em", textTransform: "uppercase", color: "#FFD700",
+        fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
+        letterSpacing: "0.12em", textTransform: "uppercase",
+        color: "var(--muted-foreground)", marginBottom: 2,
       }}>
-        GovBidder Challenge
+        {emoji} {title}
       </p>
-
-      <h2 style={{
-        fontFamily: "var(--font-display)", fontSize: "clamp(24px, 4.5vw, 38px)", fontWeight: 800,
-        color: "#fff", lineHeight: 1.12, margin: 0,
-      }}>
-        ⚡ Misiones Extra
-      </h2>
-
-      <p style={{ fontSize: 15, color: "rgba(255,255,255,0.82)", maxWidth: "48ch", margin: 0, lineHeight: 1.55 }}>
-        Estamos armando <strong style={{ color: "#fff" }}>misiones extra</strong> para ganar XP y subir
-        en el ranking. Muy pronto vas a poder sumar puntos desde acá.
+      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0 }}>
+        {subtitle}
       </p>
-
-      <span style={{
-        display: "inline-flex", alignItems: "center", gap: 8,
-        fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 800,
-        letterSpacing: "0.1em", textTransform: "uppercase", color: "#E42D2C",
-        background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.4)",
-        borderRadius: 999, padding: "8px 18px", marginTop: 4,
-      }}>
-        🔧 Próximamente
-      </span>
     </div>
   );
 }
