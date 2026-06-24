@@ -33,8 +33,8 @@ interface Portal {
 }
 
 const PORTALS: Portal[] = [
-  // ── Privados (incluye el de Santo / Govbidder) ──
-  { name: "Govbidder — Comunidad de Santo", url: "https://govbidder.net", description: "El espacio de Santo y el equipo Govbidder para seguir aprendiendo y conseguir tu primer contrato.", category: "privado" },
+  // ── Privados (incluye el de Santo / GovBidder) ──
+  { name: "GovBidder — Comunidad de Santo", url: "https://govbidder.net", description: "El espacio de Santo y el equipo GovBidder para seguir aprendiendo y conseguir tu primer contrato.", category: "privado" },
   // (el equipo puede agregar más portales privados acá)
 
   // ── Estatales / locales ──

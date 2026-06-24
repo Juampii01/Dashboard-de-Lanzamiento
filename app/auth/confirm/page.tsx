@@ -76,7 +76,7 @@ export default function ConfirmPage() {
       >
         <img
           src="/halcon.png"
-          alt="Govbidder Challenge"
+          alt="GovBidder Challenge"
           style={{ height: "110px", width: "auto", display: "block" }}
         />
       </div>

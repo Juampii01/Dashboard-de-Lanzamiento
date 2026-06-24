@@ -163,7 +163,7 @@ function TabUsuario() {
         <Table
           headers={["Elemento", "Dónde está", "Qué hace"]}
           rows={[
-            ["Logo + Countdown", "Header superior izquierda", "Logo de Govbidder. El countdown muestra días restantes de acceso."],
+            ["Logo + Countdown", "Header superior izquierda", "Logo de GovBidder. El countdown muestra días restantes de acceso."],
             ["XP Pill 💎", "Header superior derecha", "Muestra los puntos acumulados. Al ganar XP, hace un flip animado. Clic para ver desglose."],
             ["Botón perfil 👤", "Header superior derecha", "Abre panel de perfil. Desde ahí puede cambiar su avatar (foto de perfil)."],
             ["4 Tarjetas de Días", "Centro del dashboard", "Cada tarjeta = un día del challenge. Clic para entrar al día (si está desbloqueado)."],
@@ -369,7 +369,7 @@ function TabBarra() {
 
       <Section title="Avatar de Santo (Clickeable)" icon="🦅">
         <p className="text-sm text-muted-foreground">
-          El avatar en la barra de progreso (por defecto el águila de Govbidder) es interactivo.
+          El avatar en la barra de progreso (por defecto el águila de GovBidder) es interactivo.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -760,7 +760,7 @@ function TabXP() {
           </div>
           <div className="border rounded-lg p-4 text-center space-y-2">
             <p className="text-2xl font-bold">🏆 #3–12</p>
-            <p className="text-xs text-muted-foreground">Auditoría con el Team Govbidder (roadmap para venderle al gobierno)</p>
+            <p className="text-xs text-muted-foreground">Auditoría con el Team GovBidder (roadmap para venderle al gobierno)</p>
           </div>
         </div>
         <InfoBox type="tip">
@@ -875,7 +875,7 @@ export function GuiaClient() {
 
       {/* Footer note */}
       <p className="text-center text-xs text-muted-foreground pb-4">
-        Govbidder Challenge · Panel Admin · Esta guía es solo visible para administradores
+        GovBidder Challenge · Panel Admin · Esta guía es solo visible para administradores
       </p>
     </div>
   );

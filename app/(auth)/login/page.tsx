@@ -95,7 +95,7 @@ export default function LoginPage() {
             >
               <img
                 src="/halcon.png"
-                alt="Govbidder Challenge"
+                alt="GovBidder Challenge"
                 style={{
                   height: "140px",
                   width: "auto",
@@ -130,7 +130,7 @@ export default function LoginPage() {
                   className="underline"
                   style={{ color: "#00D67A" }}
                 >
-                  Govbidder.net
+                  GovBidder.net
                 </a>
               </p>
             </div>

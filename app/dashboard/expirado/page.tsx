@@ -16,7 +16,7 @@ export default function ExpiradoPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-muted-foreground">
-            La ventana de 7 días de Govbidder terminó. Pero lo que
+            La ventana de 7 días de GovBidder terminó. Pero lo que
             aprendiste es tuyo para siempre.
           </p>
 
@@ -25,7 +25,7 @@ export default function ExpiradoPage() {
             <p className="text-muted-foreground text-sm">
               En la mentoría premium{" "}
               <strong>"Tu Primer Contrato"</strong> trabajás uno a uno con el
-              equipo de Govbidder para conseguir tu primer contrato gubernamental real.
+              equipo de GovBidder para conseguir tu primer contrato gubernamental real.
             </p>
             <ul className="text-sm space-y-1 text-muted-foreground">
               <li>✅ Número 1-800 profesional</li>

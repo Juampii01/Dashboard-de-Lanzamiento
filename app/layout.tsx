@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
-// ── Brand typography (matches the public Govbidder site) ──
+// ── Brand typography (matches the public GovBidder site) ──
 // Raleway: body + headings · Inter: UI / numbers · Bebas Neue: big counters / scores
 const raleway = Raleway({
   variable: "--font-sans",
@@ -27,7 +27,7 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
-  title: "Govbidder",
+  title: "GovBidder",
   description: "Aprende a venderle al gobierno federal en 4 días.",
   icons: {
     icon: "/halcon.png",

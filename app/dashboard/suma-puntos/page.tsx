@@ -132,14 +132,14 @@ function ComingSoon() {
     >
       <div style={{ background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 28px rgba(0,0,0,0.35)" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/halcon.png" alt="Govbidder Challenge" style={{ height: 60, width: "auto", display: "block" }} />
+        <img src="/halcon.png" alt="GovBidder Challenge" style={{ height: 60, width: "auto", display: "block" }} />
       </div>
 
       <p style={{
         fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 800,
         letterSpacing: "0.16em", textTransform: "uppercase", color: "#FFD700",
       }}>
-        Govbidder Challenge
+        GovBidder Challenge
       </p>
 
       <h2 style={{

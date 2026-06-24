@@ -197,7 +197,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🥇</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#FFD60A", marginBottom: "2px" }}>
-              👑 Govbidder Legacy · Premio mayor
+              👑 GovBidder Legacy · Premio mayor
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Servicio completo <strong style={{ color: "#FFFFFF" }}>«Te conseguimos tu contrato»</strong>
@@ -221,7 +221,7 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🥈</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#C0C0C0", marginBottom: "2px" }}>
-              ⚡ Govbidder Prime · Segundo premio
+              ⚡ GovBidder Prime · Segundo premio
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
               Consultoría 1:1 de 1 hora con <strong style={{ color: "#FFFFFF" }}>Santo</strong> — el roadmap exacto para venderle al gobierno
@@ -244,10 +244,10 @@ export function RankingClient() {
           <span style={{ fontSize: "28px", flexShrink: 0 }}>🏆</span>
           <div style={{ flex: 1 }}>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#00D67A", marginBottom: "2px" }}>
-              🔥 Govbidder Elevate · 10 auditorías
+              🔥 GovBidder Elevate · 10 auditorías
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
-              Auditoría con el <strong style={{ color: "#FFFFFF" }}>Team Govbidder</strong> — el roadmap exacto para venderle al gobierno
+              Auditoría con el <strong style={{ color: "#FFFFFF" }}>Team GovBidder</strong> — el roadmap exacto para venderle al gobierno
             </p>
           </div>
           <span style={{

@@ -1,6 +1,6 @@
 import { ReferidoForm } from "@/components/referido-form";
 
-export const metadata = { title: "Quiero mi lugar — Govbidder Challenge" };
+export const metadata = { title: "Quiero mi lugar — GovBidder Challenge" };
 
 export default async function ReferidoPage({
   searchParams,
@@ -32,11 +32,11 @@ export default async function ReferidoPage({
       >
         <div style={{ background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 28px rgba(0,0,0,0.35)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/halcon.png" alt="Govbidder Challenge" style={{ height: 54, width: "auto", display: "block" }} />
+          <img src="/halcon.png" alt="GovBidder Challenge" style={{ height: 54, width: "auto", display: "block" }} />
         </div>
 
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "#FFD700" }}>
-          Govbidder Challenge
+          GovBidder Challenge
         </p>
 
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 800, color: "#fff", lineHeight: 1.12, margin: 0 }}>

@@ -404,7 +404,7 @@ function VideoTutorial() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/halcon.png"
-                alt="Govbidder"
+                alt="GovBidder"
                 style={{ height: "38px", width: "auto", objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.75))" }}
               />
               {/* Botón de play */}
@@ -781,7 +781,7 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
               {/* Logo */}
               <div style={{ flex: "1 1 0", display: "flex", justifyContent: "center" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/halcon.png" alt="Govbidder Challenge" style={{ height: "clamp(48px, 9vw, 78px)", width: "auto", objectFit: "contain" }} />
+                <img src="/halcon.png" alt="GovBidder Challenge" style={{ height: "clamp(48px, 9vw, 78px)", width: "auto", objectFit: "contain" }} />
               </div>
 
               {/* QR */}
@@ -1154,7 +1154,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName }: Home
           textTransform: "uppercase", letterSpacing: "0.14em",
           color: "#FFD700", marginBottom: "8px",
         }}>
-          Govbidder Challenge
+          GovBidder Challenge
         </p>
         <h1 style={{
           fontFamily: "var(--font-display)", fontSize: "26px", fontWeight: 800,

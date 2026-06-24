@@ -4,7 +4,7 @@
  * paywall check again.
  */
 
-export const metadata = { title: "Sin acceso — Govbidder" };
+export const metadata = { title: "Sin acceso — GovBidder" };
 
 export default function SinAccesoPage() {
   return (
@@ -46,7 +46,7 @@ export default function SinAccesoPage() {
             </h1>
             <p className="text-sm leading-relaxed" style={{ color: "#C9D6EC" }}>
               Tu cuenta no tiene una compra verificada asociada a{" "}
-              <strong className="text-white">Govbidder</strong>.
+              <strong className="text-white">GovBidder</strong>.
             </p>
           </div>
 
@@ -67,7 +67,7 @@ export default function SinAccesoPage() {
                 rel="noopener noreferrer"
                 className="text-[#FFD60A] underline"
               >
-                Govbidder.net
+                GovBidder.net
               </a>
               .
             </p>
