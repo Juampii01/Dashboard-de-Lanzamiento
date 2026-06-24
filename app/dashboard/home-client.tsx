@@ -249,12 +249,12 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
   }, []);
 
   const toggle = useCallback(() => {
-    setOpen((v) => {
-      const next = !v;
-      if (next && !breakdown) fetchBreakdown();
-      return next;
-    });
-  }, [breakdown, fetchBreakdown]);
+    const next = !open;
+    setOpen(next);
+    // El fetch va FUERA del updater (los updaters deben ser puros). Guard de
+    // in-flight + ya-cargado para evitar requests duplicados.
+    if (next && !breakdown && !bdLoading) fetchBreakdown();
+  }, [open, breakdown, bdLoading, fetchBreakdown]);
 
   const rows = breakdownRows(breakdown);
 
