@@ -74,8 +74,8 @@ export function DailyMissionUser({
 
   const inputStyle: React.CSSProperties = {
     width: "100%", boxSizing: "border-box",
-    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)",
-    borderRadius: 10, color: "#fff", fontSize: 14, padding: "11px 13px", outline: "none",
+    background: "var(--muted)", border: "1px solid var(--input)",
+    borderRadius: 10, color: "var(--foreground)", fontSize: 14, padding: "11px 13px", outline: "none",
     fontFamily: "var(--font-sans)", resize: "vertical", minHeight: 54,
   };
 
@@ -84,21 +84,21 @@ export function DailyMissionUser({
       style={{
         position: "relative", overflow: "hidden",
         borderRadius: 18, padding: "clamp(20px, 4vw, 32px)",
-        background: "radial-gradient(700px circle at 50% 0%, rgba(255,215,0,0.10), transparent 55%), linear-gradient(160deg, #0d1a3d 0%, #080f24 100%)",
-        border: "1px solid rgba(255,215,0,0.30)",
+        background: "radial-gradient(700px circle at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 55%), var(--card)",
+        border: "1px solid color-mix(in srgb, var(--accent) 35%, var(--border))",
       }}
     >
       <p style={{
         fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
-        letterSpacing: "0.16em", textTransform: "uppercase", color: "#FFD700", marginBottom: 8,
+        letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--primary)", marginBottom: 8,
       }}>
         ⚡ Misión del día · +{mission.points_reward} XP
       </p>
-      <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(20px, 3.5vw, 28px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, margin: 0 }}>
+      <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(20px, 3.5vw, 28px)", fontWeight: 800, color: "var(--foreground)", lineHeight: 1.15, margin: 0 }}>
         {mission.title}
       </h2>
       {mission.description && (
-        <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.82)", lineHeight: 1.55, marginTop: 10, maxWidth: "60ch" }}>
+        <p style={{ fontSize: 14.5, color: "var(--muted-foreground)", lineHeight: 1.55, marginTop: 10, maxWidth: "60ch" }}>
           {mission.description}
         </p>
       )}
@@ -107,8 +107,8 @@ export function DailyMissionUser({
         {done ? (
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            background: "rgba(22,166,95,0.15)", border: "1px solid rgba(22,166,95,0.45)",
-            borderRadius: 999, padding: "10px 18px", color: "#37d98a", fontWeight: 700, fontSize: 14,
+            background: "color-mix(in srgb, var(--success) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--success) 45%, transparent)",
+            borderRadius: 999, padding: "10px 18px", color: "var(--success)", fontWeight: 700, fontSize: 14,
           }}>
             <CheckCircle2 size={18} /> ¡Respuesta enviada! Sumaste +{mission.points_reward} XP
           </div>
@@ -145,19 +145,19 @@ export function DailyMissionUser({
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
                   padding: "11px 18px", borderRadius: 12, cursor: busy ? "wait" : "pointer",
-                  fontSize: 14.5, fontWeight: 700, color: "#fff",
-                  background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.25)",
+                  fontSize: 14.5, fontWeight: 700, color: "var(--foreground)",
+                  background: "var(--muted)", border: "1px solid var(--border)",
                 }}
               >
                 <Camera size={17} /> Subir captura
               </button>
             </div>
-            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", margin: 0 }}>
-              Podés responder con un <strong style={{ color: "#fff" }}>link</strong>, un <strong style={{ color: "#fff" }}>texto</strong> o una <strong style={{ color: "#fff" }}>captura</strong> (PNG/JPG, máx 5MB).
+            <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", margin: 0 }}>
+              Podés responder con un <strong style={{ color: "var(--foreground)" }}>link</strong>, un <strong style={{ color: "var(--foreground)" }}>texto</strong> o una <strong style={{ color: "var(--foreground)" }}>captura</strong> (PNG/JPG, máx 5MB).
             </p>
           </div>
         )}
-        {error && <p style={{ fontSize: 13, color: "#ff8a8a", marginTop: 8 }}>{error}</p>}
+        {error && <p style={{ fontSize: 13, color: "var(--destructive)", marginTop: 8 }}>{error}</p>}
       </div>
     </div>
   );

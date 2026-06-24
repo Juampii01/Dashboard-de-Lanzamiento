@@ -287,7 +287,7 @@ export function Dia4Client({
             </Badge>
           )}
         </div>
-        <h1 className="text-2xl font-bold text-primary">Capability Statement + Cierre</h1>
+        <h1 className="text-2xl font-bold text-primary">Capability Statement</h1>
         <p className="text-muted-foreground mt-1">
           Generá tu Capability Statement profesional y competí por los premios finales.
         </p>
@@ -300,7 +300,7 @@ export function Dia4Client({
           </div>
           <div className="flex-1">
             <p className="font-semibold">Clase en vivo — Día 4 (Q&A)</p>
-            <p className="text-sm text-muted-foreground">La clase de cierre y preguntas en vivo.</p>
+            <p className="text-sm text-muted-foreground">La clase en vivo y preguntas.</p>
           </div>
           <JoinCallButton day={4} />
         </CardContent>
@@ -726,7 +726,7 @@ export function Dia4Client({
       <WizardModal
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
-        title="Día 4 — Capability Statement + Cierre"
+        title="Día 4 — Capability Statement"
         subtitle="Sumá tus datos de registro y generamos el documento."
         finishLabel={statement ? "Regenerar documento" : "Generar mi Capability Statement"}
         finishing={generating}

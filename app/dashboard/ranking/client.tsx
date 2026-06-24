@@ -301,7 +301,7 @@ export function RankingClient() {
               🏆 GovBidder Expert · 15,000+ pts
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
-              Servicio completo <strong style={{ color: "#FFFFFF" }}>«Te conseguimos tu contrato»</strong>
+              Servicio <strong style={{ color: "#FFFFFF" }}>Done For You</strong> — lo hacemos por vos
             </p>
           </div>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#00D67A", background: "rgba(0,214,122,0.1)", border: "1px solid rgba(0,214,122,0.3)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>$15,000 USD</span>

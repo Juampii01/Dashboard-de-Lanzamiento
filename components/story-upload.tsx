@@ -75,16 +75,16 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       <div style={{
         display: "flex", alignItems: "center", gap: 12,
         padding: "16px 20px",
-        background: "rgba(0,214,122,0.08)",
-        border: "1px solid rgba(0,214,122,0.35)",
+        background: "color-mix(in srgb, var(--success) 10%, transparent)",
+        border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)",
         borderRadius: 12,
       }}>
         <span style={{ fontSize: 24 }}>✅</span>
         <div>
-          <p style={{ fontWeight: 700, color: "#00D67A", fontSize: 14, margin: 0 }}>
+          <p style={{ fontWeight: 700, color: "var(--success)", fontSize: 14, margin: 0 }}>
             ¡Historia subida! +500 pts
           </p>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0 }}>
+          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
             Volvé mañana después de las 8 AM (hora Miami) para subir tu próxima historia.
           </p>
         </div>
@@ -94,8 +94,8 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
 
   return (
     <div style={{
-      background: "linear-gradient(135deg, rgba(20,58,107,0.85) 0%, rgba(10,37,64,0.92) 100%)",
-      border: "1px solid #1E3A5C",
+      background: "var(--card)",
+      border: "1px solid var(--border)",
       borderRadius: 12,
       padding: "20px",
       display: "flex",
@@ -103,18 +103,17 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       gap: 14,
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <p style={{ fontWeight: 700, color: "#C8D6E8", fontSize: 14, margin: 0 }}>
+        <p style={{ fontWeight: 700, color: "var(--foreground)", fontSize: 14, margin: 0 }}>
           📸 Subí tu historia de hoy
         </p>
         <span style={{
           fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
-          color: "#FFD700", background: "rgba(255,215,0,0.1)",
-          border: "1px solid rgba(255,215,0,0.3)",
+          color: "var(--accent-foreground)", background: "var(--accent)",
           borderRadius: 999, padding: "2px 10px",
         }}>+500 pts</span>
       </div>
 
-      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0 }}>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
         Posteá una historia en tus redes sobre el challenge y subí una captura de pantalla. Se reinicia cada día a las 8 AM (hora Miami).
       </p>
 
@@ -122,7 +121,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       <div
         onClick={() => fileRef.current?.click()}
         style={{
-          border: preview ? "none" : "2px dashed #1E3A5C",
+          border: preview ? "none" : "2px dashed var(--border)",
           borderRadius: 10,
           cursor: "pointer",
           overflow: "hidden",
@@ -130,14 +129,14 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: preview ? "transparent" : "rgba(255,255,255,0.02)",
+          background: preview ? "transparent" : "var(--muted)",
         }}
       >
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={preview} alt="Preview" style={{ maxWidth: "100%", maxHeight: 180, borderRadius: 10, display: "block" }} />
         ) : (
-          <p style={{ fontSize: 13, color: "#8DA2C4", textAlign: "center", padding: "20px", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)", textAlign: "center", padding: "20px", margin: 0 }}>
             📁 Tocá para elegir imagen (JPG, PNG, WEBP · máx 8 MB)
           </p>
         )}
@@ -152,7 +151,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       />
 
       {errorMsg && (
-        <p style={{ fontSize: 12, color: "#E42D2C", margin: 0 }}>{errorMsg}</p>
+        <p style={{ fontSize: 12, color: "var(--primary)", margin: 0 }}>{errorMsg}</p>
       )}
 
       {preview && phase !== "loading" && (
@@ -162,8 +161,8 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
             style={{
               flex: 1, padding: "9px 0",
               background: "transparent",
-              border: "1.5px solid #1E3A5C",
-              borderRadius: 8, color: "#8DA2C4",
+              border: "1.5px solid var(--border)",
+              borderRadius: 8, color: "var(--muted-foreground)",
               fontSize: 12, cursor: "pointer",
             }}
           >
@@ -173,8 +172,8 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
             onClick={handleSubmit}
             style={{
               flex: 2, padding: "9px 0",
-              background: "#D7263D", border: "none",
-              borderRadius: 8, color: "#fff",
+              background: "var(--primary)", border: "none",
+              borderRadius: 8, color: "var(--primary-foreground)",
               fontSize: 13, fontWeight: 700, cursor: "pointer",
             }}
           >
@@ -184,7 +183,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       )}
 
       {phase === "loading" && (
-        <p style={{ fontSize: 13, color: "#8DA2C4", textAlign: "center", margin: 0 }}>Subiendo imagen...</p>
+        <p style={{ fontSize: 13, color: "var(--muted-foreground)", textAlign: "center", margin: 0 }}>Subiendo imagen...</p>
       )}
     </div>
   );

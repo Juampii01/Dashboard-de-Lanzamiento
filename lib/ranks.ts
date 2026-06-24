@@ -17,7 +17,7 @@ export const RANKS: Rank[] = [
   { key: "elevate", name: "GovBidder Elevate", short: "Elevate", min: 0,      max: 5000,     color: "#CD7F32", emoji: "🔥", prize: "10 auditorías con el Team GovBidder" },
   { key: "prime",   name: "GovBidder Prime",   short: "Prime",   min: 5000,   max: 10000,    color: "#C0C0C0", emoji: "⚡", prize: "Consultoría 1:1 de 1h con Santo" },
   { key: "legacy",  name: "GovBidder Legacy",  short: "Legacy",  min: 10000,  max: 15000,    color: "#FFD700", emoji: "👑", prize: "Cupón $1,000 para productos GovBidder" },
-  { key: "expert",  name: "GovBidder Expert",  short: "Expert",  min: 15000,  max: Infinity, color: "#00D67A", emoji: "🏆", prize: "Servicio «Te conseguimos tu contrato» · $15K" },
+  { key: "expert",  name: "GovBidder Expert",  short: "Expert",  min: 15000,  max: Infinity, color: "#00D67A", emoji: "🏆", prize: "Servicio Done For You · $15K" },
 ];
 
 export function getRank(points: number): Rank {

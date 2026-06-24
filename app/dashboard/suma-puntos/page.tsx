@@ -145,13 +145,13 @@ export default async function SumaPuntosPage() {
       </Link>
 
       <div>
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "#FFD700" }}>
+        <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--primary)" }}>
           GovBidder Challenge
         </p>
-        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, color: "#fff", margin: "4px 0 0" }}>
+        <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, color: "var(--foreground)", margin: "4px 0 0" }}>
           ⚡ Misiones Extra
         </h1>
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 6 }}>
+        <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginTop: 6 }}>
           Completá estas misiones para ganar XP adicional y subir en el ranking.
         </p>
       </div>
@@ -165,7 +165,7 @@ export default async function SumaPuntosPage() {
       {/* 1. Referidos */}
       {ctx.refLink && (
         <section className="space-y-3">
-          <SectionHeader emoji="🤝" title="Invitá y ganá" subtitle={`+${REFERRAL_LEAD_XP.toLocaleString()} pts por cada referido que pague`} />
+          <SectionHeader emoji="🤝" title="Invitá y ganá" subtitle={`+${REFERRAL_LEAD_XP.toLocaleString()} pts por cada persona que invitás al lanzamiento`} />
           <ReferralLinkCard link={ctx.refLink} xp={REFERRAL_LEAD_XP} />
         </section>
       )}
@@ -190,11 +190,11 @@ export default async function SumaPuntosPage() {
         ) : (
           <div style={{
             padding: "18px 20px",
-            background: "rgba(10,37,64,0.5)",
-            border: "1px dashed #1E3A5C",
+            background: "var(--muted)",
+            border: "1px dashed var(--border)",
             borderRadius: 12,
           }}>
-            <p style={{ fontSize: 13, color: "#8DA2C4", margin: 0 }}>
+            <p style={{ fontSize: 13, color: "var(--muted-foreground)", margin: 0 }}>
               {ctx.isAdmin
                 ? <>No hay misión activa. Publicala desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.</>
                 : "No hay misión activa por el momento. Volvé más tarde."}
@@ -223,7 +223,7 @@ function SectionHeader({ emoji, title, subtitle }: { emoji: string; title: strin
       }}>
         {emoji} {title}
       </p>
-      <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0 }}>
+      <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0, opacity: 0.85 }}>
         {subtitle}
       </p>
     </div>

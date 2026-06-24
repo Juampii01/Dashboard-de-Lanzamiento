@@ -77,7 +77,7 @@ export default async function Dia4Page() {
       accessExpiresAt={userProfile?.access_expires_at ?? null}
     />
       {preLocked && (
-        <LaunchCountdown targetIso={targetIso} title="Día 4 — Capability Statement + Cierre" subtitle="El documento que te abre las puertas del gobierno y el cierre del programa. Ya casi." />
+        <LaunchCountdown targetIso={targetIso} title="Día 4 — Capability Statement" subtitle="El documento que te abre las puertas del gobierno. Ya casi." />
       )}
     </div>
   );

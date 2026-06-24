@@ -73,19 +73,13 @@ function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alrea
   };
 
   const borderColor =
-    status === "active" ? "rgba(255,215,0,0.4)" :
-    status === "upcoming" ? "rgba(141,162,196,0.3)" :
-    "rgba(100,127,168,0.15)";
+    status === "active" ? "color-mix(in srgb, var(--accent) 45%, transparent)" : "var(--border)";
 
-  const badgeColor =
-    status === "active" ? "#FFD700" :
-    status === "upcoming" ? "#8DA2C4" :
-    "#647FA8";
-
-  const badgeBg =
-    status === "active" ? "rgba(255,215,0,0.1)" :
-    status === "upcoming" ? "rgba(141,162,196,0.08)" :
-    "rgba(100,127,168,0.05)";
+  // Badge: activa = pill dorado sólido (texto navy); resto = muted.
+  const isActive = status === "active";
+  const badgeColor = isActive ? "var(--accent-foreground)" : "var(--muted-foreground)";
+  const badgeBg = isActive ? "var(--accent)" : "var(--muted)";
+  const badgeBorder = isActive ? "var(--accent)" : "var(--border)";
 
   const statusLabel =
     status === "active" ? "⚡ Activa ahora" :
@@ -94,7 +88,7 @@ function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alrea
 
   return (
     <div style={{
-      background: "linear-gradient(135deg, rgba(20,58,107,0.85) 0%, rgba(10,37,64,0.92) 100%)",
+      background: "var(--card)",
       border: `1px solid ${borderColor}`,
       borderRadius: 12,
       padding: "18px",
@@ -103,45 +97,45 @@ function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alrea
       gap: 10,
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-        <p style={{ fontWeight: 700, color: "#C8D6E8", fontSize: 14, margin: 0 }}>
+        <p style={{ fontWeight: 700, color: "var(--foreground)", fontSize: 14, margin: 0 }}>
           {mission.title}
         </p>
         <span style={{
           fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 800,
           color: badgeColor, background: badgeBg,
-          border: `1px solid ${badgeColor}40`,
+          border: `1px solid ${badgeBorder}`,
           borderRadius: 999, padding: "2px 10px",
           whiteSpace: "nowrap", flexShrink: 0,
         }}>{statusLabel}</span>
       </div>
 
       {mission.description && (
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0 }}>
+        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
           {mission.description}
         </p>
       )}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         {status === "upcoming" && countdown && (
-          <p style={{ fontSize: 12, color: "#8DA2C4", margin: 0 }}>
-            Abre en: <strong style={{ color: "#C8D6E8" }}>{countdown}</strong>
+          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
+            Abre en: <strong style={{ color: "var(--foreground)" }}>{countdown}</strong>
           </p>
         )}
         {status === "active" && !claimed && countdown && (
-          <p style={{ fontSize: 12, color: "#FFD700", margin: 0 }}>
-            Cierra en: <strong>{countdown}</strong>
+          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
+            Cierra en: <strong style={{ color: "var(--foreground)" }}>{countdown}</strong>
           </p>
         )}
         {status === "expired" && (
-          <p style={{ fontSize: 12, color: "#647FA8", margin: 0 }}>Esta misión ya cerró.</p>
+          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Esta misión ya cerró.</p>
         )}
 
         {status === "active" && (
           claimed ? (
             <span style={{
               fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
-              color: "#00D67A", background: "rgba(0,214,122,0.1)",
-              border: "1px solid rgba(0,214,122,0.3)",
+              color: "var(--success)", background: "color-mix(in srgb, var(--success) 12%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
               borderRadius: 999, padding: "5px 14px",
             }}>✓ +{mission.points_reward.toLocaleString()} pts</span>
           ) : (
@@ -150,8 +144,8 @@ function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alrea
               disabled={loading}
               style={{
                 padding: "8px 18px",
-                background: "#D7263D", border: "none",
-                borderRadius: 8, color: "#fff",
+                background: "var(--primary)", border: "none",
+                borderRadius: 8, color: "var(--primary-foreground)",
                 fontSize: 12, fontWeight: 700, cursor: "pointer",
                 opacity: loading ? 0.6 : 1,
               }}
@@ -176,12 +170,12 @@ export function RafagaSection({
     return (
       <div style={{
         padding: "20px",
-        background: "rgba(10,37,64,0.5)",
-        border: "1px dashed #1E3A5C",
+        background: "var(--muted)",
+        border: "1px dashed var(--border)",
         borderRadius: 12,
         textAlign: "center",
       }}>
-        <p style={{ fontSize: 13, color: "#8DA2C4", margin: 0 }}>
+        <p style={{ fontSize: 13, color: "var(--muted-foreground)", margin: 0 }}>
           No hay misiones ráfaga programadas por el momento.
         </p>
       </div>

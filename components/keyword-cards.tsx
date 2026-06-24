@@ -63,12 +63,12 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "linear-gradient(135deg, rgba(20,58,107,0.85) 0%, rgba(10,37,64,0.92) 100%)",
+    background: "var(--card)",
     border: phase === "done"
-      ? "1px solid rgba(0,214,122,0.4)"
+      ? "1px solid color-mix(in srgb, var(--success) 45%, transparent)"
       : phase === "wrong" || phase === "error"
-      ? "1px solid rgba(215,38,61,0.5)"
-      : "1px solid #1E3A5C",
+      ? "1px solid color-mix(in srgb, var(--primary) 55%, transparent)"
+      : "1px solid var(--border)",
     borderRadius: 12,
     padding: "16px",
     display: "flex",
@@ -82,38 +82,38 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
         <span style={{
           fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 800,
           letterSpacing: "0.12em", textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "var(--muted-foreground)",
         }}>
           {DAY_LABELS[day.day_number]}
         </span>
         {phase === "done" && (
           <span style={{
             fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 800,
-            color: "#00D67A", background: "rgba(0,214,122,0.12)",
-            border: "1px solid rgba(0,214,122,0.3)",
+            color: "var(--success)", background: "color-mix(in srgb, var(--success) 14%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
             borderRadius: 999, padding: "2px 10px",
           }}>✓ +1,000 pts</span>
         )}
         {!day.hasKeyword && phase !== "done" && (
           <span style={{
             fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
-            color: "#8DA2C4", background: "rgba(141,162,196,0.1)",
-            border: "1px solid rgba(141,162,196,0.2)",
+            color: "var(--muted-foreground)", background: "var(--muted)",
+            border: "1px solid var(--border)",
             borderRadius: 999, padding: "2px 10px",
           }}>Próximamente</span>
         )}
       </div>
 
-      <p style={{ fontSize: 13, fontWeight: 600, color: "#C8D6E8", margin: 0 }}>
+      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
         📞 Palabra clave de la llamada
       </p>
 
       {phase === "done" ? (
-        <p style={{ fontSize: 12, color: "rgba(0,214,122,0.9)", margin: 0 }}>
+        <p style={{ fontSize: 12, color: "var(--success)", margin: 0 }}>
           ¡Keyword reclamada! +1,000 pts acreditados.
         </p>
       ) : !day.hasKeyword ? (
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: 0 }}>
+        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
           El admin aún no configuró la keyword de este día.
         </p>
       ) : (
@@ -125,10 +125,10 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
             onChange={(e) => setInput(e.target.value)}
             disabled={phase === "loading"}
             style={{
-              flex: 1, padding: "8px 12px",
-              background: "#0A2540",
-              border: phase === "wrong" || phase === "error" ? "1.5px solid #E42D2C" : "1.5px solid #1E3A5C",
-              borderRadius: 8, color: "#fff",
+              flex: 1, minWidth: 0, padding: "8px 12px",
+              background: "var(--muted)",
+              border: phase === "wrong" || phase === "error" ? "1.5px solid var(--primary)" : "1.5px solid var(--input)",
+              borderRadius: 8, color: "var(--foreground)",
               fontSize: 13, fontFamily: "var(--font-sans)",
               outline: "none",
             }}
@@ -138,8 +138,8 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
             disabled={phase === "loading" || !input.trim()}
             style={{
               padding: "8px 14px",
-              background: phase === "loading" ? "#1E3A5C" : "#D7263D",
-              color: "#fff", border: "none", borderRadius: 8,
+              background: "var(--primary)",
+              color: "var(--primary-foreground)", border: "none", borderRadius: 8,
               fontSize: 12, fontWeight: 700, cursor: "pointer",
               opacity: phase === "loading" || !input.trim() ? 0.6 : 1,
               fontFamily: "var(--font-sans)",
