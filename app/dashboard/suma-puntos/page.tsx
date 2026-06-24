@@ -184,7 +184,7 @@ export default async function SumaPuntosPage() {
 
       {/* 4. Misiones Diarias */}
       <section className="space-y-3">
-        <SectionHeader emoji="🎯" title="Misión Diaria" subtitle="El admin publica una misión activa por día" />
+        <SectionHeader emoji="🎯" title="Misión Diaria" subtitle="Completá la misión del día y sumá XP extra" />
         {ctx.mission ? (
           <DailyMissionUser mission={ctx.mission} alreadyDone={ctx.missionDone} />
         ) : (
