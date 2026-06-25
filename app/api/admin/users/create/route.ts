@@ -102,10 +102,14 @@ export async function POST(req: Request) {
         : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
       // 4a. Create auth user (triggers handle_new_user which creates public.users row)
+      // Seteamos el display_name en la metadata de auth para que aparezca en el
+      // panel de Auth de Supabase (la app igual usa public.users.full_name).
+      const fn = userData.full_name?.trim() || null;
       const { data: createData, error: createError } =
         await admin.auth.admin.createUser({
           email: userData.email,
           email_confirm: true,
+          user_metadata: fn ? { display_name: fn, full_name: fn } : {},
         });
 
       if (createError) {
