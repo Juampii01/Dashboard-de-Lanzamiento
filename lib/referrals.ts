@@ -16,10 +16,16 @@ export function generateReferralCode(len = 8): string {
   return out;
 }
 
+/**
+ * Dominio canónico del dashboard en producción. El link de referido SIEMPRE usa
+ * este dominio (no `NEXT_PUBLIC_APP_URL`, que en Vercel puede apuntar al
+ * `*.vercel.app`) porque es un link público pensado para compartir.
+ */
+export const DASHBOARD_PUBLIC_URL = "https://dboard.govbidder.net";
+
 /** Link de referido del usuario → página pública /referido del dashboard. */
 export function referralLink(code: string): string {
-  const base = (process.env.NEXT_PUBLIC_APP_URL || "https://dboard.govbidder.net").replace(/\/+$/, "");
-  return `${base}/referido?ref=${code}`;
+  return `${DASHBOARD_PUBLIC_URL}/referido?ref=${code}`;
 }
 
 /** A dónde redirige el formulario público /referido tras enviar el email
