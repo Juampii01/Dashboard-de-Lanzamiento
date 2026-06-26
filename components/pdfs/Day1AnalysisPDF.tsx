@@ -214,23 +214,6 @@ export function Day1AnalysisPDF({
                 {naicsReasoning ? <Text style={styles.naicsReason}>{naicsReasoning}</Text> : null}
               </View>
             ) : null}
-
-            <View style={styles.section}>
-              <SectionTitle>Próximos Pasos</SectionTitle>
-              {[
-                "Registrate en SAM.gov con tu código NAICS",
-                "Completá tu Capability Statement (Día 4)",
-                "Buscá contratos activos en USASpending.gov",
-                "Mapeá códigos relacionados en el Día 2",
-              ].map((step, i) => (
-                <View key={i} style={styles.stepRow}>
-                  <View style={styles.stepNum}>
-                    <Text style={styles.stepNumText}>{i + 1}</Text>
-                  </View>
-                  <Text style={styles.stepText}>{step}</Text>
-                </View>
-              ))}
-            </View>
           </View>
         </View>
 
