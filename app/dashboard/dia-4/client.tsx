@@ -7,12 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Sparkles, FileText, ArrowRight, Pencil, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
+import { CheckCircle2, Download, Loader2, PlayCircle, Sparkles, FileText, ArrowRight, Pencil, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
-import { isExpired } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
 import { DevTestBar } from "@/components/dev-test-bar";
@@ -69,11 +68,9 @@ export function Dia4Client({
   userId,
   isCompleted: initCompleted,
   existingStatement,
-  existingSorteo,
   profile,
   expansion,
   fullName,
-  accessExpiresAt,
   devMode,
 }: Dia4ClientProps) {
   const router = useRouter();
@@ -85,9 +82,6 @@ export function Dia4Client({
     existingStatement ? (existingStatement.statement_data as CapabilityStatementData) : null
   );
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [sorteoEligible, setSorteoEligible] = useState(existingSorteo?.eligible ?? false);
-  const sorteoExpired = isExpired(accessExpiresAt);
 
   // Company registration data for a complete Capability Statement
   const p = (profile ?? {}) as Record<string, unknown>;
@@ -235,46 +229,6 @@ export function Dia4Client({
     const text = encodeURIComponent(build(name));
     const base = CERT_WHATSAPP ? `https://wa.me/${CERT_WHATSAPP}` : "https://wa.me/";
     window.open(`${base}?text=${text}`, "_blank", "noopener,noreferrer");
-  }
-
-  async function handleUploadSorteo(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-
-    try {
-      const supabase = createClient();
-      const path = `${userId}/sorteo-${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("deliverables")
-        .upload(path, file, { upsert: true });
-
-      if (uploadError) throw new Error(uploadError.message);
-
-      const { error: dbError } = await supabase.from("sorteo_submissions").upsert(
-        {
-          user_id: userId,
-          all_deliverables_uploaded: true,
-          submitted_at: new Date().toISOString(),
-          eligible: !sorteoExpired,
-          storage_path: path,
-        },
-        { onConflict: "user_id" }
-      );
-
-      if (dbError) throw new Error(dbError.message);
-
-      setSorteoEligible(!sorteoExpired);
-      toast.success(
-        sorteoExpired
-          ? "Entregable subido (fuera del plazo, no elegible para los premios)."
-          : "¡Entregable subido! Ya estás compitiendo por los premios."
-      );
-    } catch {
-      toast.error("Error al subir el archivo. Intenta de nuevo.");
-    } finally {
-      setUploading(false);
-    }
   }
 
   return (
@@ -557,60 +511,6 @@ export function Dia4Client({
           </div>
         );
       })()}
-
-      {/* Sorteo */}
-      <Card style={{ borderColor: "color-mix(in srgb, var(--accent) 35%, transparent)", background: "color-mix(in srgb, var(--accent) 8%, var(--card))" }}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-5 h-5" style={{ color: "var(--accent)" }} />
-            Competir por Premios
-          </CardTitle>
-          <CardDescription>
-            Sube tus entregables (PDFs de los 4 días o screenshots) para participar.
-            {sorteoExpired && (
-              <span className="text-destructive ml-1">
-                El plazo de 7 días expiró — puedes subir pero no serás elegible para los premios.
-              </span>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {sorteoEligible ? (
-            <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
-              <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
-              <div>
-                <p className="font-semibold text-green-800">¡Estás compitiendo por los premios!</p>
-                <p className="text-sm text-green-700">Tu entregable fue recibido. Buena suerte.</p>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <label className="w-full">
-                <div className="rounded-xl p-8 text-center cursor-pointer transition-colors hover:bg-muted/50" style={{ border: "2px dashed color-mix(in srgb, var(--secondary) 32%, transparent)" }}>
-                  {uploading ? (
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto" style={{ color: "var(--secondary)" }} />
-                  ) : (
-                    <>
-                      <Upload className="w-8 h-8 mx-auto mb-3" style={{ color: "var(--secondary)" }} />
-                      <p className="font-semibold">Subir entregable del Challenge</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        PDF combinado o screenshots de los 4 días completados
-                      </p>
-                    </>
-                  )}
-                </div>
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png,.zip"
-                  className="hidden"
-                  onChange={handleUploadSorteo}
-                  disabled={uploading}
-                />
-              </label>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Certificado */}
       {isCompleted && (
