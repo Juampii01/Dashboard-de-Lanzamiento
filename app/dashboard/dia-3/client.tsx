@@ -269,7 +269,11 @@ ${webResult.html}
               </p>
             </div>
             <Button onClick={() => setWizardOpen(true)} className="gap-2 h-12 px-7 text-base font-bold" disabled={generating}>
-              Generar mi web — Día 3 <ArrowRight className="w-4 h-4" />
+              {generating ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Generando…</>
+              ) : (
+                <>Generar mi web — Día 3 <ArrowRight className="w-4 h-4" /></>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -382,7 +386,11 @@ ${webResult.html}
           {/* Regenerar */}
           <div className="flex justify-center">
             <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2" disabled={generating}>
-              <RefreshCw className="w-4 h-4" /> Regenerar mi web
+              {generating ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Regenerando…</>
+              ) : (
+                <><RefreshCw className="w-4 h-4" /> Regenerar mi web</>
+              )}
             </Button>
           </div>
         </div>
