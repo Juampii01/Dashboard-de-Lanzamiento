@@ -22,12 +22,12 @@ interface WebResult {
   css: string;
 }
 
-type PortalCategory = "ecosistema" | "privado" | "estatal" | "federal";
+type PortalCategory = "ecosistema" | "federal" | "estatal" | "local" | "privado";
 
 interface Portal {
   name: string;
   url: string;
-  description: string;
+  description?: string;
   category: PortalCategory;
   prereq?: string;
 }
@@ -39,24 +39,53 @@ const PORTALS: Portal[] = [
   { name: "GovBidder Connect", url: "https://www.govbidderconnect.com/", description: "Conecta con el ecosistema y la comunidad GovBidder.", category: "ecosistema" },
   { name: "GovBidder Academy", url: "https://govbidderacademy.com/login", description: "Formación y cursos de GovBidder para seguir aprendiendo.", category: "ecosistema" },
 
-  // ── Privados ──
-  // (el equipo puede agregar más portales privados acá)
-
-  // ── Estatales / locales ──
-  // (el equipo cargará los portales estatales/locales acá)
-
   // ── Federales ──
   { name: "SAM.gov", url: "https://sam.gov", description: "Registro federal obligatorio. Tu UEI y CAGE Code salen de acá.", category: "federal", prereq: "EIN / Tax ID + datos bancarios (ACH)" },
   { name: "GSA eBuy", url: "https://www.ebuy.gsa.gov", description: "RFQs de agencias buscando proveedores. Alto volumen de servicios.", category: "federal", prereq: "Registro en SAM.gov" },
   { name: "GSA Advantage", url: "https://gsaadvantage.gov", description: "Catálogo de compras pre-aprobadas del gobierno.", category: "federal" },
   { name: "SBA.gov", url: "https://sba.gov", description: "Certificaciones (8a, WOSB, HUBZone) y recursos para small business.", category: "federal" },
+
+  // ── Estatales ──
+  { name: "Florida — MyFloridaMarketPlace (MFMP)", url: "https://vendor.myfloridamarketplace.com", category: "estatal" },
+  { name: "New Jersey — NJSTART", url: "https://www.njstart.gov", category: "estatal" },
+  { name: "New York — NYS Contract Reporter", url: "https://www.nyscr.ny.gov", category: "estatal" },
+  { name: "Pennsylvania — DGS eMarketplace", url: "https://www.dgs.pa.gov/Materials-Services-Procurement", category: "estatal" },
+  { name: "California — Cal eProcure", url: "https://caleprocure.ca.gov", category: "estatal" },
+  { name: "Texas — Texas SmartBuy", url: "https://www.txsmartbuy.gov", category: "estatal" },
+  { name: "Georgia — Georgia Procurement Registry", url: "https://ssl.doas.state.ga.us/PRSapp", category: "estatal" },
+  { name: "Virginia — eVA", url: "https://eva.virginia.gov", category: "estatal" },
+  { name: "Massachusetts — COMMBUYS", url: "https://www.commbuys.com", category: "estatal" },
+
+  // ── Locales ──
+  { name: "Essex County, New Jersey", url: "https://www.essexcountynjprocure.org", category: "local" },
+  { name: "Cook County, Illinois", url: "https://cookcountyil.ionwave.net", category: "local" },
+  { name: "Los Angeles County, California", url: "https://camisvr.co.la.ca.us", category: "local" },
+  { name: "Maricopa County, Arizona", url: "https://www.maricopa.gov/370/Procurement", category: "local" },
+  { name: "Harris County, Texas", url: "https://purchasing.harriscountytx.gov", category: "local" },
+  { name: "King County, Washington", url: "https://kingcounty.gov/procurement", category: "local" },
+  { name: "Montgomery County, Maryland", url: "https://www.montgomerycountymd.gov/procurement", category: "local" },
+  { name: "Fairfax County, Virginia", url: "https://www.fairfaxcounty.gov/procurement", category: "local" },
+  { name: "Clark County, Nevada", url: "https://www.clarkcountynv.gov/business/doing_business_with_clark_county", category: "local" },
+  { name: "City of Philadelphia, Pennsylvania", url: "https://www.phila.gov/departments/procurement-department/", category: "local" },
+
+  // ── Plataformas privadas de licitaciones ──
+  { name: "OpenGov Procurement", url: "https://procurement.opengov.com", category: "privado" },
+  { name: "Bonfire (Euna Supplier Network)", url: "https://supplier.eunasolutions.com", category: "privado" },
+  { name: "BidNet Direct", url: "https://www.bidnetdirect.com", category: "privado" },
+  { name: "PlanetBids", url: "https://home.planetbids.com", category: "privado" },
+  { name: "Ion Wave Technologies (IWT)", url: "https://www.ionwave.net", category: "privado" },
+  { name: "DemandStar", url: "https://network.demandstar.com", category: "privado" },
+  { name: "Periscope S2G (Periscope Holdings)", url: "https://www.periscopeholdings.com", category: "privado" },
+  { name: "Public Purchase", url: "https://www.publicpurchase.com", category: "privado" },
+  { name: "GovWin IQ", url: "https://www.deltek.com/en/products/govwin", category: "privado" },
 ];
 
 const CATEGORY_ORDER: { key: PortalCategory; label: string }[] = [
-  { key: "ecosistema", label: "Ecosistema GovBidder" },
-  { key: "privado", label: "Portales privados" },
-  { key: "estatal", label: "Estatales / locales" },
-  { key: "federal", label: "Federales" },
+  { key: "ecosistema", label: "🦅 Ecosistema GovBidder" },
+  { key: "federal", label: "🇺🇸 Federales" },
+  { key: "estatal", label: "🏛️ Estatales" },
+  { key: "local", label: "🏙️ Locales" },
+  { key: "privado", label: "🏢 Plataformas privadas" },
 ];
 
 const LOADING_STEPS = [
@@ -94,6 +123,7 @@ export function Dia3Client({
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const { missionsDone } = useMissionsDone(3, devMode);
   const [portalsOpen, setPortalsOpen] = useState(false);
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
   const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [webResult, setWebResult] = useState<WebResult | null>(
     existingPreview
@@ -491,35 +521,41 @@ ${webResult.html}
                 )}
                 {CATEGORY_ORDER.map((cat) => {
                   const list = PORTALS.filter((p) => p.category === cat.key);
+                  if (list.length === 0) return null;
+                  const catOpen = openCats[cat.key] ?? (cat.key === "ecosistema");
                   return (
-                    <div key={cat.key}>
-                      <p className="text-sm font-bold mb-2" style={{ color: "var(--foreground)" }}>{cat.label}</p>
-                      {list.length === 0 ? (
-                        <p className="text-xs text-muted-foreground italic px-3 py-3 rounded-lg border border-dashed" style={{ borderColor: "var(--border)" }}>
-                          Próximamente — el equipo cargará estos portales.
-                        </p>
-                      ) : (
-                        <div className="space-y-2">
-                          {list.map((portal) => {
-                            const accent = portal.category === "privado" ? "var(--accent)" : "var(--secondary)";
-                            return (
-                              <div key={portal.name} className="flex items-center justify-between gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                                style={{ borderColor: `color-mix(in srgb, ${accent} 30%, transparent)` }}>
-                                <div className="min-w-0">
-                                  <p className="font-semibold text-sm text-foreground">{portal.name}</p>
+                    <div key={cat.key} className="border rounded-xl overflow-hidden" style={{ borderColor: "var(--border)" }}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenCats((prev) => ({ ...prev, [cat.key]: !catOpen }))}
+                        aria-expanded={catOpen}
+                        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-muted/50 transition-colors"
+                      >
+                        <span className="font-bold text-sm text-foreground">
+                          {cat.label} <span className="font-normal text-muted-foreground">({list.length})</span>
+                        </span>
+                        <ChevronDown className="w-4 h-4 flex-shrink-0 text-muted-foreground" style={{ transform: catOpen ? "rotate(180deg)" : "none", transition: "transform var(--dur-fast) var(--ease-out)" }} />
+                      </button>
+                      {catOpen && (
+                        <div className="px-2.5 pb-2.5 pt-0.5 space-y-1.5">
+                          {list.map((portal) => (
+                            <div key={portal.name} className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg hover:bg-muted/60 transition-colors">
+                              <div className="min-w-0">
+                                <p className="font-medium text-sm text-foreground">{portal.name}</p>
+                                {portal.description && (
                                   <p className="text-xs text-muted-foreground">{portal.description}</p>
-                                  {portal.prereq && (
-                                    <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>📋 Ten listo: {portal.prereq}</p>
-                                  )}
-                                </div>
-                                <Button variant="outline" size="sm" asChild className="flex-shrink-0">
-                                  <a href={portal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                                    Ir <ExternalLink className="w-3 h-3" />
-                                  </a>
-                                </Button>
+                                )}
+                                {portal.prereq && (
+                                  <p className="text-[11px] mt-0.5" style={{ color: "var(--muted-foreground)" }}>📋 Ten listo: {portal.prereq}</p>
+                                )}
                               </div>
-                            );
-                          })}
+                              <Button variant="outline" size="sm" asChild className="flex-shrink-0">
+                                <a href={portal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                                  Ir <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </Button>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
