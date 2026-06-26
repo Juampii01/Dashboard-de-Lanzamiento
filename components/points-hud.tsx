@@ -257,7 +257,7 @@ export function PointsHUD({
               ))
             ) : (
               <p style={{ fontFamily: "var(--font-mono)", fontSize: "9.5px", color: "#647FA8", marginTop: "4px", lineHeight: 1.5 }}>
-                Todavía no sumaste puntos. Quedate en el dashboard, mirá los videos y completá misiones para empezar a sumar.
+                Todavía no sumaste puntos. Quédate en el dashboard, mira los videos y completa misiones para empezar a sumar.
               </p>
             )}
 

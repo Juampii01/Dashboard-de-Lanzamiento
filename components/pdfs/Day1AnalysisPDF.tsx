@@ -190,13 +190,13 @@ export function Day1AnalysisPDF({
           <View style={styles.leftCol}>
             <View style={styles.section}>
               <SectionTitle>Perfil del Negocio</SectionTitle>
-              {niche ? <Field label="Qué vendés / hacés" value={niche} /> : null}
-              {problemSolved ? <Field label="Problema que resolvés" value={problemSolved} /> : null}
+              {niche ? <Field label="Qué vendes / haces" value={niche} /> : null}
+              {problemSolved ? <Field label="Problema que resuelves" value={problemSolved} /> : null}
               {targetAvatar ? <Field label="Cliente objetivo" value={targetAvatar} /> : null}
               {!hasProfile ? (
                 <View style={styles.insightBox}>
                   <Text style={[styles.insightText, { color: MUTED }]}>
-                    Completá tu perfil en el Día 1 para ver acá tu resumen estratégico.
+                    Completa tu perfil en el Día 1 para ver acá tu resumen estratégico.
                   </Text>
                 </View>
               ) : null}

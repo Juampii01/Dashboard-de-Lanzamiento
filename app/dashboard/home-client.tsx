@@ -339,7 +339,7 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
             fontSize: "10px", color: "var(--muted-foreground)",
             fontWeight: 600, marginTop: "2px",
           }}>
-            {open ? "Ocultar el desglose de puntos" : "Tocá para ver de dónde salieron tus puntos"}
+            {open ? "Ocultar el desglose de puntos" : "Toca para ver de dónde salieron tus puntos"}
           </div>
         </div>
 
@@ -383,7 +383,7 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
             ))
           ) : (
             <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0, lineHeight: 1.5 }}>
-              Todavía no sumaste puntos. Quedate en el dashboard, mirá los videos y completá misiones para empezar a sumar.
+              Todavía no sumaste puntos. Quédate en el dashboard, mira los videos y completa misiones para empezar a sumar.
             </p>
           )}
         </div>
@@ -414,7 +414,7 @@ function VideoTutorial() {
           Cómo usar el dashboard
         </h2>
         <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
-          Mirá el tutorial completo antes de empezar los retos.
+          Mira el tutorial completo antes de empezar los retos.
         </p>
       </div>
 
@@ -472,7 +472,7 @@ function VideoTutorial() {
               </div>
               <div style={{ textAlign: "center" }}>
                 <p style={{ color: "#fff", fontSize: "16px", fontWeight: 700, textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>
-                  Presioná para ver el tutorial
+                  Presiona para ver el tutorial
                 </p>
                 <p style={{ color: "#C9D6EC", fontSize: "13px", marginTop: "5px", maxWidth: "42ch", textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>
                   Te mostramos cómo aprovechar el dashboard al máximo en pocos minutos.
@@ -541,7 +541,7 @@ function CommentsSection() {
       toast.success("¡Comentario publicado!");
       load();
     } catch {
-      toast.error("No se pudo publicar. Intentá de nuevo.");
+      toast.error("No se pudo publicar. Intenta de nuevo.");
     } finally {
       setSubmitting(false);
     }
@@ -598,7 +598,7 @@ function CommentsSection() {
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="Escribí tu opinión, duda o experiencia con el programa..."
+                  placeholder="Escribe tu opinión, duda o experiencia con el programa..."
                   maxLength={500}
                   rows={2}
                   style={{
@@ -655,7 +655,7 @@ function CommentsSection() {
               <MessageCircle style={{ width: "24px", height: "24px", margin: "0 auto 8px", opacity: 0.4 }} />
               <p style={{ color: "var(--foreground)", fontWeight: 600 }}>Sección de comentarios próximamente</p>
               <p style={{ fontSize: "11px", marginTop: "4px" }}>
-                Ejecutá la migración SQL para activarla.
+                Ejecuta la migración SQL para activarla.
               </p>
             </div>
           ) : comments.length === 0 ? (
@@ -1060,7 +1060,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
             borderTop: "1px solid #eee", paddingTop: "12px",
           }}>
             Este es un ejemplo de contrato adjudicado real, simplificado con fines educativos. Los términos varían por agencia y solicitud.
-            Consultá siempre el SOW original y las regulaciones FAR antes de firmar.
+            Consulta siempre el SOW original y las regulaciones FAR antes de firmar.
           </p>
         </div>
       </div>
@@ -1089,10 +1089,10 @@ function ContractModels({ fullName }: { fullName?: string }) {
           fontSize: "22px", fontWeight: 900,
           color: "var(--foreground)",
         }}>
-          ¡Mirá contratos gubernamentales ganados!
+          ¡Mira contratos gubernamentales ganados!
         </h2>
         <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
-          Estos son contratos reales adjudicados a pequeñas empresas como la tuya. Seleccioná tu sector.
+          Estos son contratos reales adjudicados a pequeñas empresas como la tuya. Selecciona tu sector.
         </p>
       </div>
 
@@ -1214,7 +1214,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName }: Home
           {firstName ? <>Hola, {firstName} 👋</> : <>Bienvenido</>}
         </h1>
         <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.78)", marginTop: "6px", maxWidth: "46ch" }}>
-          Tu empresa puede ganar contratos con el Gobierno de USA. Completá las fases del programa para avanzar.
+          Tu empresa puede ganar contratos con el Gobierno de USA. Completa las fases del programa para avanzar.
         </p>
       </FlagBanner>
 

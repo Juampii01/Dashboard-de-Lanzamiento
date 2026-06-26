@@ -21,10 +21,10 @@ export default function ExpiradoPage() {
           </p>
 
           <div className="bg-accent/10 border border-accent/30 rounded-xl p-5 text-left space-y-3">
-            <p className="font-bold text-lg">¿Querés ir al siguiente nivel?</p>
+            <p className="font-bold text-lg">¿Quieres ir al siguiente nivel?</p>
             <p className="text-muted-foreground text-sm">
               En la mentoría premium{" "}
-              <strong>"Tu Primer Contrato"</strong> trabajás uno a uno con el
+              <strong>"Tu Primer Contrato"</strong> trabajas uno a uno con el
               equipo de GovBidder para conseguir tu primer contrato gubernamental real.
             </p>
             <ul className="text-sm space-y-1 text-muted-foreground">

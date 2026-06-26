@@ -50,8 +50,8 @@ export function CertificatePreview({ completedDays, userName }: CertificatePrevi
             </h3>
             <p className="text-xs mt-0.5" style={{ color: "#C9D6EC" }}>
               {isComplete
-                ? "Podés descargarlo desde el Día 4"
-                : `Completá los 4 retos para desbloquearlo — ${pct}% listo`}
+                ? "Puedes descargarlo desde el Día 4"
+                : `Completa los 4 retos para desbloquearlo — ${pct}% listo`}
             </p>
           </div>
           <span

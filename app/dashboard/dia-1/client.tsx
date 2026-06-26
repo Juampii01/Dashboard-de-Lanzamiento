@@ -90,7 +90,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       setLogoUrl(data.logo_url ?? null);
       toast.success("¡Logo subido! Aparecerá en todos tus documentos.");
     } catch {
-      toast.error("Error al subir el logo. Intentá de nuevo.");
+      toast.error("Error al subir el logo. Intenta de nuevo.");
     } finally {
       setUploadingLogo(false);
       if (logoInputRef.current) logoInputRef.current.value = "";
@@ -165,10 +165,10 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       setNaicsResult((prev) => prev ? { ...prev, naics_code: code } : prev);
       setNaicsEditOpen(false);
       setNaicsChanged(true);
-      toast.success("Código NAICS actualizado — volvé a descargar tu PDF para reflejar el cambio.");
+      toast.success("Código NAICS actualizado — vuelve a descargar tu PDF para reflejar el cambio.");
       router.refresh();
     } catch {
-      toast.error("No se pudo actualizar el NAICS. Intentá de nuevo.");
+      toast.error("No se pudo actualizar el NAICS. Intenta de nuevo.");
     } finally {
       setSavingNaics(false);
     }
@@ -216,27 +216,27 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
     };
 
     if (!form.company_name.trim()) {
-      gameError("Ingresá el nombre de tu empresa para continuar");
+      gameError("Ingresa el nombre de tu empresa para continuar");
       return;
     }
     if (!form.legal_structure.trim()) {
-      gameError("Elegí el tipo de empresa (estructura legal)");
+      gameError("Elige el tipo de empresa (estructura legal)");
       return;
     }
     if (!form.phone.trim()) {
-      gameError("Ingresá el teléfono de la empresa");
+      gameError("Ingresa el teléfono de la empresa");
       return;
     }
     if (!form.corporate_email.trim()) {
-      gameError("Ingresá el email corporativo de la empresa");
+      gameError("Ingresa el email corporativo de la empresa");
       return;
     }
     if (!form.niche.trim()) {
-      gameError("Contanos qué producto o servicio ofrece tu empresa");
+      gameError("Cuéntanos qué producto o servicio ofrece tu empresa");
       return;
     }
     if (!form.problem_solved.trim()) {
-      gameError("Describí qué problema resuelve tu empresa");
+      gameError("Describe qué problema resuelve tu empresa");
       return;
     }
 
@@ -268,7 +268,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           setForm((prev) => ({ ...prev, primary_naics: data.naics_code }));
         } else {
           // Surface the failure instead of completing the day with no analysis
-          let msg = "No pudimos generar tu análisis con IA. Intentá de nuevo.";
+          let msg = "No pudimos generar tu análisis con IA. Intenta de nuevo.";
           try {
             const err = await res.json();
             if (err?.message) msg = err.message;
@@ -335,7 +335,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       setIsCompleted(true);
       setWizardOpen(false); // cerrar el modal-wizard al terminar
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
-      toast.success("¡Perfil Estratégico guardado! Ya podés descargar tu análisis.");
+      toast.success("¡Perfil Estratégico guardado! Ya puedes descargar tu análisis.");
 
       // Celebración sobria — una sola ráfaga breve, colores de marca,
       // y respetando prefers-reduced-motion.
@@ -353,7 +353,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       }
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "Estamos teniendo un problema. Intentá de nuevo.");
+      toast.error(err instanceof Error ? err.message : "Estamos teniendo un problema. Intenta de nuevo.");
     } finally {
       setSaving(false);
     }
@@ -374,7 +374,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       URL.revokeObjectURL(url);
       setNaicsChanged(false);
     } catch {
-      toast.error("Error al generar el PDF. Intentá de nuevo.");
+      toast.error("Error al generar el PDF. Intenta de nuevo.");
     } finally {
       setDownloadingPdf(false);
     }
@@ -398,7 +398,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             Oportunidad + Perfil Estratégico
           </h1>
           <p className="text-muted-foreground mt-1">
-            Completá el perfil de tu empresa para identificar tu oportunidad en
+            Completa el perfil de tu empresa para identificar tu oportunidad en
             el mercado gubernamental.
           </p>
         </div>
@@ -413,7 +413,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           <div className="flex-1">
             <p className="font-semibold">GovBidder Challenge Clase 1</p>
             <p className="text-sm text-muted-foreground">
-              Mirá la clase antes de completar el formulario.
+              Mira la clase antes de completar el formulario.
             </p>
           </div>
           <JoinCallButton day={1} />
@@ -431,7 +431,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
               <div>
                 <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Mirá los videos de la misión de hoy y respondé las preguntas. Así llegás a la clase con todo el contexto.
+                  Mira los videos de la misión de hoy y responde las preguntas. Así llegas a la clase con todo el contexto.
                 </p>
               </div>
               <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
@@ -446,7 +446,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
               <ListChecks className="w-6 h-6" style={{ color: "var(--primary)" }} />
             </div>
             <div>
-              <p className="font-semibold text-lg">Completá tu Perfil Estratégico</p>
+              <p className="font-semibold text-lg">Completa tu Perfil Estratégico</p>
               <p className="text-sm text-muted-foreground mt-1">
                 En 4 pasos guiados generamos tu análisis inicial y tu código NAICS.
               </p>
@@ -509,7 +509,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                 </p>
                 {naicsChanged && (
                   <p className="text-sm font-semibold mt-1" style={{ color: "var(--primary)" }}>
-                    ⚠️ Actualizaste tu NAICS — volvé a descargar el PDF para reflejar el cambio.
+                    ⚠️ Actualizaste tu NAICS — vuelve a descargar el PDF para reflejar el cambio.
                   </p>
                 )}
               </div>
@@ -563,7 +563,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
         title="Día 1 — Perfil Estratégico"
-        subtitle="Completá tu perfil para generar tu análisis inicial."
+        subtitle="Completa tu perfil para generar tu análisis inicial."
         finishLabel={isCompleted ? "Actualizar Perfil" : "Generar mi Análisis"}
         finishing={saving}
         onFinish={() => handleSubmit()}
@@ -579,13 +579,13 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
               <div className="space-y-5">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="company_name">Nombre de la empresa *<FieldHelp text="El nombre legal completo de tu empresa, tal cual figura en tu registro (incluí LLC, Inc., Corp., etc.)." /></Label>
+                    <Label htmlFor="company_name">Nombre de la empresa *<FieldHelp text="El nombre legal completo de tu empresa, tal cual figura en tu registro (incluye LLC, Inc., Corp., etc.)." /></Label>
                     <Input id="company_name" value={form.company_name} onChange={setField("company_name")} placeholder="Ej: ABC Services LLC" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="legal_structure">Tipo de empresa *<FieldHelp text="La estructura legal con la que está registrada tu empresa. Determina a qué tipos de contrato podés acceder." /></Label>
+                    <Label htmlFor="legal_structure">Tipo de empresa *<FieldHelp text="La estructura legal con la que está registrada tu empresa. Determina a qué tipos de contrato puedes acceder." /></Label>
                     <select id="legal_structure" value={form.legal_structure} onChange={(e) => setForm((p) => ({ ...p, legal_structure: e.target.value }))} className={selectClass}>
-                      <option value="">Seleccioná una opción</option>
+                      <option value="">Selecciona una opción</option>
                       <option value="LLC">LLC (Limited Liability Company)</option>
                       <option value="S-Corp">S-Corporation</option>
                       <option value="C-Corp">C-Corporation</option>
@@ -604,7 +604,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   <div className="space-y-2">
                     <Label htmlFor="us_state">Estado donde opera<FieldHelp text="El estado de EE.UU. donde tu empresa está registrada u opera principalmente. Mejora la precisión del análisis de mercado." /></Label>
                     <select id="us_state" value={form.us_state} onChange={(e) => setForm((p) => ({ ...p, us_state: e.target.value }))} className={selectClass}>
-                      <option value="">Seleccioná un estado</option>
+                      <option value="">Selecciona un estado</option>
                       {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
@@ -630,7 +630,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="website">Website (opcional)<FieldHelp text="El sitio web de tu empresa. Si no tenés, podés dejarlo vacío." /></Label>
+                  <Label htmlFor="website">Website (opcional)<FieldHelp text="El sitio web de tu empresa. Si no tienes, puedes dejarlo vacío." /></Label>
                   <Input id="website" value={form.website} onChange={setField("website")} placeholder="Ej: www.tuempresa.com" />
                 </div>
               </div>
@@ -657,13 +657,13 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="primary_naics">Código NAICS (opcional)<FieldHelp text="Si ya conocés tu código NAICS (6 dígitos), cargalo. Si lo dejás vacío, la IA lo genera por vos según tu negocio." /></Label>
+                  <Label htmlFor="primary_naics">Código NAICS (opcional)<FieldHelp text="Si ya conoces tu código NAICS (6 dígitos), cárgalo. Si lo dejas vacío, la IA lo genera por ti según tu negocio." /></Label>
                   <Input id="primary_naics" value={form.primary_naics} onChange={setField("primary_naics")} placeholder="Ej: 561720" maxLength={6} />
-                  <p className="text-xs text-muted-foreground">Si lo dejás vacío, la IA te sugiere el más apropiado.</p>
+                  <p className="text-xs text-muted-foreground">Si lo dejas vacío, la IA te sugiere el más apropiado.</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Certificaciones (opcional)<FieldHelp text="Marcá las certificaciones que YA tenés. Las dividimos en federales y estatales/locales — tocá cada sección para desplegarla." /></Label>
+                  <Label>Certificaciones (opcional)<FieldHelp text="Marca las certificaciones que YA tienes. Las dividimos en federales y estatales/locales — toca cada sección para desplegarla." /></Label>
                   <details className="rounded-lg border border-border overflow-hidden" open>
                     <summary className="cursor-pointer select-none px-3 py-2 text-sm font-semibold bg-muted/50">Estatales / locales</summary>
                     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 p-3">
@@ -696,7 +696,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             content: (
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="niche">¿Qué producto o servicio ofrece tu empresa? *<FieldHelp text="Describí concretamente lo que ofrecés. Ej: 'Mi empresa ofrece productos de personal care: pasta dental, cepillos, enjuague bucal e hilo dental.' Cuanto más específico, mejor identifica la IA tu código." /></Label>
+                  <Label htmlFor="niche">¿Qué producto o servicio ofrece tu empresa? *<FieldHelp text="Describe concretamente lo que ofreces. Ej: 'Mi empresa ofrece productos de personal care: pasta dental, cepillos, enjuague bucal e hilo dental.' Cuanto más específico, mejor identifica la IA tu código." /></Label>
                   <Textarea id="niche" value={form.niche} onChange={setField("niche")} placeholder="Ej: Mi empresa ofrece productos de personal care: pasta dental, cepillos de dientes, enjuague bucal e hilo dental." rows={3} />
                 </div>
                 <div className="space-y-2">
@@ -708,7 +708,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   <Textarea id="problem_solved" value={form.problem_solved} onChange={setField("problem_solved")} placeholder="Ej: Proveemos productos de higiene confiables y a buen precio, con stock constante para distribuidores." rows={2} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="kw">Palabras clave (keywords)<FieldHelp text="Agregá términos que describan tu negocio (en inglés es ideal para el gobierno). Ayudan a la IA a identificar mejor tu código NAICS. Tocá + para sumar cada una." /></Label>
+                  <Label htmlFor="kw">Palabras clave (keywords)<FieldHelp text="Agrega términos que describan tu negocio (en inglés es ideal para el gobierno). Ayudan a la IA a identificar mejor tu código NAICS. Toca + para sumar cada una." /></Label>
                   <div className="flex gap-2">
                     <Input id="kw" value={keywordInput} onChange={(e) => setKeywordInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeyword())}
@@ -727,7 +727,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="current_offering">Contanos con tus palabras qué le ofrecés hoy a tus clientes<FieldHelp text="Explicá libremente, como se lo contarías a un conocido, qué producto o servicio le das hoy a tus clientes actuales. Esto enriquece tu análisis." /></Label>
+                  <Label htmlFor="current_offering">Cuéntanos con tus palabras qué le ofreces hoy a tus clientes<FieldHelp text="Explica libremente, como se lo contarías a un conocido, qué producto o servicio le das hoy a tus clientes actuales. Esto enriquece tu análisis." /></Label>
                   <Textarea id="current_offering" value={form.current_offering} onChange={setField("current_offering")} placeholder="Ej: Hoy les vendo a farmacias y minimercados packs de productos de higiene bucal; entrego semanalmente y manejo precios mayoristas." rows={3} />
                 </div>
               </div>
@@ -738,7 +738,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             content: (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Si lo subís, aparecerá en todos tus documentos PDF (Análisis, Mapa de Códigos y Capability Statement).
+                  Si lo subes, aparecerá en todos tus documentos PDF (Análisis, Mapa de Códigos y Capability Statement).
                 </p>
                 <div className="flex items-center gap-5">
                   <div className="relative flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center"

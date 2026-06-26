@@ -45,7 +45,7 @@ export function DailyMissionUser({
       if (!res.ok) throw new Error(data?.error ?? "error");
       award(data);
     } catch {
-      setError("No pudimos enviar tu respuesta. Probá de nuevo.");
+      setError("No pudimos enviar tu respuesta. Prueba de nuevo.");
     } finally {
       setBusy(false);
     }
@@ -67,7 +67,7 @@ export function DailyMissionUser({
 
   function handleText() {
     const t = text.trim();
-    if (!t) { setError("Escribí tu respuesta o pegá un link."); return; }
+    if (!t) { setError("Escribe tu respuesta o pega un link."); return; }
     const kind = /^https?:\/\//i.test(t) ? "link" : "text";
     send({ text: t, kind });
   }
@@ -118,7 +118,7 @@ export function DailyMissionUser({
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Pegá un link o escribí tu respuesta acá…"
+              placeholder="Pega un link o escribe tu respuesta acá…"
               style={inputStyle}
               disabled={busy}
             />
@@ -153,7 +153,7 @@ export function DailyMissionUser({
               </button>
             </div>
             <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", margin: 0 }}>
-              Podés responder con un <strong style={{ color: "var(--foreground)" }}>link</strong>, un <strong style={{ color: "var(--foreground)" }}>texto</strong> o una <strong style={{ color: "var(--foreground)" }}>captura</strong> (PNG/JPG, máx 5MB).
+              Puedes responder con un <strong style={{ color: "var(--foreground)" }}>link</strong>, un <strong style={{ color: "var(--foreground)" }}>texto</strong> o una <strong style={{ color: "var(--foreground)" }}>captura</strong> (PNG/JPG, máx 5MB).
             </p>
           </div>
         )}

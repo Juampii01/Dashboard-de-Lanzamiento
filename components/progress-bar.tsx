@@ -109,7 +109,7 @@ function UserAvatar({
     >
       <div
         onClick={handleClick}
-        title={cooldown ? `Sumá XP de nuevo en ${minsLeft} min` : "Clic para sumar XP"}
+        title={cooldown ? `Suma XP de nuevo en ${minsLeft} min` : "Clic para sumar XP"}
         style={{
           width: size, height: size,
           borderRadius: "50%",

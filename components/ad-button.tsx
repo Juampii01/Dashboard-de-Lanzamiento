@@ -379,7 +379,7 @@ function AdModal({
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "13px" }}>🔒</span>
               <span style={{ fontSize: "12px", color: "#4A6A8A" }}>
-                Mirá el video completo para desbloquear los puntos
+                Mira el video completo para desbloquear los puntos
               </span>
             </div>
           )}

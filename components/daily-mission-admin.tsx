@@ -104,7 +104,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
       </div>
 
       <div className="space-y-2">
-        <input style={inputStyle} placeholder="Título de la misión (ej: Compartí tu Día 1 en LinkedIn)" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input style={inputStyle} placeholder="Título de la misión (ej: Comparte tu Día 1 en LinkedIn)" value={title} onChange={(e) => setTitle(e.target.value)} />
         <textarea style={{ ...inputStyle, resize: "vertical", minHeight: 64 }} placeholder="Descripción / instrucciones para los participantes" value={desc ?? ""} onChange={(e) => setDesc(e.target.value)} />
         <div className="flex items-center gap-2 flex-wrap">
           <label style={{ fontSize: 13, color: "var(--muted-foreground)" }}>Puntos:</label>

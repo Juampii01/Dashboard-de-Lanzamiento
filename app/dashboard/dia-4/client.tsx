@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Sparkles, FileText, ArrowRight, Pencil, MessageCircle, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Sparkles, FileText, ArrowRight, Pencil, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 import { isExpired } from "@/lib/utils";
@@ -32,7 +33,7 @@ const LOADING_STEPS = [
 
 // Portales "premio" — se regalan al completar el Día 4 (incluye los que estaban en Día 3).
 const BONUS_PORTALS: { name: string; url: string; description: string }[] = [
-  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Investigá quién gana contratos en tu NAICS y por cuánto." },
+  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Investiga quién gana contratos en tu NAICS y por cuánto." },
   { name: "SBA Dynamic Small Business Search", url: "https://dsbs.sba.gov/search/dsp_dsbs.cfm", description: "Directorio donde los Contracting Officers buscan small businesses." },
   { name: "Grants.gov", url: "https://grants.gov", description: "Subvenciones federales (proceso distinto a contratos)." },
   { name: "FPDS.gov", url: "https://www.fpds.gov", description: "Datos históricos de adjudicaciones federales — quién ganó qué." },
@@ -122,7 +123,7 @@ export function Dia4Client({
 
   async function handleGenerate() {
     if (!profile) {
-      toast.error("Completá el Día 1 primero.");
+      toast.error("Completa el Día 1 primero.");
       return;
     }
     setGenerating(true);
@@ -199,7 +200,7 @@ export function Dia4Client({
     } catch (err) {
       const msg = err instanceof Error && err.message && err.message !== "API error"
         ? err.message
-        : "Estamos teniendo un problema. Intentá de nuevo.";
+        : "Estamos teniendo un problema. Intenta de nuevo.";
       toast.error(msg);
     } finally {
       stopLoadingCycle();
@@ -270,7 +271,7 @@ export function Dia4Client({
           : "¡Entregable subido! Ya estás compitiendo por los premios."
       );
     } catch {
-      toast.error("Error al subir el archivo. Intentá de nuevo.");
+      toast.error("Error al subir el archivo. Intenta de nuevo.");
     } finally {
       setUploading(false);
     }
@@ -290,7 +291,7 @@ export function Dia4Client({
         </div>
         <h1 className="text-2xl font-bold text-primary">Capability Statement</h1>
         <p className="text-muted-foreground mt-1">
-          Generá tu Capability Statement profesional y competí por los premios finales.
+          Genera tu Capability Statement profesional y compite por los premios finales.
         </p>
       </div>
 
@@ -318,7 +319,7 @@ export function Dia4Client({
               <div>
                 <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Mirá los videos de la misión de hoy y respondé las preguntas para desbloquear la tarea.
+                  Mira los videos de la misión de hoy y responde las preguntas para desbloquear la tarea.
                 </p>
               </div>
               <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
@@ -333,7 +334,7 @@ export function Dia4Client({
               <FileText className="w-6 h-6" style={{ color: "var(--primary)" }} />
             </div>
             <div>
-              <p className="font-semibold text-lg">Generá tu Capability Statement</p>
+              <p className="font-semibold text-lg">Genera tu Capability Statement</p>
               <p className="text-sm text-muted-foreground mt-1">
                 En 2 pasos guiados armamos el documento que un Contracting Officer lee en 60 segundos. Usa toda tu data de los Días 1–3.
               </p>
@@ -524,8 +525,8 @@ export function Dia4Client({
                 </span>
                 <span style={{ display: "block", fontSize: 13, opacity: 0.85, marginTop: 2 }}>
                   {unlocked
-                    ? (bonusOpen ? "Tocá para ocultar las herramientas" : "Tocá para desplegar los portales donde buscar contratos")
-                    : "Completá la tarea del Día 4 para desbloquearlo"}
+                    ? (bonusOpen ? "Toca para ocultar las herramientas" : "Toca para desplegar los portales donde buscar contratos")
+                    : "Completa la tarea del Día 4 para desbloquearlo"}
                 </span>
               </span>
               {unlocked && (
@@ -565,10 +566,10 @@ export function Dia4Client({
             Competir por Premios
           </CardTitle>
           <CardDescription>
-            Subí tus entregables (PDFs de los 4 días o screenshots) para participar.
+            Sube tus entregables (PDFs de los 4 días o screenshots) para participar.
             {sorteoExpired && (
               <span className="text-destructive ml-1">
-                El plazo de 7 días expiró — podés subir pero no serás elegible para los premios.
+                El plazo de 7 días expiró — puedes subir pero no serás elegible para los premios.
               </span>
             )}
           </CardDescription>
@@ -621,13 +622,11 @@ export function Dia4Client({
               Hola <strong>{fullName}</strong>, completaste los 4 días del programa.
               Ya tienes las herramientas para aplicar por grants y contratos gubernamentales.
             </p>
-            <Button
-              onClick={handleRequestCertificate}
-              className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold h-12 px-8"
-            >
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Solicitar certificado
-            </Button>
+            <div className="flex justify-center">
+              <WhatsAppButton onClick={handleRequestCertificate}>
+                Solicitar certificado
+              </WhatsAppButton>
+            </div>
           </CardContent>
         </Card>
       )}
@@ -641,7 +640,7 @@ export function Dia4Client({
               <div>
                 <h3 className="font-bold text-lg">¿Y ahora? De tener las herramientas a ganar el contrato</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Ya tenés tu perfil, tus códigos, tu presencia y tu Capability Statement. Lo que separa a
+                  Ya tienes tu perfil, tus códigos, tu presencia y tu Capability Statement. Lo que separa a
                   quienes ganan su primer contrato de quienes no, son <strong>3 cosas</strong>:
                 </p>
               </div>
@@ -676,7 +675,7 @@ export function Dia4Client({
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
         title="Día 4 — Capability Statement"
-        subtitle="Sumá tus datos de registro y generamos el documento."
+        subtitle="Suma tus datos de registro y generamos el documento."
         finishLabel={statement ? "Editar documento" : "Generar mi Capability Statement"}
         finishing={generating}
         onFinish={() => handleGenerate()}

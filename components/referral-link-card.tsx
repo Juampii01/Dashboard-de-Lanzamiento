@@ -37,8 +37,8 @@ export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
         <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 15 }}>Tu link de referido</p>
       </div>
       <p style={{ fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5, margin: 0 }}>
-        Compartilo y sumá{" "}
-        <strong style={{ color: "var(--foreground)" }}>+{xp} pts</strong> por cada persona que invitás al lanzamiento.
+        Compártelo y suma{" "}
+        <strong style={{ color: "var(--foreground)" }}>+{xp} pts</strong> por cada persona que invitas al lanzamiento.
       </p>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "stretch" }}>
@@ -83,7 +83,7 @@ export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
       </div>
 
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", lineHeight: 1.5, margin: 0, opacity: 0.9 }}>
-        Una vez que la persona que referís ingresa al lanzamiento, se te suman los puntos automáticamente.
+        Una vez que la persona que refieres ingresa al lanzamiento, se te suman los puntos automáticamente.
       </p>
     </div>
   );

@@ -202,8 +202,8 @@ export function JourneySummaryPDF({
               </Text>
               <Text style={styles.calloutText}>
                 {isFinal
-                  ? "Ya tenés tu perfil, tus códigos, tu web y tu Capability Statement. Es hora de presentarte y empezar a competir por contratos del gobierno."
-                  : "Creá tu Capability Statement: el documento profesional de una página que te abre las puertas para presentarte ante las agencias del gobierno."}
+                  ? "Ya tienes tu perfil, tus códigos, tu web y tu Capability Statement. Es hora de presentarte y empezar a competir por contratos del gobierno."
+                  : "Crea tu Capability Statement: el documento profesional de una página que te abre las puertas para presentarte ante las agencias del gobierno."}
               </Text>
             </View>
           </View>

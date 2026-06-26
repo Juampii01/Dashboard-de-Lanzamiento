@@ -432,8 +432,8 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                 <div className="flex items-center justify-between">
                   <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
                     {videoUnlocked
-                      ? "Video visto — respondé el quiz para ganar XP"
-                      : "⏳ Mirá el video completo para desbloquear"}
+                      ? "Video visto — responde el quiz para ganar XP"
+                      : "⏳ Mira el video completo para desbloquear"}
                   </p>
                   <button
                     ref={markBtnRef}

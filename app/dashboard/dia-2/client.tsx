@@ -43,7 +43,7 @@ const TYPE_META: Record<string, {
   NAICS: {
     abbr: "NAICS",
     fullLabel: "North American Industry Classification",
-    desc: "Código primario — así el gobierno federal te identifica. Registrálo en SAM.gov.",
+    desc: "Código primario — así el gobierno federal te identifica. Regístralo en SAM.gov.",
     color: "#1E3A8A",
     lightBg: "rgba(30,58,138,0.12)",
     textColor: "#60A5FA",
@@ -202,7 +202,7 @@ export function Dia2Client({
 
   async function handleGenerate() {
     if (!naicsInput) {
-      toast.error("Ingresá tu código NAICS principal.");
+      toast.error("Ingresa tu código NAICS principal.");
       return;
     }
     setGenerating(true);
@@ -261,7 +261,7 @@ export function Dia2Client({
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Mapa de códigos generado!");
     } catch {
-      toast.error("Estamos teniendo un problema. Intentá de nuevo.");
+      toast.error("Estamos teniendo un problema. Intenta de nuevo.");
     } finally {
       stopLoadingCycle();
       setGenerating(false);
@@ -281,7 +281,7 @@ export function Dia2Client({
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      toast.error("Error al generar el PDF. Intentá de nuevo.");
+      toast.error("Error al generar el PDF. Intenta de nuevo.");
     } finally {
       setDownloadingPdf(false);
     }
@@ -312,7 +312,7 @@ export function Dia2Client({
           </div>
           <div className="flex-1">
             <p className="font-semibold">GovBidder Challenge Clase 2</p>
-            <p className="text-sm text-muted-foreground">Mirá la clase antes de generar tu mapa.</p>
+            <p className="text-sm text-muted-foreground">Mira la clase antes de generar tu mapa.</p>
           </div>
           <JoinCallButton day={2} />
         </CardContent>
@@ -328,7 +328,7 @@ export function Dia2Client({
               <div>
                 <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Mirá los videos de la misión de hoy y respondé las preguntas para desbloquear la tarea.
+                  Mira los videos de la misión de hoy y responde las preguntas para desbloquear la tarea.
                 </p>
               </div>
               <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
@@ -343,7 +343,7 @@ export function Dia2Client({
               <Map className="w-6 h-6" style={{ color: "var(--primary)" }} />
             </div>
             <div>
-              <p className="font-semibold text-lg">Generá tu Mapa de Códigos</p>
+              <p className="font-semibold text-lg">Genera tu Mapa de Códigos</p>
               <p className="text-sm text-muted-foreground mt-1">
                 En 2 pasos guiados, la IA expande tu NAICS en los 5 formatos que el gobierno usa para encontrarte.
               </p>
@@ -461,7 +461,7 @@ export function Dia2Client({
                             href={meta.externalUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            title={`Buscá tu código ${code.code} en ${meta.externalLabel}`}
+                            title={`Busca tu código ${code.code} en ${meta.externalLabel}`}
                             className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded transition-all"
                             style={{
                               background: `color-mix(in srgb, ${meta.color} 14%, transparent)`,
@@ -555,7 +555,7 @@ export function Dia2Client({
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
         title="Día 2 — Mapa de Códigos"
-        subtitle="Confirmá tu NAICS y keywords; la IA arma tu mapa completo."
+        subtitle="Confirma tu NAICS y keywords; la IA arma tu mapa completo."
         finishLabel={result ? "Editar mi mapa" : "Generar mi mapa"}
         finishing={generating}
         onFinish={() => handleGenerate()}
@@ -607,7 +607,7 @@ export function Dia2Client({
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Si tu empresa abarca más rubros, agregá otros NAICS y la IA también los expande.
+                    Si tu empresa abarca más rubros, agrega otros NAICS y la IA también los expande.
                   </p>
                 </div>
               </div>
@@ -644,7 +644,7 @@ export function Dia2Client({
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground">
-                      Agregá términos que describan tus servicios para afinar la expansión. Podés dejarlo vacío.
+                      Agrega términos que describan tus servicios para afinar la expansión. Puedes dejarlo vacío.
                     </p>
                   )}
                 </div>

@@ -146,7 +146,7 @@ ${webResult.html}
     await navigator.clipboard.writeText(html);
     setCopiedHtml(true);
     setTimeout(() => setCopiedHtml(false), 2000);
-    toast.success("HTML copiado — pegalo en tu editor web");
+    toast.success("HTML copiado — pégalo en tu editor web");
   }
 
   function handleOpenFullscreen() {
@@ -161,7 +161,7 @@ ${webResult.html}
 
   async function handleGenerateWeb() {
     if (!profile?.company_name) {
-      toast.error("Completá el Día 1 primero para tener tu perfil de empresa.");
+      toast.error("Completa el Día 1 primero para tener tu perfil de empresa.");
       return;
     }
     // Generación en segundo plano: cerramos el wizard para NO bloquear la pantalla.
@@ -170,7 +170,7 @@ ${webResult.html}
     setWizardOpen(false);
     startLoadingCycle();
     const toastId = toast.loading(
-      "Generando tu web… puede tardar 2-3 minutos. Podés seguir usando el dashboard; te avisamos cuando esté lista.",
+      "Generando tu web… puede tardar 2-3 minutos. Puedes seguir usando el dashboard; te avisamos cuando esté lista.",
       { duration: Infinity }
     );
 
@@ -230,7 +230,7 @@ ${webResult.html}
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Tu web ya está lista!", { id: toastId, duration: 5000 });
     } catch {
-      toast.error("No pudimos generar tu web. Volvé a intentar.", { id: toastId, duration: 6000 });
+      toast.error("No pudimos generar tu web. Vuelve a intentar.", { id: toastId, duration: 6000 });
     } finally {
       stopLoadingCycle();
       setGenerating(false);
@@ -263,7 +263,7 @@ ${webResult.html}
         </div>
         <h1 className="text-2xl font-bold text-primary">Web + Portales</h1>
         <p className="text-muted-foreground mt-1">
-          Generá el preview de tu web orientada al gobierno y conocé los portales donde publicar.
+          Genera el preview de tu web orientada al gobierno y conoce los portales donde publicar.
         </p>
       </div>
 
@@ -274,7 +274,7 @@ ${webResult.html}
           </div>
           <div className="flex-1">
             <p className="font-semibold">GovBidder Challenge Clase 3</p>
-            <p className="text-sm text-muted-foreground">Mirá la clase antes de generar tu web.</p>
+            <p className="text-sm text-muted-foreground">Mira la clase antes de generar tu web.</p>
           </div>
           <JoinCallButton day={3} />
         </CardContent>
@@ -291,7 +291,7 @@ ${webResult.html}
               <div>
                 <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Mirá los videos de la misión de hoy y respondé las preguntas para desbloquear la tarea.
+                  Mira los videos de la misión de hoy y responde las preguntas para desbloquear la tarea.
                 </p>
               </div>
               <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
@@ -306,7 +306,7 @@ ${webResult.html}
               <Globe className="w-6 h-6" style={{ color: "var(--primary)" }} />
             </div>
             <div>
-              <p className="font-semibold text-lg">Generá tu Web Gubernamental</p>
+              <p className="font-semibold text-lg">Genera tu Web Gubernamental</p>
               <p className="text-sm text-muted-foreground mt-1">
                 La IA usa tu Perfil Estratégico para construir una landing profesional orientada a Contracting Officers.
               </p>
@@ -389,9 +389,9 @@ ${webResult.html}
           <Card>
             <CardContent className="flex flex-wrap items-center justify-between gap-3 py-5">
               <div>
-                <p className="font-semibold">💾 Usá tu web</p>
+                <p className="font-semibold">💾 Usa tu web</p>
                 <p className="text-sm text-muted-foreground">
-                  Descargá el archivo o copiá el HTML para pegarlo en tu editor (Wix, Squarespace, WordPress).
+                  Descarga el archivo o copia el HTML para pegarlo en tu editor (Wix, Squarespace, WordPress).
                 </p>
               </div>
               <div className="flex gap-2">
@@ -418,7 +418,7 @@ ${webResult.html}
             <ArrowRight className="w-5 h-5 flex-shrink-0" style={{ color: "var(--secondary)" }} />
             <p className="text-sm text-foreground">
               Este copy es la base de tu <strong style={{ color: "var(--secondary)" }}>Capability Statement</strong> del Día 4 —
-              el documento que un Contracting Officer lee en 60 segundos para decidir si trabaja con vos.
+              el documento que un Contracting Officer lee en 60 segundos para decidir si trabaja contigo.
             </p>
           </div>
 
@@ -467,8 +467,8 @@ ${webResult.html}
                 </span>
                 <span style={{ display: "block", fontSize: 13, opacity: 0.85, marginTop: 2 }}>
                   {unlocked
-                    ? (portalsOpen ? "Tocá para ocultar los portales" : "Tocá para desplegar todos los portales donde registrarte")
-                    : "Completá la tarea del Día 3 para desbloquearla"}
+                    ? (portalsOpen ? "Toca para ocultar los portales" : "Toca para desplegar todos los portales donde registrarte")
+                    : "Completa la tarea del Día 3 para desbloquearla"}
                 </span>
               </span>
               {unlocked && (
@@ -503,7 +503,7 @@ ${webResult.html}
                                   <p className="font-semibold text-sm text-foreground">{portal.name}</p>
                                   <p className="text-xs text-muted-foreground">{portal.description}</p>
                                   {portal.prereq && (
-                                    <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>📋 Tené listo: {portal.prereq}</p>
+                                    <p className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>📋 Ten listo: {portal.prereq}</p>
                                   )}
                                 </div>
                                 <Button variant="outline" size="sm" asChild className="flex-shrink-0">
@@ -530,7 +530,7 @@ ${webResult.html}
         open={wizardOpen}
         onClose={() => setWizardOpen(false)}
         title="Día 3 — Tu Web Gubernamental"
-        subtitle="Confirmá los datos y la IA construye tu landing."
+        subtitle="Confirma los datos y la IA construye tu landing."
         finishLabel={webResult ? "Regenerar mi web" : "Generar mi web"}
         finishing={generating}
         onFinish={() => handleGenerateWeb()}
@@ -546,7 +546,7 @@ ${webResult.html}
                   {[
                     ["Empresa", profile?.company_name || "—"],
                     ["NAICS", profile?.primary_naics || "—"],
-                    ["Qué hacés", profile?.niche || "—"],
+                    ["Qué haces", profile?.niche || "—"],
                     ["Keywords", keywordsExpanded.slice(0, 5).join(", ") || "—"],
                   ].map(([k, v]) => (
                     <div key={k} className="flex items-start justify-between gap-4 px-4 py-3">
@@ -556,7 +556,7 @@ ${webResult.html}
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  ¿Algo no coincide? Editalo en el Día 1 y volvé. Acá no se cambia nada.
+                  ¿Algo no coincide? Edítalo en el Día 1 y vuelve. Acá no se cambia nada.
                 </p>
               </div>
             ),
@@ -571,7 +571,7 @@ ${webResult.html}
                 <div className="grid gap-2.5">
                   {[
                     ["Hero", "Titular y propuesta de valor para el gobierno"],
-                    ["About Us", "Quién sos, orientado a confianza institucional"],
+                    ["About Us", "Quién eres, orientado a confianza institucional"],
                     ["Servicios", "Tus servicios traducidos a lenguaje de contratos"],
                     ["Capabilities & CTA", "Cierre con llamada a la acción y contacto"],
                   ].map(([t, d]) => (
@@ -588,7 +588,7 @@ ${webResult.html}
                   <div className="space-y-1 text-center">
                     <p className="text-xs text-muted-foreground">{LOADING_STEPS[loadingStep]}</p>
                     <p className="text-xs text-muted-foreground">
-                      Esto puede tardar entre <strong className="text-foreground">2 y 3 minutos</strong>. Si falla, volvé a intentar.
+                      Esto puede tardar entre <strong className="text-foreground">2 y 3 minutos</strong>. Si falla, vuelve a intentar.
                     </p>
                   </div>
                 )}

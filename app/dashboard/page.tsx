@@ -75,7 +75,7 @@ export default async function DashboardPage() {
           targetIso={launchIso}
           day={0}
           title="El dashboard se habilita el día del lanzamiento"
-          subtitle="Todavía no arrancó el challenge. Mientras tanto podés recorrerlo y ver todo lo que se viene; se abre el día del lanzamiento."
+          subtitle="Todavía no arrancó el challenge. Mientras tanto puedes recorrerlo y ver todo lo que se viene; se abre el día del lanzamiento."
           reachedSubtitle="Ya casi arranca. El dashboard se habilita apenas el equipo abra el challenge."
         />
       )}

@@ -152,7 +152,7 @@ export default async function SumaPuntosPage() {
           ⚡ Misiones Extra
         </h1>
         <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginTop: 6 }}>
-          Completá estas misiones para ganar XP adicional y subir en el ranking.
+          Completa estas misiones para ganar XP adicional y subir en el ranking.
         </p>
       </div>
 
@@ -165,7 +165,7 @@ export default async function SumaPuntosPage() {
       {/* 1. Referidos */}
       {ctx.refLink && (
         <section className="space-y-3">
-          <SectionHeader emoji="🤝" title="Invitá y ganá" subtitle={`+${REFERRAL_LEAD_XP.toLocaleString()} pts por cada persona que invitás al lanzamiento`} />
+          <SectionHeader emoji="🤝" title="Invita y gana" subtitle={`+${REFERRAL_LEAD_XP.toLocaleString()} pts por cada persona que invitas al lanzamiento`} />
           <ReferralLinkCard link={ctx.refLink} xp={REFERRAL_LEAD_XP} />
         </section>
       )}
@@ -184,7 +184,7 @@ export default async function SumaPuntosPage() {
 
       {/* 4. Misiones Diarias */}
       <section className="space-y-3">
-        <SectionHeader emoji="🎯" title="Misión Diaria" subtitle="Completá la misión del día y sumá XP extra" />
+        <SectionHeader emoji="🎯" title="Misión Diaria" subtitle="Completa la misión del día y suma XP extra" />
         {ctx.mission ? (
           <DailyMissionUser mission={ctx.mission} alreadyDone={ctx.missionDone} />
         ) : (
@@ -196,8 +196,8 @@ export default async function SumaPuntosPage() {
           }}>
             <p style={{ fontSize: 13, color: "var(--muted-foreground)", margin: 0 }}>
               {ctx.isAdmin
-                ? <>No hay misión activa. Publicala desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.</>
-                : "No hay misión activa por el momento. Volvé más tarde."}
+                ? <>No hay misión activa. Publícala desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.</>
+                : "No hay misión activa por el momento. Vuelve más tarde."}
             </p>
           </div>
         )}

@@ -295,7 +295,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
           {/* Lock — always locked until the required action is completed */}
           <div className="shrink-0">
             <span
-              title="Completá la misión para continuar"
+              title="Completa la misión para continuar"
               style={{ fontSize: "13px", color: "#647FA8", cursor: "default" }}
             >
               🔒
@@ -374,7 +374,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
               {continueLabel && onContinue ? (
                 <div className="pt-2 space-y-2">
                   <p className="text-xs" style={{ color: "#C9D6EC" }}>
-                    ¡Ahora completá la siguiente misión para desbloquear el podcast!
+                    ¡Ahora completa la siguiente misión para desbloquear el podcast!
                   </p>
                   <button
                     onClick={onContinue}
@@ -395,7 +395,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                   {podcastUrl ? (
                     <div className="pt-2 space-y-2">
                       <p className="text-xs pt-1" style={{ color: "#C9D6EC" }}>
-                        ¡Completaste ambas misiones! Abrí el podcast para terminar:
+                        ¡Completaste ambas misiones! Abre el podcast para terminar:
                       </p>
                       <button
                         onClick={handlePodcast}
@@ -463,7 +463,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                 <p className="text-xs" style={{ color: "#C9D6EC" }}>
                   {apiError === "day_locked"
                     ? "Este día aún no está desbloqueado."
-                    : "Algo salió mal. Intentá de nuevo."}
+                    : "Algo salió mal. Intenta de nuevo."}
                 </p>
               </div>
               <button

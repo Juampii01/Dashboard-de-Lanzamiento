@@ -78,11 +78,11 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       if (!res.ok || !json.ok) {
         setPhase("error");
         setErrorMsg(
-          json.error === "upload_failed" ? "Error al subir la imagen. Intentá de nuevo."
-          : json.error === "award_failed" ? "No pudimos acreditar los puntos. Intentá de nuevo."
+          json.error === "upload_failed" ? "Error al subir la imagen. Intenta de nuevo."
+          : json.error === "award_failed" ? "No pudimos acreditar los puntos. Intenta de nuevo."
           : json.error === "file_too_large" ? "La imagen es demasiado grande (máx 8 MB)."
           : json.error === "invalid_image" ? "Formato de imagen no válido."
-          : "Error inesperado. Intentá de nuevo."
+          : "Error inesperado. Intenta de nuevo."
         );
         setTimeout(() => setPhase((p) => (p === "error" ? "idle" : p)), 3000);
         return;
@@ -96,7 +96,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       }
     } catch {
       setPhase("error");
-      setErrorMsg("Error de conexión. Intentá de nuevo.");
+      setErrorMsg("Error de conexión. Intenta de nuevo.");
       setTimeout(() => setPhase((p) => (p === "error" ? "idle" : p)), 3000);
     }
   };
@@ -116,7 +116,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
             ¡Historia subida! +500 pts
           </p>
           <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
-            Volvé mañana después de las {resetLabel} (tu hora local) para subir tu próxima historia.
+            Vuelve mañana después de las {resetLabel} (tu hora local) para subir tu próxima historia.
           </p>
         </div>
       </div>
@@ -135,7 +135,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <p style={{ fontWeight: 700, color: "var(--foreground)", fontSize: 14, margin: 0 }}>
-          📸 Subí tu historia de hoy
+          📸 Sube tu historia de hoy
         </p>
         <span style={{
           fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
@@ -145,7 +145,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
       </div>
 
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
-        Posteá una historia en tus redes sobre el challenge y subí una captura de pantalla. Se reinicia cada día a las {resetLabel} (tu hora local).
+        Postea una historia en tus redes sobre el challenge y sube una captura de pantalla. Se reinicia cada día a las {resetLabel} (tu hora local).
       </p>
 
       {/* File picker zone */}
@@ -168,7 +168,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
           <img src={preview} alt="Preview" style={{ maxWidth: "100%", maxHeight: 180, borderRadius: 10, display: "block" }} />
         ) : (
           <p style={{ fontSize: 13, color: "var(--muted-foreground)", textAlign: "center", padding: "20px", margin: 0 }}>
-            📁 Tocá para elegir imagen (JPG, PNG, WEBP · máx 8 MB)
+            📁 Toca para elegir imagen (JPG, PNG, WEBP · máx 8 MB)
           </p>
         )}
       </div>

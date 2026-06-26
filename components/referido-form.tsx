@@ -22,7 +22,7 @@ export function ReferidoForm({ refCode }: { refCode: string }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error === "invalid_email" ? "Ingresá un email válido." : "Algo salió mal. Probá de nuevo.");
+        setError(data?.error === "invalid_email" ? "Ingresa un email válido." : "Algo salió mal. Prueba de nuevo.");
         setLoading(false);
         return;
       }
@@ -41,7 +41,7 @@ export function ReferidoForm({ refCode }: { refCode: string }) {
       // Todavía sin URL de pago configurada → mostramos confirmación.
       setDone(true);
     } catch {
-      setError("No se pudo enviar. Probá de nuevo.");
+      setError("No se pudo enviar. Prueba de nuevo.");
     }
     setLoading(false);
   }
@@ -55,7 +55,7 @@ export function ReferidoForm({ refCode }: { refCode: string }) {
       }}>
         <span style={{ fontSize: 18 }}>👋 Este email ya tiene acceso</span>
         <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>
-          Ya estás registrado en el challenge. Ingresá directo al dashboard.
+          Ya estás registrado en el challenge. Ingresa directo al dashboard.
         </span>
         <a
           href="https://dboard.govbidder.net/login"
