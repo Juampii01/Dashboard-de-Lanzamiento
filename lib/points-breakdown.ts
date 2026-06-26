@@ -11,8 +11,8 @@ export interface Breakdown {
 
 export const CATEGORY_LABEL: Record<string, string> = {
   time:     "⏱️ Tiempo en el dashboard",
-  video:    "🎬 Videos",
-  day:      "🚀 Días del challenge",
+  video:    "🎬 Misiones de videos",
+  day:      "🚀 Completar cada día",
   mission:  "🎯 Misiones",
   keyword:  "📞 Palabras clave",
   story:    "📸 Historia diaria",
@@ -20,9 +20,9 @@ export const CATEGORY_LABEL: Record<string, string> = {
   streak:   "🔥 Racha diaria",
   referral: "🤝 Referidos",
   avatar:   "🕺 Avatar",
-  quiz:     "🧠 Quizzes",
+  quiz:     "🧠 Quizzes de videos",
   call:     "📞 Llamadas en vivo",
-  podcast:  "🎧 Podcast",
+  podcast:  "🎧 Video podcast",
   ad:       "📺 Anuncios",
   other:    "✨ Otros",
 };
