@@ -1,6 +1,44 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { ProximoPasoUnlocked } from "./unlocked";
 
-export default function ProximoPasoPage() {
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
+
+export default async function ProximoPasoPage() {
+  let unlocked = false;
+  let fullName = "";
+
+  if (DEV_MODE) {
+    unlocked = true;
+    fullName = "Dev Preview";
+  } else {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect("/login");
+
+    const service = createServiceClient();
+    const [{ data: progress }, { data: profile }] = await Promise.all([
+      service.from("day_progress").select("day_number, is_completed").eq("user_id", user.id),
+      service.from("users").select("full_name, is_admin").eq("id", user.id).maybeSingle(),
+    ]);
+
+    const completed = new Set(
+      ((progress as { day_number: number; is_completed: boolean }[] | null) ?? [])
+        .filter((p) => p.is_completed)
+        .map((p) => p.day_number)
+    );
+    const allDone = [1, 2, 3, 4].every((d) => completed.has(d));
+    unlocked = allDone || (profile as { is_admin?: boolean } | null)?.is_admin === true;
+    fullName = (profile as { full_name?: string } | null)?.full_name ?? "";
+  }
+
+  if (unlocked) {
+    return <ProximoPasoUnlocked fullName={fullName} />;
+  }
+
+  // ── Estado bloqueado (todavía no completó los 4 días) ──
   return (
     <div className="space-y-8">
       <Link
