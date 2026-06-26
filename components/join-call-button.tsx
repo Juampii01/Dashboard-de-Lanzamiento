@@ -7,6 +7,7 @@ interface JoinCallButtonProps {
   day: number;
   callUrl?: string;
   label?: string;
+  disabled?: boolean;
 }
 
 const POINTS = 300;
@@ -17,7 +18,7 @@ const POINTS = 300;
 const DEFAULT_CALL_URL =
   process.env.NEXT_PUBLIC_CALL_URL ?? "https://youtube.com/@govbidder";
 
-export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL, label = "Unirse a la llamada" }: JoinCallButtonProps) {
+export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL, label = "Unirse a la llamada", disabled = false }: JoinCallButtonProps) {
   const lsKey = `govbidder_joined_call_day_${day}`;
   const [joined, setJoined] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,28 +77,32 @@ export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL, label = "Unirs
   return (
     <button
       onClick={handleJoin}
+      disabled={disabled || loading}
       style={{
         display: "inline-flex",
         alignItems: "center",
         gap: "7px",
         padding: "8px 16px",
         borderRadius: "10px",
-        border: joined ? "1px solid color-mix(in srgb, var(--success) 40%, transparent)" : "none",
-        background: joined ? "color-mix(in srgb, var(--success) 14%, transparent)" : "var(--primary)",
-        color: joined ? "var(--success)" : "var(--primary-foreground)",
+        border: joined ? "1px solid color-mix(in srgb, var(--success) 40%, transparent)" : disabled ? "1px solid var(--border)" : "none",
+        background: joined ? "color-mix(in srgb, var(--success) 14%, transparent)" : disabled ? "var(--muted)" : "var(--primary)",
+        color: joined ? "var(--success)" : disabled ? "var(--muted-foreground)" : "var(--primary-foreground)",
         fontSize: "13px",
         fontWeight: 700,
         fontFamily: "var(--font-sans)",
-        cursor: "pointer",
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.75 : 1,
         transition: "filter 0.2s, transform 0.15s",
         whiteSpace: "nowrap",
-        boxShadow: joined ? "none" : "0 2px 10px -2px color-mix(in srgb, var(--primary) 55%, transparent)",
+        boxShadow: joined || disabled ? "none" : "0 2px 10px -2px color-mix(in srgb, var(--primary) 55%, transparent)",
       }}
       onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "brightness(0.94)"; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
     >
       {joined ? (
         <>✓ Unido · +{POINTS} XP</>
+      ) : disabled ? (
+        <>🔒 {label}</>
       ) : (
         <>
           <Phone style={{ width: 14, height: 14 }} />

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, PlayCircle, ArrowRight, Map, Lock, Pencil } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, ArrowRight, Map, Lock, Pencil } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 import type { Database } from "@/lib/supabase/types";
@@ -303,17 +303,6 @@ export function Dia2Client({
           La IA expande tu código NAICS en un mapa completo de cómo el gobierno te busca.
         </p>
       </div>
-
-      <Card style={{ background: "color-mix(in srgb, var(--primary) 7%, var(--card))", borderColor: "color-mix(in srgb, var(--primary) 28%, transparent)" }}>
-        <CardContent className="flex flex-wrap items-center gap-4 py-4">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}>
-            <PlayCircle className="w-6 h-6" style={{ color: "var(--primary)" }} />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold">GovBidder Challenge Clase 2</p>
-            <p className="text-sm text-muted-foreground">Mira la clase antes de generar tu mapa.</p>
-          </div>        </CardContent>
-      </Card>
 
       {!result && (
         !missionsDone ? (

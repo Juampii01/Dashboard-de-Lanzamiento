@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
-import { CheckCircle2, Download, Loader2, PlayCircle, ImagePlus, Trash2, ArrowRight, ListChecks, Plus, X, RefreshCw, Lock } from "lucide-react";
+import { CheckCircle2, Download, Loader2, ImagePlus, Trash2, ArrowRight, ListChecks, Plus, X, RefreshCw, Lock } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
 import { FieldHelp } from "@/components/field-help";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
@@ -402,20 +402,6 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           </p>
         </div>
       </div>
-
-      {/* ── Clase en vivo ── */}
-      <Card style={{ background: "color-mix(in srgb, var(--primary) 7%, var(--card))", borderColor: "color-mix(in srgb, var(--primary) 28%, transparent)" }}>
-        <CardContent className="flex flex-wrap items-center gap-4 py-4">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "color-mix(in srgb, var(--primary) 14%, transparent)" }}>
-            <PlayCircle className="w-6 h-6" style={{ color: "var(--primary)" }} />
-          </div>
-          <div className="flex-1">
-            <p className="font-semibold">GovBidder Challenge Clase 1</p>
-            <p className="text-sm text-muted-foreground">
-              Mira la clase antes de completar el formulario.
-            </p>
-          </div>        </CardContent>
-      </Card>
 
       {/* ── Realizar tareas (launch) / Resultado ── */}
       {!isCompleted ? (

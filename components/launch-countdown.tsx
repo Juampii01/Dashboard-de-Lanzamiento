@@ -177,7 +177,7 @@ export function LaunchCountdown({
 
         {showJoinClass && (
           <div style={{ marginTop: 2 }}>
-            <JoinCallButton day={day} label="Ir a la clase" />
+            <JoinCallButton day={day} label="Unirse a la clase" disabled={!reached} />
           </div>
         )}
 

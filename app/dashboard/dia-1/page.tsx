@@ -89,8 +89,8 @@ export default async function Dia1Page() {
           day={1}
           showJoinClass
           title="Día 1 — Perfil Estratégico"
-          subtitle="Esta misión se desbloquea luego de la clase en vivo. Mientras tanto, entra a la clase con el botón de abajo."
-          reachedSubtitle="La clase ya empezó. Entra con el botón — el día se habilita apenas el equipo lo abra."
+          subtitle="Este día se desbloquea luego de la clase en vivo. El botón para unirte se habilita cuando el contador llegue a 0 (hora de la clase)."
+          reachedSubtitle="¡Es la hora de la clase! Unite con el botón de abajo. El día se habilita cuando el equipo lo abra."
         />
       )}
     </div>
