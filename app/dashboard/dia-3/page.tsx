@@ -6,7 +6,7 @@ import { Dia3Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
-import { dayUnlockIso, isIsoUnlocked } from "@/lib/launch";
+import { dayUnlockIso } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -30,11 +30,10 @@ export default async function Dia3Page() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [toggle, { data: progress }, { data: prevProgress }, { data: profile }, { data: expansion }, { data: adminUser }] =
+  const [toggle, { data: progress }, { data: profile }, { data: expansion }, { data: adminUser }] =
     await Promise.all([
       getAdminToggle(supabase, 3),
       supabase.from("day_progress").select("is_unlocked, is_completed").eq("user_id", user.id).eq("day_number", 3).single(),
-      supabase.from("day_progress").select("is_completed").eq("user_id", user.id).eq("day_number", 2).single(),
       supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
       supabase.from("naics_expansions").select("keywords_expanded").eq("user_id", user.id).single(),
       supabase.from("users").select("is_admin").eq("id", user.id).single(),
@@ -42,18 +41,12 @@ export default async function Dia3Page() {
 
   const isAdmin = adminUser?.is_admin === true;
 
-  // Pre-lanzamiento: se VE el día detrás, con el contador como overlay encima.
+  // Desbloqueo 100% MANUAL (el admin abre el día tras la clase). El contador
+  // apunta a la hora de la clase (7pm Miami) y es solo cosmético.
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 3);
-  const dateUnlocked = isIsoUnlocked(targetIso);
-  const preLocked = !isAdmin && !dateUnlocked;
-
   const isUnlocked =
-    isAdmin ||
-    dateUnlocked ||
-    (toggle?.is_globally_unlocked === true && prevProgress?.is_completed === true) ||
-    progress?.is_unlocked === true;
-
-  if (!preLocked && !isUnlocked) redirect("/dashboard");
+    isAdmin || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
+  const preLocked = !isUnlocked;
 
   const { data: webPreview } = await supabase.from("web_previews").select("*").eq("user_id", user.id).maybeSingle();
 
@@ -69,7 +62,14 @@ export default async function Dia3Page() {
       keywordsExpanded={(expansion?.keywords_expanded as string[]) ?? []}
     />
       {preLocked && (
-        <LaunchCountdown targetIso={targetIso} title="Día 3 — Web + Portales" subtitle="Tu presencia profesional y dónde registrarte para conseguir contratos. Se viene." />
+        <LaunchCountdown
+          targetIso={targetIso}
+          day={3}
+          showJoinClass
+          title="Día 3 — Web + Portales"
+          subtitle="Esta misión se desbloquea luego de la clase en vivo. Mientras tanto, entrá a la clase con el botón de abajo."
+          reachedSubtitle="La clase ya empezó. Entrá con el botón — el día se habilita apenas el equipo lo abra."
+        />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { JoinCallButton } from "@/components/join-call-button";
 
 function diffParts(targetMs: number) {
   const total = Math.max(0, targetMs - Date.now());
@@ -17,27 +18,42 @@ function diffParts(targetMs: number) {
 /**
  * Overlay de contador — se renderiza ENCIMA del contenido del día/inicio, semi-
  * transparente (el contenido se ve detrás) y bloquea la interacción con esa zona.
- * La navegación (tabs/sidebar del layout) queda libre porque el overlay es
- * `absolute` dentro del contenido, no fixed sobre toda la pantalla.
- * Debe ir dentro de un contenedor `position: relative`. Al llegar a 0 recarga.
+ *
+ * El desbloqueo es 100% MANUAL: el contador apunta a la hora de la clase (solo
+ * cosmético) y al llegar a 0 muestra 00 y SIGUE bloqueado. Mientras el overlay
+ * está visible hace polling a /api/launch/status; cuando el admin abre el día
+ * (o el Inicio), recarga la página para mostrar el contenido.
+ *
+ * `day`: 0 = Inicio, 1..4 = días. Debe ir dentro de un contenedor `position: relative`.
  */
 export function LaunchCountdown({
   targetIso,
   kicker = "GovBidder Challenge",
   title,
   subtitle,
+  reachedSubtitle,
+  day,
+  showJoinClass = false,
 }: {
   targetIso: string;
   kicker?: string;
   title: string;
   subtitle?: string;
+  /** Mensaje cuando el contador ya llegó a 0 (la clase ya empezó/pasó). */
+  reachedSubtitle?: string;
+  /** 0 = Inicio, 1..4 = día. Se usa para el polling y el botón "Ir a la clase". */
+  day: number;
+  /** Muestra el botón "Ir a la clase" (link a la llamada en vivo, +300 XP). */
+  showJoinClass?: boolean;
 }) {
   const targetMs = Date.parse(targetIso);
   const [t, setT] = useState(() => diffParts(targetMs));
+  const [reached, setReached] = useState(() => diffParts(targetMs).total <= 0);
   // La fecha legible se calcula tras montar para usar la zona horaria LOCAL del
   // navegador de cada usuario (evita además mismatch de hidratación SSR).
   const [fechaTexto, setFechaTexto] = useState("");
 
+  // Contador cosmético: al llegar a 0 NO desbloquea — solo cambia el mensaje a 00.
   useEffect(() => {
     setFechaTexto(
       new Date(targetMs).toLocaleString(undefined, {
@@ -49,12 +65,30 @@ export function LaunchCountdown({
       const next = diffParts(targetMs);
       setT(next);
       if (next.total <= 0) {
+        setReached(true);
         clearInterval(id);
-        window.location.reload();
       }
     }, 1000);
     return () => clearInterval(id);
   }, [targetMs]);
+
+  // Polling del desbloqueo manual: cuando el admin abre (o abre antes de la
+  // hora), recargamos para mostrar el contenido. Corre mientras el overlay vive.
+  useEffect(() => {
+    let cancelled = false;
+    async function check() {
+      try {
+        const res = await fetch(`/api/launch/status?day=${day}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const data: { unlocked?: boolean } = await res.json();
+        if (!cancelled && data?.unlocked) window.location.reload();
+      } catch {
+        /* red intermitente — reintenta en el próximo tick */
+      }
+    }
+    const id = setInterval(check, 15000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [day]);
 
   const blocks: { value: number; label: string }[] = [
     { value: t.days, label: "Días" },
@@ -63,9 +97,10 @@ export function LaunchCountdown({
     { value: t.secs, label: "Seg" },
   ];
 
+  const activeSubtitle = reached ? (reachedSubtitle ?? subtitle) : subtitle;
+
   return (
     <div
-      aria-hidden
       style={{
         position: "absolute", inset: 0, zIndex: 50,
         pointerEvents: "auto", // bloquea la interacción con el contenido de abajo
@@ -109,9 +144,9 @@ export function LaunchCountdown({
           {title}
         </h2>
 
-        {subtitle && (
+        {activeSubtitle && (
           <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.78)", maxWidth: "46ch", margin: 0 }}>
-            {subtitle}
+            {activeSubtitle}
           </p>
         )}
 
@@ -140,9 +175,19 @@ export function LaunchCountdown({
           ))}
         </div>
 
+        {showJoinClass && (
+          <div style={{ marginTop: 2 }}>
+            <JoinCallButton day={day} label="Ir a la clase" />
+          </div>
+        )}
+
         <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", marginTop: 2, minHeight: 18 }}>
-          {fechaTexto && (
-            <>Se desbloquea el <strong style={{ color: "#fff" }}>{fechaTexto}</strong> (tu hora local).</>
+          {reached ? (
+            <>Se habilita apenas el equipo lo abra.</>
+          ) : (
+            fechaTexto && (
+              <>Horario: <strong style={{ color: "#fff" }}>{fechaTexto}</strong> (tu hora local).</>
+            )
           )}
         </p>
       </div>

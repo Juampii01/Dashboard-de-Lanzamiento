@@ -6,6 +6,7 @@ import { ExternalLink, Phone } from "lucide-react";
 interface JoinCallButtonProps {
   day: number;
   callUrl?: string;
+  label?: string;
 }
 
 const POINTS = 300;
@@ -16,7 +17,7 @@ const POINTS = 300;
 const DEFAULT_CALL_URL =
   process.env.NEXT_PUBLIC_CALL_URL ?? "https://youtube.com/@govbidder";
 
-export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL }: JoinCallButtonProps) {
+export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL, label = "Unirse a la llamada" }: JoinCallButtonProps) {
   const lsKey = `govbidder_joined_call_day_${day}`;
   const [joined, setJoined] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -100,7 +101,7 @@ export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL }: JoinCallButt
       ) : (
         <>
           <Phone style={{ width: 14, height: 14 }} />
-          Unirse a la llamada
+          {label}
           <span
             style={{
               background: "rgba(255,255,255,0.22)",

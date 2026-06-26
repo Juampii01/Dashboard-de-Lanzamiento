@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { HomeClient } from "./home-client";
 import { LaunchCountdown } from "@/components/launch-countdown";
 import { getAdminToggle } from "@/lib/supabase/helpers";
-import { dayUnlockIso, isIsoUnlocked } from "@/lib/launch";
+import { inicioUnlockIso } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -50,14 +50,17 @@ export default async function DashboardPage() {
     isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin === true;
   }
 
-  // Contador de lanzamiento dentro del Inicio (solo usuarios, antes del Día 1).
-  // La fecha/hora la configura el admin (admin_toggles.scheduled_unlock_at del Día 1).
-  let launchIso = dayUnlockIso(null, 1);
+  // Contador de Inicio (day 0). El desbloqueo es MANUAL (el admin abre el Inicio
+  // desde el panel). La fecha del contador es solo cosmética (29/06 00:00 Miami).
+  let launchIso = inicioUnlockIso(null);
+  let inicioLocked = false;
   if (!devMode) {
-    const toggle1 = await getAdminToggle(createServiceClient(), 1);
-    launchIso = dayUnlockIso(toggle1?.scheduled_unlock_at, 1);
+    const inicioToggle = await getAdminToggle(createServiceClient(), 0);
+    launchIso = inicioUnlockIso(inicioToggle?.scheduled_unlock_at);
+    // Solo bloquea si existe la fila de Inicio y NO está abierta (tolera ausencia).
+    inicioLocked = !!inicioToggle && inicioToggle.is_globally_unlocked !== true;
   }
-  const beforeLaunch = !devMode && !isAdmin && !isIsoUnlocked(launchIso);
+  const beforeLaunch = !devMode && !isAdmin && inicioLocked;
 
   return (
     <div className="space-y-8" style={{ position: "relative" }}>
@@ -70,8 +73,10 @@ export default async function DashboardPage() {
       {beforeLaunch && (
         <LaunchCountdown
           targetIso={launchIso}
+          day={0}
           title="El dashboard se habilita el día del lanzamiento"
-          subtitle="Todavía no se puede usar: se desbloquea cuando arranque el challenge. Mientras tanto podés recorrerlo y ver todo lo que se viene."
+          subtitle="Todavía no arrancó el challenge. Mientras tanto podés recorrerlo y ver todo lo que se viene; se abre el día del lanzamiento."
+          reachedSubtitle="Ya casi arranca. El dashboard se habilita apenas el equipo abra el challenge."
         />
       )}
     </div>

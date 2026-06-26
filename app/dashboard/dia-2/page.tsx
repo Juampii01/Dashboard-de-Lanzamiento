@@ -6,7 +6,7 @@ import { Dia2Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
-import { dayUnlockIso, isIsoUnlocked } from "@/lib/launch";
+import { dayUnlockIso } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -30,28 +30,22 @@ export default async function Dia2Page() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [toggle, { data: progress }, { data: profile }, { data: prevProgress }, { data: adminUser }] =
+  const [toggle, { data: progress }, { data: profile }, { data: adminUser }] =
     await Promise.all([
       getAdminToggle(supabase, 2),
       supabase.from("day_progress").select("is_unlocked, is_completed").eq("user_id", user.id).eq("day_number", 2).single(),
       supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
-      supabase.from("day_progress").select("is_completed").eq("user_id", user.id).eq("day_number", 1).single(),
       supabase.from("users").select("is_admin").eq("id", user.id).single(),
     ]);
 
   const isAdmin = adminUser?.is_admin === true;
 
-  // Pre-lanzamiento: se VE el día detrás, con el contador como overlay encima.
+  // Desbloqueo 100% MANUAL (el admin abre el día tras la clase). El contador
+  // apunta a la hora de la clase (7pm Miami) y es solo cosmético.
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 2);
-  const dateUnlocked = isIsoUnlocked(targetIso);
-  const preLocked = !isAdmin && !dateUnlocked;
-
-  const globallyUnlocked = toggle?.is_globally_unlocked === true;
-  const prevCompleted = prevProgress?.is_completed === true;
-  const userUnlocked = progress?.is_unlocked === true;
-  const isUnlocked = isAdmin || dateUnlocked || (globallyUnlocked && prevCompleted) || userUnlocked;
-
-  if (!preLocked && !isUnlocked) redirect("/dashboard");
+  const isUnlocked =
+    isAdmin || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
+  const preLocked = !isUnlocked;
 
   const { data: expansion } = await supabase.from("naics_expansions").select("*").eq("user_id", user.id).maybeSingle();
 
@@ -68,7 +62,14 @@ export default async function Dia2Page() {
       usState={(profile as { us_state?: string | null } | null)?.us_state ?? ""}
     />
       {preLocked && (
-        <LaunchCountdown targetIso={targetIso} title="Día 2 — Mapa de Códigos" subtitle="Vas a expandir tu código en todos los formatos que el gobierno usa para encontrarte. Falta poco." />
+        <LaunchCountdown
+          targetIso={targetIso}
+          day={2}
+          showJoinClass
+          title="Día 2 — Mapa de Códigos"
+          subtitle="Esta misión se desbloquea luego de la clase en vivo. Mientras tanto, entrá a la clase con el botón de abajo."
+          reachedSubtitle="La clase ya empezó. Entrá con el botón — el día se habilita apenas el equipo lo abra."
+        />
       )}
     </div>
   );

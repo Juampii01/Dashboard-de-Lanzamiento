@@ -62,8 +62,8 @@ export async function POST(req: NextRequest) {
   }
 
   const day = Number(body.day_number);
-  if (!Number.isInteger(day) || day < 1 || day > 4) {
-    return NextResponse.json({ error: "day_number must be 1..4" }, { status: 400 });
+  if (!Number.isInteger(day) || day < 0 || day > 4) {
+    return NextResponse.json({ error: "day_number must be 0..4" }, { status: 400 });
   }
 
   // Normalizar a UTC ISO. null/"" → limpiar (usa default).

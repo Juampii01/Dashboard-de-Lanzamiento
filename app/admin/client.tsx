@@ -87,6 +87,7 @@ interface Sorteo {
 }
 
 const DAY_LABELS: Record<number, string> = {
+  0: "Inicio — Dashboard",
   1: "Día 1 — Perfil Estratégico",
   2: "Día 2 — Mapa de Códigos",
   3: "Día 3 — Web + Portales",
@@ -374,7 +375,7 @@ function isoToLocalInput(iso: string | null): string {
 }
 
 function LaunchScheduleControl({ initialToggles }: { initialToggles: AdminToggle[] }) {
-  const days = [1, 2, 3, 4];
+  const days = [0, 1, 2, 3, 4];
   const byDay = Object.fromEntries(initialToggles.map((t) => [t.day_number, t]));
 
   // Estado de inputs por día (hora local del admin).
@@ -402,10 +403,11 @@ function LaunchScheduleControl({ initialToggles }: { initialToggles: AdminToggle
       if (!res.ok) throw new Error((await res.json()).error ?? "error");
       const { row } = await res.json();
       setSavedIso((prev) => ({ ...prev, [day]: row?.scheduled_unlock_at ?? null }));
+      const lbl = day === 0 ? "Inicio" : `Día ${day}`;
       toast.success(
         unlock_at
-          ? `Día ${day}: se desbloquea el ${new Date(unlock_at).toLocaleString()}`
-          : `Día ${day}: sin fecha (usa el valor por defecto).`
+          ? `${lbl}: el contador marca el ${new Date(unlock_at).toLocaleString()}`
+          : `${lbl}: sin fecha (usa el valor por defecto).`
       );
     } catch {
       toast.error("No se pudo guardar la fecha. Reintentá.");
@@ -416,10 +418,10 @@ function LaunchScheduleControl({ initialToggles }: { initialToggles: AdminToggle
   return (
     <div className="space-y-4">
       <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Definí la fecha y hora exacta en que cada día se desbloquea solo. Escribís en
-        <strong> tu hora local{tz ? ` (${tz})` : ""}</strong> y a cada usuario le aparece el contador en
-        <strong> su propia hora local</strong>. El bloqueo <strong>NO aplica a admins</strong>. Vaciar el
-        campo deja la fecha por defecto.
+        Definí la hora que muestra el <strong>contador</strong> de cada día/Inicio (la hora de la clase).
+        Es <strong>solo visual</strong>: el día NO se abre solo al llegar a 0 — lo desbloqueás vos abajo en
+        “Desbloqueo Manual”. Escribís en <strong>tu hora local{tz ? ` (${tz})` : ""}</strong> y cada usuario
+        ve el contador en su propia hora local. Vaciar el campo deja la hora por defecto.
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -766,7 +768,8 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
             : t
         )
       );
-      toast.success(value ? `Día ${dayNumber} desbloqueado para todos.` : `Día ${dayNumber} bloqueado.`);
+      const lbl = dayNumber === 0 ? "Inicio" : `Día ${dayNumber}`;
+      toast.success(value ? `${lbl} desbloqueado para todos.` : `${lbl} bloqueado.`);
     } catch {
       toast.error("Error al actualizar. Recargá la página.");
     }
@@ -928,11 +931,12 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CalendarClock className="w-5 h-5 text-[#00D4FF]" />
-            Programación de Lanzamiento por Día
+            Hora del Contador (Inicio + Días)
           </CardTitle>
           <CardDescription>
-            Fecha y hora exacta en que cada día se abre solo para los usuarios (a los admins nunca se les bloquea).
-            Cada usuario ve el contador en su hora local.
+            Hora que marca el contador de cada día/Inicio (cosmético: la hora de la clase, 7pm Miami). El
+            desbloqueo real es <strong>manual</strong>, desde “Desbloqueo Manual” más abajo. Cada usuario ve el
+            contador en su hora local.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -943,9 +947,10 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
       {/* Toggles globales */}
       <Card>
         <CardHeader>
-          <CardTitle>Toggles Globales por Día</CardTitle>
+          <CardTitle>Desbloqueo Manual (Inicio + Días)</CardTitle>
           <CardDescription>
-            Activar un día lo desbloquea para TODOS los usuarios que completaron el día anterior.
+            Activá el switch para abrir el Inicio o un día para TODOS los usuarios al instante (podés abrirlo
+            antes o después de la hora del contador). Tras cada clase, abrí el día acá. A los admins nunca se les bloquea.
           </CardDescription>
         </CardHeader>
         <CardContent>

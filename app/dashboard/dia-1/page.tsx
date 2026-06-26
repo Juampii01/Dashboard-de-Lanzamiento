@@ -5,7 +5,7 @@ import { Dia1Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
-import { dayUnlockIso, isIsoUnlocked } from "@/lib/launch";
+import { dayUnlockIso } from "@/lib/launch";
 import Link from "next/link";
 
 async function getDia1Data(userId: string) {
@@ -57,15 +57,13 @@ export default async function Dia1Page() {
     .from("users").select("is_admin").eq("id", user.id).maybeSingle();
   const isAdmin = userProfile?.is_admin ?? false;
 
-  // Bloqueo por fecha (pre-lanzamiento): el día se VE completo detrás, con el
-  // contador como overlay semi-transparente encima (no se puede interactuar).
+  // Desbloqueo 100% MANUAL: el admin abre el día tras la clase. El contador
+  // apunta a la hora de la clase (7pm Miami) y es solo cosmético; el día se VE
+  // completo detrás, con el contador como overlay encima (no interactuable).
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 1);
-  const dateUnlocked = isIsoUnlocked(targetIso);
-  const preLocked = !isAdmin && !dateUnlocked;
-
   const isUnlocked =
-    isAdmin || dateUnlocked || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
-  if (!preLocked && !isUnlocked) redirect("/dashboard");
+    isAdmin || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
+  const preLocked = !isUnlocked;
 
   return (
     <div className="space-y-8" style={{ position: "relative" }}>
@@ -88,8 +86,11 @@ export default async function Dia1Page() {
       {preLocked && (
         <LaunchCountdown
           targetIso={targetIso}
+          day={1}
+          showJoinClass
           title="Día 1 — Perfil Estratégico"
-          subtitle="Tu primer día está por arrancar. En cuanto se desbloquee vas a descubrir tu oportunidad en el mercado del Gobierno de USA."
+          subtitle="Esta misión se desbloquea luego de la clase en vivo. Mientras tanto, entrá a la clase con el botón de abajo."
+          reachedSubtitle="La clase ya empezó. Entrá con el botón — el día se habilita apenas el equipo lo abra."
         />
       )}
     </div>
