@@ -34,7 +34,10 @@ interface Portal {
 
 const PORTALS: Portal[] = [
   // ── Ecosistema GovBidder ──
-  { name: "GovBidder — Comunidad de Santo", url: "https://govbidder.net", description: "El espacio de Santo y el equipo GovBidder para seguir aprendiendo y conseguir tu primer contrato.", category: "ecosistema" },
+  { name: "GovBidder App", url: "https://app.govbidder.net/", description: "La plataforma principal de GovBidder para gestionar tu camino al contrato.", category: "ecosistema" },
+  { name: "GovBidder AI", url: "https://govbidder.ai/", description: "Herramientas de IA de GovBidder para acelerar tu búsqueda y tus propuestas.", category: "ecosistema" },
+  { name: "GovBidder Connect", url: "https://www.govbidderconnect.com/", description: "Conecta con el ecosistema y la comunidad GovBidder.", category: "ecosistema" },
+  { name: "GovBidder Academy", url: "https://govbidderacademy.com/login", description: "Formación y cursos de GovBidder para seguir aprendiendo.", category: "ecosistema" },
 
   // ── Privados ──
   // (el equipo puede agregar más portales privados acá)
