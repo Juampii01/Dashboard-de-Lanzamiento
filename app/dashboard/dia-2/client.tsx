@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, PlayCircle, ArrowRight, Map, RefreshCw, Lock } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, PlayCircle, ArrowRight, Map, Lock, Pencil } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
@@ -541,10 +541,10 @@ export function Dia2Client({
             </Card>
           )}
 
-          {/* Regenerar */}
+          {/* Editar */}
           <div className="flex justify-center">
             <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2" disabled={generating}>
-              <RefreshCw className="w-4 h-4" /> Regenerar mi mapa
+              <Pencil className="w-4 h-4" /> Editar mi mapa
             </Button>
           </div>
         </div>
@@ -556,7 +556,7 @@ export function Dia2Client({
         onClose={() => setWizardOpen(false)}
         title="Día 2 — Mapa de Códigos"
         subtitle="Confirmá tu NAICS y keywords; la IA arma tu mapa completo."
-        finishLabel={result ? "Regenerar mi mapa" : "Generar mi mapa"}
+        finishLabel={result ? "Editar mi mapa" : "Generar mi mapa"}
         finishing={generating}
         onFinish={() => handleGenerate()}
         steps={[
