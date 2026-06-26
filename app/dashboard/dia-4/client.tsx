@@ -299,7 +299,7 @@ export function Dia4Client({
             <PlayCircle className="w-6 h-6" style={{ color: "var(--primary)" }} />
           </div>
           <div className="flex-1">
-            <p className="font-semibold">Clase en vivo — Día 4 (Q&A)</p>
+            <p className="font-semibold">GovBidder Challenge Clase 4</p>
             <p className="text-sm text-muted-foreground">La clase en vivo y preguntas.</p>
           </div>
           <JoinCallButton day={4} />

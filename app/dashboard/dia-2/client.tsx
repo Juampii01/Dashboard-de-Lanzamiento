@@ -311,7 +311,7 @@ export function Dia2Client({
             <PlayCircle className="w-6 h-6" style={{ color: "var(--primary)" }} />
           </div>
           <div className="flex-1">
-            <p className="font-semibold">Clase en vivo — Día 2</p>
+            <p className="font-semibold">GovBidder Challenge Clase 2</p>
             <p className="text-sm text-muted-foreground">Mirá la clase antes de generar tu mapa.</p>
           </div>
           <JoinCallButton day={2} />
