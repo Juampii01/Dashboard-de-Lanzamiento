@@ -44,7 +44,7 @@ async function getLayoutData(userId: string) {
   // Use service client so RLS never blocks reading the user's own profile/progress
   const supabase = createServiceClient();
 
-  const [{ data: user }, { data: progress }, { data: toggles }] = await Promise.all([
+  const [{ data: user }, { data: progress }] = await Promise.all([
     supabase
       .from("users")
       .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id, last_ad_watched_at, avatar_url")
@@ -52,11 +52,8 @@ async function getLayoutData(userId: string) {
       .single(),
     supabase
       .from("day_progress")
-      .select("day_number, is_unlocked, is_completed")
+      .select("day_number, is_completed")
       .eq("user_id", userId),
-    supabase
-      .from("admin_toggles")
-      .select("day_number, is_globally_unlocked"),
   ]);
 
   // Registrar "ingreso al dashboard": marca last_seen_at la primera vez y luego
@@ -93,17 +90,9 @@ async function getLayoutData(userId: string) {
 
   const completedDays = progress?.filter((p) => p.is_completed).length ?? 0;
 
-  // Build toggle map { [dayNumber]: is_globally_unlocked }
-  const toggleMap: Record<number, boolean> = Object.fromEntries(
-    (toggles ?? []).map((t) => [
-      (t as { day_number: number; is_globally_unlocked: boolean }).day_number,
-      (t as { day_number: number; is_globally_unlocked: boolean }).is_globally_unlocked,
-    ])
-  );
-
-  // Desbloqueo 100% MANUAL: una fase está desbloqueada (en sidebar/tabs) solo si
-  // el admin activó su toggle global. El progreso por-usuario ya NO desbloquea —
-  // así el Día 1 (unlocked por defecto) queda bloqueado hasta que el equipo lo abra.
+  // Los 4 días son SIEMPRE navegables (clickeables). El bloqueo NO es de
+  // navegación: es el overlay de cada día (contador + botón) que tapa el
+  // contenido hasta que el admin lo abre. Por eso is_unlocked = true acá.
   const completedByDay = new Map(
     (progress ?? []).map((p) => [p.day_number, p.is_completed])
   );
@@ -112,7 +101,7 @@ async function getLayoutData(userId: string) {
       [1, 2, 3, 4].map((day) => [
         day,
         {
-          is_unlocked: toggleMap[day] ?? false,
+          is_unlocked: true,
           is_completed: completedByDay.get(day) ?? false,
         },
       ])
