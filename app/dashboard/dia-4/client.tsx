@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2, PlayCircle, Sparkles, FileText, ArrowRight, Pencil, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
+import { CheckCircle2, Download, Loader2, PlayCircle, Sparkles, FileText, ArrowRight, Pencil, Lock, Gift, ChevronDown } from "lucide-react";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { PortalsAccordion } from "@/components/portals-accordion";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 import type { Database } from "@/lib/supabase/types";
@@ -29,11 +30,6 @@ const LOADING_STEPS = [
   "Ensamblando tu Capability Statement profesional...",
 ];
 
-// Portales "premio" — se regalan al completar el Día 4 (incluye los que estaban en Día 3).
-const BONUS_PORTALS: { name: string; url: string; description: string }[] = [
-  { name: "USASpending.gov", url: "https://usaspending.gov", description: "Investiga quién gana contratos en tu NAICS y por cuánto." },
-  { name: "Grants.gov", url: "https://grants.gov", description: "Subvenciones federales (proceso distinto a contratos)." },
-];
 
 // Número de WhatsApp del equipo para solicitar el certificado (solo dígitos, con
 // código de país, sin "+"). Configurable por env NEXT_PUBLIC_CERT_WHATSAPP.
@@ -484,22 +480,7 @@ export function Dia4Client({
 
             {unlocked && bonusOpen && (
               <div className="gb-preview-reveal" style={{ marginTop: 14 }}>
-                <div className="space-y-2">
-                  {BONUS_PORTALS.map((portal) => (
-                    <div key={portal.name} className="flex items-center justify-between gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                      style={{ borderColor: "color-mix(in srgb, var(--secondary) 30%, transparent)" }}>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-foreground">{portal.name}</p>
-                        <p className="text-xs text-muted-foreground">{portal.description}</p>
-                      </div>
-                      <Button variant="outline" size="sm" asChild className="flex-shrink-0">
-                        <a href={portal.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                          Ir <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                <PortalsAccordion />
               </div>
             )}
           </div>
