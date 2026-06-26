@@ -7,13 +7,13 @@ import {
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
+import { ChallengeRoadmap } from "./ChallengeRoadmap";
 
 Font.registerHyphenationCallback((word) => [word]);
 
 const NAVY      = "#1a2a6c";
 const NAVY_DARK = "#0f1e3d";
 const GOLD      = "#c9a227";
-const GOLD_SOFT = "#f3ead0";
 const INK       = "#2b3444";
 const MUTED     = "#6b7280";
 const LIGHT     = "#f4f6fa";
@@ -128,13 +128,6 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-const ROADMAP = [
-  { day: "Día 1", label: "Perfil\nEstratégico" },
-  { day: "Día 2", label: "Mapa de\nCódigos" },
-  { day: "Día 3", label: "Web +\nPortales" },
-  { day: "Día 4", label: "Capability\nStatement" },
-];
-
 export function Day1AnalysisPDF({
   companyName,
   yearFounded,
@@ -244,26 +237,8 @@ export function Day1AnalysisPDF({
         {/* Spacer pushes roadmap + footer to the bottom */}
         <View style={{ flexGrow: 1 }} />
 
-        {/* ── Roadmap strip ── */}
-        <View style={styles.roadmap}>
-          <Text style={styles.roadmapTitle}>Tu ruta en el Challenge</Text>
-          <View style={styles.roadRow}>
-            {ROADMAP.map((n, i) => {
-              const done = i === 0;
-              return (
-                <View key={i} style={styles.roadNode}>
-                  <View style={[styles.roadDot, { backgroundColor: done ? GOLD : GOLD_SOFT }]}>
-                    <Text style={[styles.roadDotText, { color: done ? NAVY_DARK : MUTED }]}>
-                      {i + 1}
-                    </Text>
-                  </View>
-                  <Text style={styles.roadDay}>{n.day}</Text>
-                  <Text style={styles.roadLabel}>{n.label}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </View>
+        {/* ── Roadmap strip — Día 1 hecho ── */}
+        <ChallengeRoadmap currentDay={1} />
 
         {/* ── Footer ── */}
         <View style={styles.footer}>

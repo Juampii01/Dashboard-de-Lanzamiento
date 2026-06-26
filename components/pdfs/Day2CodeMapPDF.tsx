@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
+import { ChallengeRoadmap } from "./ChallengeRoadmap";
 
 Font.registerHyphenationCallback((word) => [word]);
 
@@ -302,6 +303,9 @@ export function Day2CodeMapPDF({
             </View>
           </View>
         )}
+
+        {/* ── Roadmap strip — Días 1-2 hechos ── */}
+        <ChallengeRoadmap currentDay={2} />
 
         {/* ── Footer ── */}
         <View style={styles.footer}>

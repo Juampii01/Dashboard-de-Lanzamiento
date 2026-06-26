@@ -404,7 +404,9 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
                 <EntregableRow name="Análisis Día 1" sub="NAICS + Perfil · PDF" href="/api/pdf/day-1" available={day1Done} collapsed={collapsed} />
                 <EntregableRow name="Códigos NAICS" sub="Keywords · PDF" href="/api/pdf/day-2" available={day2Done} collapsed={collapsed} />
                 <EntregableRow name="Web Preview" sub="Descargar HTML · Día 3" href="/api/web/day-3" available={day3Done} collapsed={collapsed} />
+                <EntregableRow name="Resumen Día 3" sub="Días 1-3 · PDF" href="/api/pdf/day-3" available={day3Done} collapsed={collapsed} />
                 <EntregableRow name="Capability Statement" sub="Disponible en Día 4" href="/api/pdf/capability-statement" available={day4Done} collapsed={collapsed} />
+                <EntregableRow name="Resumen Final" sub="Los 4 días · PDF" href="/api/pdf/day-4" available={day4Done} collapsed={collapsed} />
               </div>
             </div>
           </div>
