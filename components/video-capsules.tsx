@@ -105,6 +105,8 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
   // Video locking — unlocks when video ends (IFrame API) or fallback timer fires
   const [videoUnlocked, setVideoUnlocked] = useState(false);
+  // Modo repaso: reabre SOLO el video (sin quiz ni XP) para misiones ya completadas
+  const [replayMode, setReplayMode] = useState(false);
   const [podcastClaiming, setPodcastClaiming] = useState(false);
   const [podcastDone, setPodcastDone] = useState(false);
   const iframeRef    = useRef<HTMLIFrameElement>(null);
@@ -139,9 +141,23 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
   // ── Open a specific capsule ───────────────────────────────────────────────────
 
   const handleWatchCapsule = useCallback((id: string) => {
+    setReplayMode(false);
     setActiveId(id);
     setVideoUnlocked(!!isAdmin); // admins skip the watch gate
   }, [isAdmin]);
+
+  // Repaso: reabre solo el video de una misión ya completada (sin quiz ni XP).
+  const handleReplay = useCallback((id: string) => {
+    setReplayMode(true);
+    setActiveId(id);
+    setVideoUnlocked(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setActiveId(null);
+    setVideoUnlocked(false);
+    setReplayMode(false);
+  }, []);
 
   // ── YouTube IFrame API + fallback timer when modal opens ─────────────────────
 
@@ -325,7 +341,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
         <div
           className="fixed inset-0 z-[9990] flex items-center justify-center p-4"
           style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setActiveId(null); }}
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
         >
           <div
             className="relative w-full rounded-2xl overflow-hidden"
@@ -353,7 +369,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                 )}
               </div>
               <button
-                onClick={() => setActiveId(null)}
+                onClick={closeModal}
                 className="text-[#8DA2C4] hover:text-white transition-colors ml-4 mt-0.5"
                 style={{ fontSize: "18px", lineHeight: 1 }}
               >
@@ -369,7 +385,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
               {videoId ? (
                 <iframe
                   ref={iframeRef}
-                  src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&controls=0&iv_load_policy=3&cc_load_policy=0`}
+                  src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&controls=${replayMode ? 1 : 0}&iv_load_policy=3&cc_load_policy=0`}
                   allow="autoplay; encrypted-media"
                   allowFullScreen
                   className="absolute inset-0 w-full h-full"
@@ -392,32 +408,52 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
               className="px-5 py-4 flex flex-col gap-3"
               style={{ borderTop: "1px solid #1E3A5C" }}
             >
-              {/* Mark as watched row */}
-              <div className="flex items-center justify-between">
-                <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
-                  {videoUnlocked
-                    ? "Video visto — respondé el quiz para ganar XP"
-                    : "⏳ Mirá el video completo para desbloquear"}
-                </p>
-                <button
-                  ref={markBtnRef}
-                  onClick={handleMark}
-                  disabled={marking || !videoUnlocked}
-                  className="flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{
-                    background: videoUnlocked
-                      ? "linear-gradient(135deg, #00D67A, #00B865)"
-                      : "rgba(0,214,122,0.1)",
-                    color: videoUnlocked ? "#000" : "#647FA8",
-                    fontFamily: "var(--font-sans)",
-                    boxShadow: videoUnlocked ? "0 0 16px rgba(0,214,122,0.4)" : "none",
-                    transition: "background 0.4s, box-shadow 0.4s, color 0.3s",
-                  }}
-                >
-                  {marking ? "Guardando..." : `Responder quiz → +${activeCap.points_reward} XP`}
-                </button>
-              </div>
-
+              {replayMode ? (
+                /* Modo repaso — solo video, sin quiz ni XP */
+                <div className="flex items-center justify-between">
+                  <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
+                    🔁 Repaso — solo el video, sin quiz
+                  </p>
+                  <button
+                    onClick={closeModal}
+                    className="px-5 py-2 rounded-lg font-bold text-sm transition-all"
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      color: "#fff",
+                      border: "1px solid #1E3A5C",
+                      fontFamily: "var(--font-sans)",
+                    }}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              ) : (
+                /* Mark as watched row */
+                <div className="flex items-center justify-between">
+                  <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
+                    {videoUnlocked
+                      ? "Video visto — respondé el quiz para ganar XP"
+                      : "⏳ Mirá el video completo para desbloquear"}
+                  </p>
+                  <button
+                    ref={markBtnRef}
+                    onClick={handleMark}
+                    disabled={marking || !videoUnlocked}
+                    className="flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    style={{
+                      background: videoUnlocked
+                        ? "linear-gradient(135deg, #00D67A, #00B865)"
+                        : "rgba(0,214,122,0.1)",
+                      color: videoUnlocked ? "#000" : "#647FA8",
+                      fontFamily: "var(--font-sans)",
+                      boxShadow: videoUnlocked ? "0 0 16px rgba(0,214,122,0.4)" : "none",
+                      transition: "background 0.4s, box-shadow 0.4s, color 0.3s",
+                    }}
+                  >
+                    {marking ? "Guardando..." : `Responder quiz → +${activeCap.points_reward} XP`}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -559,6 +595,24 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                     >
                       {c.title}
                     </span>
+
+                    {/* Ver de nuevo — solo para completadas; reabre solo el video (sin quiz) */}
+                    {c.completed && (
+                      <button
+                        onClick={() => handleReplay(c.id)}
+                        title="Ver el video de nuevo (sin quiz)"
+                        className="shrink-0 flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold transition-all"
+                        style={{
+                          color: "var(--secondary)",
+                          background: "color-mix(in srgb, var(--secondary) 10%, transparent)",
+                          border: "1px solid color-mix(in srgb, var(--secondary) 25%, transparent)",
+                          fontFamily: "var(--font-sans)",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ↺ Ver nuevamente
+                      </button>
+                    )}
 
                     {/* XP reward */}
                     <span
