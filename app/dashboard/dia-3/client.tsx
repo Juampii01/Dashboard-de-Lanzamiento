@@ -21,7 +21,7 @@ interface WebResult {
   css: string;
 }
 
-type PortalCategory = "ecosistema" | "federal" | "estatal" | "local" | "privado";
+type PortalCategory = "ecosistema" | "federal" | "estatal" | "local" | "grants_federal" | "grants_estatal" | "privado";
 
 interface Portal {
   name: string;
@@ -38,11 +38,38 @@ const PORTALS: Portal[] = [
   { name: "GovBidder AI", url: "https://govbidder.ai/", description: "Herramientas de IA de GovBidder para acelerar tu búsqueda y tus propuestas.", category: "ecosistema" },
   { name: "GovBidder Connect", url: "https://www.govbidderconnect.com/", description: "Conecta con el ecosistema y la comunidad GovBidder.", category: "ecosistema" },
 
-  // ── Federales ──
+  // ── Gobierno Federal ──
   { name: "SAM.gov", url: "https://sam.gov", description: "Registro federal obligatorio. Tu UEI y CAGE Code salen de acá.", category: "federal", prereq: "EIN / Tax ID + datos bancarios (ACH)" },
   { name: "GSA eBuy", url: "https://www.ebuy.gsa.gov", description: "RFQs de agencias buscando proveedores. Alto volumen de servicios.", category: "federal", prereq: "Registro en SAM.gov" },
   { name: "GSA Advantage", url: "https://gsaadvantage.gov", description: "Catálogo de compras pre-aprobadas del gobierno.", category: "federal" },
   { name: "SBA.gov", url: "https://sba.gov", description: "Certificaciones (8a, WOSB, HUBZone) y recursos para small business.", category: "federal" },
+  { name: "SBA Dynamic Small Business Search", url: "https://dsbs.sba.gov/search/dsp_dsbs.cfm", description: "Directorio donde los Contracting Officers buscan small businesses.", category: "federal" },
+  { name: "FPDS.gov", url: "https://www.fpds.gov", description: "Datos históricos de adjudicaciones federales — quién ganó qué.", category: "federal" },
+  { name: "GSA Forecast of Contracting Opportunities", url: "https://www.acquisition.gov/gsa-forecast", description: "Oportunidades de contratación próximas, por agencia.", category: "federal" },
+
+  // ── Grants Federales ──
+  { name: "Grants.gov", url: "https://www.grants.gov", description: "Portal principal de grants del Gobierno Federal.", category: "grants_federal" },
+  { name: "SAM.gov — Assistance Listings", url: "https://sam.gov/content/assistance-listings", description: "Catálogo de programas federales de asistencia.", category: "grants_federal" },
+  { name: "USDA Rural Development Grants", url: "https://www.rd.usda.gov/programs-services/all-programs", category: "grants_federal" },
+  { name: "HUD Exchange — Funding Opportunities", url: "https://www.hudexchange.info/programs", category: "grants_federal" },
+  { name: "NIH — Grants & Funding", url: "https://grants.nih.gov", category: "grants_federal" },
+  { name: "NSF — Funding Opportunities", url: "https://new.nsf.gov/funding", category: "grants_federal" },
+  { name: "DOE — Funding Opportunities", url: "https://www.energy.gov/eere/funding", category: "grants_federal" },
+  { name: "Department of Education — Grants", url: "https://www.ed.gov/grants-and-programs", category: "grants_federal" },
+  { name: "EPA — Grants", url: "https://www.epa.gov/grants", category: "grants_federal" },
+  { name: "EDA — Funding Opportunities", url: "https://www.eda.gov/funding", category: "grants_federal" },
+
+  // ── Grants Estatales y Locales ──
+  { name: "Florida Grants System", url: "https://www.floridajobs.org/community-planning-and-development", category: "grants_estatal" },
+  { name: "New Jersey — Dept. of Treasury Grants", url: "https://www.nj.gov/treasury/grants", category: "grants_estatal" },
+  { name: "New York State Grants Management", url: "https://grantsmanagement.ny.gov", category: "grants_estatal" },
+  { name: "Pennsylvania eGrants", url: "https://www.esa.dced.state.pa.us", category: "grants_estatal" },
+  { name: "California State Library Grants", url: "https://www.grants.ca.gov", category: "grants_estatal" },
+  { name: "Texas eGrants", url: "https://egrants.gov.texas.gov", category: "grants_estatal" },
+  { name: "Massachusetts — Commonwealth Grants", url: "https://www.mass.gov/grants", category: "grants_estatal" },
+  { name: "Virginia — DHCD Grants", url: "https://www.dhcd.virginia.gov", category: "grants_estatal" },
+  { name: "Georgia — Governor's Office (OPB) Grants", url: "https://opb.georgia.gov/grants", category: "grants_estatal" },
+  { name: "Maryland Governor's Grants Office", url: "https://grants.maryland.gov", category: "grants_estatal" },
 
   // ── Estatales ──
   { name: "Florida — MyFloridaMarketPlace (MFMP)", url: "https://vendor.myfloridamarketplace.com", category: "estatal" },
@@ -81,9 +108,11 @@ const PORTALS: Portal[] = [
 
 const CATEGORY_ORDER: { key: PortalCategory; label: string }[] = [
   { key: "ecosistema", label: "🦅 Ecosistema GovBidder" },
-  { key: "federal", label: "🇺🇸 Gobierno Federal" },
-  { key: "estatal", label: "🏛️ Gobierno Estatal" },
   { key: "local", label: "🏙️ Gobierno Local" },
+  { key: "estatal", label: "🏛️ Gobierno Estatal" },
+  { key: "federal", label: "🇺🇸 Gobierno Federal" },
+  { key: "grants_estatal", label: "💰 Grants Estatales y Locales" },
+  { key: "grants_federal", label: "💰 Grants Federales" },
   { key: "privado", label: "🏢 Plataformas privadas" },
 ];
 

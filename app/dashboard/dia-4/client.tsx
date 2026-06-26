@@ -32,10 +32,7 @@ const LOADING_STEPS = [
 // Portales "premio" — se regalan al completar el Día 4 (incluye los que estaban en Día 3).
 const BONUS_PORTALS: { name: string; url: string; description: string }[] = [
   { name: "USASpending.gov", url: "https://usaspending.gov", description: "Investiga quién gana contratos en tu NAICS y por cuánto." },
-  { name: "SBA Dynamic Small Business Search", url: "https://dsbs.sba.gov/search/dsp_dsbs.cfm", description: "Directorio donde los Contracting Officers buscan small businesses." },
   { name: "Grants.gov", url: "https://grants.gov", description: "Subvenciones federales (proceso distinto a contratos)." },
-  { name: "FPDS.gov", url: "https://www.fpds.gov", description: "Datos históricos de adjudicaciones federales — quién ganó qué." },
-  { name: "GSA Forecast of Contracting Opportunities", url: "https://www.acquisition.gov/gsa-forecast", description: "Oportunidades de contratación próximas, por agencia." },
 ];
 
 // Número de WhatsApp del equipo para solicitar el certificado (solo dígitos, con
