@@ -537,8 +537,16 @@ function CommentsSection() {
       });
       if (res.status === 501) { setAvailable(false); return; }
       if (!res.ok) throw new Error("error");
+      const data = await res.json() as { ok?: boolean; awarded?: boolean; delta?: number; total?: number };
       setContent("");
-      toast.success("¡Comentario publicado!");
+      if (data.awarded && data.delta) {
+        window.dispatchEvent(new CustomEvent("xp-gained", {
+          detail: { delta: data.delta, total: data.total, source: "community" },
+        }));
+        toast.success(`¡Comentario publicado! +${data.delta} pts por participar 🎉`);
+      } else {
+        toast.success("¡Comentario publicado!");
+      }
       load();
     } catch {
       toast.error("No se pudo publicar. Intenta de nuevo.");
@@ -563,7 +571,7 @@ function CommentsSection() {
           fontSize: "20px", fontWeight: 900,
           color: "var(--foreground)",
         }}>
-          ¡Comentá qué te parece el programa aquí!
+          ¡Comenta qué te parece el programa aquí!
         </h2>
       </div>
 
@@ -593,6 +601,13 @@ function CommentsSection() {
                   <MessageCircle style={{ width: "13px", height: "13px", color: "var(--muted-foreground)" }} />
                   <span style={{ fontSize: "11px", color: "var(--muted-foreground)", fontWeight: 600 }}>
                     Tu comentario
+                  </span>
+                  <span style={{
+                    fontSize: "10px", fontWeight: 800, whiteSpace: "nowrap",
+                    color: "var(--accent-foreground)", background: "var(--accent)",
+                    borderRadius: 999, padding: "1px 8px",
+                  }}>
+                    +500 pts · primeras 3 veces
                   </span>
                 </div>
                 <textarea

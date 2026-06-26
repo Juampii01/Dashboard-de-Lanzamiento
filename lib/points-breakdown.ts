@@ -23,13 +23,14 @@ export const CATEGORY_LABEL: Record<string, string> = {
   quiz:     "🧠 Quizzes de videos",
   call:     "📞 Llamadas en vivo",
   podcast:  "🎧 Video podcast",
+  community:"💬 Comentarios en la comunidad",
   ad:       "📺 Anuncios",
   other:    "✨ Otros",
 };
 
 export const CATEGORY_ORDER = [
   "time", "video", "day", "mission", "keyword", "story", "rafaga",
-  "streak", "referral", "avatar", "quiz", "call", "podcast", "ad", "other",
+  "streak", "referral", "avatar", "quiz", "call", "podcast", "community", "ad", "other",
 ];
 
 /**

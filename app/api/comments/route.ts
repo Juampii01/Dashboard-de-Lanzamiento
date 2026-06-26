@@ -95,5 +95,34 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  // +500 pts por participar en la comunidad — hasta 3 veces. Los comentarios
+  // siguientes se publican igual, pero ya no suman puntos.
+  const MAX_REWARDED = 3;
+  const REWARD = 500;
+  let awarded = false;
+  let delta = 0;
+  let total: number | null = null;
+
+  const { count: priorAwards } = await service
+    .from("point_events")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("category", "community");
+
+  if ((priorAwards ?? 0) < MAX_REWARDED) {
+    const { data: newTotal, error: rpcErr } = await service.rpc("add_points", {
+      p_user_id: user.id,
+      p_delta: REWARD,
+      p_category: "community",
+    });
+    if (rpcErr) {
+      console.error("[comments POST] add_points error:", rpcErr.message);
+    } else {
+      awarded = true;
+      delta = REWARD;
+      total = newTotal as number;
+    }
+  }
+
+  return NextResponse.json({ ok: true, awarded, delta, total });
 }
