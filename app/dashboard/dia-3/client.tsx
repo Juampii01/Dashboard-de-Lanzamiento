@@ -22,7 +22,7 @@ interface WebResult {
   css: string;
 }
 
-type PortalCategory = "privado" | "estatal" | "federal";
+type PortalCategory = "ecosistema" | "privado" | "estatal" | "federal";
 
 interface Portal {
   name: string;
@@ -33,8 +33,10 @@ interface Portal {
 }
 
 const PORTALS: Portal[] = [
-  // ── Privados (incluye el de Santo / GovBidder) ──
-  { name: "GovBidder — Comunidad de Santo", url: "https://govbidder.net", description: "El espacio de Santo y el equipo GovBidder para seguir aprendiendo y conseguir tu primer contrato.", category: "privado" },
+  // ── Ecosistema GovBidder ──
+  { name: "GovBidder — Comunidad de Santo", url: "https://govbidder.net", description: "El espacio de Santo y el equipo GovBidder para seguir aprendiendo y conseguir tu primer contrato.", category: "ecosistema" },
+
+  // ── Privados ──
   // (el equipo puede agregar más portales privados acá)
 
   // ── Estatales / locales ──
@@ -48,6 +50,7 @@ const PORTALS: Portal[] = [
 ];
 
 const CATEGORY_ORDER: { key: PortalCategory; label: string }[] = [
+  { key: "ecosistema", label: "Ecosistema GovBidder" },
   { key: "privado", label: "Portales privados" },
   { key: "estatal", label: "Estatales / locales" },
   { key: "federal", label: "Federales" },

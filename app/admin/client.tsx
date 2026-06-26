@@ -52,7 +52,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Zap } from "lucide-react";
+import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Zap, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
 
@@ -516,6 +516,24 @@ function KeywordsAdminPanel() {
     setSaving(null);
   }
 
+  async function remove(day: number) {
+    setSaving(day);
+    try {
+      const res = await fetch("/api/admin/keywords", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day_number: day }),
+      });
+      if (!res.ok) throw new Error();
+      setRows((prev) => prev.filter((r) => r.day_number !== day));
+      setInputs((prev) => ({ ...prev, [day]: "" }));
+      toast.success(`Keyword del Día ${day} eliminada.`);
+    } catch {
+      toast.error("Error al eliminar keyword.");
+    }
+    setSaving(null);
+  }
+
   const existing = Object.fromEntries(rows.map((r) => [r.day_number, r.keyword]));
 
   return (
@@ -536,7 +554,19 @@ function KeywordsAdminPanel() {
             {saving === day ? "..." : existing[day] ? "Actualizar" : "Guardar"}
           </Button>
           {existing[day] && (
-            <span className="text-[10px] font-bold text-green-500 shrink-0">✓</span>
+            <>
+              <span className="text-[10px] font-bold text-green-500 shrink-0">✓</span>
+              <button
+                onClick={() => remove(day)}
+                disabled={saving === day}
+                title={`Eliminar keyword del Día ${day}`}
+                aria-label={`Eliminar keyword del Día ${day}`}
+                className="shrink-0 p-2 rounded-lg transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                style={{ color: "var(--destructive)" }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </>
           )}
         </div>
       ))}

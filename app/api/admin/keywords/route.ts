@@ -46,3 +46,26 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(req: NextRequest) {
+  const ctx = await getAdmin();
+  if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const body = await req.json() as { day_number?: number };
+  const day = Number(body.day_number);
+  if (!day || day < 1 || day > 4) {
+    return NextResponse.json({ error: "bad_request" }, { status: 400 });
+  }
+
+  const { error } = await ctx.service
+    .from("call_keywords")
+    .delete()
+    .eq("day_number", day);
+
+  if (error) {
+    console.error("[admin/keywords] delete error:", error);
+    return NextResponse.json({ error: "internal" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}
