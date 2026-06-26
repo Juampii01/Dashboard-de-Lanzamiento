@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Download, Loader2, PlayCircle, Sparkles, FileText, ArrowRight, Pencil, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
-import { JoinCallButton } from "@/components/join-call-button";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
@@ -257,9 +256,7 @@ export function Dia4Client({
           <div className="flex-1">
             <p className="font-semibold">GovBidder Challenge Clase 4</p>
             <p className="text-sm text-muted-foreground">La clase en vivo y preguntas.</p>
-          </div>
-          <JoinCallButton day={4} />
-        </CardContent>
+          </div>        </CardContent>
       </Card>
 
       {/* Generar Capability Statement — launch / resultado */}

@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, PlayCircle, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw, Gift, ChevronDown } from "lucide-react";
-import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 import type { Database } from "@/lib/supabase/types";
@@ -34,10 +33,10 @@ interface Portal {
 
 const PORTALS: Portal[] = [
   // ── Ecosistema GovBidder ──
+  { name: "GovBidder Academy", url: "https://govbidderacademy.com/login", description: "Formación y cursos de GovBidder para seguir aprendiendo.", category: "ecosistema" },
   { name: "GovBidder App", url: "https://app.govbidder.net/", description: "La plataforma principal de GovBidder para gestionar tu camino al contrato.", category: "ecosistema" },
   { name: "GovBidder AI", url: "https://govbidder.ai/", description: "Herramientas de IA de GovBidder para acelerar tu búsqueda y tus propuestas.", category: "ecosistema" },
   { name: "GovBidder Connect", url: "https://www.govbidderconnect.com/", description: "Conecta con el ecosistema y la comunidad GovBidder.", category: "ecosistema" },
-  { name: "GovBidder Academy", url: "https://govbidderacademy.com/login", description: "Formación y cursos de GovBidder para seguir aprendiendo.", category: "ecosistema" },
 
   // ── Federales ──
   { name: "SAM.gov", url: "https://sam.gov", description: "Registro federal obligatorio. Tu UEI y CAGE Code salen de acá.", category: "federal", prereq: "EIN / Tax ID + datos bancarios (ACH)" },
@@ -311,9 +310,7 @@ ${webResult.html}
           <div className="flex-1">
             <p className="font-semibold">GovBidder Challenge Clase 3</p>
             <p className="text-sm text-muted-foreground">Mira la clase antes de generar tu web.</p>
-          </div>
-          <JoinCallButton day={3} />
-        </CardContent>
+          </div>        </CardContent>
       </Card>
 
       {/* ── Launch (sin web) / Showcase (con web) ── */}

@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Copy, Download, ExternalLink, Loader2, Plus, X, PlayCircle, ArrowRight, Map, Lock, Pencil } from "lucide-react";
-import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 import type { Database } from "@/lib/supabase/types";
@@ -313,9 +312,7 @@ export function Dia2Client({
           <div className="flex-1">
             <p className="font-semibold">GovBidder Challenge Clase 2</p>
             <p className="text-sm text-muted-foreground">Mira la clase antes de generar tu mapa.</p>
-          </div>
-          <JoinCallButton day={2} />
-        </CardContent>
+          </div>        </CardContent>
       </Card>
 
       {!result && (

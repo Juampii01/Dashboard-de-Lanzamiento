@@ -26,7 +26,6 @@ const STATE_CERTS   = ["MBE", "WBE", "MWBE", "SBE", "DBE", "VBE", "SDVBE/DVBE", 
 const selectClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
-import { JoinCallButton } from "@/components/join-call-button";
 
 type CompanyProfile = Database["public"]["Tables"]["company_profiles"]["Row"];
 
@@ -415,9 +414,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             <p className="text-sm text-muted-foreground">
               Mira la clase antes de completar el formulario.
             </p>
-          </div>
-          <JoinCallButton day={1} />
-        </CardContent>
+          </div>        </CardContent>
       </Card>
 
       {/* ── Realizar tareas (launch) / Resultado ── */}
