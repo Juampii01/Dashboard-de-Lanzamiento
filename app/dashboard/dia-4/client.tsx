@@ -454,11 +454,11 @@ export function Dia4Client({
               </span>
               <span style={{ flex: 1, textAlign: "left" }}>
                 <span style={{ display: "block", fontWeight: 800, fontSize: 16 }}>
-                  {unlocked ? "🎁 Tu premio: herramientas para encontrar oportunidades" : "Premio bloqueado"}
+                  {unlocked ? "🎁 Tu premio: grants y subvenciones del gobierno" : "Premio bloqueado"}
                 </span>
                 <span style={{ display: "block", fontSize: 13, opacity: 0.85, marginTop: 2 }}>
                   {unlocked
-                    ? (bonusOpen ? "Toca para ocultar las herramientas" : "Toca para desplegar los portales donde buscar contratos")
+                    ? (bonusOpen ? "Toca para ocultar los grants" : "Toca para desplegar los grants federales, estatales y locales")
                     : "Completa la tarea del Día 4 para desbloquearlo"}
                 </span>
               </span>
@@ -469,7 +469,7 @@ export function Dia4Client({
 
             {unlocked && bonusOpen && (
               <div className="gb-preview-reveal" style={{ marginTop: 14 }}>
-                <PortalsAccordion />
+                <PortalsAccordion categories={["grants_estatal", "grants_federal"]} />
               </div>
             )}
           </div>

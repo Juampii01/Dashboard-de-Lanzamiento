@@ -6,18 +6,24 @@ import { Button } from "@/components/ui/button";
 import { PORTALS, CATEGORY_ORDER } from "@/lib/portals-data";
 
 /**
- * Acordeón compartido de portales (Día 3 "Tu sorpresa" + Día 4 "premio").
+ * Acordeón compartido de portales. Se filtra por categoría con `categories`:
+ *   Día 3 = portales (gobierno + plataformas), Día 4 = grants. Así no se mezclan.
  * Cada categoría es un título desplegable; cada portal una fila con botón "Ir".
  */
-export function PortalsAccordion({ defaultOpenKey = "ecosistema" }: { defaultOpenKey?: string }) {
+export function PortalsAccordion({ categories, defaultOpenKey }: { categories?: string[]; defaultOpenKey?: string }) {
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
+
+  const cats = categories
+    ? CATEGORY_ORDER.filter((c) => categories.includes(c.key))
+    : CATEGORY_ORDER;
+  const firstKey = defaultOpenKey ?? cats[0]?.key;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {CATEGORY_ORDER.map((cat) => {
+      {cats.map((cat) => {
         const list = PORTALS.filter((p) => p.category === cat.key);
         if (list.length === 0) return null;
-        const catOpen = openCats[cat.key] ?? (cat.key === defaultOpenKey);
+        const catOpen = openCats[cat.key] ?? (cat.key === firstKey);
         return (
           <div key={cat.key} className="border rounded-xl overflow-hidden" style={{ borderColor: "var(--border)" }}>
             <button

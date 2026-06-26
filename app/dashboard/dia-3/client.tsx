@@ -440,7 +440,7 @@ ${webResult.html}
                     Las oportunidades de tu NAICS en <strong>{usState}</strong> suelen aparecer en estos portales.
                   </p>
                 )}
-                <PortalsAccordion />
+                <PortalsAccordion categories={["ecosistema", "local", "estatal", "federal", "privado"]} />
               </div>
             )}
           </div>
