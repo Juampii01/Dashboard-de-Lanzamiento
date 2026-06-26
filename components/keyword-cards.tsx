@@ -86,21 +86,28 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
         }}>
           {DAY_LABELS[day.day_number]}
         </span>
-        {phase === "done" && (
+        {phase === "done" ? (
           <span style={{
-            fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 800,
+            fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
             color: "var(--success)", background: "color-mix(in srgb, var(--success) 14%, transparent)",
             border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
-            borderRadius: 999, padding: "2px 10px",
+            borderRadius: 999, padding: "3px 11px", whiteSpace: "nowrap",
           }}>✓ +1,000 pts</span>
-        )}
-        {!day.hasKeyword && phase !== "done" && (
+        ) : !day.hasKeyword ? (
           <span style={{
             fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
             color: "var(--muted-foreground)", background: "var(--muted)",
             border: "1px solid var(--border)",
             borderRadius: 999, padding: "2px 10px",
           }}>Próximamente</span>
+        ) : (
+          <span style={{
+            fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 900,
+            color: "var(--accent-foreground)", background: "var(--accent)",
+            borderRadius: 999, padding: "4px 13px", whiteSpace: "nowrap",
+            letterSpacing: "0.01em",
+            boxShadow: "0 2px 10px -2px color-mix(in srgb, var(--accent) 60%, transparent)",
+          }}>+1,000 pts</span>
         )}
       </div>
 
@@ -122,14 +129,18 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
             type="text"
             placeholder="Escribe la palabra clave..."
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value.toUpperCase())}
             disabled={phase === "loading"}
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
             style={{
               flex: 1, minWidth: 0, padding: "8px 12px",
               background: "var(--muted)",
               border: phase === "wrong" || phase === "error" ? "1.5px solid var(--primary)" : "1.5px solid var(--input)",
               borderRadius: 8, color: "var(--foreground)",
               fontSize: 13, fontFamily: "var(--font-sans)",
+              letterSpacing: "0.04em",
               outline: "none",
             }}
           />
