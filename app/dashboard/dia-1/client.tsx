@@ -530,6 +530,26 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             </CardContent>
           </Card>
 
+          {/* 🎁 Regalo — Manual NAICS 2022 completo (mismo doc para todos) */}
+          <Card style={{ background: "color-mix(in srgb, var(--secondary) 6%, var(--card))", borderColor: "color-mix(in srgb, var(--secondary) 30%, transparent)" }}>
+            <CardContent className="flex items-center justify-between py-5 gap-4 flex-wrap">
+              <div>
+                <p className="font-semibold">🎁 Regalo — Manual NAICS 2022 completo</p>
+                <p className="text-sm text-muted-foreground">
+                  El catálogo oficial con todos los códigos NAICS (US Census Bureau). Tu referencia para encontrar todos los códigos de tu negocio.
+                </p>
+              </div>
+              <a
+                href="/codigos-naics-2022.pdf"
+                download="Manual-NAICS-2022.pdf"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition-opacity hover:opacity-90"
+                style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}
+              >
+                <Download className="w-4 h-4" /> Descargar
+              </a>
+            </CardContent>
+          </Card>
+
           <div className="flex justify-center">
             <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2">
               <ListChecks className="w-4 h-4" /> Editar mi perfil
