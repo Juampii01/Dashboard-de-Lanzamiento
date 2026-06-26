@@ -81,9 +81,9 @@ const PORTALS: Portal[] = [
 
 const CATEGORY_ORDER: { key: PortalCategory; label: string }[] = [
   { key: "ecosistema", label: "🦅 Ecosistema GovBidder" },
-  { key: "federal", label: "🇺🇸 Federales" },
-  { key: "estatal", label: "🏛️ Estatales" },
-  { key: "local", label: "🏙️ Locales" },
+  { key: "federal", label: "🇺🇸 Gobierno Federal" },
+  { key: "estatal", label: "🏛️ Gobierno Estatal" },
+  { key: "local", label: "🏙️ Gobierno Local" },
   { key: "privado", label: "🏢 Plataformas privadas" },
 ];
 
