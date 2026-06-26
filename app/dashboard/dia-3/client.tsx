@@ -579,7 +579,12 @@ ${webResult.html}
                   ))}
                 </div>
                 {generating && (
-                  <p className="text-xs text-center text-muted-foreground">{LOADING_STEPS[loadingStep]}</p>
+                  <div className="space-y-1 text-center">
+                    <p className="text-xs text-muted-foreground">{LOADING_STEPS[loadingStep]}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Esto puede tardar entre <strong className="text-foreground">2 y 3 minutos</strong>. Si falla, volvé a intentar.
+                    </p>
+                  </div>
                 )}
               </div>
             ),
