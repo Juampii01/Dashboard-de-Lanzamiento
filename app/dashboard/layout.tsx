@@ -101,24 +101,22 @@ async function getLayoutData(userId: string) {
     ])
   );
 
-  // Build a map { [dayNumber]: { is_unlocked, is_completed } }
-  // A day is unlocked if: the user's own day_progress says so OR
-  // the admin enabled the global toggle for that day.
+  // Desbloqueo 100% MANUAL: una fase está desbloqueada (en sidebar/tabs) solo si
+  // el admin activó su toggle global. El progreso por-usuario ya NO desbloquea —
+  // así el Día 1 (unlocked por defecto) queda bloqueado hasta que el equipo lo abra.
+  const completedByDay = new Map(
+    (progress ?? []).map((p) => [p.day_number, p.is_completed])
+  );
   const progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }> =
     Object.fromEntries(
-      (progress ?? []).map((p) => [
-        p.day_number,
+      [1, 2, 3, 4].map((day) => [
+        day,
         {
-          is_unlocked: p.is_unlocked || (toggleMap[p.day_number] ?? false),
-          is_completed: p.is_completed,
+          is_unlocked: toggleMap[day] ?? false,
+          is_completed: completedByDay.get(day) ?? false,
         },
       ])
     );
-
-  // Day 1 is always unlocked
-  if (progressMap[1]) {
-    progressMap[1] = { ...progressMap[1], is_unlocked: true };
-  }
 
   return { user, completedDays, progressMap, streak };
 }

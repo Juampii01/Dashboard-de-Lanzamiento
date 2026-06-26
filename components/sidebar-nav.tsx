@@ -376,7 +376,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
               <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: collapsed ? "4px 6px" : "2px 6px" }}>
                 {[1, 2, 3, 4].map((day) => {
                   const prog = progressMap[day];
-                  const isUnlocked = prog?.is_unlocked ?? (day === 1);
+                  const isUnlocked = prog?.is_unlocked ?? false;
                   const isCompleted = prog?.is_completed ?? false;
                   const { label, href } = DAY_META[day];
                   const active = pathname === href || pathname.startsWith(href + "/");

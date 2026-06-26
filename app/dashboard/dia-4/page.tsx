@@ -44,8 +44,7 @@ export default async function Dia4Page() {
   // Desbloqueo 100% MANUAL (el admin abre el día tras la clase). El contador
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético.
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 4);
-  const isUnlocked =
-    isAdmin || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
+  const isUnlocked = isAdmin || toggle?.is_globally_unlocked === true;
   const preLocked = !isUnlocked;
 
   const [{ data: capabilityStatement }, { data: sorteoSubmission }, { data: userProfile }] =

@@ -61,8 +61,7 @@ export default async function Dia1Page() {
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético; el día se VE
   // completo detrás, con el contador como overlay encima (no interactuable).
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 1);
-  const isUnlocked =
-    isAdmin || toggle?.is_globally_unlocked === true || progress?.is_unlocked === true;
+  const isUnlocked = isAdmin || toggle?.is_globally_unlocked === true;
   const preLocked = !isUnlocked;
 
   return (

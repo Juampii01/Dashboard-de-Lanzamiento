@@ -43,18 +43,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ unlocked: true });
   }
 
-  // Para los días (no el Inicio), también cuenta el override por-usuario.
-  if (day >= 1) {
-    const { data: dp } = await service
-      .from("day_progress")
-      .select("is_unlocked")
-      .eq("user_id", user.id)
-      .eq("day_number", day)
-      .maybeSingle();
-    if ((dp as { is_unlocked?: boolean } | null)?.is_unlocked) {
-      return NextResponse.json({ unlocked: true });
-    }
-  }
-
+  // El desbloqueo es 100% manual (toggle global del admin). El progreso
+  // por-usuario NO desbloquea: así el Día 1 (unlocked por defecto) queda
+  // bloqueado hasta que el equipo lo abra.
   return NextResponse.json({ unlocked: false });
 }
