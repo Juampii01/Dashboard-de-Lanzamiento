@@ -164,8 +164,15 @@ ${webResult.html}
       toast.error("Completá el Día 1 primero para tener tu perfil de empresa.");
       return;
     }
+    // Generación en segundo plano: cerramos el wizard para NO bloquear la pantalla.
+    // El usuario puede seguir usando el dashboard mientras se arma la web.
     setGenerating(true);
+    setWizardOpen(false);
     startLoadingCycle();
+    const toastId = toast.loading(
+      "Generando tu web… puede tardar 2-3 minutos. Podés seguir usando el dashboard; te avisamos cuando esté lista.",
+      { duration: Infinity }
+    );
 
     try {
       const res = await fetch("/api/ai/generate-web-preview", {
@@ -220,11 +227,10 @@ ${webResult.html}
       }
 
       setIsCompleted(true);
-      setWizardOpen(false);
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
-      toast.success("¡Preview de tu web generada!");
+      toast.success("¡Tu web ya está lista!", { id: toastId, duration: 5000 });
     } catch {
-      toast.error("Estamos teniendo un problema. Intentá de nuevo.");
+      toast.error("No pudimos generar tu web. Volvé a intentar.", { id: toastId, duration: 6000 });
     } finally {
       stopLoadingCycle();
       setGenerating(false);
