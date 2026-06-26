@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Search, Send, Sparkles, FileText, ArrowRight, RefreshCw, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
+import { CheckCircle2, Download, Loader2, Trophy, Upload, PlayCircle, Sparkles, FileText, ArrowRight, Pencil, MessageCircle, Lock, Gift, ChevronDown, ExternalLink } from "lucide-react";
 import { JoinCallButton } from "@/components/join-call-button";
 import { WizardModal } from "@/components/wizard-modal";
 import { useMissionsDone } from "@/lib/hooks/use-missions-done";
@@ -37,6 +37,19 @@ const BONUS_PORTALS: { name: string; url: string; description: string }[] = [
   { name: "Grants.gov", url: "https://grants.gov", description: "Subvenciones federales (proceso distinto a contratos)." },
   { name: "FPDS.gov", url: "https://www.fpds.gov", description: "Datos históricos de adjudicaciones federales — quién ganó qué." },
   { name: "GSA Forecast of Contracting Opportunities", url: "https://www.acquisition.gov/gsa-forecast", description: "Oportunidades de contratación próximas, por agencia." },
+];
+
+// Número de WhatsApp del equipo para solicitar el certificado (solo dígitos, con
+// código de país, sin "+"). Configurable por env NEXT_PUBLIC_CERT_WHATSAPP.
+const CERT_WHATSAPP = (process.env.NEXT_PUBLIC_CERT_WHATSAPP ?? "").replace(/\D/g, "");
+
+// 5 variantes de distinto tono — se elige una al azar al solicitar el certificado.
+const CERT_REQUEST_MESSAGES: ((name: string) => string)[] = [
+  (n) => `Hola, soy ${n}. Acabo de completar el GovBidder Challenge y paso por aquí para solicitar mi certificado. ¡Gracias!`,
+  (n) => `Hola equipo de GovBidder, soy ${n}. Ya terminé el GovBidder Challenge y quiero solicitar mi certificado de participación. ¡Gracias por el apoyo!`,
+  (n) => `¡Hola! Soy ${n} 🎉 Completé los 4 días del GovBidder Challenge y me encantaría recibir mi certificado. ¿Me ayudan?`,
+  (n) => `Hola, mi nombre es ${n}. He completado satisfactoriamente el GovBidder Challenge y quisiera solicitar la emisión de mi certificado de participación. Quedo atento. ¡Muchas gracias!`,
+  (n) => `Saludos, equipo de GovBidder. Soy ${n} y completé el GovBidder Challenge. Por este medio solicito mi certificado correspondiente. Muchas gracias por la oportunidad.`,
 ];
 
 interface Dia4ClientProps {
@@ -71,12 +84,9 @@ export function Dia4Client({
     existingStatement ? (existingStatement.statement_data as CapabilityStatementData) : null
   );
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const [downloadingCert, setDownloadingCert] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [sorteoEligible, setSorteoEligible] = useState(existingSorteo?.eligible ?? false);
   const sorteoExpired = isExpired(accessExpiresAt);
-
-  const primaryNaics = profile?.primary_naics ?? "";
 
   // Company registration data for a complete Capability Statement
   const p = (profile ?? {}) as Record<string, unknown>;
@@ -216,23 +226,14 @@ export function Dia4Client({
     }
   }
 
-  async function handleDownloadCertificate() {
-    setDownloadingCert(true);
-    try {
-      const res = await fetch("/api/pdf/certificate");
-      if (!res.ok) throw new Error("PDF error");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "govbidder-certificado-finalizacion.pdf";
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      toast.error("Error al generar el certificado.");
-    } finally {
-      setDownloadingCert(false);
-    }
+  // El certificado lo emite el equipo (firmado por Santo). El botón abre WhatsApp
+  // con un mensaje pre-armado (uno de 5 tonos, al azar) para solicitarlo.
+  function handleRequestCertificate() {
+    const name = (fullName || "").trim();
+    const build = CERT_REQUEST_MESSAGES[Math.floor(Math.random() * CERT_REQUEST_MESSAGES.length)];
+    const text = encodeURIComponent(build(name));
+    const base = CERT_WHATSAPP ? `https://wa.me/${CERT_WHATSAPP}` : "https://wa.me/";
+    window.open(`${base}?text=${text}`, "_blank", "noopener,noreferrer");
   }
 
   async function handleUploadSorteo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -459,76 +460,31 @@ export function Dia4Client({
             </CardContent>
           </Card>
 
-          {/* Regenerar */}
+          {/* Editar */}
           <div className="flex justify-center">
             <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2" disabled={generating}>
-              <RefreshCw className="w-4 h-4" /> Regenerar mi Capability Statement
+              <Pencil className="w-4 h-4" /> Editar mi Capability Statement
             </Button>
           </div>
         </div>
       )}
 
-      {/* Próximos pasos — qué hacer con el Capability Statement */}
+      {/* Cierre del challenge — felicitación + puente a "Tu próximo paso" */}
       {statement && (
         <Card className="border-primary/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              🚀 Ya tenés tu Capability Statement — esto es lo que sigue
-            </CardTitle>
-            <CardDescription>
-              Tu documento está listo. Estas son las 3 acciones que hacen la diferencia esta semana.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {[
-              {
-                n: 1,
-                icon: <Upload className="w-4 h-4" />,
-                title: "Subí tu CS a SAM.gov",
-                desc: "Adjuntá tu Capability Statement en tu perfil para que los Contracting Officers lo encuentren.",
-                cta: "Ir a SAM.gov",
-                href: "https://sam.gov/profile/about",
-              },
-              {
-                n: 2,
-                icon: <Search className="w-4 h-4" />,
-                title: "Buscá Sources Sought activos en tu NAICS",
-                desc: "Las agencias evalúan el mercado antes de licitar. Respondé y entrás al radar antes que la competencia.",
-                cta: "Ver oportunidades",
-                href: primaryNaics
-                  ? `https://sam.gov/search/?index=opp&naicsCode=${primaryNaics}`
-                  : "https://sam.gov/search/?index=opp",
-              },
-              {
-                n: 3,
-                icon: <Send className="w-4 h-4" />,
-                title: "Enviá tu CS a prime contractors",
-                desc: "El subcontrato es la entrada más rápida. Buscá empresas que ya ganan en tu NAICS y ofrecéte como socio.",
-                cta: "Buscar primes",
-                href: "https://dsbs.sba.gov/search/dsp_dsbs.cfm",
-              },
-            ].map((step) => (
-              <div
-                key={step.n}
-                className="flex items-center gap-3 p-3 border rounded-lg"
-              >
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm"
-                  style={{ background: "rgba(0,86,214,0.1)", color: "#0056D6", border: "1px solid rgba(0,86,214,0.25)" }}
-                >
-                  {step.n}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm">{step.title}</p>
-                  <p className="text-xs text-muted-foreground">{step.desc}</p>
-                </div>
-                <Button variant="outline" size="sm" asChild className="flex-shrink-0">
-                  <a href={step.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5">
-                    {step.icon} <span className="hidden sm:inline">{step.cta}</span>
-                  </a>
-                </Button>
-              </div>
-            ))}
+          <CardContent className="py-8 text-center space-y-4">
+            <div className="text-4xl">🎉</div>
+            <h2 className="text-xl font-bold">¡Felicidades! Ya completaste el GovBidder Challenge</h2>
+            <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+              Ya tienes las bases para comenzar a buscar oportunidades gubernamentales.
+            </p>
+            <p className="text-sm font-semibold">Ahora viene la decisión más importante:</p>
+            <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+              ¿Vas a intentar conseguir tu primer contrato por tu cuenta… o prefieres acelerar el proceso con acompañamiento?
+            </p>
+            <Button onClick={() => router.push("/dashboard/proximo-paso")} className="h-12 px-8 font-bold gap-2">
+              Siguiente <ArrowRight className="w-4 h-4" />
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -663,21 +619,14 @@ export function Dia4Client({
             <h2 className="text-2xl font-bold">¡Completaste el Programa! 🎉</h2>
             <p className="text-primary-foreground/80">
               Hola <strong>{fullName}</strong>, completaste los 4 días del programa.
-              Ya tenés las herramientas para empezar a venderle al gobierno.
+              Ya tienes las herramientas para aplicar por grants y contratos gubernamentales.
             </p>
             <Button
-              onClick={handleDownloadCertificate}
-              disabled={downloadingCert}
+              onClick={handleRequestCertificate}
               className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold h-12 px-8"
             >
-              {downloadingCert ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar mi Certificado
-                </>
-              )}
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Solicitar certificado
             </Button>
           </CardContent>
         </Card>
@@ -728,7 +677,7 @@ export function Dia4Client({
         onClose={() => setWizardOpen(false)}
         title="Día 4 — Capability Statement"
         subtitle="Sumá tus datos de registro y generamos el documento."
-        finishLabel={statement ? "Regenerar documento" : "Generar mi Capability Statement"}
+        finishLabel={statement ? "Editar documento" : "Generar mi Capability Statement"}
         finishing={generating}
         onFinish={() => handleGenerate()}
         steps={[
