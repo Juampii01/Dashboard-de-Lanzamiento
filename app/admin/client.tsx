@@ -52,7 +52,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Zap, Trash2 } from "lucide-react";
+import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Zap, Trash2, Mail } from "lucide-react";
+import { MagicBlastPanel } from "@/components/magic-blast-panel";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
 
@@ -848,6 +849,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
           </Link>
         </div>
       </div>
+
+      {/* Acceso por Magic Link (envío masivo) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="w-5 h-5 text-[#00D4FF]" />
+            Acceso por Magic Link
+          </CardTitle>
+          <CardDescription>
+            Enviá a los usuarios el link de acceso directo al dashboard (sin contraseña). Probá con tu email antes de enviar a todos.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <MagicBlastPanel />
+        </CardContent>
+      </Card>
 
       {/* Métricas de ingreso */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
