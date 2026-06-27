@@ -27,8 +27,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "no_keyword" }, { status: 404 });
   }
 
-  const correct = (kw as { keyword: string }).keyword.trim().toLowerCase();
-  if (keyword.toLowerCase() !== correct) {
+  // Comparación tolerante: ignora mayúsculas, espacios y ACENTOS. Así "CÓDIGOS",
+  // "codigos" y "Codigos" cuentan igual (la gente tipea sin tilde lo que escucha
+  // en la llamada). Normaliza NFD y borra los diacríticos.
+  const norm = (s: string) =>
+    s.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (norm(keyword) !== norm((kw as { keyword: string }).keyword)) {
     return NextResponse.json({ ok: false, error: "wrong_keyword" }, { status: 422 });
   }
 
