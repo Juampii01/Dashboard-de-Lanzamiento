@@ -71,7 +71,6 @@ export async function POST(req: NextRequest) {
         options: { redirectTo: `${APP_URL}/auth/confirm` },
       });
       const magicLink = buildMagicLinkUrl(
-        APP_URL,
         (linkData as { properties?: { hashed_token?: string; verification_type?: string } } | null)?.properties
       );
       if (linkError || !magicLink) {

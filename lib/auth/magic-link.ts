@@ -8,15 +8,20 @@
  * no puede crear la sesión y manda al login → el usuario tiene que volver a
  * pedir el mail ("dos emails"). Con token_hash, /auth/confirm hace verifyOtp
  * server-friendly y loguea directo.
+ *
+ * El dominio se fija a producción a propósito: si el link usara el dominio de
+ * Vercel (govbidder-challenge.vercel.app), la sesión quedaría en ESE dominio y
+ * el usuario no estaría logueado en dboard.govbidder.net. NEXT_PUBLIC_APP_URL en
+ * Vercel está mal seteado al subdominio, así que no dependemos de esa env.
  */
+const APP_BASE = "https://dboard.govbidder.net";
+
 export function buildMagicLinkUrl(
-  appUrl: string,
   props: { hashed_token?: string; verification_type?: string } | null | undefined,
   next = "/dashboard"
 ): string | null {
   const token = props?.hashed_token;
   if (!token) return null;
   const type = props?.verification_type || "magiclink";
-  const base = appUrl.replace(/\/$/, "");
-  return `${base}/auth/confirm?token_hash=${encodeURIComponent(token)}&type=${encodeURIComponent(type)}&next=${encodeURIComponent(next)}`;
+  return `${APP_BASE}/auth/confirm?token_hash=${encodeURIComponent(token)}&type=${encodeURIComponent(type)}&next=${encodeURIComponent(next)}`;
 }

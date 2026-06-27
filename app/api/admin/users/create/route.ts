@@ -180,7 +180,6 @@ export async function POST(req: Request) {
       });
 
       const magicLink = buildMagicLinkUrl(
-        appUrl,
         (linkData as { properties?: { hashed_token?: string; verification_type?: string } } | null)?.properties
       );
 
