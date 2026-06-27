@@ -1,6 +1,7 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { sendAccessEmail } from "@/lib/email/send-access-email";
+import { buildMagicLinkUrl } from "@/lib/auth/magic-link";
 
 // Envío masivo de magic links (acceso al dashboard) — replica el flujo probado
 // de create-user: admin.generateLink (magiclink, redirectTo /auth/confirm) +
@@ -69,8 +70,10 @@ export async function POST(req: NextRequest) {
         email,
         options: { redirectTo: `${APP_URL}/auth/confirm` },
       });
-      const magicLink = (linkData as { properties?: { action_link?: string } } | null)
-        ?.properties?.action_link;
+      const magicLink = buildMagicLinkUrl(
+        APP_URL,
+        (linkData as { properties?: { hashed_token?: string; verification_type?: string } } | null)?.properties
+      );
       if (linkError || !magicLink) {
         failed++;
         errors.push(`${email}: link ${linkError?.message ?? "vacío"}`);

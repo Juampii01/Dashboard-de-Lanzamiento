@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { sendAccessEmail } from "@/lib/email/send-access-email";
+import { buildMagicLinkUrl } from "@/lib/auth/magic-link";
 import { REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { z } from "zod";
 
@@ -178,8 +179,10 @@ export async function POST(req: Request) {
         options: { redirectTo: `${appUrl}/auth/confirm` },
       });
 
-      const magicLink = (linkData as { properties?: { action_link?: string } } | null)
-        ?.properties?.action_link ?? null;
+      const magicLink = buildMagicLinkUrl(
+        appUrl,
+        (linkData as { properties?: { hashed_token?: string; verification_type?: string } } | null)?.properties
+      );
 
       // generateLink NO envía email — lo mandamos explícitamente por Resend.
       let emailSent = false;

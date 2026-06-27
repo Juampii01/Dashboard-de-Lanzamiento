@@ -18,6 +18,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 export default function ConfirmPage() {
   const router = useRouter();
@@ -26,37 +27,55 @@ export default function ConfirmPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
+    const tokenHash = params.get("token_hash");
+    const otpType = params.get("type");
 
     // M1: Validate `next` to prevent open-redirect attacks.
     // Accept only relative paths that start with "/" but NOT "//" (protocol-relative redirect).
     const rawNext = params.get("next") ?? "/dashboard";
     const next = /^\/[^/]/.test(rawNext) || rawNext === "/" ? rawNext : "/dashboard";
 
-    // Error forwarded by Supabase (e.g. link already used before JS ran)
     const urlError = params.get("error");
-    if (urlError || !code) {
+    if (urlError) {
       router.replace("/login?error=auth");
       return;
     }
 
     const supabase = createClient();
-    supabase.auth.exchangeCodeForSession(code).then(async ({ error }) => {
-      if (error) {
-        console.error("[auth/confirm] exchangeCodeForSession:", error.message);
-        // Code may have been used already (e.g. user clicked link twice, or link
-        // was already exchanged in another tab). Check if there's a live session
-        // before showing the error — if there is, just redirect silently.
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          router.replace(next);
-        } else {
-          setStatus("error");
-          setTimeout(() => router.replace("/login?error=auth"), 1500);
-        }
-      } else {
+
+    // Resultado compartido por ambos flujos.
+    const handle = async (error: { message: string } | null) => {
+      if (!error) {
         router.replace(next);
+        return;
       }
-    });
+      console.error("[auth/confirm] verify error:", error.message);
+      // El link puede haberse consumido (prefetch o segundo clic). Si igual hay
+      // sesión viva, redirigimos en silencio.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        router.replace(next);
+      } else {
+        setStatus("error");
+        setTimeout(() => router.replace("/login?error=auth"), 1500);
+      }
+    };
+
+    // Flujo de los emails de acceso (create-user / magic-blast / hotmart):
+    // token_hash → verifyOtp. Loguea DIRECTO, sin necesitar el verifier PKCE.
+    if (tokenHash) {
+      supabase.auth
+        .verifyOtp({ token_hash: tokenHash, type: (otpType as EmailOtpType) || "magiclink" })
+        .then(({ error }) => handle(error));
+      return;
+    }
+
+    // Flujo del login del navegador (PKCE): code → exchangeCodeForSession.
+    if (!code) {
+      router.replace("/login?error=auth");
+      return;
+    }
+    supabase.auth.exchangeCodeForSession(code).then(({ error }) => handle(error));
   }, [router]);
 
   return (
