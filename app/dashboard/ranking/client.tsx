@@ -287,6 +287,14 @@ export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStud
           Acumula puntos y sube de rango. <strong style={{ color: "#fff" }}>Cada rango compite por su propio premio</strong> — se <strong style={{ color: "#fff" }}>sortea</strong> al cierre del challenge.
         </p>
 
+        <p style={{
+          fontSize: "11.5px", color: "rgba(255,255,255,0.62)", marginTop: 12,
+          background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.14)",
+          borderRadius: 8, padding: "8px 12px", maxWidth: "60ch", lineHeight: 1.45,
+        }}>
+          🔒 El ranking y los premios son únicamente para los usuarios que <strong style={{ color: "#fff" }}>pagaron el acceso al lanzamiento</strong>.
+        </p>
+
         {/* Tu rango — fusionado dentro del banner, sobre la bandera */}
         {!loading && (isStudent ? <StudentNote points={studentPoints} /> : <MyRankCard points={me?.total_points ?? 0} />)}
       </FlagBanner>
