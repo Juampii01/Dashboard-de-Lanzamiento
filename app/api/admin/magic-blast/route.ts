@@ -33,13 +33,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  const body = (await req.json().catch(() => ({}))) as { test?: boolean; offset?: number; limit?: number };
+  const body = (await req.json().catch(() => ({}))) as { test?: boolean; email?: string; offset?: number; limit?: number };
 
   // Construir la lista de destinatarios
   let recipients: string[];
   let total: number;
   let offset = 0;
-  if (body.test) {
+  const singleEmail = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  if (singleEmail) {
+    recipients = [singleEmail];
+    total = 1;
+  } else if (body.test) {
     const selfEmail = (me as { email?: string } | null)?.email;
     if (!selfEmail) return NextResponse.json({ error: "no_self_email" }, { status: 400 });
     recipients = [selfEmail];
@@ -92,7 +96,7 @@ export async function POST(req: NextRequest) {
   }
 
   const processedEnd = offset + recipients.length;
-  const nextOffset = body.test ? null : processedEnd < total ? processedEnd : null;
+  const nextOffset = body.test || singleEmail ? null : processedEnd < total ? processedEnd : null;
 
   return NextResponse.json({
     ok: true,

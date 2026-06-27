@@ -8,9 +8,10 @@ import { toast } from "sonner";
 // dashboard, sin contraseña). Probá primero con tu email, después a todos.
 // El "Enviar a TODOS" llama al endpoint por tandas hasta terminar.
 export function MagicBlastPanel() {
-  const [busy, setBusy] = useState<null | "test" | "all">(null);
+  const [busy, setBusy] = useState<null | "email" | "all">(null);
   const [progress, setProgress] = useState("");
   const [result, setResult] = useState<{ sent: number; failed: number; errors: string[] } | null>(null);
+  const [email, setEmail] = useState("");
 
   async function callBlast(payload: object) {
     const res = await fetch("/api/admin/magic-blast", {
@@ -23,14 +24,16 @@ export function MagicBlastPanel() {
     return json as { sent: number; failed: number; errors: string[]; total: number; nextOffset: number | null };
   }
 
-  async function test() {
-    setBusy("test"); setResult(null); setProgress("");
+  async function sendToEmail() {
+    const e = email.trim();
+    if (!e) { toast.error("Escribí un email."); return; }
+    setBusy("email"); setResult(null); setProgress("");
     try {
-      const r = await callBlast({ test: true });
+      const r = await callBlast({ email: e });
       setResult({ sent: r.sent, failed: r.failed, errors: r.errors });
-      if (r.sent) toast.success("Magic link de prueba enviado a tu email. Revisá la bandeja.");
+      if (r.sent) toast.success(`Magic link enviado a ${e}. Revisá la bandeja.`);
       else toast.error("No se pudo enviar: " + (r.errors?.[0] ?? "error"));
-    } catch (e) { toast.error("Error: " + (e as Error).message); }
+    } catch (err) { toast.error("Error: " + (err as Error).message); }
     setBusy(null);
   }
 
@@ -58,11 +61,21 @@ export function MagicBlastPanel() {
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground leading-relaxed">
         Manda el <strong>magic link de acceso</strong>: el usuario hace clic y entra directo al dashboard, sin contraseña.
-        Probá primero con tu propio email; cuando confirmes que llega y loguea, enviá a todos. Usa el flujo probado de Resend.
+        Probá primero poniendo un email (el tuyo o uno de prueba); cuando confirmes que llega y loguea, enviá a todos. Usa el flujo probado de Resend.
       </p>
-      <div className="flex flex-wrap gap-3">
-        <Button variant="outline" onClick={test} disabled={!!busy}>
-          {busy === "test" ? "Enviando…" : "🧪 Probar (a mi email)"}
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="email"
+          placeholder="email@ejemplo.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter" && !busy && email.trim()) sendToEmail(); }}
+          disabled={!!busy}
+          className="px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+          style={{ borderColor: "#1E3A5C", minWidth: 240 }}
+        />
+        <Button variant="outline" onClick={sendToEmail} disabled={!!busy || !email.trim()}>
+          {busy === "email" ? "Enviando…" : "Enviar a este email"}
         </Button>
         <Button onClick={sendAll} disabled={!!busy}>
           {busy === "all" ? `Enviando ${progress}` : "📨 Enviar a TODOS"}
