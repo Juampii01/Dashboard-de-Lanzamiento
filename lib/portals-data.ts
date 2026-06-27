@@ -98,11 +98,11 @@ export const PORTALS: Portal[] = [
 ];
 
 export const CATEGORY_ORDER: { key: PortalCategory; label: string }[] = [
-  { key: "ecosistema", label: "🦅 Ecosistema GovBidder" },
-  { key: "local", label: "🏙️ Gobierno Local" },
-  { key: "estatal", label: "🏛️ Gobierno Estatal" },
-  { key: "federal", label: "🇺🇸 Gobierno Federal" },
-  { key: "grants_estatal", label: "💰 Grants Estatales y Locales" },
-  { key: "grants_federal", label: "💰 Grants Federales" },
-  { key: "privado", label: "🏢 Plataformas privadas" },
+  { key: "ecosistema", label: "Ecosistema GovBidder" },
+  { key: "local", label: "Gobierno Local" },
+  { key: "estatal", label: "Gobierno Estatal" },
+  { key: "federal", label: "Gobierno Federal" },
+  { key: "grants_estatal", label: "Grants Estatales y Locales" },
+  { key: "grants_federal", label: "Grants Federales" },
+  { key: "privado", label: "Plataformas privadas" },
 ];
