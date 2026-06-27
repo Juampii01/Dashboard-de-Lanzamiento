@@ -100,7 +100,9 @@ function DayNavItem({
   );
 
   if (locked) return <div style={{ display: "block", textDecoration: "none" }}>{inner}</div>;
-  return <Link href={href} style={{ display: "block", textDecoration: "none" }}>{inner}</Link>;
+  // prefetch={false}: evita que Next dispare un RSC de prefetch que pueda rotar
+  // el refresh-token de Supabase fuera de una navegación real (logout fantasma).
+  return <Link href={href} prefetch={false} style={{ display: "block", textDecoration: "none" }}>{inner}</Link>;
 }
 
 // ─── Deliverable row ──────────────────────────────────────────────────────────
@@ -269,7 +271,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
           flexDirection: collapsed ? "column" : "row",
           alignItems: "center", justifyContent: collapsed ? "center" : "space-between", gap: 9,
         }}>
-          <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <Link href="/dashboard" prefetch={false} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             <span style={{
               background: "#fff", borderRadius: 9, padding: "4px 7px",
               display: "inline-flex", alignItems: "center", flexShrink: 0,
@@ -351,7 +353,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
             display: "flex", alignItems: "center", gap: 10,
             padding: "8px 14px", borderBottom: "1px solid var(--sidebar-border)", flexShrink: 0,
           }}>
-            <Link href="/admin" style={{ fontSize: 11, fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
+            <Link href="/admin" prefetch={false} style={{ fontSize: 11, fontWeight: 700, color: "var(--primary)", display: "flex", alignItems: "center", gap: 4, textDecoration: "none" }}>
               <Shield size={12} /> Admin
             </Link>
             <ResetTutorialButton />
@@ -360,7 +362,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
         )}
         {profile.is_admin && collapsed && (
           <div style={{ display: "flex", justifyContent: "center", padding: "8px 0", borderBottom: "1px solid var(--sidebar-border)" }}>
-            <Link href="/admin" title="Admin" style={{ color: "var(--primary)", display: "inline-flex" }}>
+            <Link href="/admin" title="Admin" prefetch={false} style={{ color: "var(--primary)", display: "inline-flex" }}>
               <Shield size={16} />
             </Link>
           </div>

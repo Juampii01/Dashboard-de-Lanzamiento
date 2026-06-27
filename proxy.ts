@@ -23,6 +23,17 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    {
+      source:
+        "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+      // No correr el proxy en requests de PREFETCH de Next. Un prefetch que dispara
+      // getUser() puede rotar el refresh-token (de un solo uso) de Supabase, y su
+      // Set-Cookie no se confirma de forma confiable en el browser → la navegación
+      // real posterior llega con el token viejo ya invalidado y rebota a /login.
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
   ],
 };
