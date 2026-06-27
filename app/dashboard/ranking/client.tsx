@@ -226,7 +226,22 @@ function RankColumn({ rankKey, all, loading }: { rankKey: string; all: FullEntry
 
 // ─── RankingClient ────────────────────────────────────────────────────────────
 
-export function RankingClient() {
+// ─── StudentNote (perfil alumno) ─────────────────────────────────────────────
+// Reemplaza a "Tu rango" para los alumnos: suman puntos pero no compiten.
+function StudentNote({ points }: { points: number }) {
+  return (
+    <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.16)" }}>
+      <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FFD700" }}>
+        🎓 Perfil alumno
+      </p>
+      <p style={{ fontSize: "13.5px", color: "rgba(255,255,255,0.85)", marginTop: 6, maxWidth: "54ch", lineHeight: 1.5 }}>
+        Sumas puntos y usas todo el dashboard, pero <strong style={{ color: "#fff" }}>no compites por el ranking ni los premios</strong>. Tus puntos: <strong style={{ color: "#fff" }}>{points.toLocaleString("es")}</strong>.
+      </p>
+    </div>
+  );
+}
+
+export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStudent?: boolean; studentPoints?: number }) {
   const [board, setBoard]     = useState<FullData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -273,7 +288,7 @@ export function RankingClient() {
         </p>
 
         {/* Tu rango — fusionado dentro del banner, sobre la bandera */}
-        {!loading && <MyRankCard points={me?.total_points ?? 0} />}
+        {!loading && (isStudent ? <StudentNote points={studentPoints} /> : <MyRankCard points={me?.total_points ?? 0} />)}
       </FlagBanner>
       <div style={{ height: "24px" }} />
 
