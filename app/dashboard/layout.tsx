@@ -47,7 +47,7 @@ async function getLayoutData(userId: string) {
   const [{ data: user }, { data: progress }] = await Promise.all([
     supabase
       .from("users")
-      .select("full_name, access_expires_at, is_admin, total_points, has_seen_onboarding, hotmart_transaction_id, last_ad_watched_at, avatar_url")
+      .select("full_name, access_expires_at, is_admin, is_student, total_points, has_seen_onboarding, hotmart_transaction_id, last_ad_watched_at, avatar_url")
       .eq("id", userId)
       .single(),
     supabase
@@ -178,7 +178,14 @@ export default async function DashboardLayout({
   //   • accounts whose trigger ran but the webhook never set the transaction id
   //   • SAFE_EMPTY_PROFILE fallback (no DB row at all)
   // Admins bypass this check (hotmart_transaction_id = null is fine for them).
-  if (!devMode && profile && !profile.is_admin) {
+  // Los ALUMNOS (is_student) también: acceden gratis, sin compra. Marcarlos como
+  // alumno alcanza para darles acceso (no necesitan transacción de Hotmart).
+  if (
+    !devMode &&
+    profile &&
+    !profile.is_admin &&
+    !(profile as { is_student?: boolean }).is_student
+  ) {
     const hasPurchase = !!(profile as { hotmart_transaction_id?: string | null })
       .hotmart_transaction_id;
     if (!hasPurchase) {
