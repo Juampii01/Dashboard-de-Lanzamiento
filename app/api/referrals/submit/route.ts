@@ -36,6 +36,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, alreadyUser: true });
   }
 
+  // Si el email YA fue referido antes (existe como lead) pero TODAVÍA no es
+  // usuario: no lo volvemos a agregar como referido (mantiene su atribución
+  // original) pero SÍ lo dejamos seguir a la redirección de pago/acceso.
+  const { data: existingLead } = await service
+    .from("referral_leads")
+    .select("id")
+    .ilike("referred_email", email)
+    .maybeSingle();
+  if (existingLead) {
+    return NextResponse.json({ ok: true, alreadyLead: true, redirectUrl });
+  }
+
   // Sin código de referido válido igual dejamos pasar (redirige), solo que no
   // se registra atribución.
   if (!ref) {
