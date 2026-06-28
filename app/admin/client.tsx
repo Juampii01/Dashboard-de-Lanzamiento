@@ -52,7 +52,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Zap, Trash2, Mail } from "lucide-react";
+import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Zap, Trash2, Mail, Video } from "lucide-react";
 import { MagicBlastPanel } from "@/components/magic-blast-panel";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
@@ -575,6 +575,75 @@ function KeywordsAdminPanel() {
   );
 }
 
+// ─── RecordingsAdminPanel ────────────────────────────────────────────────────
+
+interface RecordingRow { recording_number: number; youtube_url?: string | null; }
+
+function RecordingsAdminPanel() {
+  const [inputs, setInputs] = useState<Record<number, string>>({});
+  const [saved, setSaved] = useState<Record<number, boolean>>({});
+  const [saving, setSaving] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/recordings")
+      .then((r) => r.json())
+      .then((data: RecordingRow[]) => {
+        const init: Record<number, string> = {};
+        const done: Record<number, boolean> = {};
+        data.forEach((r) => {
+          if (r.youtube_url) { init[r.recording_number] = r.youtube_url; done[r.recording_number] = true; }
+        });
+        setInputs(init);
+        setSaved(done);
+      })
+      .catch(() => {});
+  }, []);
+
+  async function save(num: number) {
+    const youtube_url = (inputs[num] ?? "").trim();
+    setSaving(num);
+    try {
+      const res = await fetch("/api/admin/recordings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recording_number: num, youtube_url }),
+      });
+      if (!res.ok) throw new Error();
+      setSaved((prev) => ({ ...prev, [num]: !!youtube_url }));
+      toast.success(youtube_url ? `Grabación ${num} guardada.` : `Grabación ${num} limpiada.`);
+    } catch {
+      toast.error("Error al guardar la grabación.");
+    }
+    setSaving(null);
+  }
+
+  return (
+    <div className="space-y-3">
+      {[1, 2, 3, 4].map((num) => (
+        <div key={num} className="flex items-center gap-3 p-3 border rounded-xl bg-card" style={{ borderColor: "#1E3A5C" }}>
+          <span className="text-xs font-bold text-muted-foreground w-24 shrink-0">Grabación {num}</span>
+          <input
+            type="url"
+            placeholder="https://www.youtube.com/watch?v=..."
+            value={inputs[num] ?? ""}
+            onChange={(e) => setInputs((prev) => ({ ...prev, [num]: e.target.value }))}
+            disabled={saving === num}
+            className="flex-1 min-w-0 px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+            style={{ borderColor: "#1E3A5C" }}
+          />
+          <Button size="sm" onClick={() => save(num)} disabled={saving === num}>
+            {saving === num ? "..." : "Guardar"}
+          </Button>
+          {saved[num] && <span className="text-[10px] font-bold text-green-500 shrink-0">✓</span>}
+        </div>
+      ))}
+      <p className="text-xs text-muted-foreground">
+        Dejá el campo vacío y tocá Guardar para quitar el link de un botón. Los botones aparecen al lado de los puntos en el dashboard.
+      </p>
+    </div>
+  );
+}
+
 // ─── RafagaAdminPanel ────────────────────────────────────────────────────────
 
 interface RafagaRow {
@@ -937,6 +1006,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </CardHeader>
         <CardContent>
           <KeywordsAdminPanel />
+        </CardContent>
+      </Card>
+
+      {/* Grabaciones de las Clases */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Video className="w-5 h-5 text-[#FFD700]" />
+            Grabaciones de las Clases
+          </CardTitle>
+          <CardDescription>
+            Pegá el link de YouTube de cada grabación (1 a 4). Aparecen como 4 botones al lado de los puntos en el dashboard; cada uno abre su grabación en una pestaña nueva.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RecordingsAdminPanel />
         </CardContent>
       </Card>
 

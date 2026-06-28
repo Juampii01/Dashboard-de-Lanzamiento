@@ -21,6 +21,7 @@ export default async function DashboardPage() {
   let fullName = "Usuario";
   let avatarUrl: string | null = null;
   let isAdmin = false;
+  const recordings: (string | null)[] = [null, null, null, null];
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -48,6 +49,17 @@ export default async function DashboardPage() {
     initialPoints = (profile?.total_points as number | null) ?? 0;
     avatarUrl = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
     isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin === true;
+
+    // Grabaciones de las clases (1-4) que el admin configura. Cada botón abre su
+    // link de YouTube; si un número no tiene link, su botón queda deshabilitado.
+    const { data: recs } = await createServiceClient()
+      .from("class_recordings")
+      .select("recording_number, youtube_url");
+    for (const r of (recs ?? []) as { recording_number: number; youtube_url: string | null }[]) {
+      if (r.recording_number >= 1 && r.recording_number <= 4) {
+        recordings[r.recording_number - 1] = r.youtube_url ?? null;
+      }
+    }
   }
 
   // Contador de Inicio (day 0). El desbloqueo es MANUAL (el admin abre el Inicio
@@ -69,6 +81,7 @@ export default async function DashboardPage() {
         fullName={fullName}
         devMode={devMode}
         avatarUrl={avatarUrl}
+        recordings={recordings}
       />
       {beforeLaunch && (
         <LaunchCountdown

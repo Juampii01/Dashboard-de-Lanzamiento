@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Send, MessageCircle, X, FileText, ChevronDown } from "lucide-react";
+import { Send, MessageCircle, X, FileText, ChevronDown, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 import { FlagBanner } from "@/components/flag-banner";
 import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
@@ -14,6 +14,7 @@ interface HomeClientProps {
   fullName: string;
   devMode: boolean;
   avatarUrl?: string | null;
+  recordings?: (string | null)[];
 }
 
 interface Comment {
@@ -388,6 +389,76 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// 4 botones de grabaciones (2x2) que van al lado de los puntos. Cada uno abre su
+// link de YouTube en pestaña nueva. Los links se configuran desde /admin.
+function RecordingsButtons({ urls }: { urls: (string | null)[] }) {
+  const openRec = (u: string | null) => {
+    if (u) window.open(u, "_blank", "noopener,noreferrer");
+  };
+  return (
+    <div
+      style={{
+        flex: "1 1 260px",
+        maxWidth: 420,
+        minWidth: 220,
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gridTemplateRows: "1fr 1fr",
+        gap: 10,
+      }}
+    >
+      {[0, 1, 2, 3].map((i) => {
+        const u = urls[i] ?? null;
+        const disabled = !u;
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => openRec(u)}
+            disabled={disabled}
+            title={disabled ? "Grabación próximamente" : "Abrir grabación en YouTube"}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              minHeight: 52,
+              padding: "0 12px",
+              borderRadius: 12,
+              border: "1px solid var(--score-border)",
+              background: disabled ? "var(--muted)" : "var(--score-bg)",
+              color: disabled ? "var(--muted-foreground)" : "var(--foreground)",
+              fontFamily: "var(--font-sans)",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: disabled ? "not-allowed" : "pointer",
+              opacity: disabled ? 0.55 : 1,
+              transition: "transform .12s, border-color .12s, background .12s",
+            }}
+            onMouseEnter={(e) => {
+              if (disabled) return;
+              const el = e.currentTarget;
+              el.style.borderColor = "var(--secondary)";
+              el.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget;
+              el.style.borderColor = "var(--score-border)";
+              el.style.transform = "none";
+            }}
+          >
+            <PlayCircle
+              size={16}
+              style={{ flexShrink: 0, color: disabled ? "var(--muted-foreground)" : "var(--secondary)" }}
+            />
+            Grabación {i + 1}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -1209,7 +1280,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
@@ -1233,8 +1304,15 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName }: Home
         </p>
       </FlagBanner>
 
-      {/* 1. Points card */}
-      {!devMode && <PointsCard initial={initialPoints} avatarUrl={avatarUrl} />}
+      {/* 1. Points card + botones de grabaciones (al lado, misma altura, compacto) */}
+      {!devMode && (
+        <div style={{ display: "flex", gap: "16px", alignItems: "stretch", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 320px", maxWidth: 460, minWidth: 0, display: "flex" }}>
+            <PointsCard initial={initialPoints} avatarUrl={avatarUrl} />
+          </div>
+          <RecordingsButtons urls={recordings ?? [null, null, null, null]} />
+        </div>
+      )}
 
       {/* 2. Loom tutorial video */}
       <VideoTutorial />
