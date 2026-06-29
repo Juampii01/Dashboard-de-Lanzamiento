@@ -287,7 +287,7 @@ const EARN_METHODS: { icon: string; title: string; points: string; variable?: bo
   { icon: "❓", title: "Quiz de la cápsula", points: "+100", detail: "Responde bien el quiz de una cápsula. Solo el primer acierto otorga puntos." },
   { icon: "🎙️", title: "Cápsula de podcast", points: "+300", detail: "Escuchá y reclama una cápsula de tipo podcast. Suma una vez por cada una." },
   { icon: "🚀", title: "Iniciar un día", points: "+250", detail: "Entra por primera vez a un día desbloqueado. Una sola vez por cada día (1 a 4)." },
-  { icon: "🔴", title: "Unirte a la llamada en vivo", points: "+125", detail: "Cuando el equipo abre la clase en vivo, toca “Ir a la llamada” en el aviso del dashboard. +125 por llamada · son 4 llamadas (hasta 500 pts)." },
+  { icon: "🔴", title: "Unirte a la llamada en vivo", points: "+125", detail: "Cuando el contador del día llega a 0, entra con el botón “Unirse a la clase”. +125 por llamada · son 4 llamadas (hasta 500 pts)." },
   { icon: "🏁", title: "Completar un día", points: "+500", detail: "Terminá todas las misiones del día y marcá la fase como completada. Una sola vez por cada día." },
   { icon: "🔑", title: "Palabra clave del día", points: "+1.000", detail: "Escribe la palabra clave que se menciona en la clase (no importan mayúsculas ni acentos). Una vez por día." },
   { icon: "📸", title: "Historia diaria", points: "+500", detail: "Sube la captura de tu historia del día (imagen, máx. 8 MB). Una por día; se reinicia a las 8 AM hora Miami." },

@@ -1,8 +1,9 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { isDayUnlocked } from "@/lib/supabase/day-access";
+import { getAdminToggle } from "@/lib/supabase/helpers";
+import { dayUnlockIso } from "@/lib/launch";
 
-const POINTS = 125; // unificado con la llamada en vivo (dashboard bloqueado)
+const POINTS = 125; // unificado con la llamada en vivo
 
 export async function POST(req: Request) {
   const supabase = await createClient();
@@ -16,9 +17,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_day" }, { status: 400 });
   }
 
-  // Day-unlock gate: no reclamar XP de la llamada de un día bloqueado.
-  if (!(await isDayUnlocked(user.id, day))) {
-    return NextResponse.json({ error: "day_locked" }, { status: 403 });
+  // Gate por TIEMPO (no por desbloqueo del día): la XP de la llamada se reclama
+  // cuando el contador del día ya llegó a 0 (hora de la clase). El día sigue
+  // bloqueado mientras dura la llamada — el equipo lo abre recién al terminar —,
+  // así que el guard de "día desbloqueado" no sirve acá. Esto evita además que
+  // alguien reclame los puntos de un día antes de su clase.
+  const toggle = await getAdminToggle(supabase, day);
+  const classMs = Date.parse(dayUnlockIso(toggle?.scheduled_unlock_at, day));
+  if (classMs && Date.now() < classMs) {
+    return NextResponse.json({ error: "too_early" }, { status: 403 });
   }
 
   const service = createServiceClient();

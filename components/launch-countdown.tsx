@@ -51,6 +51,8 @@ export function LaunchCountdown({
   // La fecha legible se calcula tras montar para usar la zona horaria LOCAL del
   // navegador de cada usuario (evita además mismatch de hidratación SSR).
   const [fechaTexto, setFechaTexto] = useState("");
+  const [joined, setJoined] = useState(false);
+  const [joining, setJoining] = useState(false);
 
   // Contador cosmético: al llegar a 0 NO desbloquea — solo cambia el mensaje a 00.
   useEffect(() => {
@@ -88,6 +90,44 @@ export function LaunchCountdown({
     const id = setInterval(check, 15000);
     return () => { cancelled = true; clearInterval(id); };
   }, [day]);
+
+  // Restaura "ya entró a la llamada de este día" desde localStorage (cache de UI).
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setJoined(!!localStorage.getItem(`govbidder_joined_call_day_${day}`));
+    }
+  }, [day]);
+
+  // Abre el Zoom del día y reclama +125 (idempotente: una vez por día, gated por
+  // hora de la clase en el servidor). El estado "joined" se cachea en localStorage.
+  async function handleJoinClass() {
+    if (callUrl) window.open(callUrl, "_blank", "noopener,noreferrer");
+    if (joining) return;
+    setJoining(true);
+    try {
+      const res = await fetch("/api/xp/join-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day }),
+      });
+      const data: { awarded?: boolean; already_claimed?: boolean; delta?: number; total?: number } =
+        await res.json();
+      if (data.awarded && data.delta && data.total != null) {
+        localStorage.setItem(`govbidder_joined_call_day_${day}`, "1");
+        setJoined(true);
+        window.dispatchEvent(new CustomEvent("xp-gained", {
+          detail: { delta: data.delta, total: data.total, source: "join" },
+        }));
+      } else if (data.already_claimed) {
+        localStorage.setItem(`govbidder_joined_call_day_${day}`, "1");
+        setJoined(true);
+      }
+    } catch {
+      /* no crítico — el Zoom igual se abrió */
+    } finally {
+      setJoining(false);
+    }
+  }
 
   const blocks: { value: number; label: string }[] = [
     { value: t.days, label: "Días" },
@@ -149,27 +189,7 @@ export function LaunchCountdown({
           </p>
         )}
 
-        {reached ? (
-          /* Al llegar a 0 (y todavía bloqueado) no mostramos 00:00 — avisamos. */
-          <div style={{
-            marginTop: 2,
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 7,
-            padding: "18px 24px", borderRadius: 14,
-            background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.45)",
-            boxShadow: "0 0 30px -10px rgba(228,45,44,0.6)",
-          }}>
-            <span style={{ fontSize: 26, lineHeight: 1 }}>⏳</span>
-            <span style={{
-              fontFamily: "var(--font-display)", fontSize: "clamp(17px, 3.6vw, 23px)", fontWeight: 800,
-              color: "#fff", lineHeight: 1.15,
-            }}>
-              ¡Mantente atento!
-            </span>
-            <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", fontWeight: 600, maxWidth: "34ch" }}>
-              Estamos por habilitar esta sección.
-            </span>
-          </div>
-        ) : (
+        {!reached ? (
           <div style={{ display: "flex", gap: "clamp(7px, 2vw, 14px)", marginTop: 2, flexWrap: "wrap", justifyContent: "center" }}>
             {blocks.map((b) => (
               <div key={b.label} style={{
@@ -194,27 +214,53 @@ export function LaunchCountdown({
               </div>
             ))}
           </div>
-        )}
-
-        {callUrl && (
-          <a
-            href={callUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+        ) : callUrl ? (
+          /* Llegó la hora de la clase: botón para entrar (suma +125 una vez por día). */
+          <button
+            onClick={handleJoinClass}
+            disabled={joining}
             style={{
               display: "inline-flex", alignItems: "center", gap: 9,
-              marginTop: 2, padding: "13px 30px", borderRadius: 13,
-              background: "linear-gradient(135deg, #E42D2C 0%, #A11D2E 100%)",
-              color: "#fff", fontFamily: "var(--font-sans)", fontWeight: 800,
-              fontSize: 15, textDecoration: "none",
-              border: "1px solid rgba(255,255,255,0.15)",
-              boxShadow: "0 8px 26px -6px rgba(228,45,44,0.6)",
+              marginTop: 2, padding: "14px 32px", borderRadius: 13,
+              background: joined ? "rgba(0,214,122,0.14)" : "linear-gradient(135deg, #E42D2C 0%, #A11D2E 100%)",
+              color: joined ? "#37d98a" : "#fff",
+              fontFamily: "var(--font-sans)", fontWeight: 800, fontSize: 15,
+              border: joined ? "1px solid rgba(0,214,122,0.4)" : "1px solid rgba(255,255,255,0.15)",
+              cursor: joining ? "wait" : "pointer",
+              boxShadow: joined ? "none" : "0 8px 26px -6px rgba(228,45,44,0.6)",
             }}
           >
-            <span style={{ fontSize: 17 }}>📹</span>
-            Unirse a la clase
-            <span style={{ fontSize: 13, opacity: 0.8 }}>↗</span>
-          </a>
+            {joined ? (
+              <>✓ Entraste a la clase · +125 XP</>
+            ) : (
+              <>
+                <span style={{ fontSize: 17 }}>📹</span>
+                Unirse a la clase
+                <span style={{ background: "rgba(255,255,255,0.22)", borderRadius: 6, padding: "1px 7px", fontSize: 12, fontWeight: 800 }}>+125 XP</span>
+                <span style={{ fontSize: 13, opacity: 0.8 }}>↗</span>
+              </>
+            )}
+          </button>
+        ) : (
+          /* Inicio u otra sección sin link de clase: al llegar a 0 solo avisamos. */
+          <div style={{
+            marginTop: 2,
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 7,
+            padding: "18px 24px", borderRadius: 14,
+            background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.45)",
+            boxShadow: "0 0 30px -10px rgba(228,45,44,0.6)",
+          }}>
+            <span style={{ fontSize: 26, lineHeight: 1 }}>⏳</span>
+            <span style={{
+              fontFamily: "var(--font-display)", fontSize: "clamp(17px, 3.6vw, 23px)", fontWeight: 800,
+              color: "#fff", lineHeight: 1.15,
+            }}>
+              ¡Mantente atento!
+            </span>
+            <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", fontWeight: 600, maxWidth: "34ch" }}>
+              Estamos por habilitar esta sección.
+            </span>
+          </div>
         )}
 
         <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", marginTop: 2, minHeight: 18 }}>
