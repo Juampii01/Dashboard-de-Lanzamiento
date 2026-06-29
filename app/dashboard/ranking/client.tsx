@@ -232,7 +232,7 @@ function StudentNote({ points }: { points: number }) {
   return (
     <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.16)" }}>
       <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FFD700" }}>
-        🎓 Perfil alumno
+        🎁 Acceso gratuito
       </p>
       <p style={{ fontSize: "13.5px", color: "rgba(255,255,255,0.85)", marginTop: 6, maxWidth: "54ch", lineHeight: 1.5 }}>
         Sumas puntos y usas todo el dashboard, pero <strong style={{ color: "#fff" }}>no compites por el ranking ni los premios</strong>. Tus puntos: <strong style={{ color: "#fff" }}>{points.toLocaleString("es")}</strong>.
