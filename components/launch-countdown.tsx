@@ -150,30 +150,52 @@ export function LaunchCountdown({
           </p>
         )}
 
-        <div style={{ display: "flex", gap: "clamp(7px, 2vw, 14px)", marginTop: 2, flexWrap: "wrap", justifyContent: "center" }}>
-          {blocks.map((b) => (
-            <div key={b.label} style={{
-              minWidth: 66, padding: "12px 10px", borderRadius: 13,
-              background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.38)",
-              boxShadow: "0 0 22px -8px rgba(228,45,44,0.5)",
+        {reached ? (
+          /* Al llegar a 0 (y todavía bloqueado) no mostramos 00:00 — avisamos. */
+          <div style={{
+            marginTop: 2,
+            display: "flex", flexDirection: "column", alignItems: "center", gap: 7,
+            padding: "18px 24px", borderRadius: 14,
+            background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.45)",
+            boxShadow: "0 0 30px -10px rgba(228,45,44,0.6)",
+          }}>
+            <span style={{ fontSize: 26, lineHeight: 1 }}>⏳</span>
+            <span style={{
+              fontFamily: "var(--font-display)", fontSize: "clamp(17px, 3.6vw, 23px)", fontWeight: 800,
+              color: "#fff", lineHeight: 1.15,
             }}>
-              <div style={{
-                fontFamily: "var(--font-mono)", fontSize: "clamp(26px, 5.5vw, 38px)", fontWeight: 900,
-                color: "#E42D2C", lineHeight: 1, fontVariantNumeric: "tabular-nums",
-                textShadow: "0 0 18px rgba(228,45,44,0.5)",
+              ¡Estate atento!
+            </span>
+            <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", fontWeight: 600, maxWidth: "34ch" }}>
+              Estamos por habilitar esta sección.
+            </span>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: "clamp(7px, 2vw, 14px)", marginTop: 2, flexWrap: "wrap", justifyContent: "center" }}>
+            {blocks.map((b) => (
+              <div key={b.label} style={{
+                minWidth: 66, padding: "12px 10px", borderRadius: 13,
+                background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.38)",
+                boxShadow: "0 0 22px -8px rgba(228,45,44,0.5)",
               }}>
-                {String(b.value).padStart(2, "0")}
+                <div style={{
+                  fontFamily: "var(--font-mono)", fontSize: "clamp(26px, 5.5vw, 38px)", fontWeight: 900,
+                  color: "#E42D2C", lineHeight: 1, fontVariantNumeric: "tabular-nums",
+                  textShadow: "0 0 18px rgba(228,45,44,0.5)",
+                }}>
+                  {String(b.value).padStart(2, "0")}
+                </div>
+                <div style={{
+                  fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
+                  letterSpacing: "0.12em", textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.6)", marginTop: 6,
+                }}>
+                  {b.label}
+                </div>
               </div>
-              <div style={{
-                fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
-                letterSpacing: "0.12em", textTransform: "uppercase",
-                color: "rgba(255,255,255,0.6)", marginTop: 6,
-              }}>
-                {b.label}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {showJoinClass && (
           <div style={{ marginTop: 2 }}>
