@@ -293,7 +293,7 @@ const EARN_METHODS: { icon: string; title: string; points: string; variable?: bo
   { icon: "📸", title: "Historia diaria", points: "+500", detail: "Subí la captura de tu historia del día (imagen, máx. 8 MB). Una por día; se reinicia a las 8 AM hora Miami." },
   { icon: "✅", title: "Misión diaria", points: "+1.000", detail: "Completá la misión diaria activa (subí una captura, un link o un texto). Suma una vez por misión." },
   { icon: "⚡", title: "Misión ráfaga", points: "Variable", variable: true, detail: "Reclamá la misión relámpago mientras está activa, dentro de su ventana de tiempo. Una vez por ráfaga; los puntos los define el equipo." },
-  { icon: "💬", title: "Comentario en la comunidad", points: "+500", detail: "Comentá en la comunidad del programa. Suma en tus primeros 3 comentarios." },
+  { icon: "💬", title: "Comentario en la comunidad", points: "+200", detail: "Comentá en la comunidad del programa. Suma en tus primeros 3 comentarios." },
   { icon: "🤝", title: "Referido que ingresa", points: "+1.000", detail: "Compartí tu link de referido: ganás por cada persona que entra al challenge (se acredita cuando se crea su cuenta). Sin límite." },
 ];
 

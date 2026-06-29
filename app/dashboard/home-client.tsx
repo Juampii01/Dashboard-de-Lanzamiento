@@ -582,7 +582,7 @@ function CommentsSection() {
                     color: "var(--accent-foreground)", background: "var(--accent)",
                     borderRadius: 999, padding: "1px 8px",
                   }}>
-                    +500 pts · primeras 3 veces
+                    +200 pts · primeras 3 veces
                   </span>
                 </div>
                 <textarea

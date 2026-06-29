@@ -95,10 +95,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  // +500 pts por participar en la comunidad — hasta 3 veces. Los comentarios
+  // +200 pts por participar en la comunidad — hasta 3 veces. Los comentarios
   // siguientes se publican igual, pero ya no suman puntos.
   const MAX_REWARDED = 3;
-  const REWARD = 500;
+  const REWARD = 200;
   let awarded = false;
   let delta = 0;
   let total: number | null = null;
