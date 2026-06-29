@@ -58,7 +58,9 @@ export async function POST(req: Request) {
 
   const title = String(body.title ?? "").trim();
   if (!title) return NextResponse.json({ error: "title_required" }, { status: 400 });
-  const points = Number.isFinite(body.points_reward) ? Math.max(0, Math.min(5000, Number(body.points_reward))) : 200;
+  // Puntos FIJOS: 1.000 por misión diaria. No es configurable desde el admin
+  // (se ignora cualquier points_reward que llegue en el body).
+  const points = 1000;
 
   const { data, error } = await auth.service
     .from("daily_missions")

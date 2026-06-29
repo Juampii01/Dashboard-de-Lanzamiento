@@ -257,7 +257,7 @@ const EARN_METHODS: { icon: string; title: string; points: string; variable?: bo
   { icon: "🏁", title: "Completar un día", points: "+500", detail: "Terminá todas las misiones del día y marcá la fase como completada. Una sola vez por cada día." },
   { icon: "🔑", title: "Palabra clave del día", points: "+1.000", detail: "Escribí la palabra clave que se menciona en la clase (no importan mayúsculas ni acentos). Una vez por día." },
   { icon: "📸", title: "Historia diaria", points: "+500", detail: "Subí la captura de tu historia del día (imagen, máx. 8 MB). Una por día; se reinicia a las 8 AM hora Miami." },
-  { icon: "✅", title: "Misión diaria", points: "Variable", variable: true, detail: "Completá la misión diaria activa (captura, link o texto). Los puntos los define el equipo según la misión." },
+  { icon: "✅", title: "Misión diaria", points: "+1.000", detail: "Completá la misión diaria activa (subí una captura, un link o un texto). Suma una vez por misión." },
   { icon: "⚡", title: "Misión ráfaga", points: "Variable", variable: true, detail: "Reclamá la misión relámpago mientras está activa, dentro de su ventana de tiempo. Una vez por ráfaga; los puntos los define el equipo." },
   { icon: "💬", title: "Comentario en la comunidad", points: "+500", detail: "Comentá en la comunidad del programa. Suma en tus primeros 3 comentarios." },
   { icon: "🤝", title: "Referido que ingresa", points: "+1.000", detail: "Compartí tu link de referido: ganás por cada persona que entra al challenge (se acredita cuando se crea su cuenta). Sin límite." },

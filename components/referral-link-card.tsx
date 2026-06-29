@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, CheckCircle2, Link2 } from "lucide-react";
+import { Copy, CheckCircle2, Link2, HelpCircle, X } from "lucide-react";
 
 /**
  * Tarjeta "Compartí tu link" — muestra el link de referido del usuario con
@@ -9,6 +9,7 @@ import { Copy, CheckCircle2, Link2 } from "lucide-react";
  */
 export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
   const [copied, setCopied] = useState(false);
+  const [showHow, setShowHow] = useState(false);
 
   async function copy() {
     try {
@@ -35,6 +36,19 @@ export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Link2 size={16} style={{ color: "var(--primary)" }} />
         <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 15 }}>Tu link de referido</p>
+        <button
+          type="button"
+          onClick={() => setShowHow(true)}
+          style={{
+            marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 5,
+            background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--primary) 35%, transparent)",
+            color: "var(--primary)", borderRadius: 999, padding: "5px 11px",
+            fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+          }}
+        >
+          <HelpCircle size={14} /> ¿Cómo funciona?
+        </button>
       </div>
       <p style={{ fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5, margin: 0 }}>
         Compártelo y suma{" "}
@@ -85,6 +99,59 @@ export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", lineHeight: 1.5, margin: 0, opacity: 0.9 }}>
         Una vez que la persona que refieres ingresa al lanzamiento, se te suman los puntos automáticamente.
       </p>
+
+      {/* Ventana emergente: cómo funciona el sistema de referidos */}
+      {showHow && (
+        <div
+          onClick={() => setShowHow(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 99999,
+            background: "rgba(4,10,25,0.66)", backdropFilter: "blur(2px)",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "min(440px, 100%)", maxHeight: "90vh", overflowY: "auto",
+              background: "var(--card)", border: "1px solid var(--border)",
+              borderRadius: 16, padding: "22px 20px",
+              boxShadow: "0 30px 80px -24px rgba(0,0,0,0.7)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
+              <p style={{ fontWeight: 800, fontSize: 17, color: "var(--foreground)" }}>🤝 Cómo funciona el sistema de referidos</p>
+              <button
+                type="button" onClick={() => setShowHow(false)} aria-label="Cerrar"
+                style={{ flexShrink: 0, background: "transparent", border: "none", cursor: "pointer", color: "var(--muted-foreground)", display: "inline-flex", padding: 4 }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {[
+              { n: "1", icon: "📤", title: "Compartí tu link", text: "Mandale tu link de referido a la persona que quieras invitar al challenge." },
+              { n: "2", icon: "✍️", title: "La persona ingresa su email", text: "Al abrir tu link, escribe su email y se la redirige a la página donde debe ingresar al lanzamiento." },
+              { n: "3", icon: "🎉", title: "Ganás +1.000 pts", text: "Cuando esa persona ingresa al challenge, se te acreditan automáticamente +1.000 puntos." },
+            ].map((s) => (
+              <div key={s.n} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "11px 0", borderTop: s.n === "1" ? "none" : "1px solid var(--border)" }}>
+                <span style={{ flexShrink: 0, width: 30, height: 30, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)", fontWeight: 800, fontSize: 14 }}>{s.n}</span>
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: 14, color: "var(--foreground)" }}>{s.icon} {s.title}</p>
+                  <p style={{ fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5, marginTop: 2 }}>{s.text}</p>
+                </div>
+              </div>
+            ))}
+
+            <button
+              type="button" onClick={() => setShowHow(false)}
+              style={{ marginTop: 16, width: "100%", padding: "11px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, background: "var(--primary)", color: "var(--primary-foreground)" }}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
