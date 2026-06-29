@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CLASS_LINKS } from "@/lib/class-links";
 
 function UserResetButton({ userId, userEmail }: { userId: string; userEmail: string }) {
   const [phase, setPhase] = useState<"idle" | "confirm" | "loading" | "done">("idle");
@@ -107,15 +108,6 @@ interface LockState {
 }
 
 const DEFAULT_MESSAGE = "La llamada en vivo está en curso. Volvé cuando termine.";
-
-// Links de Zoom por día — el admin toca el día y se rellena el campo de URL.
-// Una sala distinta por cada día.
-const CLASS_LINKS: Record<number, string> = {
-  1: "https://us06web.zoom.us/j/89500217863",
-  2: "https://us06web.zoom.us/j/87449566033",
-  3: "https://us06web.zoom.us/j/82763320870",
-  4: "https://us06web.zoom.us/j/87083219386",
-};
 
 function DashboardLockControl() {
   const [lock, setLock] = useState<LockState>({

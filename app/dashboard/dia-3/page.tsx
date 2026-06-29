@@ -6,6 +6,7 @@ import { Dia3Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
+import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -64,6 +65,7 @@ export default async function Dia3Page() {
         <LaunchCountdown
           targetIso={targetIso}
           day={3}
+          callUrl={CLASS_LINKS[3]}
           title="Día 3 — Web + Portales"
           subtitle="Este día se desbloquea luego de la clase en vivo. Se habilita cuando el equipo lo abra."
           reachedSubtitle="¡Es la hora de la clase! El día se habilita cuando el equipo lo abra."

@@ -5,6 +5,7 @@ import { Dia1Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
+import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
 import Link from "next/link";
 
@@ -86,6 +87,7 @@ export default async function Dia1Page() {
         <LaunchCountdown
           targetIso={targetIso}
           day={1}
+          callUrl={CLASS_LINKS[1]}
           title="Día 1 — Perfil Estratégico"
           subtitle="Este día se desbloquea luego de la clase en vivo. Se habilita cuando el equipo lo abra."
           reachedSubtitle="¡Es la hora de la clase! El día se habilita cuando el equipo lo abra."

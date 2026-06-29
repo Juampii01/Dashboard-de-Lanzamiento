@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { JoinCallButton } from "@/components/join-call-button";
 
 function diffParts(targetMs: number) {
   const total = Math.max(0, targetMs - Date.now());
@@ -33,7 +32,7 @@ export function LaunchCountdown({
   subtitle,
   reachedSubtitle,
   day,
-  showJoinClass = false,
+  callUrl,
 }: {
   targetIso: string;
   kicker?: string;
@@ -41,10 +40,10 @@ export function LaunchCountdown({
   subtitle?: string;
   /** Mensaje cuando el contador ya llegó a 0 (la clase ya empezó/pasó). */
   reachedSubtitle?: string;
-  /** 0 = Inicio, 1..4 = día. Se usa para el polling y el botón "Ir a la clase". */
+  /** 0 = Inicio, 1..4 = día. Se usa para el polling. */
   day: number;
-  /** Muestra el botón "Ir a la clase" (link a la llamada en vivo, +300 XP). */
-  showJoinClass?: boolean;
+  /** Link de la clase en vivo (Zoom). Si se pasa, muestra el botón "Unirse a la clase". */
+  callUrl?: string;
 }) {
   const targetMs = Date.parse(targetIso);
   const [t, setT] = useState(() => diffParts(targetMs));
@@ -197,10 +196,25 @@ export function LaunchCountdown({
           </div>
         )}
 
-        {showJoinClass && (
-          <div style={{ marginTop: 2 }}>
-            <JoinCallButton day={day} label="Unirse a la clase" disabled={!reached} />
-          </div>
+        {callUrl && (
+          <a
+            href={callUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 9,
+              marginTop: 2, padding: "13px 30px", borderRadius: 13,
+              background: "linear-gradient(135deg, #E42D2C 0%, #A11D2E 100%)",
+              color: "#fff", fontFamily: "var(--font-sans)", fontWeight: 800,
+              fontSize: 15, textDecoration: "none",
+              border: "1px solid rgba(255,255,255,0.15)",
+              boxShadow: "0 8px 26px -6px rgba(228,45,44,0.6)",
+            }}
+          >
+            <span style={{ fontSize: 17 }}>📹</span>
+            Unirse a la clase
+            <span style={{ fontSize: 13, opacity: 0.8 }}>↗</span>
+          </a>
         )}
 
         <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", marginTop: 2, minHeight: 18 }}>
