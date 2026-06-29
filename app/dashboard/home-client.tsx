@@ -39,16 +39,16 @@ interface ContractNiche {
 const TUTORIAL_YT_ID = "2A6EB_cDk-A"; // ID de YouTube del tutorial de inicio ("" = coming soon)
 
 const CONTRACT_NICHES: ContractNiche[] = [
-  { id: "limpieza", label: "Limpieza", icon: "🧹", contracts: [{ src: "/contracts/limpieza-1.png", title: "Hidrolavado" }, { src: "/contracts/limpieza-2.png", title: "Limpieza de ventanas" }, { src: "/contracts/limpieza-3.png", title: "Servicios de lavandería" }, { src: "/contracts/limpieza-4.png", title: "Uniformes" }] },
-  { id: "hvac", label: "HVAC y Plomería", icon: "⚙️", contracts: [{ src: "/contracts/hvac-1.png", title: "Reemplazo de HVAC" }, { src: "/contracts/hvac-2.png", title: "Calefacción y refrigeración" }, { src: "/contracts/hvac-3.png", title: "495 River St — Passaic County (real)" }, { src: "/contracts/hvac-4.png", title: "Insumos de plomería" }] },
-  { id: "construccion", label: "Construcción y Mantenimiento", icon: "🏗️", contracts: [{ src: "/contracts/construccion-1.png", title: "Techado" }, { src: "/contracts/construccion-2.png", title: "Mantenimiento de ascensores" }, { src: "/contracts/construccion-3.png", title: "Servicios de ascensores" }, { src: "/contracts/construccion-4.png", title: "Ferretería e insumos" }, { src: "/contracts/construccion-5.png", title: "Chapa y pintura" }] },
-  { id: "areas-verdes", label: "Áreas Verdes", icon: "🌿", contracts: [{ src: "/contracts/areas-verdes-1.png", title: "Mantenimiento de jardines" }, { src: "/contracts/areas-verdes-2.png", title: "Remoción de árboles" }, { src: "/contracts/areas-verdes-3.png", title: "Fertilizantes" }] },
-  { id: "invierno", label: "Productos de Invierno", icon: "❄️", contracts: [{ src: "/contracts/invierno-1.png", title: "Remoción de nieve" }, { src: "/contracts/invierno-2.png", title: "Sal y productos de invierno" }, { src: "/contracts/invierno-3.png", title: "Iluminación navideña" }] },
-  { id: "it", label: "IT y Tecnología", icon: "💻", contracts: [{ src: "/contracts/it-1.png", title: "Soporte IT" }, { src: "/contracts/it-2.png", title: "Software" }, { src: "/contracts/it-3.png", title: "Call center" }, { src: "/contracts/it-4.png", title: "Servicios de traducción" }] },
-  { id: "alimentacion", label: "Alimentación y Catering", icon: "🍽️", contracts: [{ src: "/contracts/alimentacion-1.png", title: "Servicios de comida" }, { src: "/contracts/alimentacion-2.png", title: "Comida para hospital" }, { src: "/contracts/alimentacion-3.png", title: "Provisión de pan" }, { src: "/contracts/alimentacion-4.png", title: "Helados" }] },
-  { id: "eventos", label: "Eventos", icon: "🎉", contracts: [{ src: "/contracts/eventos-1.png", title: "Alquiler para eventos" }, { src: "/contracts/eventos-2.png", title: "Eventos especiales" }, { src: "/contracts/eventos-3.png", title: "Fotografía" }] },
-  { id: "seguridad-transporte", label: "Seguridad y Transporte", icon: "🔒", contracts: [{ src: "/contracts/seguridad-transporte-1.png", title: "Servicios de seguridad" }, { src: "/contracts/seguridad-transporte-2.png", title: "Transporte" }] },
-  { id: "oficina", label: "Servicios de Oficina", icon: "📋", contracts: [{ src: "/contracts/oficina-1.png", title: "Servicios de contabilidad" }, { src: "/contracts/oficina-2.png", title: "Servicios de impresión" }] },
+  { id: "limpieza", label: "Limpieza", icon: "🧹", contracts: [{ src: "/contracts/limpieza-1.png", title: "Power Washing" }, { src: "/contracts/limpieza-2.png", title: "Window Cleaning" }, { src: "/contracts/limpieza-3.png", title: "Laundry Services" }, { src: "/contracts/limpieza-4.png", title: "Uniforms" }] },
+  { id: "hvac", label: "HVAC y Plomería", icon: "⚙️", contracts: [{ src: "/contracts/hvac-1.png", title: "HVAC Replacement" }, { src: "/contracts/hvac-2.png", title: "Heating & Cooling (HVAC)" }, { src: "/contracts/hvac-3.png", title: "495 River St — Passaic County (real)" }, { src: "/contracts/hvac-4.png", title: "Plumbing Supply" }] },
+  { id: "construccion", label: "Construcción y Mantenimiento", icon: "🏗️", contracts: [{ src: "/contracts/construccion-1.png", title: "Roofing" }, { src: "/contracts/construccion-2.png", title: "Elevator Maintenance" }, { src: "/contracts/construccion-3.png", title: "Elevator Services" }, { src: "/contracts/construccion-4.png", title: "Hardware Supplies" }, { src: "/contracts/construccion-5.png", title: "Auto Body Shop" }] },
+  { id: "areas-verdes", label: "Áreas Verdes", icon: "🌿", contracts: [{ src: "/contracts/areas-verdes-1.png", title: "Landscape Maintenance" }, { src: "/contracts/areas-verdes-2.png", title: "Tree Removal" }, { src: "/contracts/areas-verdes-3.png", title: "Fertilizer Supply" }] },
+  { id: "invierno", label: "Productos de Invierno", icon: "❄️", contracts: [{ src: "/contracts/invierno-1.png", title: "Snow Removal" }, { src: "/contracts/invierno-2.png", title: "Salt & Winter Products" }, { src: "/contracts/invierno-3.png", title: "Holiday Tree Lighting" }] },
+  { id: "it", label: "IT y Tecnología", icon: "💻", contracts: [{ src: "/contracts/it-1.png", title: "IT Support" }, { src: "/contracts/it-2.png", title: "Software" }, { src: "/contracts/it-3.png", title: "Call Center" }, { src: "/contracts/it-4.png", title: "Translation Services" }] },
+  { id: "alimentacion", label: "Alimentación y Catering", icon: "🍽️", contracts: [{ src: "/contracts/alimentacion-1.png", title: "Food Services" }, { src: "/contracts/alimentacion-2.png", title: "Hospital Food Service" }, { src: "/contracts/alimentacion-3.png", title: "Bread Supply" }, { src: "/contracts/alimentacion-4.png", title: "Ice Cream" }] },
+  { id: "eventos", label: "Eventos", icon: "🎉", contracts: [{ src: "/contracts/eventos-1.png", title: "Party & Event Rental" }, { src: "/contracts/eventos-2.png", title: "Special Events" }, { src: "/contracts/eventos-3.png", title: "Photography" }] },
+  { id: "seguridad-transporte", label: "Seguridad y Transporte", icon: "🔒", contracts: [{ src: "/contracts/seguridad-transporte-1.png", title: "Security Services" }, { src: "/contracts/seguridad-transporte-2.png", title: "Transportation" }] },
+  { id: "oficina", label: "Servicios de Oficina", icon: "📋", contracts: [{ src: "/contracts/oficina-1.png", title: "Accounting Services" }, { src: "/contracts/oficina-2.png", title: "Printing Services" }] },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -862,8 +862,10 @@ function ContractModal({ niche, onClose }: { niche: ContractNiche; onClose: () =
           <button onClick={onClose} aria-label="Cerrar" style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "4px", padding: "4px 9px", color: "#fff", cursor: "pointer", fontSize: 15 }}>✕</button>
         </div>
 
-        {/* Imagen (con scroll cuando está en zoom) */}
-        <div style={{ position: "relative", background: "#0b1426", flex: 1, minHeight: 0, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {/* Imagen — en zoom se puede recorrer (scroll/pan en ambas direcciones).
+            Con align/justify en flex-start, el overflow superior e izquierdo queda
+            alcanzable (si se centra con flex, esa parte no se puede scrollear). */}
+        <div style={{ position: "relative", background: "#0b1426", flex: 1, minHeight: 0, overflow: "auto", WebkitOverflowScrolling: "touch", display: "flex", alignItems: zoomed ? "flex-start" : "center", justifyContent: zoomed ? "flex-start" : "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={current.src}
