@@ -35,6 +35,15 @@ interface Niche {
   scopeItems: string[];
   value: string;
   period: string;
+  // Opcionales — para contratos REALES adjudicados (ej. estatales/locales). Si no
+  // se setean, el modal usa los defaults federales (resto de los nichos intactos).
+  awardedTo?: string;     // empresa ganadora
+  awardDate?: string;     // fecha de adjudicación
+  buyerLine?: string;     // comprador + ubicación (reemplaza "{agency}, Washington, D.C.")
+  jurisdiction?: string;  // texto del sello (default "United States Federal Government")
+  levelLabel?: string;    // nivel del badge (default "FEDERAL")
+  setAside?: string;      // default "Small Business (FAR 19.502-2)"
+  clauses?: string[];     // default cláusulas FAR
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -201,17 +210,29 @@ const NICHES: Niche[] = [
     label: "HVAC",
     icon: "⚙️",
     naics: "238220",
-    contractTitle: "Contract for HVAC Maintenance & Repair Services",
-    agency: "General Services Administration",
-    contractNo: "GS-P-2024-HVAC-088",
+    contractTitle: "495 River Street – HVAC and Roof Replacement",
+    agency: "Passaic County, New Jersey",
+    contractNo: "C-26-009",
     scopeItems: [
-      "Preventive maintenance on all HVAC units (bi-monthly)",
-      "Emergency repair response within 2 hours, 24/7/365",
-      "Energy efficiency audits and optimization reporting",
-      "Parts and labor warranty: 2 years on all completed work",
+      "Full replacement of the building HVAC system at 495 River Street",
+      "Complete roof tear-off and replacement",
+      "Associated mechanical, electrical, and structural work per project specs",
+      "All materials, labor, permits, and inspections included",
     ],
-    value: "$225,000 / year",
-    period: "12 months + 4 option years",
+    value: "$6,797,087",
+    period: "—",
+    awardedTo: "Centralpack Engineering Corporation",
+    awardDate: "26/05/2026",
+    buyerLine: "Passaic County, New Jersey",
+    jurisdiction: "Passaic County, New Jersey",
+    levelLabel: "ESTATAL / LOCAL",
+    setAside: "No aplica (contrato estatal/local)",
+    clauses: [
+      "N.J.S.A. 40A:11 — Local Public Contracts Law",
+      "Prevailing Wage Act — N.J.S.A. 34:11-56.25 y ss.",
+      "Affirmative Action — N.J.A.C. 17:27",
+      "Public Works Contractor Registration Act — N.J.S.A. 34:11-56.48",
+    ],
   },
 ];
 
@@ -1028,7 +1049,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <FileText style={{ width: "16px", height: "16px", color: "#FFFFFF", flexShrink: 0 }} />
             <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, fontFamily: "sans-serif", letterSpacing: "0.05em" }}>
-              CONTRATO FEDERAL ADJUDICADO — {niche.icon} {niche.label.toUpperCase()}
+              CONTRATO {niche.levelLabel ?? "FEDERAL"} ADJUDICADO — {niche.icon} {niche.label.toUpperCase()}
             </span>
           </div>
           <button
@@ -1059,7 +1080,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
               🦅
             </div>
             <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", color: "#1a365d", textTransform: "uppercase" }}>
-              United States Federal Government
+              {niche.jurisdiction ?? "United States Federal Government"}
             </p>
           </div>
 
@@ -1073,6 +1094,24 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
           }}>
             {niche.contractTitle}
           </h1>
+
+          {/* Award Information — solo para contratos reales adjudicados */}
+          {niche.awardedTo && (
+            <div style={{
+              background: "#E9F5EE", border: "1px solid #BFE3CF", borderRadius: "6px",
+              padding: "12px 14px", marginBottom: "22px", fontSize: "12px",
+            }}>
+              <p style={{ fontWeight: 700, color: "#1a365d", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "11px" }}>
+                Award Information
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
+                <div><strong>Awarded To:</strong><br />{niche.awardedTo}</div>
+                <div><strong>Award Amount:</strong><br /><strong style={{ color: "#1a365d" }}>{niche.value}</strong></div>
+                {niche.awardDate && <div><strong>Award Date:</strong><br />{niche.awardDate}</div>}
+                <div><strong>Status:</strong><br />Adjudicado</div>
+              </div>
+            </div>
+          )}
 
           {/* Header info */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "24px", fontSize: "12px" }}>
@@ -1098,7 +1137,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
             </div>
             <div>
               <strong>Set-Aside:</strong><br />
-              Small Business (FAR 19.502-2)
+              {niche.setAside ?? "Small Business (FAR 19.502-2)"}
             </div>
           </div>
 
@@ -1108,7 +1147,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
               1. PARTIES
             </p>
             <p style={{ fontSize: "12px", marginBottom: "6px" }}>
-              <strong>Government (Buyer):</strong> {niche.agency}, Washington, D.C.
+              <strong>Government (Buyer):</strong> {niche.buyerLine ?? `${niche.agency}, Washington, D.C.`}
             </p>
             <p style={{ fontSize: "12px" }}>
               <strong>Contractor:</strong> [Your Company Name], [City, State] · EIN: XX-XXXXXXX · UEI: XXXXXXXXXXXX
@@ -1136,10 +1175,14 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
               3. KEY CONTRACT CLAUSES
             </p>
             <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px" }}>
-              <p>• FAR 52.212-4 — Contract Terms and Conditions — Commercial Items</p>
-              <p>• FAR 52.222-26 — Equal Opportunity</p>
-              <p>• FAR 52.228-5 — Insurance — Work on a Government Installation</p>
-              <p>• FAR 52.232-33 — Payment by Electronic Funds Transfer</p>
+              {(niche.clauses ?? [
+                "FAR 52.212-4 — Contract Terms and Conditions — Commercial Items",
+                "FAR 52.222-26 — Equal Opportunity",
+                "FAR 52.228-5 — Insurance — Work on a Government Installation",
+                "FAR 52.232-33 — Payment by Electronic Funds Transfer",
+              ]).map((c, i) => (
+                <p key={i}>• {c}</p>
+              ))}
             </div>
           </div>
 
