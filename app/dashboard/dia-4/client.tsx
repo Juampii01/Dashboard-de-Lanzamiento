@@ -33,7 +33,7 @@ const LOADING_STEPS = [
 
 // Número de WhatsApp del equipo para solicitar el certificado (solo dígitos, con
 // código de país, sin "+"). Configurable por env NEXT_PUBLIC_CERT_WHATSAPP.
-const CERT_WHATSAPP = (process.env.NEXT_PUBLIC_CERT_WHATSAPP ?? "").replace(/\D/g, "");
+const CERT_WHATSAPP = (process.env.NEXT_PUBLIC_CERT_WHATSAPP ?? "17329645246").replace(/\D/g, "");
 
 // 5 variantes de distinto tono — se elige una al azar al solicitar el certificado.
 const CERT_REQUEST_MESSAGES: ((name: string) => string)[] = [

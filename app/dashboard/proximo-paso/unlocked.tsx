@@ -5,7 +5,7 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 
 // Número de WhatsApp de la mentoría "Tu Primer Contrato" (solo dígitos, con
 // código de país, sin "+"). Configurable por env NEXT_PUBLIC_MENTORIA_WHATSAPP.
-const MENTORIA_WHATSAPP = (process.env.NEXT_PUBLIC_MENTORIA_WHATSAPP ?? "").replace(/\D/g, "");
+const MENTORIA_WHATSAPP = (process.env.NEXT_PUBLIC_MENTORIA_WHATSAPP ?? "17329373088").replace(/\D/g, "");
 
 export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
   function handleWhatsApp() {
