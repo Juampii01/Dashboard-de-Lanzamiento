@@ -15,6 +15,7 @@ interface HomeClientProps {
   devMode: boolean;
   avatarUrl?: string | null;
   recordings?: (string | null)[];
+  tutorialVideoId?: string;
 }
 
 interface Comment {
@@ -357,8 +358,9 @@ function RecordingsButtons({ urls }: { urls: (string | null)[] }) {
   );
 }
 
-function VideoTutorial() {
-  const isPlaceholder = !TUTORIAL_YT_ID;
+function VideoTutorial({ videoId }: { videoId?: string }) {
+  const id = videoId ?? TUTORIAL_YT_ID;
+  const isPlaceholder = !id;
 
   return (
     <div>
@@ -462,7 +464,7 @@ function VideoTutorial() {
           </div>
         ) : (
           <iframe
-            src={`https://www.youtube.com/embed/${TUTORIAL_YT_ID}?rel=0&modestbranding=1`}
+            src={`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`}
             style={{
               position: "absolute", top: 0, left: 0,
               width: "100%", height: "100%",
@@ -1218,7 +1220,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
@@ -1253,7 +1255,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
       )}
 
       {/* 2. Loom tutorial video */}
-      <VideoTutorial />
+      <VideoTutorial videoId={tutorialVideoId} />
 
       {/* 3. Comments */}
       {!devMode && <CommentsSection />}

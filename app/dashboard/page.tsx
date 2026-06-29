@@ -22,6 +22,7 @@ export default async function DashboardPage() {
   let avatarUrl: string | null = null;
   let isAdmin = false;
   const recordings: (string | null)[] = [null, null, null, null];
+  let tutorialVideoId = "2A6EB_cDk-A"; // default; el admin lo puede cambiar
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -60,6 +61,17 @@ export default async function DashboardPage() {
         recordings[r.recording_number - 1] = r.youtube_url ?? null;
       }
     }
+
+    // Video del tutorial (editable desde /admin). Si existe la fila, usamos su
+    // valor (vacío = "coming soon"); si no existe la tabla/fila aún, queda el default.
+    const { data: tut } = await createServiceClient()
+      .from("app_settings")
+      .select("value")
+      .eq("key", "tutorial_youtube")
+      .maybeSingle();
+    if (tut && typeof (tut as { value?: string | null }).value === "string") {
+      tutorialVideoId = (tut as { value: string }).value;
+    }
   }
 
   // Contador de Inicio (day 0). El desbloqueo es MANUAL (el admin abre el Inicio
@@ -82,6 +94,7 @@ export default async function DashboardPage() {
         devMode={devMode}
         avatarUrl={avatarUrl}
         recordings={recordings}
+        tutorialVideoId={tutorialVideoId}
       />
       {beforeLaunch && (
         <LaunchCountdown

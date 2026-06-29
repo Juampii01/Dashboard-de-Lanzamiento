@@ -598,6 +598,60 @@ function RegistroLinkPanel() {
   );
 }
 
+function TutorialAdminPanel() {
+  const [value, setValue] = useState("");
+  const [current, setCurrent] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d?.tutorial_youtube === "string") { setCurrent(d.tutorial_youtube); setValue(d.tutorial_youtube); }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function save() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "tutorial_youtube", value }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error();
+      setCurrent(d.value ?? "");
+      setValue(d.value ?? "");
+      toast.success(d.value ? "Tutorial actualizado." : "Tutorial en 'Próximamente' (sin video).");
+    } catch { toast.error("Error al guardar el tutorial."); }
+    setSaving(false);
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="text"
+          placeholder="Pegá el link de YouTube (o el ID)"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          disabled={saving}
+          className="flex-1 min-w-0 px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+          style={{ borderColor: "#1E3A5C", minWidth: 240 }}
+        />
+        <Button size="sm" onClick={save} disabled={saving}>{saving ? "..." : "Guardar"}</Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {current
+          ? <>Video actual: <span className="font-mono">{current}</span> · <a href={`https://youtu.be/${current}`} target="_blank" rel="noreferrer" className="text-primary font-semibold">ver ↗</a></>
+          : "Sin video → el tutorial muestra “Próximamente”. Dejá el campo vacío y guardá para volver a ese estado."}
+      </p>
+    </div>
+  );
+}
+
 interface RecordingRow { recording_number: number; youtube_url?: string | null; }
 
 function RecordingsAdminPanel() {
@@ -1059,6 +1113,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </CardHeader>
         <CardContent>
           <RecordingsAdminPanel />
+        </CardContent>
+      </Card>
+
+      {/* Video del Tutorial de inicio */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Video className="w-5 h-5 text-[#FFD700]" />
+            Tutorial de inicio
+          </CardTitle>
+          <CardDescription>
+            Pegá el link de YouTube del tutorial. Aparece en el inicio del dashboard. Si lo dejás vacío, se muestra “Próximamente”.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <TutorialAdminPanel />
         </CardContent>
       </Card>
 
