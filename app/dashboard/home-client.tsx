@@ -25,27 +25,12 @@ interface Comment {
   created_at: string;
 }
 
-interface Niche {
+interface ContractNiche {
   id: string;
   label: string;
   icon: string;
-  naics: string;
-  contractTitle: string;
-  agency: string;
-  contractNo: string;
-  scopeItems: string[];
-  value: string;
-  period: string;
-  // Opcionales — para contratos REALES adjudicados (ej. estatales/locales). Si no
-  // se setean, el modal usa los defaults federales (resto de los nichos intactos).
-  awardedTo?: string;     // empresa ganadora
-  awardDate?: string;     // fecha de adjudicación
-  buyerLine?: string;     // comprador + ubicación (reemplaza "{agency}, Washington, D.C.")
-  jurisdiction?: string;  // texto del sello (default "United States Federal Government")
-  levelLabel?: string;    // nivel del badge (default "FEDERAL")
-  setAside?: string;      // default "Small Business (FAR 19.502-2)"
-  clauses?: string[];     // default cláusulas FAR
-  imageSrc?: string;      // si está, el modal muestra SOLO esta foto (contrato real)
+  // Cada nicho tiene 1+ contratos reales (fotos). Se navegan con flechas.
+  contracts: { src: string; title: string }[];
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -53,37 +38,17 @@ interface Niche {
 // Replace this with your real Loom video ID (the part after loom.com/share/)
 const TUTORIAL_YT_ID = "2A6EB_cDk-A"; // ID de YouTube del tutorial de inicio ("" = coming soon)
 
-const NICHES: Niche[] = [
-  {
-    id: "hvac",
-    label: "HVAC",
-    icon: "⚙️",
-    naics: "238220",
-    contractTitle: "495 River Street – HVAC and Roof Replacement",
-    agency: "Passaic County, New Jersey",
-    contractNo: "C-26-009",
-    scopeItems: [
-      "Full replacement of the building HVAC system at 495 River Street",
-      "Complete roof tear-off and replacement",
-      "Associated mechanical, electrical, and structural work per project specs",
-      "All materials, labor, permits, and inspections included",
-    ],
-    value: "$6,797,087",
-    period: "—",
-    awardedTo: "Centralpack Engineering Corporation",
-    awardDate: "26/05/2026",
-    buyerLine: "Passaic County, New Jersey",
-    jurisdiction: "Passaic County, New Jersey",
-    levelLabel: "ESTATAL / LOCAL",
-    setAside: "No aplica (contrato estatal/local)",
-    clauses: [
-      "N.J.S.A. 40A:11 — Local Public Contracts Law",
-      "Prevailing Wage Act — N.J.S.A. 34:11-56.25 y ss.",
-      "Affirmative Action — N.J.A.C. 17:27",
-      "Public Works Contractor Registration Act — N.J.S.A. 34:11-56.48",
-    ],
-    imageSrc: "/hvac-passaic.png",
-  },
+const CONTRACT_NICHES: ContractNiche[] = [
+  { id: "limpieza", label: "Limpieza", icon: "🧹", contracts: [{ src: "/contracts/limpieza-1.png", title: "Hidrolavado" }, { src: "/contracts/limpieza-2.png", title: "Limpieza de ventanas" }, { src: "/contracts/limpieza-3.png", title: "Servicios de lavandería" }, { src: "/contracts/limpieza-4.png", title: "Uniformes" }] },
+  { id: "hvac", label: "HVAC y Plomería", icon: "⚙️", contracts: [{ src: "/contracts/hvac-1.png", title: "Reemplazo de HVAC" }, { src: "/contracts/hvac-2.png", title: "Calefacción y refrigeración" }, { src: "/contracts/hvac-3.png", title: "495 River St — Passaic County (real)" }, { src: "/contracts/hvac-4.png", title: "Insumos de plomería" }] },
+  { id: "construccion", label: "Construcción y Mantenimiento", icon: "🏗️", contracts: [{ src: "/contracts/construccion-1.png", title: "Techado" }, { src: "/contracts/construccion-2.png", title: "Mantenimiento de ascensores" }, { src: "/contracts/construccion-3.png", title: "Servicios de ascensores" }, { src: "/contracts/construccion-4.png", title: "Ferretería e insumos" }, { src: "/contracts/construccion-5.png", title: "Chapa y pintura" }] },
+  { id: "areas-verdes", label: "Áreas Verdes", icon: "🌿", contracts: [{ src: "/contracts/areas-verdes-1.png", title: "Mantenimiento de jardines" }, { src: "/contracts/areas-verdes-2.png", title: "Remoción de árboles" }, { src: "/contracts/areas-verdes-3.png", title: "Fertilizantes" }] },
+  { id: "invierno", label: "Productos de Invierno", icon: "❄️", contracts: [{ src: "/contracts/invierno-1.png", title: "Remoción de nieve" }, { src: "/contracts/invierno-2.png", title: "Sal y productos de invierno" }, { src: "/contracts/invierno-3.png", title: "Iluminación navideña" }] },
+  { id: "it", label: "IT y Tecnología", icon: "💻", contracts: [{ src: "/contracts/it-1.png", title: "Soporte IT" }, { src: "/contracts/it-2.png", title: "Software" }, { src: "/contracts/it-3.png", title: "Call center" }, { src: "/contracts/it-4.png", title: "Servicios de traducción" }] },
+  { id: "alimentacion", label: "Alimentación y Catering", icon: "🍽️", contracts: [{ src: "/contracts/alimentacion-1.png", title: "Servicios de comida" }, { src: "/contracts/alimentacion-2.png", title: "Comida para hospital" }, { src: "/contracts/alimentacion-3.png", title: "Provisión de pan" }, { src: "/contracts/alimentacion-4.png", title: "Helados" }] },
+  { id: "eventos", label: "Eventos", icon: "🎉", contracts: [{ src: "/contracts/eventos-1.png", title: "Alquiler para eventos" }, { src: "/contracts/eventos-2.png", title: "Eventos especiales" }, { src: "/contracts/eventos-3.png", title: "Fotografía" }] },
+  { id: "seguridad-transporte", label: "Seguridad y Transporte", icon: "🔒", contracts: [{ src: "/contracts/seguridad-transporte-1.png", title: "Servicios de seguridad" }, { src: "/contracts/seguridad-transporte-2.png", title: "Transporte" }] },
+  { id: "oficina", label: "Servicios de Oficina", icon: "📋", contracts: [{ src: "/contracts/oficina-1.png", title: "Servicios de contabilidad" }, { src: "/contracts/oficina-2.png", title: "Servicios de impresión" }] },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -869,276 +834,72 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
 
 // ─── Contract Models ──────────────────────────────────────────────────────────
 
-function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }) {
-  // Lightbox para ver la foto del contrato en grande / con zoom.
-  const [lightbox, setLightbox] = useState(false);
+function ContractModal({ niche, onClose }: { niche: ContractNiche; onClose: () => void }) {
+  const [idx, setIdx] = useState(0);
   const [zoomed, setZoomed] = useState(false);
-  // Close on backdrop click
-  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
+  const list = niche.contracts;
+  const current = list[Math.min(idx, list.length - 1)] ?? list[0];
+  const go = (d: number) => { setZoomed(false); setIdx((i) => (i + d + list.length) % list.length); };
+  const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => { if (e.target === e.currentTarget) onClose(); };
+  const arrow: React.CSSProperties = {
+    position: "absolute", top: "50%", transform: "translateY(-50%)",
+    width: 42, height: 42, borderRadius: "50%",
+    background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.35)",
+    color: "#fff", fontSize: 26, lineHeight: 1, cursor: "pointer", zIndex: 3,
+    display: "flex", alignItems: "center", justifyContent: "center",
   };
 
   return (
-    <div
-      onClick={handleBackdrop}
-      style={{
-        position: "fixed", inset: 0, zIndex: 99990,
-        background: "rgba(6,13,26,0.88)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "16px",
-        backdropFilter: "blur(4px)",
-      }}
-    >
-      <div
-        style={{
-          background: "#FFFFFF",
-          borderRadius: "8px",
-          maxWidth: "640px", width: "100%",
-          maxHeight: "85vh",
-          overflowY: "auto",
-          fontFamily: "Times New Roman, serif",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
-        }}
-      >
-        {/* Header bar */}
-        <div
-          style={{
-            background: "#1a365d",
-            padding: "12px 16px",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <FileText style={{ width: "16px", height: "16px", color: "#FFFFFF", flexShrink: 0 }} />
-            <span style={{ color: "#FFFFFF", fontSize: "12px", fontWeight: 700, fontFamily: "sans-serif", letterSpacing: "0.05em" }}>
-              CONTRATO {niche.levelLabel ?? "FEDERAL"} ADJUDICADO — {niche.icon} {niche.label.toUpperCase()}
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: "rgba(255,255,255,0.15)", border: "none",
-              borderRadius: "4px", padding: "4px 6px",
-              color: "#FFFFFF", cursor: "pointer",
-              display: "flex", alignItems: "center",
-            }}
-          >
-            <X style={{ width: "14px", height: "14px" }} />
-          </button>
+    <div onClick={handleBackdrop} style={{ position: "fixed", inset: 0, zIndex: 99990, background: "rgba(6,13,26,0.9)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", backdropFilter: "blur(4px)" }}>
+      <div style={{ position: "relative", background: "#fff", borderRadius: "12px", maxWidth: "760px", width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.6)" }}>
+        {/* Header */}
+        <div style={{ background: "#1a365d", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <span style={{ color: "#fff", fontSize: 13, fontWeight: 700, fontFamily: "sans-serif", display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 18 }}>{niche.icon}</span>
+            {niche.label}
+            {list.length > 1 && <span style={{ fontWeight: 500, opacity: 0.85, fontSize: 12 }}>· {idx + 1} de {list.length}</span>}
+          </span>
+          <button onClick={onClose} aria-label="Cerrar" style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "4px", padding: "4px 9px", color: "#fff", cursor: "pointer", fontSize: 15 }}>✕</button>
         </div>
 
-        {/* Si el nicho tiene foto del contrato real → mostramos SOLO la foto. */}
-        {niche.imageSrc ? (
-          <div style={{ padding: "16px" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={niche.imageSrc}
-              alt={niche.contractTitle}
-              onClick={() => { setLightbox(true); setZoomed(false); }}
-              title="Clic para ampliar y ver en detalle"
-              style={{ width: "100%", height: "auto", display: "block", borderRadius: "6px", border: "1px solid #e2e2e2", cursor: "zoom-in" }}
-            />
-            <p style={{ marginTop: "12px", fontSize: "11px", color: "#777", textAlign: "center", fontStyle: "italic" }}>
-              Contrato real adjudicado · {niche.agency} · Bid {niche.contractNo} · <span style={{ color: "#1a365d", fontWeight: 700 }}>clic en la imagen para ampliar 🔍</span>
-            </p>
-          </div>
-        ) : (
-        <div style={{ padding: "32px 40px", color: "#1a1a1a", lineHeight: 1.6 }}>
-          {/* Seal placeholder */}
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
-            <div style={{
-              width: "64px", height: "64px",
-              borderRadius: "50%",
-              border: "3px solid #1a365d",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              margin: "0 auto 8px",
-              fontSize: "28px",
-            }}>
-              🦅
-            </div>
-            <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", color: "#1a365d", textTransform: "uppercase" }}>
-              {niche.jurisdiction ?? "United States Federal Government"}
-            </p>
-          </div>
-
-          {/* Title */}
-          <h1 style={{
-            textAlign: "center", fontSize: "15px", fontWeight: 700,
-            textTransform: "uppercase", letterSpacing: "0.08em",
-            borderTop: "2px solid #1a365d", borderBottom: "2px solid #1a365d",
-            padding: "10px 0", margin: "0 0 24px",
-            color: "#1a365d",
-          }}>
-            {niche.contractTitle}
-          </h1>
-
-          {/* Award Information — solo para contratos reales adjudicados */}
-          {niche.awardedTo && (
-            <div style={{
-              background: "#E9F5EE", border: "1px solid #BFE3CF", borderRadius: "6px",
-              padding: "12px 14px", marginBottom: "22px", fontSize: "12px",
-            }}>
-              <p style={{ fontWeight: 700, color: "#1a365d", margin: "0 0 8px", textTransform: "uppercase", letterSpacing: "0.05em", fontSize: "11px" }}>
-                Award Information
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                <div><strong>Awarded To:</strong><br />{niche.awardedTo}</div>
-                <div><strong>Award Amount:</strong><br /><strong style={{ color: "#1a365d" }}>{niche.value}</strong></div>
-                {niche.awardDate && <div><strong>Award Date:</strong><br />{niche.awardDate}</div>}
-                <div><strong>Status:</strong><br />Adjudicado</div>
-              </div>
-            </div>
-          )}
-
-          {/* Header info */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "24px", fontSize: "12px" }}>
-            <div>
-              <strong>Contracting Agency:</strong><br />
-              {niche.agency}
-            </div>
-            <div>
-              <strong>Contract No.:</strong><br />
-              <span style={{ fontFamily: "monospace" }}>{niche.contractNo}</span>
-            </div>
-            <div>
-              <strong>NAICS Code:</strong><br />
-              {niche.naics}
-            </div>
-            <div>
-              <strong>Contract Value:</strong><br />
-              <strong style={{ color: "#1a365d" }}>{niche.value}</strong>
-            </div>
-            <div>
-              <strong>Period of Performance:</strong><br />
-              {niche.period}
-            </div>
-            <div>
-              <strong>Set-Aside:</strong><br />
-              {niche.setAside ?? "Small Business (FAR 19.502-2)"}
-            </div>
-          </div>
-
-          {/* Parties */}
-          <div style={{ marginBottom: "20px" }}>
-            <p style={{ fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #ddd", paddingBottom: "4px" }}>
-              1. PARTIES
-            </p>
-            <p style={{ fontSize: "12px", marginBottom: "6px" }}>
-              <strong>Government (Buyer):</strong> {niche.buyerLine ?? `${niche.agency}, Washington, D.C.`}
-            </p>
-            <p style={{ fontSize: "12px" }}>
-              <strong>Contractor:</strong> [Your Company Name], [City, State] · EIN: XX-XXXXXXX · UEI: XXXXXXXXXXXX
-            </p>
-          </div>
-
-          {/* Scope */}
-          <div style={{ marginBottom: "20px" }}>
-            <p style={{ fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #ddd", paddingBottom: "4px" }}>
-              2. SCOPE OF WORK
-            </p>
-            <p style={{ fontSize: "12px", marginBottom: "10px" }}>
-              The Contractor shall provide all labor, materials, equipment, and supervision necessary to perform the following services:
-            </p>
-            <ol style={{ fontSize: "12px", paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "6px" }}>
-              {niche.scopeItems.map((item, i) => (
-                <li key={i}>{item}</li>
-              ))}
-            </ol>
-          </div>
-
-          {/* Key clauses */}
-          <div style={{ marginBottom: "20px" }}>
-            <p style={{ fontWeight: 700, fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px", borderBottom: "1px solid #ddd", paddingBottom: "4px" }}>
-              3. KEY CONTRACT CLAUSES
-            </p>
-            <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px" }}>
-              {(niche.clauses ?? [
-                "FAR 52.212-4 — Contract Terms and Conditions — Commercial Items",
-                "FAR 52.222-26 — Equal Opportunity",
-                "FAR 52.228-5 — Insurance — Work on a Government Installation",
-                "FAR 52.232-33 — Payment by Electronic Funds Transfer",
-              ]).map((c, i) => (
-                <p key={i}>• {c}</p>
-              ))}
-            </div>
-          </div>
-
-          {/* Signature block */}
-          <div style={{
-            marginTop: "28px",
-            display: "grid", gridTemplateColumns: "1fr 1fr",
-            gap: "24px", fontSize: "11px",
-          }}>
-            <div style={{ borderTop: "1px solid #1a1a1a", paddingTop: "6px" }}>
-              <p style={{ fontWeight: 700 }}>Contracting Officer Signature</p>
-              <p style={{ color: "#666", marginTop: "20px" }}>Name: _______________________</p>
-              <p style={{ color: "#666" }}>Title: Contracting Officer</p>
-              <p style={{ color: "#666" }}>Date: _______________________</p>
-            </div>
-            <div style={{ borderTop: "1px solid #1a1a1a", paddingTop: "6px" }}>
-              <p style={{ fontWeight: 700 }}>Contractor Signature</p>
-              <p style={{ color: "#666", marginTop: "20px" }}>Name: _______________________</p>
-              <p style={{ color: "#666" }}>Title: _______________________</p>
-              <p style={{ color: "#666" }}>Date: _______________________</p>
-            </div>
-          </div>
-
-          {/* Footer note */}
-          <p style={{
-            marginTop: "24px", fontSize: "9px", color: "#999",
-            textAlign: "center", fontStyle: "italic",
-            borderTop: "1px solid #eee", paddingTop: "12px",
-          }}>
-            Este es un ejemplo de contrato adjudicado real, simplificado con fines educativos. Los términos varían por agencia y solicitud.
-            Consulta siempre el SOW original y las regulaciones FAR antes de firmar.
-          </p>
-        </div>
-        )}
-      </div>
-
-      {/* Lightbox: zoom de la foto del contrato (clic para ampliar / detalle) */}
-      {lightbox && niche.imageSrc && (
-        <div
-          onClick={() => setLightbox(false)}
-          style={{
-            position: "fixed", inset: 0, zIndex: 99999,
-            background: "rgba(0,0,0,0.93)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            overflow: "auto", padding: "16px",
-          }}
-        >
+        {/* Imagen (con scroll cuando está en zoom) */}
+        <div style={{ position: "relative", background: "#0b1426", flex: 1, minHeight: 0, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={niche.imageSrc}
-            alt={niche.contractTitle}
-            onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
+            src={current.src}
+            alt={current.title}
+            onClick={() => setZoomed((z) => !z)}
             title={zoomed ? "Clic para achicar" : "Clic para acercar y ver el detalle"}
             style={zoomed
-              ? { display: "block", width: "1600px", maxWidth: "none", height: "auto", cursor: "zoom-out" }
-              : { display: "block", maxWidth: "96vw", maxHeight: "92vh", width: "auto", height: "auto", cursor: "zoom-in", borderRadius: "4px" }}
+              ? { display: "block", width: "1400px", maxWidth: "none", height: "auto", cursor: "zoom-out" }
+              : { display: "block", maxWidth: "100%", maxHeight: "72vh", width: "auto", height: "auto", cursor: "zoom-in" }}
           />
-          <button
-            onClick={() => setLightbox(false)}
-            aria-label="Cerrar"
-            style={{
-              position: "fixed", top: 14, right: 16,
-              width: 38, height: 38, borderRadius: "50%",
-              background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.3)",
-              color: "#fff", fontSize: 18, cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            ✕
-          </button>
-          <span style={{
-            position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)",
-            color: "rgba(255,255,255,0.85)", fontSize: 12, fontFamily: "var(--font-sans)",
-            background: "rgba(0,0,0,0.5)", padding: "6px 12px", borderRadius: 999, whiteSpace: "nowrap",
-          }}>
-            {zoomed ? "Clic en la imagen para achicar · scroll para recorrer" : "Clic en la imagen para acercar 🔍"}
-          </span>
         </div>
-      )}
+
+        {/* Flechas (fijas a los bordes del modal, no scrollean con la imagen) */}
+        {list.length > 1 && (
+          <>
+            <button onClick={() => go(-1)} aria-label="Contrato anterior" style={{ ...arrow, left: 10 }}>‹</button>
+            <button onClick={() => go(1)} aria-label="Contrato siguiente" style={{ ...arrow, right: 10 }}>›</button>
+          </>
+        )}
+
+        {/* Footer: título del contrato + puntos de navegación */}
+        <div style={{ padding: "11px 16px", borderTop: "1px solid #e6e6e6", background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ minWidth: 0 }}>
+            <p style={{ fontSize: 14, fontWeight: 700, color: "#1a365d", margin: 0 }}>{current.title}</p>
+            <p style={{ fontSize: 11, color: "#888", margin: "2px 0 0", fontStyle: "italic" }}>Contrato gubernamental real · clic en la imagen para ampliar 🔍</p>
+          </div>
+          {list.length > 1 && (
+            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+              {list.map((_, i) => (
+                <button key={i} onClick={() => { setZoomed(false); setIdx(i); }} aria-label={`Ver contrato ${i + 1}`}
+                  style={{ width: 9, height: 9, borderRadius: "50%", border: "none", padding: 0, cursor: "pointer", background: i === idx ? "#D7263D" : "#cbd5e1" }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1146,7 +907,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
 function ContractModels({ fullName }: { fullName?: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [certOpen, setCertOpen] = useState(false);
-  const selectedNiche = NICHES.find((n) => n.id === selected) ?? null;
+  const selectedNiche = CONTRACT_NICHES.find((n) => n.id === selected) ?? null;
 
   return (
     <div>
@@ -1167,7 +928,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
           ¡Mira contratos gubernamentales ganados!
         </h2>
         <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
-          Estos son contratos reales adjudicados a pequeñas empresas como la tuya. Selecciona tu sector.
+          Contratos reales adjudicados a pequeñas empresas. Elegí tu sector y miralos (usá las flechas si hay varios).
         </p>
       </div>
 
@@ -1178,7 +939,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
           gap: "8px",
         }}
       >
-        {NICHES.map((niche) => (
+        {CONTRACT_NICHES.map((niche) => (
           <button
             key={niche.id}
             onClick={() => setSelected(niche.id)}
@@ -1214,7 +975,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
                 {niche.label}
               </div>
               <div style={{ fontSize: "9px", color: "var(--muted-foreground)", fontFamily: "var(--font-mono)", marginTop: "1px" }}>
-                NAICS {niche.naics}
+                {niche.contracts.length} contrato{niche.contracts.length !== 1 ? "s" : ""}
               </div>
             </div>
             <div style={{ marginLeft: "auto", fontSize: "12px", color: "#D7263D", flexShrink: 0 }}>
