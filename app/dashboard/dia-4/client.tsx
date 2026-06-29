@@ -39,7 +39,7 @@ const CERT_WHATSAPP = (process.env.NEXT_PUBLIC_CERT_WHATSAPP ?? "17329645246").r
 const CERT_REQUEST_MESSAGES: ((name: string) => string)[] = [
   (n) => `Hola, soy ${n}. Acabo de completar el GovBidder Challenge y paso por aquí para solicitar mi certificado. ¡Gracias!`,
   (n) => `Hola equipo de GovBidder, soy ${n}. Ya terminé el GovBidder Challenge y quiero solicitar mi certificado de participación. ¡Gracias por el apoyo!`,
-  (n) => `¡Hola! Soy ${n} 🎉 Completé los 4 días del GovBidder Challenge y me encantaría recibir mi certificado. ¿Me ayudan?`,
+  (n) => `¡Hola! Soy ${n}. Completé los 4 días del GovBidder Challenge y me encantaría recibir mi certificado. ¿Me ayudan?`,
   (n) => `Hola, mi nombre es ${n}. He completado satisfactoriamente el GovBidder Challenge y quisiera solicitar la emisión de mi certificado de participación. Quedo atento. ¡Muchas gracias!`,
   (n) => `Saludos, equipo de GovBidder. Soy ${n} y completé el GovBidder Challenge. Por este medio solicito mi certificado correspondiente. Muchas gracias por la oportunidad.`,
 ];
