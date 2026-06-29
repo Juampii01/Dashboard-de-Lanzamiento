@@ -253,7 +253,7 @@ function StudentNote({ points }: { points: number }) {
             ¿Querés competir por los premios?
           </p>
           <p style={{ fontSize: "12.5px", color: "rgba(255,255,255,0.82)", margin: "0 0 11px", lineHeight: 1.5 }}>
-            Ya tenés <strong style={{ color: "#FFD700" }}>{points.toLocaleString("es")} pts</strong> acumulados. Pagá el acceso al lanzamiento y empezás a competir por los premios <strong style={{ color: "#fff" }}>con esos mismos puntos</strong>.
+            Ya tenés <strong style={{ color: "#FFD700" }}>{points.toLocaleString("es")} pts</strong> acumulados. Pagá el acceso al challenge y empezás a competir por los premios <strong style={{ color: "#fff" }}>con esos mismos puntos</strong>.
           </p>
           <a
             href={HOTMART_PAY_URL}
@@ -406,7 +406,7 @@ export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStud
           background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.14)",
           borderRadius: 8, padding: "8px 12px", maxWidth: "60ch", lineHeight: 1.45,
         }}>
-          🔒 El ranking y los premios son únicamente para los usuarios que <strong style={{ color: "#fff" }}>pagaron el acceso al lanzamiento</strong>.
+          🔒 El ranking y los premios son únicamente para los usuarios que <strong style={{ color: "#fff" }}>pagaron el acceso al challenge</strong>.
         </p>
 
         {/* Tu rango — fusionado dentro del banner, sobre la bandera */}

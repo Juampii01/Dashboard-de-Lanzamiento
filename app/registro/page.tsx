@@ -33,7 +33,7 @@ export default function RegistroPage() {
         </p>
 
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 800, color: "#fff", lineHeight: 1.12, margin: 0 }}>
-          Registrate gratis al lanzamiento
+          Registrate gratis al challenge
         </h1>
 
         <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.78)", lineHeight: 1.55, margin: 0 }}>
@@ -46,7 +46,7 @@ export default function RegistroPage() {
           background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.28)",
           borderRadius: 12, padding: "11px 14px",
         }}>
-          🎁 Es <strong style={{ color: "#FFD700" }}>acceso gratuito</strong>: usás todo el dashboard y sumás puntos, pero <strong style={{ color: "#FFD700" }}>no competís por los premios</strong> (esos son para quienes pagaron el acceso al lanzamiento).
+          🎁 Es <strong style={{ color: "#FFD700" }}>acceso gratuito</strong>: usás todo el dashboard y sumás puntos, pero <strong style={{ color: "#FFD700" }}>no competís por los premios</strong> (esos son para quienes pagaron el acceso al challenge).
         </p>
 
         <RegistroForm />
