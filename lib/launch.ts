@@ -17,8 +17,8 @@ export const DAY_UNLOCK_ISO: Record<number, string> = {
   4: "2026-07-02T23:00:00Z",
 };
 
-/** Contador del Inicio (dashboard): medianoche del 29/06 en hora Miami (EDT = 04:00 UTC). */
-export const INICIO_UNLOCK_ISO = "2026-06-29T04:00:00Z";
+/** Contador del Inicio (dashboard): mediodía del 29/06 en hora Miami (EDT = 16:00 UTC). */
+export const INICIO_UNLOCK_ISO = "2026-06-29T16:00:00Z";
 
 /** El "dashboard se desbloquea" = arranca el challenge (Inicio). */
 export const LAUNCH_ISO = INICIO_UNLOCK_ISO;
