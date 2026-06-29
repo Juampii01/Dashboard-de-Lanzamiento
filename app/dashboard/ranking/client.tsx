@@ -241,6 +241,87 @@ function StudentNote({ points }: { points: number }) {
   );
 }
 
+// ─── HowToEarnPoints — explica TODAS las formas de sumar puntos ───────────────
+// Valores verificados contra el código (constantes de las rutas /api/xp y
+// /api/missions; la migración points_x10 multiplicó todo ×10).
+const EARN_METHODS: { icon: string; title: string; points: string; variable?: boolean; detail: string }[] = [
+  { icon: "⏱️", title: "Tiempo activo en el dashboard", points: "+50", detail: "Con el dashboard abierto sumás automáticamente cada 10 minutos de actividad, hasta 30 veces por día (máx. 1.500 pts/día)." },
+  { icon: "👆", title: "Clic en el avatar de Santo", points: "+30", detail: "Tocá el avatar de Santo en la barra de vida. Podés volver a sumar recién una hora después (sin tope diario)." },
+  { icon: "🔥", title: "Racha diaria", points: "+300", detail: "Entrá al dashboard días seguidos: desde el segundo día consecutivo sumás racha, una vez por día." },
+  { icon: "🎬", title: "Misiones en video", points: "+100", detail: "Mirá y completá una cápsula de video del día. Suma una vez por cápsula, con 5 minutos de espera entre una y otra." },
+  { icon: "❓", title: "Quiz de la cápsula", points: "+100", detail: "Respondé bien el quiz de una cápsula. Solo el primer acierto otorga puntos." },
+  { icon: "🎙️", title: "Cápsula de podcast", points: "+300", detail: "Escuchá y reclamá una cápsula de tipo podcast. Suma una vez por cada una." },
+  { icon: "🚀", title: "Iniciar un día", points: "+250", detail: "Entrá por primera vez a un día desbloqueado. Una sola vez por cada día (1 a 4)." },
+  { icon: "📞", title: "Unirte a la clase del día", points: "+300", detail: "Tocá “Unirse a la clase” del día y unite. Una sola vez por cada día (1 a 4)." },
+  { icon: "🔴", title: "Ir a la llamada en vivo", points: "+30", detail: "Cuando hay clase en vivo, tocá “Ir a la llamada” en el aviso. Suma en cada llamada en vivo." },
+  { icon: "🏁", title: "Completar un día", points: "+500", detail: "Terminá todas las misiones del día y marcá la fase como completada. Una sola vez por cada día." },
+  { icon: "🔑", title: "Palabra clave del día", points: "+1.000", detail: "Escribí la palabra clave que se menciona en la clase (no importan mayúsculas ni acentos). Una vez por día." },
+  { icon: "📸", title: "Historia diaria", points: "+500", detail: "Subí la captura de tu historia del día (imagen, máx. 8 MB). Una por día; se reinicia a las 8 AM hora Miami." },
+  { icon: "✅", title: "Misión diaria", points: "Variable", variable: true, detail: "Completá la misión diaria activa (captura, link o texto). Los puntos los define el equipo según la misión." },
+  { icon: "⚡", title: "Misión ráfaga", points: "Variable", variable: true, detail: "Reclamá la misión relámpago mientras está activa, dentro de su ventana de tiempo. Una vez por ráfaga; los puntos los define el equipo." },
+  { icon: "💬", title: "Comentario en la comunidad", points: "+500", detail: "Comentá en la comunidad del programa. Suma en tus primeros 3 comentarios." },
+  { icon: "🤝", title: "Referido que ingresa", points: "+1.000", detail: "Compartí tu link de referido: ganás por cada persona que entra al challenge (se acredita cuando se crea su cuenta). Sin límite." },
+];
+
+function HowToEarnPoints() {
+  return (
+    <div style={{
+      background: "rgba(10,37,64,0.8)",
+      border: "1px solid #1E3A5C",
+      borderRadius: "14px",
+      overflow: "hidden",
+      marginBottom: "28px",
+    }}>
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid #1E3A5C" }}>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 800, color: "#00D4FF", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+          💡 Cómo sumar puntos
+        </span>
+        <p style={{ fontSize: "12px", color: "#8DA2C4", marginTop: "3px" }}>
+          Todas las formas de ganar puntos en el challenge. Cuanto más sumás, más alto es tu rango.
+        </p>
+      </div>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+        gap: 10,
+        padding: "14px 16px",
+      }}>
+        {EARN_METHODS.map((m) => (
+          <div key={m.title} style={{
+            background: "rgba(20,58,107,0.45)",
+            border: "1px solid #1E3A5C",
+            borderRadius: 10,
+            padding: "11px 12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 18, flexShrink: 0 }}>{m.icon}</span>
+              <span style={{ flex: 1, minWidth: 0, fontFamily: "var(--font-sans)", fontSize: 13, fontWeight: 700, color: "#E6EEFA", lineHeight: 1.2 }}>
+                {m.title}
+              </span>
+              <span style={{
+                flexShrink: 0,
+                fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 800,
+                color: m.variable ? "#9FB4D4" : "#FFD60A",
+                background: m.variable ? "rgba(159,180,212,0.12)" : "rgba(255,214,10,0.1)",
+                border: `1px solid ${m.variable ? "rgba(159,180,212,0.3)" : "rgba(255,214,10,0.3)"}`,
+                borderRadius: 5, padding: "3px 7px", whiteSpace: "nowrap",
+              }}>
+                {m.variable ? m.points : `${m.points} pts`}
+              </span>
+            </div>
+            <p style={{ fontSize: 11.5, color: "#A9BAD4", lineHeight: 1.45, margin: 0 }}>
+              {m.detail}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStudent?: boolean; studentPoints?: number }) {
   const [board, setBoard]     = useState<FullData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -299,6 +380,9 @@ export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStud
         {!loading && (isStudent ? <StudentNote points={studentPoints} /> : <MyRankCard points={me?.total_points ?? 0} />)}
       </FlagBanner>
       <div style={{ height: "24px" }} />
+
+      {/* Cómo sumar puntos — guía completa de todas las formas de ganar */}
+      <HowToEarnPoints />
 
       {/* Prize tiers */}
       <div style={{
