@@ -109,12 +109,12 @@ interface LockState {
 const DEFAULT_MESSAGE = "La llamada en vivo está en curso. Volvé cuando termine.";
 
 // Links de Zoom por día — el admin toca el día y se rellena el campo de URL.
-// Días 1-3 comparten sala; el Día 4 usa otra.
+// Una sala distinta por cada día.
 const CLASS_LINKS: Record<number, string> = {
   1: "https://us06web.zoom.us/j/89500217863",
-  2: "https://us06web.zoom.us/j/89500217863",
-  3: "https://us06web.zoom.us/j/89500217863",
-  4: "https://us06web.zoom.us/j/81591964516",
+  2: "https://us06web.zoom.us/j/87449566033",
+  3: "https://us06web.zoom.us/j/82763320870",
+  4: "https://us06web.zoom.us/j/87083219386",
 };
 
 function DashboardLockControl() {
