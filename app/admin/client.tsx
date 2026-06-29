@@ -941,6 +941,10 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
   const [bdUser, setBdUser] = useState<User | null>(null);
   const [bdData, setBdData] = useState<Breakdown | null>(null);
   const [bdLoading, setBdLoading] = useState(false);
+  // Link de acceso (magic link) de un usuario, para enviarlo a mano (no por email).
+  const [linkUser, setLinkUser] = useState<User | null>(null);
+  const [linkUrl, setLinkUrl] = useState<string | null>(null);
+  const [linkLoading, setLinkLoading] = useState(false);
 
   async function openBreakdown(user: User) {
     setBdUser(user);
@@ -952,6 +956,31 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
       if (res.ok) setBdData({ total: d.total ?? 0, tracked: d.tracked ?? 0, by_category: d.by_category ?? {} });
     } catch { /* noop */ }
     setBdLoading(false);
+  }
+
+  async function openAccessLink(user: User) {
+    setLinkUser(user);
+    setLinkUrl(null);
+    setLinkLoading(true);
+    try {
+      const res = await fetch("/api/admin/users/access-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const d = await res.json();
+      if (res.ok && d.link) {
+        setLinkUrl(d.link);
+        try { await navigator.clipboard.writeText(d.link); toast.success("Link copiado al portapapeles"); } catch { /* sin portapapeles */ }
+      } else {
+        toast.error(d.error === "no_email" ? "Ese usuario no tiene email." : "No se pudo generar el link.");
+        setLinkUser(null);
+      }
+    } catch {
+      toast.error("Error al generar el link.");
+      setLinkUser(null);
+    }
+    setLinkLoading(false);
   }
 
   const progressByUser = allProgress.reduce<Record<string, Progress[]>>((acc, p) => {
@@ -1313,6 +1342,13 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
                       <div>
                         <p className="font-medium text-sm">{user.full_name ?? "—"}</p>
                         <p className="text-xs text-muted-foreground">{user.email}</p>
+                        <button
+                          onClick={() => openAccessLink(user)}
+                          title="Generar un link de acceso para enviárselo vos mismo"
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:opacity-80"
+                        >
+                          🔗 Link de acceso
+                        </button>
                       </div>
                     </TableCell>
                     {[1, 2, 3, 4].map((day) => {
@@ -1441,6 +1477,62 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">Este usuario todavía no sumó puntos rastreados.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal: link de acceso de un usuario (para enviarlo a mano, sin email) */}
+      {linkUser && (
+        <div
+          onClick={() => setLinkUser(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 99990, background: "rgba(6,13,26,0.7)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-card border rounded-2xl"
+            style={{ width: "min(520px, 100%)", borderColor: "#1E3A5C", padding: "20px" }}
+          >
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <div>
+                <p className="font-bold text-base">{linkUser.full_name ?? "—"}</p>
+                <p className="text-xs text-muted-foreground">{linkUser.email}</p>
+              </div>
+              <button onClick={() => setLinkUser(null)} aria-label="Cerrar" className="text-muted-foreground hover:text-foreground text-lg leading-none">✕</button>
+            </div>
+            <p className="text-sm font-semibold mt-2 mb-2">🔗 Link de acceso directo</p>
+            {linkLoading ? (
+              <p className="text-sm text-muted-foreground">Generando…</p>
+            ) : linkUrl ? (
+              <>
+                <textarea
+                  readOnly
+                  value={linkUrl}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="w-full text-xs font-mono rounded-lg border p-2 bg-background text-foreground"
+                  style={{ borderColor: "#1E3A5C", minHeight: 72, resize: "none" }}
+                />
+                <div className="flex flex-wrap items-center gap-3 mt-3">
+                  <Button
+                    onClick={async () => { try { await navigator.clipboard.writeText(linkUrl); toast.success("Link copiado"); } catch { toast.error("No se pudo copiar"); } }}
+                  >
+                    Copiar link
+                  </Button>
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent("Tu acceso al GovBidder Challenge (toca para entrar, sin contraseña): " + linkUrl)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-primary hover:opacity-80"
+                  >
+                    Enviar por WhatsApp →
+                  </a>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
+                  Al abrirlo, la persona entra directo al dashboard sin contraseña. Es de un solo uso y válido por un tiempo limitado — si caduca, generá otro.
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No se pudo generar el link.</p>
             )}
           </div>
         </div>
