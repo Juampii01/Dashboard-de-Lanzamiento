@@ -245,7 +245,7 @@ function StudentNote({ points }: { points: number }) {
 // Valores verificados contra el código (constantes de las rutas /api/xp y
 // /api/missions; la migración points_x10 multiplicó todo ×10).
 const EARN_METHODS: { icon: string; title: string; points: string; variable?: boolean; detail: string }[] = [
-  { icon: "⏱️", title: "Tiempo activo en el dashboard", points: "+50", detail: "Con el dashboard abierto sumás automáticamente cada 10 minutos de actividad, hasta 30 veces por día (máx. 1.500 pts/día)." },
+  { icon: "⏱️", title: "Tiempo activo en el dashboard", points: "+25", detail: "Con el dashboard abierto sumás automáticamente cada 10 minutos de actividad, hasta 20 veces por día (máx. 500 pts/día)." },
   { icon: "👆", title: "Clic en el avatar de Santo", points: "+30", detail: "Tocá el avatar de Santo en la barra de vida. Podés volver a sumar recién una hora después (sin tope diario)." },
   { icon: "🔥", title: "Racha diaria", points: "+300", detail: "Entrá al dashboard días seguidos: desde el segundo día consecutivo sumás racha, una vez por día." },
   { icon: "🎬", title: "Misiones en video", points: "+100", detail: "Mirá y completá una cápsula de video del día. Suma una vez por cápsula, con 5 minutos de espera entre una y otra." },
