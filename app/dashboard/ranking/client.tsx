@@ -30,6 +30,10 @@ const TOP_COLORS: Record<number, string> = {
 const MAX_PER_RANK = 20;
 const RANK_ORDER = ["expert", "legacy", "prime", "elevate"] as const;
 
+// Link de pago de Hotmart para que un usuario gratuito desbloquee los premios.
+// Vacío = aún sin configurar (no se muestra el botón "Pagar"). Pegar el link acá.
+const HOTMART_PAY_URL = "";
+
 // ─── PositionBadge — número de posición a la izquierda, bien legible ──────────
 function PositionBadge({ position }: { position: number }) {
   const medal = TOP_COLORS[position];
@@ -237,6 +241,32 @@ function StudentNote({ points }: { points: number }) {
       <p style={{ fontSize: "13.5px", color: "rgba(255,255,255,0.85)", marginTop: 6, maxWidth: "54ch", lineHeight: 1.5 }}>
         Sumas puntos y usas todo el dashboard, pero <strong style={{ color: "#fff" }}>no compites por el ranking ni los premios</strong>. Tus puntos: <strong style={{ color: "#fff" }}>{points.toLocaleString("es")}</strong>.
       </p>
+
+      {/* Upsell: pagar el acceso para competir por los premios (con los puntos ya sumados) */}
+      {HOTMART_PAY_URL && (
+        <div style={{ marginTop: 14, background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.3)", borderRadius: 12, padding: "13px 15px", maxWidth: "54ch" }}>
+          <p style={{ fontSize: "13.5px", color: "#fff", fontWeight: 800, margin: "0 0 4px" }}>
+            ¿Querés competir por los premios?
+          </p>
+          <p style={{ fontSize: "12.5px", color: "rgba(255,255,255,0.82)", margin: "0 0 11px", lineHeight: 1.5 }}>
+            Ya tenés <strong style={{ color: "#FFD700" }}>{points.toLocaleString("es")} pts</strong> acumulados. Pagá el acceso al lanzamiento y empezás a competir por los premios <strong style={{ color: "#fff" }}>con esos mismos puntos</strong>.
+          </p>
+          <a
+            href={HOTMART_PAY_URL}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 7,
+              padding: "10px 18px", borderRadius: 10, textDecoration: "none",
+              fontSize: "14px", fontWeight: 800, color: "#fff",
+              background: "linear-gradient(135deg, #E42D2C 0%, #A11D2E 100%)",
+              boxShadow: "0 8px 22px -6px rgba(228,45,44,0.6)",
+            }}
+          >
+            💳 Pagar acceso y competir →
+          </a>
+        </div>
+      )}
     </div>
   );
 }
