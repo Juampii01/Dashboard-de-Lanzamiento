@@ -10,7 +10,7 @@ const MENTORIA_WHATSAPP = (process.env.NEXT_PUBLIC_MENTORIA_WHATSAPP ?? "1732937
 export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
   function handleWhatsApp() {
     const name = (fullName || "").trim();
-    const msg = `Hola, soy ${name}. Acabo de terminar el GovBidder Challenge y quiero saber más sobre el programa “Tu Primer Contrato” para conseguir mi primer contrato con el gobierno. ¿Cómo sigo?`;
+    const msg = `Hola, soy ${name}. Acabo de terminar el GovBidder Challenge y quiero saber más sobre la mentoría “Tu Primer Contrato”. ¿Cómo sigo?`;
     const base = MENTORIA_WHATSAPP ? `https://wa.me/${MENTORIA_WHATSAPP}` : "https://wa.me/";
     window.open(`${base}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
   }
