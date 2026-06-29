@@ -60,7 +60,7 @@ export function RegistroForm() {
           background: "rgba(255,215,0,0.10)", border: "1px solid rgba(255,215,0,0.3)",
           borderRadius: 10, padding: "10px 12px", lineHeight: 1.45,
         }}>
-          🎁 Estás registrado como <strong>usuario gratuito</strong>: usás todo el dashboard y sumás puntos, pero <strong>no competís por los premios</strong>.
+          🎁 Estás registrado como <strong>usuario gratuito</strong>: usas todo el dashboard y sumas puntos, pero <strong>no compites por los premios</strong>.
         </span>
       </div>
     );
@@ -75,7 +75,7 @@ export function RegistroForm() {
       }}>
         <span style={{ fontSize: 17, fontWeight: 800 }}>👋 Ese email ya está registrado</span>
         <span style={{ fontWeight: 600, color: "rgba(255,255,255,0.8)", fontSize: 14 }}>
-          Revisá tu bandeja por el email de acceso, o entrá directo al dashboard.
+          Revisá tu bandeja por el email de acceso, o entra directo al dashboard.
         </span>
         <a href="https://dboard.govbidder.net/login" style={{
           marginTop: 4, padding: "11px 22px", borderRadius: 12, textDecoration: "none",
@@ -110,7 +110,7 @@ export function RegistroForm() {
       </button>
       {error && <p style={{ fontSize: 13, color: "#ff8a8a", margin: 0 }}>{error}</p>}
       <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.5)", margin: 0, lineHeight: 1.45 }}>
-        Es gratis. Como usuario gratuito sumás puntos y usás todo el dashboard, pero no competís por los premios.
+        Es gratis. Como usuario gratuito sumas puntos y usas todo el dashboard, pero no compites por los premios.
       </p>
     </form>
   );

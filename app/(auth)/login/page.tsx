@@ -122,7 +122,7 @@ export default function LoginPage() {
                 darte acceso automáticamente sin verificar tu cuenta.
               </p>
               <p className="text-sm" style={{ color: "#C9D6EC" }}>
-                Si tenés problemas para ingresar, contactanos en{" "}
+                Si tienes problemas para ingresar, contáctanos en{" "}
                 <a
                   href="https://govbidder.net"
                   target="_blank"

@@ -164,7 +164,7 @@ export function LaunchCountdown({
               fontFamily: "var(--font-display)", fontSize: "clamp(17px, 3.6vw, 23px)", fontWeight: 800,
               color: "#fff", lineHeight: 1.15,
             }}>
-              ¡Estate atento!
+              ¡Mantente atento!
             </span>
             <span style={{ fontSize: 13.5, color: "rgba(255,255,255,0.85)", fontWeight: 600, maxWidth: "34ch" }}>
               Estamos por habilitar esta sección.

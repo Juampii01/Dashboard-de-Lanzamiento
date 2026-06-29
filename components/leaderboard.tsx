@@ -155,7 +155,7 @@ function LeaderRow({
       >
         {display_name}
         {is_current_user && (
-          <span className="ml-2 text-[9px] opacity-60">(vos)</span>
+          <span className="ml-2 text-[9px] opacity-60">(tú)</span>
         )}
       </span>
 

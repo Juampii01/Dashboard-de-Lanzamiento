@@ -933,7 +933,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
           ¡Mira contratos gubernamentales ganados!
         </h2>
         <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
-          Contratos reales adjudicados a pequeñas empresas. Elegí tu sector y miralos (usá las flechas si hay varios).
+          Contratos reales adjudicados a pequeñas empresas. Elige tu sector y míralos (usá las flechas si hay varios).
         </p>
       </div>
 

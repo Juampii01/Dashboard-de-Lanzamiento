@@ -51,11 +51,11 @@ export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
           fontFamily: "var(--font-display)", fontSize: "clamp(24px, 4.5vw, 38px)", fontWeight: 800,
           color: "#fff", lineHeight: 1.12, margin: 0, maxWidth: "22ch",
         }}>
-          🚀 Ya tenés las herramientas. Ahora vas por el contrato.
+          🚀 Ya tienes las herramientas. Ahora vas por el contrato.
         </h2>
 
         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.84)", maxWidth: "54ch", margin: 0, lineHeight: 1.55 }}>
-          Completaste el challenge: tenés tu perfil, tus códigos, tu web y tu Capability Statement.
+          Completaste el challenge: tienes tu perfil, tus códigos, tu web y tu Capability Statement.
           Pero las herramientas no ganan contratos solas — <strong style={{ color: "#fff" }}>el que no actúa en los
           próximos 30 días, deja su registro frío</strong> y vuelve a empezar de cero.
         </p>
@@ -97,7 +97,7 @@ export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
         </div>
 
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0 }}>
-          Te escribís con el equipo por WhatsApp y te contamos cómo seguir, sin compromiso.
+          Te escribes con el equipo por WhatsApp y te contamos cómo seguir, sin compromiso.
         </p>
       </div>
     </div>

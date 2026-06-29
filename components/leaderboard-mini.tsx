@@ -137,7 +137,7 @@ export function LeaderboardMini() {
             >
               {entry.display_name}
               {entry.is_current_user && (
-                <span style={{ fontSize: "8px", opacity: 0.6, marginLeft: "3px" }}>(vos)</span>
+                <span style={{ fontSize: "8px", opacity: 0.6, marginLeft: "3px" }}>(tú)</span>
               )}
             </span>
             <span
@@ -224,7 +224,7 @@ export function LeaderboardMini() {
               }}
             >
               {me.display_name}{" "}
-              <span style={{ fontSize: "8px", opacity: 0.6 }}>(vos)</span>
+              <span style={{ fontSize: "8px", opacity: 0.6 }}>(tú)</span>
             </span>
             <span
               style={{

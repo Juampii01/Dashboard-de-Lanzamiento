@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Copy, CheckCircle2, Link2, HelpCircle, X } from "lucide-react";
 
 /**
- * Tarjeta "Compartí tu link" — muestra el link de referido del usuario con
+ * Tarjeta "Comparte tu link" — muestra el link de referido del usuario con
  * botón de copiar. Theme-aware (light + dark). El link se arma server-side.
  */
 export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
@@ -130,9 +130,9 @@ export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
             </div>
 
             {[
-              { n: "1", icon: "📤", title: "Compartí tu link", text: "Mandale tu link de referido a la persona que quieras invitar al challenge." },
+              { n: "1", icon: "📤", title: "Comparte tu link", text: "Mándale tu link de referido a la persona que quieras invitar al challenge." },
               { n: "2", icon: "✍️", title: "La persona ingresa su email", text: "Al abrir tu link, escribe su email y se la redirige a la página donde debe ingresar al lanzamiento." },
-              { n: "3", icon: "🎉", title: "Ganás +1.000 pts", text: "Cuando esa persona ingresa al challenge, se te acreditan automáticamente +1.000 puntos." },
+              { n: "3", icon: "🎉", title: "Ganas +1.000 pts", text: "Cuando esa persona ingresa al challenge, se te acreditan automáticamente +1.000 puntos." },
             ].map((s) => (
               <div key={s.n} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "11px 0", borderTop: s.n === "1" ? "none" : "1px solid var(--border)" }}>
                 <span style={{ flexShrink: 0, width: 30, height: 30, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)", fontWeight: 800, fontSize: 14 }}>{s.n}</span>

@@ -1,6 +1,6 @@
 import { RegistroForm } from "@/components/registro-form";
 
-export const metadata = { title: "Registrate gratis — GovBidder Challenge" };
+export const metadata = { title: "Regístrate gratis — GovBidder Challenge" };
 
 export default function RegistroPage() {
   return (
@@ -33,11 +33,11 @@ export default function RegistroPage() {
         </p>
 
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 6vw, 32px)", fontWeight: 800, color: "#fff", lineHeight: 1.12, margin: 0 }}>
-          Registrate gratis al challenge
+          Regístrate gratis al challenge
         </h1>
 
         <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.78)", lineHeight: 1.55, margin: 0 }}>
-          Completá tus datos y te llega un email para entrar al dashboard al instante, sin contraseña.
+          Completa tus datos y te llega un email para entrar al dashboard al instante, sin contraseña.
         </p>
 
         {/* Aviso usuario gratuito */}
@@ -46,7 +46,7 @@ export default function RegistroPage() {
           background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.28)",
           borderRadius: 12, padding: "11px 14px",
         }}>
-          🎁 Es <strong style={{ color: "#FFD700" }}>acceso gratuito</strong>: usás todo el dashboard y sumás puntos, pero <strong style={{ color: "#FFD700" }}>no competís por los premios</strong> (esos son para quienes pagaron el acceso al challenge).
+          🎁 Es <strong style={{ color: "#FFD700" }}>acceso gratuito</strong>: usas todo el dashboard y sumas puntos, pero <strong style={{ color: "#FFD700" }}>no compites por los premios</strong> (esos son para quienes pagaron el acceso al challenge).
         </p>
 
         <RegistroForm />
