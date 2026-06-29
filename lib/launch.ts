@@ -24,6 +24,13 @@ export const INICIO_UNLOCK_ISO = "2026-06-29T16:00:00Z";
 export const LAUNCH_ISO = INICIO_UNLOCK_ISO;
 
 /**
+ * Lead-time del botón "Unirse a la clase": aparece (y habilita los +125) este
+ * rato ANTES de la hora de la clase, para que la gente entre con tiempo.
+ * Lo usan el countdown (cliente) y la ruta /api/xp/join-call (servidor).
+ */
+export const JOIN_LEAD_MS = 10 * 60 * 1000; // 10 minutos
+
+/**
  * Fecha/hora del contador de un día. Prioriza lo configurado por el admin en
  * `admin_toggles.scheduled_unlock_at`; si no hay nada, cae al default (7pm Miami).
  * Se guarda y compara en UTC (ISO); cada cliente lo muestra en su hora local.

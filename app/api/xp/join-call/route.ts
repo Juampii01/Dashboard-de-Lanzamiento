@@ -1,7 +1,7 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { getAdminToggle } from "@/lib/supabase/helpers";
-import { dayUnlockIso } from "@/lib/launch";
+import { dayUnlockIso, JOIN_LEAD_MS } from "@/lib/launch";
 
 const POINTS = 125; // unificado con la llamada en vivo
 
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   // alguien reclame los puntos de un día antes de su clase.
   const toggle = await getAdminToggle(supabase, day);
   const classMs = Date.parse(dayUnlockIso(toggle?.scheduled_unlock_at, day));
-  if (classMs && Date.now() < classMs) {
+  if (classMs && Date.now() < classMs - JOIN_LEAD_MS) {
     return NextResponse.json({ error: "too_early" }, { status: 403 });
   }
 

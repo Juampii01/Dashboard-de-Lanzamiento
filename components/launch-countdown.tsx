@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { JOIN_LEAD_MS } from "@/lib/launch";
 
 function diffParts(targetMs: number) {
   const total = Math.max(0, targetMs - Date.now());
@@ -137,6 +138,8 @@ export function LaunchCountdown({
   ];
 
   const activeSubtitle = reached ? (reachedSubtitle ?? subtitle) : subtitle;
+  // El botón "Unirse a la clase" aparece JOIN_LEAD_MS antes de la hora (y al pasar).
+  const canJoin = t.total <= JOIN_LEAD_MS;
 
   return (
     <div
@@ -189,7 +192,8 @@ export function LaunchCountdown({
           </p>
         )}
 
-        {!reached ? (
+        {/* Cuenta regresiva — mientras todavía no llegó a 0 */}
+        {!reached && (
           <div style={{ display: "flex", gap: "clamp(7px, 2vw, 14px)", marginTop: 2, flexWrap: "wrap", justifyContent: "center" }}>
             {blocks.map((b) => (
               <div key={b.label} style={{
@@ -214,8 +218,10 @@ export function LaunchCountdown({
               </div>
             ))}
           </div>
-        ) : callUrl ? (
-          /* Llegó la hora de la clase: botón para entrar (suma +125 una vez por día). */
+        )}
+
+        {/* Botón de clase — aparece JOIN_LEAD_MS (10 min) antes de la hora y suma +125. */}
+        {canJoin && callUrl && (
           <button
             onClick={handleJoinClass}
             disabled={joining}
@@ -241,8 +247,10 @@ export function LaunchCountdown({
               </>
             )}
           </button>
-        ) : (
-          /* Inicio u otra sección sin link de clase: al llegar a 0 solo avisamos. */
+        )}
+
+        {/* Inicio u otra sección sin link de clase: al llegar a 0 solo avisamos. */}
+        {reached && !callUrl && (
           <div style={{
             marginTop: 2,
             display: "flex", flexDirection: "column", alignItems: "center", gap: 7,
