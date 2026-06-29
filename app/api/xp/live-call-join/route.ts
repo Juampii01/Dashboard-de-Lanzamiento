@@ -1,7 +1,7 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-const POINTS = 30;
+const POINTS = 125; // +125 por llamada en vivo · 4 llamadas = 500 pts
 
 /**
  * POST /api/xp/live-call-join

@@ -86,10 +86,9 @@ export default async function Dia1Page() {
         <LaunchCountdown
           targetIso={targetIso}
           day={1}
-          showJoinClass
           title="Día 1 — Perfil Estratégico"
-          subtitle="Este día se desbloquea luego de la clase en vivo. El botón para unirte se habilita cuando el contador llegue a 0 (hora de la clase)."
-          reachedSubtitle="¡Es la hora de la clase! Unite con el botón de abajo. El día se habilita cuando el equipo lo abra."
+          subtitle="Este día se desbloquea luego de la clase en vivo. Se habilita cuando el equipo lo abra."
+          reachedSubtitle="¡Es la hora de la clase! El día se habilita cuando el equipo lo abra."
         />
       )}
     </div>

@@ -64,10 +64,9 @@ export default async function Dia3Page() {
         <LaunchCountdown
           targetIso={targetIso}
           day={3}
-          showJoinClass
           title="Día 3 — Web + Portales"
-          subtitle="Este día se desbloquea luego de la clase en vivo. El botón para unirte se habilita cuando el contador llegue a 0 (hora de la clase)."
-          reachedSubtitle="¡Es la hora de la clase! Unite con el botón de abajo. El día se habilita cuando el equipo lo abra."
+          subtitle="Este día se desbloquea luego de la clase en vivo. Se habilita cuando el equipo lo abra."
+          reachedSubtitle="¡Es la hora de la clase! El día se habilita cuando el equipo lo abra."
         />
       )}
     </div>
