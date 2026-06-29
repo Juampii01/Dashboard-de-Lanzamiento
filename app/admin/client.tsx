@@ -54,6 +54,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Zap, Trash2, Mail, Video } from "lucide-react";
 import { MagicBlastPanel } from "@/components/magic-blast-panel";
+import { breakdownRows, type Breakdown } from "@/lib/points-breakdown";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
 
@@ -909,6 +910,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
   const [toggles, setToggles] = useState(initialToggles);
   const [updatingDay, setUpdatingDay] = useState<number | null>(null);
   const [overrideLoading, setOverrideLoading] = useState<string | null>(null);
+  // Desglose de puntos por usuario (modal admin).
+  const [bdUser, setBdUser] = useState<User | null>(null);
+  const [bdData, setBdData] = useState<Breakdown | null>(null);
+  const [bdLoading, setBdLoading] = useState(false);
+
+  async function openBreakdown(user: User) {
+    setBdUser(user);
+    setBdData(null);
+    setBdLoading(true);
+    try {
+      const res = await fetch(`/api/admin/user-breakdown?userId=${user.id}`);
+      const d = await res.json();
+      if (res.ok) setBdData({ total: d.total ?? 0, tracked: d.tracked ?? 0, by_category: d.by_category ?? {} });
+    } catch { /* noop */ }
+    setBdLoading(false);
+  }
 
   const progressByUser = allProgress.reduce<Record<string, Progress[]>>((acc, p) => {
     if (!acc[p.user_id]) acc[p.user_id] = [];
@@ -1284,7 +1301,13 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
                       );
                     })}
                     <TableCell className="text-center font-medium">
-                      {user.total_points}
+                      <button
+                        onClick={() => openBreakdown(user)}
+                        title="Ver de dónde salieron los puntos"
+                        className="font-medium text-primary underline decoration-dotted underline-offset-2 hover:opacity-80 cursor-pointer"
+                      >
+                        {user.total_points}
+                      </button>
                     </TableCell>
                     <TableCell className="text-center">
                       {sorteo?.eligible ? (
@@ -1354,6 +1377,47 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
           );
         })}
       </div>
+
+      {/* Modal: desglose de puntos de un usuario (de dónde salieron) */}
+      {bdUser && (
+        <div
+          onClick={() => setBdUser(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 99990, background: "rgba(6,13,26,0.7)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-card border rounded-2xl"
+            style={{ width: "min(440px, 100%)", maxHeight: "85vh", overflowY: "auto", borderColor: "#1E3A5C", padding: "20px" }}
+          >
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <div>
+                <p className="font-bold text-base">{bdUser.full_name ?? "—"}</p>
+                <p className="text-xs text-muted-foreground">{bdUser.email}</p>
+              </div>
+              <button onClick={() => setBdUser(null)} aria-label="Cerrar" className="text-muted-foreground hover:text-foreground text-lg leading-none">✕</button>
+            </div>
+            <p className="text-sm font-semibold mt-2 mb-3">
+              Total: <span className="text-primary">{(bdData?.total ?? bdUser.total_points).toLocaleString("es")}</span> pts
+            </p>
+            {bdLoading ? (
+              <p className="text-sm text-muted-foreground">Cargando…</p>
+            ) : bdData && breakdownRows(bdData).length > 0 ? (
+              <div className="space-y-1.5">
+                {breakdownRows(bdData).map(([label, pts]) => (
+                  <div key={label} className="flex items-center justify-between text-sm">
+                    <span>{label}</span>
+                    <span className={`font-mono font-bold ${pts < 0 ? "text-destructive" : "text-green-600"}`}>
+                      {pts > 0 ? `+${pts.toLocaleString("es")}` : pts.toLocaleString("es")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Este usuario todavía no sumó puntos rastreados.</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

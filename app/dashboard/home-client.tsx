@@ -870,6 +870,9 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
 // ─── Contract Models ──────────────────────────────────────────────────────────
 
 function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }) {
+  // Lightbox para ver la foto del contrato en grande / con zoom.
+  const [lightbox, setLightbox] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
   // Close on backdrop click
   const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
@@ -931,10 +934,12 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
             <img
               src={niche.imageSrc}
               alt={niche.contractTitle}
-              style={{ width: "100%", height: "auto", display: "block", borderRadius: "6px", border: "1px solid #e2e2e2" }}
+              onClick={() => { setLightbox(true); setZoomed(false); }}
+              title="Clic para ampliar y ver en detalle"
+              style={{ width: "100%", height: "auto", display: "block", borderRadius: "6px", border: "1px solid #e2e2e2", cursor: "zoom-in" }}
             />
             <p style={{ marginTop: "12px", fontSize: "11px", color: "#777", textAlign: "center", fontStyle: "italic" }}>
-              Contrato real adjudicado · {niche.agency} · Bid {niche.contractNo}
+              Contrato real adjudicado · {niche.agency} · Bid {niche.contractNo} · <span style={{ color: "#1a365d", fontWeight: 700 }}>clic en la imagen para ampliar 🔍</span>
             </p>
           </div>
         ) : (
@@ -1090,6 +1095,50 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
         </div>
         )}
       </div>
+
+      {/* Lightbox: zoom de la foto del contrato (clic para ampliar / detalle) */}
+      {lightbox && niche.imageSrc && (
+        <div
+          onClick={() => setLightbox(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 99999,
+            background: "rgba(0,0,0,0.93)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            overflow: "auto", padding: "16px",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={niche.imageSrc}
+            alt={niche.contractTitle}
+            onClick={(e) => { e.stopPropagation(); setZoomed((z) => !z); }}
+            title={zoomed ? "Clic para achicar" : "Clic para acercar y ver el detalle"}
+            style={zoomed
+              ? { display: "block", width: "1600px", maxWidth: "none", height: "auto", cursor: "zoom-out" }
+              : { display: "block", maxWidth: "96vw", maxHeight: "92vh", width: "auto", height: "auto", cursor: "zoom-in", borderRadius: "4px" }}
+          />
+          <button
+            onClick={() => setLightbox(false)}
+            aria-label="Cerrar"
+            style={{
+              position: "fixed", top: 14, right: 16,
+              width: 38, height: 38, borderRadius: "50%",
+              background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.3)",
+              color: "#fff", fontSize: 18, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            ✕
+          </button>
+          <span style={{
+            position: "fixed", bottom: 16, left: "50%", transform: "translateX(-50%)",
+            color: "rgba(255,255,255,0.85)", fontSize: 12, fontFamily: "var(--font-sans)",
+            background: "rgba(0,0,0,0.5)", padding: "6px 12px", borderRadius: 999, whiteSpace: "nowrap",
+          }}>
+            {zoomed ? "Clic en la imagen para achicar · scroll para recorrer" : "Clic en la imagen para acercar 🔍"}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
