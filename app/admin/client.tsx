@@ -108,6 +108,15 @@ interface LockState {
 
 const DEFAULT_MESSAGE = "La llamada en vivo está en curso. Volvé cuando termine.";
 
+// Links de Zoom por día — el admin toca el día y se rellena el campo de URL.
+// Días 1-3 comparten sala; el Día 4 usa otra.
+const CLASS_LINKS: Record<number, string> = {
+  1: "https://us06web.zoom.us/j/89500217863",
+  2: "https://us06web.zoom.us/j/89500217863",
+  3: "https://us06web.zoom.us/j/89500217863",
+  4: "https://us06web.zoom.us/j/81591964516",
+};
+
 function DashboardLockControl() {
   const [lock, setLock] = useState<LockState>({
     is_locked: false,
@@ -263,6 +272,32 @@ function DashboardLockControl() {
           <p className="text-[11px] text-muted-foreground">
             Aparece como botón "Ir a la llamada" en el overlay.
           </p>
+          {/* Quick-set: rellena el campo de arriba con el link de Zoom de cada día */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mr-1">
+              Links por día:
+            </span>
+            {[1, 2, 3, 4].map((d) => {
+              const active = callUrlInput.trim() === CLASS_LINKS[d];
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => setCallUrlInput(CLASS_LINKS[d])}
+                  disabled={loading}
+                  title={CLASS_LINKS[d]}
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-md border transition-colors disabled:opacity-50"
+                  style={
+                    active
+                      ? { background: "rgba(0,114,255,0.18)", color: "#4DA3FF", borderColor: "rgba(0,114,255,0.5)" }
+                      : { background: "#0F1E30", color: "#7A8BA0", borderColor: "#1E3A5C" }
+                  }
+                >
+                  Día {d}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Mensaje */}
