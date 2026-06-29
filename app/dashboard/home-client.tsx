@@ -40,14 +40,16 @@ const TUTORIAL_YT_ID = "2A6EB_cDk-A"; // ID de YouTube del tutorial de inicio ("
 
 const CONTRACT_NICHES: ContractNiche[] = [
   { id: "limpieza", label: "Limpieza", icon: "🧹", contracts: [{ src: "/contracts/limpieza-1.png", title: "Power Washing" }, { src: "/contracts/limpieza-2.png", title: "Window Cleaning" }, { src: "/contracts/limpieza-3.png", title: "Laundry Services" }, { src: "/contracts/limpieza-4.png", title: "Uniforms" }] },
-  { id: "hvac", label: "HVAC y Plomería", icon: "⚙️", contracts: [{ src: "/contracts/hvac-1.png", title: "HVAC Replacement" }, { src: "/contracts/hvac-2.png", title: "Heating & Cooling (HVAC)" }, { src: "/contracts/hvac-3.png", title: "495 River St — Passaic County (real)" }, { src: "/contracts/hvac-4.png", title: "Plumbing Supply" }] },
-  { id: "construccion", label: "Construcción y Mantenimiento", icon: "🏗️", contracts: [{ src: "/contracts/construccion-1.png", title: "Roofing" }, { src: "/contracts/construccion-2.png", title: "Elevator Maintenance" }, { src: "/contracts/construccion-3.png", title: "Elevator Services" }, { src: "/contracts/construccion-4.png", title: "Hardware Supplies" }, { src: "/contracts/construccion-5.png", title: "Auto Body Shop" }] },
+  { id: "hvac", label: "HVAC & Plomería", icon: "⚙️", contracts: [{ src: "/contracts/hvac-1.png", title: "HVAC Replacement" }, { src: "/contracts/hvac-2.png", title: "Heating & Cooling (HVAC)" }, { src: "/contracts/hvac-3.png", title: "495 River St — Passaic County (real)" }, { src: "/contracts/hvac-4.png", title: "Plumbing Supply" }] },
+  { id: "construccion", label: "Construcción & Mantenimiento", icon: "🏗️", contracts: [{ src: "/contracts/construccion-1.png", title: "Roofing" }, { src: "/contracts/construccion-2.png", title: "Elevator Maintenance" }, { src: "/contracts/construccion-3.png", title: "Elevator Services" }, { src: "/contracts/construccion-4.png", title: "Hardware Supplies" }, { src: "/contracts/construccion-5.png", title: "Auto Body Shop" }] },
   { id: "areas-verdes", label: "Áreas Verdes", icon: "🌿", contracts: [{ src: "/contracts/areas-verdes-1.png", title: "Landscape Maintenance" }, { src: "/contracts/areas-verdes-2.png", title: "Tree Removal" }, { src: "/contracts/areas-verdes-3.png", title: "Fertilizer Supply" }] },
   { id: "invierno", label: "Productos de Invierno", icon: "❄️", contracts: [{ src: "/contracts/invierno-1.png", title: "Snow Removal" }, { src: "/contracts/invierno-2.png", title: "Salt & Winter Products" }, { src: "/contracts/invierno-3.png", title: "Holiday Tree Lighting" }] },
-  { id: "it", label: "IT y Tecnología", icon: "💻", contracts: [{ src: "/contracts/it-1.png", title: "IT Support" }, { src: "/contracts/it-2.png", title: "Software" }, { src: "/contracts/it-3.png", title: "Call Center" }, { src: "/contracts/it-4.png", title: "Translation Services" }] },
-  { id: "alimentacion", label: "Alimentación y Catering", icon: "🍽️", contracts: [{ src: "/contracts/alimentacion-1.png", title: "Food Services" }, { src: "/contracts/alimentacion-2.png", title: "Hospital Food Service" }, { src: "/contracts/alimentacion-3.png", title: "Bread Supply" }, { src: "/contracts/alimentacion-4.png", title: "Ice Cream" }] },
-  { id: "eventos", label: "Eventos", icon: "🎉", contracts: [{ src: "/contracts/eventos-1.png", title: "Party & Event Rental" }, { src: "/contracts/eventos-2.png", title: "Special Events" }, { src: "/contracts/eventos-3.png", title: "Photography" }] },
-  { id: "seguridad-transporte", label: "Seguridad y Transporte", icon: "🔒", contracts: [{ src: "/contracts/seguridad-transporte-1.png", title: "Security Services" }, { src: "/contracts/seguridad-transporte-2.png", title: "Transportation" }] },
+  { id: "it", label: "IT & Tecnología", icon: "💻", contracts: [{ src: "/contracts/it-1.png", title: "IT Support" }, { src: "/contracts/it-2.png", title: "Software" }, { src: "/contracts/it-3.png", title: "Call Center" }, { src: "/contracts/it-4.png", title: "Translation Services" }] },
+  { id: "alimentacion", label: "Alimentación & Catering", icon: "🍽️", contracts: [{ src: "/contracts/alimentacion-1.png", title: "Food Services" }, { src: "/contracts/alimentacion-2.png", title: "Hospital Food Service" }, { src: "/contracts/alimentacion-3.png", title: "Bread Supply" }, { src: "/contracts/alimentacion-4.png", title: "Ice Cream" }] },
+  { id: "eventos", label: "Eventos", icon: "🎉", contracts: [{ src: "/contracts/eventos-1.png", title: "Party & Event Rental" }, { src: "/contracts/eventos-2.png", title: "Special Events" }] },
+  { id: "fotografia", label: "Fotografía", icon: "📸", contracts: [{ src: "/contracts/fotografia-1.png", title: "Photography" }] },
+  { id: "seguridad", label: "Seguridad", icon: "🔒", contracts: [{ src: "/contracts/seguridad-1.png", title: "Security Services" }] },
+  { id: "transporte", label: "Transporte", icon: "🚛", contracts: [{ src: "/contracts/transporte-1.png", title: "Transportation" }] },
   { id: "oficina", label: "Servicios de Oficina", icon: "📋", contracts: [{ src: "/contracts/oficina-1.png", title: "Accounting Services" }, { src: "/contracts/oficina-2.png", title: "Printing Services" }] },
 ];
 
@@ -1030,6 +1032,54 @@ function ContractModels({ fullName }: { fullName?: string }) {
   );
 }
 
+// ─── Regalo (GovBidder Connect) ───────────────────────────────────────────────
+function GiftCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      borderRadius: 14,
+      border: "1.5px solid color-mix(in srgb, var(--cert-gold) 50%, transparent)",
+      background: "color-mix(in srgb, var(--cert-gold) 8%, var(--card))",
+      overflow: "hidden",
+    }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 11,
+          padding: "14px 16px", background: "none", border: "none", cursor: "pointer",
+          textAlign: "left", font: "inherit",
+        }}
+      >
+        <span style={{ fontSize: 26, flexShrink: 0 }}>🎁</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800, color: "var(--cert-gold)" }}>
+            Mi regalo para vos
+          </span>
+          <span style={{ display: "block", fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 1 }}>
+            Por completar el challenge — tocá para abrir
+          </span>
+        </span>
+        <ChevronDown size={20} style={{ flexShrink: 0, color: "var(--muted-foreground)", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
+
+      {open && (
+        <div style={{ padding: "0 16px 16px", borderTop: "1px solid color-mix(in srgb, var(--cert-gold) 22%, transparent)" }}>
+          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 800, color: "var(--foreground)", margin: "14px 0 6px" }}>
+            🎁 1 mes GRATIS de GovBidder Connect
+          </h3>
+          <p style={{ fontSize: 14, color: "var(--foreground)", lineHeight: 1.55, margin: 0 }}>
+            Si completás los <strong>4 días del challenge</strong>, te regalo <strong style={{ color: "var(--cert-gold)" }}>1 mes de acceso gratuito a GovBidder Connect</strong> — la plataforma para <strong>buscar y encontrar licitaciones y grants</strong> (todas tus oportunidades en un solo lugar).
+          </p>
+          <p style={{ fontSize: 13.5, color: "var(--muted-foreground)", lineHeight: 1.5, marginTop: 10, fontStyle: "italic" }}>
+            Es mi forma de agradecerte por llegar hasta el final. 🦅 — <strong style={{ color: "var(--foreground)" }}>Santo</strong>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId }: HomeClientProps) {
@@ -1065,6 +1115,9 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
           <RecordingsButtons urls={recordings ?? [null, null, null, null]} />
         </div>
       )}
+
+      {/* 1b. Regalo: 1 mes gratis de GovBidder Connect al completar el challenge */}
+      <GiftCard />
 
       {/* 2. Loom tutorial video */}
       <VideoTutorial videoId={tutorialVideoId} />
