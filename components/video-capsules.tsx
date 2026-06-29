@@ -603,9 +603,9 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                         title="Ver el video de nuevo (sin quiz)"
                         className="shrink-0 flex items-center gap-1 px-2 py-1 rounded text-[10px] font-bold transition-all"
                         style={{
-                          color: "var(--secondary)",
-                          background: "color-mix(in srgb, var(--secondary) 10%, transparent)",
-                          border: "1px solid color-mix(in srgb, var(--secondary) 25%, transparent)",
+                          color: "var(--foreground)",
+                          background: "color-mix(in srgb, var(--foreground) 8%, transparent)",
+                          border: "1px solid color-mix(in srgb, var(--foreground) 28%, transparent)",
                           fontFamily: "var(--font-sans)",
                           whiteSpace: "nowrap",
                         }}
