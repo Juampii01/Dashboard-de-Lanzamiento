@@ -864,10 +864,11 @@ function ContractModal({ niche, onClose }: { niche: ContractNiche; onClose: () =
           <button onClick={onClose} aria-label="Cerrar" style={{ background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "4px", padding: "4px 9px", color: "#fff", cursor: "pointer", fontSize: 15 }}>✕</button>
         </div>
 
-        {/* Imagen — en zoom se puede recorrer (scroll/pan en ambas direcciones).
-            Con align/justify en flex-start, el overflow superior e izquierdo queda
-            alcanzable (si se centra con flex, esa parte no se puede scrollear). */}
-        <div style={{ position: "relative", background: "#0b1426", flex: 1, minHeight: 0, overflow: "auto", WebkitOverflowScrolling: "touch", display: "flex", alignItems: zoomed ? "flex-start" : "center", justifyContent: zoomed ? "flex-start" : "center" }}>
+        {/* Imagen — en zoom se RECORRE (scroll/pan en ambos ejes). Clave: en zoom el
+            contenedor pasa a display:block y la imagen NO se achica (flexShrink:0 +
+            ancho fijo), así desborda de verdad y aparecen las barras de scroll. En
+            modo "fit" usa flex centrado. */}
+        <div style={{ position: "relative", background: "#0b1426", flex: 1, minHeight: 0, overflow: "auto", WebkitOverflowScrolling: "touch", display: zoomed ? "block" : "flex", alignItems: "center", justifyContent: "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={current.src}
@@ -875,7 +876,7 @@ function ContractModal({ niche, onClose }: { niche: ContractNiche; onClose: () =
             onClick={() => setZoomed((z) => !z)}
             title={zoomed ? "Clic para achicar" : "Clic para acercar y ver el detalle"}
             style={zoomed
-              ? { display: "block", width: "1400px", maxWidth: "none", height: "auto", cursor: "zoom-out" }
+              ? { display: "block", flexShrink: 0, width: "1400px", maxWidth: "none", height: "auto", cursor: "zoom-out" }
               : { display: "block", maxWidth: "100%", maxHeight: "72vh", width: "auto", height: "auto", cursor: "zoom-in" }}
           />
         </div>
