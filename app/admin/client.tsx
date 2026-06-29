@@ -577,6 +577,27 @@ function KeywordsAdminPanel() {
 
 // ─── RecordingsAdminPanel ────────────────────────────────────────────────────
 
+function RegistroLinkPanel() {
+  const url = "https://dboard.govbidder.net/registro";
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* noop */ }
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <input
+        readOnly
+        value={url}
+        onFocus={(e) => e.currentTarget.select()}
+        className="flex-1 min-w-0 px-3 py-2 rounded-lg border text-sm bg-background text-foreground font-mono focus:outline-none focus:ring-2 focus:ring-primary"
+        style={{ borderColor: "#1E3A5C", minWidth: 240 }}
+      />
+      <Button size="sm" onClick={copy}>{copied ? "✓ Copiado" : "Copiar link"}</Button>
+      <a href={url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary">Abrir ↗</a>
+    </div>
+  );
+}
+
 interface RecordingRow { recording_number: number; youtube_url?: string | null; }
 
 function RecordingsAdminPanel() {
@@ -932,6 +953,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </CardHeader>
         <CardContent>
           <MagicBlastPanel />
+        </CardContent>
+      </Card>
+
+      {/* Registro público de usuarios gratuitos */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserPlus className="w-5 h-5 text-[#FFD700]" />
+            Registro de usuarios gratuitos
+          </CardTitle>
+          <CardDescription>
+            Compartí este link: la gente se registra sola como usuario gratuito (suma puntos y usa todo el dashboard, pero no compite por los premios) y recibe el email de acceso automático.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RegistroLinkPanel />
         </CardContent>
       </Card>
 
