@@ -44,6 +44,7 @@ interface Niche {
   levelLabel?: string;    // nivel del badge (default "FEDERAL")
   setAside?: string;      // default "Small Business (FAR 19.502-2)"
   clauses?: string[];     // default cláusulas FAR
+  imageSrc?: string;      // si está, el modal muestra SOLO esta foto (contrato real)
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -233,6 +234,7 @@ const NICHES: Niche[] = [
       "Affirmative Action — N.J.A.C. 17:27",
       "Public Works Contractor Registration Act — N.J.S.A. 34:11-56.48",
     ],
+    imageSrc: "/hvac-passaic.png",
   },
 ];
 
@@ -1065,7 +1067,20 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
           </button>
         </div>
 
-        {/* Contract document body */}
+        {/* Si el nicho tiene foto del contrato real → mostramos SOLO la foto. */}
+        {niche.imageSrc ? (
+          <div style={{ padding: "16px" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={niche.imageSrc}
+              alt={niche.contractTitle}
+              style={{ width: "100%", height: "auto", display: "block", borderRadius: "6px", border: "1px solid #e2e2e2" }}
+            />
+            <p style={{ marginTop: "12px", fontSize: "11px", color: "#777", textAlign: "center", fontStyle: "italic" }}>
+              Contrato real adjudicado · {niche.agency} · Bid {niche.contractNo}
+            </p>
+          </div>
+        ) : (
         <div style={{ padding: "32px 40px", color: "#1a1a1a", lineHeight: 1.6 }}>
           {/* Seal placeholder */}
           <div style={{ textAlign: "center", marginBottom: "20px" }}>
@@ -1216,6 +1231,7 @@ function ContractModal({ niche, onClose }: { niche: Niche; onClose: () => void }
             Consulta siempre el SOW original y las regulaciones FAR antes de firmar.
           </p>
         </div>
+        )}
       </div>
     </div>
   );
