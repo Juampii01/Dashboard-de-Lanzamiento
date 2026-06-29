@@ -621,7 +621,7 @@ function RecordingsAdminPanel() {
     <div className="space-y-3">
       {[1, 2, 3, 4].map((num) => (
         <div key={num} className="flex items-center gap-3 p-3 border rounded-xl bg-card" style={{ borderColor: "#1E3A5C" }}>
-          <span className="text-xs font-bold text-muted-foreground w-24 shrink-0">Grabación {num}</span>
+          <span className="text-xs font-bold text-muted-foreground w-24 shrink-0">Grabación día {num}</span>
           <input
             type="url"
             placeholder="https://www.youtube.com/watch?v=..."

@@ -474,7 +474,7 @@ function RecordingsButtons({ urls }: { urls: (string | null)[] }) {
             </span>
             <span style={{ display: "flex", flexDirection: "column", minWidth: 0, lineHeight: 1.15 }}>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                Grabación {i + 1}
+                Grabación día {i + 1}
               </span>
               {!ready && (
                 <span style={{ fontSize: 9.5, fontWeight: 600, opacity: 0.85 }}>próximamente</span>
