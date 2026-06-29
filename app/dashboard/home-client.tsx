@@ -50,7 +50,7 @@ interface Niche {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 // Replace this with your real Loom video ID (the part after loom.com/share/)
-const LOOM_VIDEO_ID = "REPLACE_WITH_LOOM_VIDEO_ID";
+const TUTORIAL_YT_ID = "2A6EB_cDk-A"; // ID de YouTube del tutorial de inicio ("" = coming soon)
 
 const NICHES: Niche[] = [
   {
@@ -358,7 +358,7 @@ function RecordingsButtons({ urls }: { urls: (string | null)[] }) {
 }
 
 function VideoTutorial() {
-  const isPlaceholder = LOOM_VIDEO_ID === "REPLACE_WITH_LOOM_VIDEO_ID";
+  const isPlaceholder = !TUTORIAL_YT_ID;
 
   return (
     <div>
@@ -462,12 +462,13 @@ function VideoTutorial() {
           </div>
         ) : (
           <iframe
-            src={`https://www.loom.com/embed/${LOOM_VIDEO_ID}?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true`}
+            src={`https://www.youtube.com/embed/${TUTORIAL_YT_ID}?rel=0&modestbranding=1`}
             style={{
               position: "absolute", top: 0, left: 0,
               width: "100%", height: "100%",
               border: "none",
             }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
             title="Tutorial del dashboard"
           />
