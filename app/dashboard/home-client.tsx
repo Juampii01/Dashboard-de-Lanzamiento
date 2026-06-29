@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Send, MessageCircle, X, FileText, ChevronDown, PlayCircle } from "lucide-react";
+import { Send, MessageCircle, X, FileText, ChevronDown, Play } from "lucide-react";
 import { toast } from "sonner";
 import { FlagBanner } from "@/components/flag-banner";
 import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
@@ -413,49 +413,73 @@ function RecordingsButtons({ urls }: { urls: (string | null)[] }) {
     >
       {[0, 1, 2, 3].map((i) => {
         const u = urls[i] ?? null;
-        const disabled = !u;
+        const ready = !!u;
         return (
           <button
             key={i}
             type="button"
             onClick={() => openRec(u)}
-            disabled={disabled}
-            title={disabled ? "Grabación próximamente" : "Abrir grabación en YouTube"}
+            disabled={!ready}
+            title={ready ? "Abrir grabación en YouTube" : "Grabación próximamente"}
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              minHeight: 52,
+              gap: 9,
+              minHeight: 54,
               padding: "0 12px",
               borderRadius: 12,
-              border: "1px solid var(--score-border)",
-              background: disabled ? "var(--muted)" : "var(--score-bg)",
-              color: disabled ? "var(--muted-foreground)" : "var(--foreground)",
+              // Cargada → look YouTube: borde y sombra rojos. Sin cargar → apagada (gris, punteada).
+              border: ready ? "1.5px solid rgba(255,0,0,0.6)" : "1.5px dashed var(--border)",
+              background: ready ? "color-mix(in srgb, #FF0000 9%, var(--card))" : "transparent",
+              color: ready ? "var(--foreground)" : "var(--muted-foreground)",
               fontFamily: "var(--font-sans)",
               fontSize: 13,
               fontWeight: 700,
-              cursor: disabled ? "not-allowed" : "pointer",
-              opacity: disabled ? 0.55 : 1,
-              transition: "transform .12s, border-color .12s, background .12s",
+              textAlign: "left",
+              cursor: ready ? "pointer" : "not-allowed",
+              opacity: ready ? 1 : 0.5,
+              boxShadow: ready ? "0 3px 12px -4px rgba(255,0,0,0.5)" : "none",
+              transition: "transform .12s, box-shadow .12s, border-color .12s",
             }}
             onMouseEnter={(e) => {
-              if (disabled) return;
+              if (!ready) return;
               const el = e.currentTarget;
-              el.style.borderColor = "var(--secondary)";
               el.style.transform = "translateY(-1px)";
+              el.style.boxShadow = "0 6px 18px -4px rgba(255,0,0,0.65)";
+              el.style.borderColor = "#FF0000";
             }}
             onMouseLeave={(e) => {
+              if (!ready) return;
               const el = e.currentTarget;
-              el.style.borderColor = "var(--score-border)";
               el.style.transform = "none";
+              el.style.boxShadow = "0 3px 12px -4px rgba(255,0,0,0.5)";
+              el.style.borderColor = "rgba(255,0,0,0.6)";
             }}
           >
-            <PlayCircle
-              size={16}
-              style={{ flexShrink: 0, color: disabled ? "var(--muted-foreground)" : "var(--secondary)" }}
-            />
-            Grabación {i + 1}
+            {/* Badge de play estilo YouTube (círculo rojo + triángulo blanco) */}
+            <span
+              style={{
+                flexShrink: 0,
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: ready ? "#FF0000" : "color-mix(in srgb, var(--muted-foreground) 28%, transparent)",
+                boxShadow: ready ? "0 0 10px rgba(255,0,0,0.6)" : "none",
+              }}
+            >
+              <Play size={13} style={{ color: "#fff", fill: "#fff", marginLeft: 1 }} />
+            </span>
+            <span style={{ display: "flex", flexDirection: "column", minWidth: 0, lineHeight: 1.15 }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                Grabación {i + 1}
+              </span>
+              {!ready && (
+                <span style={{ fontSize: 9.5, fontWeight: 600, opacity: 0.85 }}>próximamente</span>
+              )}
+            </span>
           </button>
         );
       })}
