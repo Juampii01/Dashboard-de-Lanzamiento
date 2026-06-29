@@ -169,17 +169,21 @@ function RankColumn({ rankKey, all, loading }: { rankKey: string; all: FullEntry
         borderBottom: `1px solid color-mix(in srgb, ${rankDef.color} 22%, transparent)`,
         background: `color-mix(in srgb, ${rankDef.color} 8%, transparent)`,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <span style={{ fontSize: 16 }}>{rankDef.emoji}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           <span style={{
-            fontFamily: "var(--font-arcade)", fontSize: 10, fontWeight: 700,
-            color: rankDef.color, textTransform: "uppercase", letterSpacing: "0.06em",
+            fontSize: 26, lineHeight: 1, flexShrink: 0,
+            filter: `drop-shadow(0 0 9px color-mix(in srgb, ${rankDef.color} 55%, transparent))`,
+          }}>{rankDef.emoji}</span>
+          <span style={{
+            fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800,
+            color: rankDef.color, textTransform: "uppercase", letterSpacing: "0.03em", lineHeight: 1.05,
+            textShadow: `0 0 16px color-mix(in srgb, ${rankDef.color} 45%, transparent)`,
           }}>{rankDef.short}</span>
         </div>
-        <p style={{ fontSize: 10.5, color: "#8DA2C4", margin: "4px 0 0", lineHeight: 1.3 }}>
+        <p style={{ fontSize: 11, color: "#9FB4D4", margin: "7px 0 0", lineHeight: 1.3, fontWeight: 600 }}>
           {rankDef.min.toLocaleString()}{rankDef.max === Infinity ? "+" : `–${(rankDef.max - 1).toLocaleString()}`} pts
         </p>
-        <p style={{ fontSize: 10.5, color: rankDef.color, margin: "2px 0 0", lineHeight: 1.3, opacity: 0.9 }}>
+        <p style={{ fontSize: 11, color: rankDef.color, margin: "3px 0 0", lineHeight: 1.35, opacity: 0.95 }}>
           🎁 {rankDef.prize}
         </p>
       </div>
