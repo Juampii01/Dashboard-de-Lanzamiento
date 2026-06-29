@@ -54,159 +54,6 @@ const LOOM_VIDEO_ID = "REPLACE_WITH_LOOM_VIDEO_ID";
 
 const NICHES: Niche[] = [
   {
-    id: "cleaning",
-    label: "Limpieza",
-    icon: "🧹",
-    naics: "561720",
-    contractTitle: "Contract for Janitorial & Building Maintenance Services",
-    agency: "General Services Administration",
-    contractNo: "GS-07F-0012X",
-    scopeItems: [
-      "Daily cleaning of office spaces, restrooms, and common areas",
-      "Weekly deep-cleaning of carpets, windows, and high-touch surfaces",
-      "Monthly restocking of cleaning supplies (contractor-furnished)",
-      "Emergency cleanup response within 4 hours of notification",
-    ],
-    value: "$184,500 / year",
-    period: "12 months + 4 option years",
-  },
-  {
-    id: "construction",
-    label: "Construcción",
-    icon: "🏗️",
-    naics: "236220",
-    contractTitle: "Contract for Building Renovation & Construction Services",
-    agency: "Department of Veterans Affairs",
-    contractNo: "VA101-24-C-0087",
-    scopeItems: [
-      "Renovation of existing federal building spaces per SOW",
-      "Construction of new office partitions and accessibility upgrades",
-      "ADA compliance modifications throughout the facility",
-      "All materials, labor, permits, and inspections included",
-    ],
-    value: "$2,350,000",
-    period: "18 months",
-  },
-  {
-    id: "it",
-    label: "IT y Ciberseguridad",
-    icon: "💻",
-    naics: "541512",
-    contractTitle: "Contract for IT Support & Cybersecurity Services",
-    agency: "Department of Homeland Security",
-    contractNo: "HSHQDC-24-T-00033",
-    scopeItems: [
-      "24/7 help desk support for all government personnel",
-      "Network security monitoring, threat detection, and incident response",
-      "Monthly FISMA-compliance audits and reporting",
-      "Cloud migration, management, and zero-trust architecture",
-    ],
-    value: "$920,000 / year",
-    period: "Base year + 4 option years",
-  },
-  {
-    id: "landscaping",
-    label: "Áreas Verdes",
-    icon: "🌿",
-    naics: "561730",
-    contractTitle: "Contract for Grounds Maintenance Services",
-    agency: "National Park Service",
-    contractNo: "P24PC00144",
-    scopeItems: [
-      "Weekly mowing, edging, trimming, and leaf removal",
-      "Seasonal planting, mulching, and irrigation management",
-      "Irrigation system maintenance and leak repairs",
-      "Snow and ice removal during winter months",
-    ],
-    value: "$67,200 / year",
-    period: "12 months + 2 option years",
-  },
-  {
-    id: "security",
-    label: "Seguridad",
-    icon: "🔒",
-    naics: "561612",
-    contractTitle: "Contract for Physical Security Guard Services",
-    agency: "Social Security Administration",
-    contractNo: "SSA-RFQ-2024-0431",
-    scopeItems: [
-      "Armed and unarmed security personnel (FLETC-trained preferred)",
-      "24/7 on-site security coverage, 365 days per year",
-      "Access control management and visitor credentialing",
-      "Monthly incident reports submitted to Contracting Officer",
-    ],
-    value: "$410,000 / year",
-    period: "12 months + 4 option years",
-  },
-  {
-    id: "supplies",
-    label: "Suministros",
-    icon: "📦",
-    naics: "453210",
-    contractTitle: "Contract for Office Supplies & Consumables",
-    agency: "Department of Education",
-    contractNo: "ED-IDIQ-2024-OSC",
-    scopeItems: [
-      "Just-in-time delivery of all office supplies within 48 hours",
-      "Toner cartridges, paper, and printing consumables",
-      "Furniture procurement and white-glove installation",
-      "Quarterly inventory reporting and spend analysis",
-    ],
-    value: "$155,000 IDIQ",
-    period: "Indefinite Delivery, 3 years",
-  },
-  {
-    id: "healthcare",
-    label: "Personal de Salud",
-    icon: "🏥",
-    naics: "621111",
-    contractTitle: "Contract for Healthcare Staffing Services",
-    agency: "Department of Veterans Affairs",
-    contractNo: "VA-36C-2024-4391",
-    scopeItems: [
-      "Registered Nurses, LPNs, and Certified Medical Assistants",
-      "Per diem, temp-to-perm, and direct placement options",
-      "Full background checks, credentialing, and licensing verification",
-      "30-day satisfaction guarantee and free replacement",
-    ],
-    value: "$780,000 / year",
-    period: "Base year + 2 option years",
-  },
-  {
-    id: "transport",
-    label: "Transporte",
-    icon: "🚛",
-    naics: "484121",
-    contractTitle: "Contract for Freight Transportation & Logistics",
-    agency: "USDA Agricultural Research Service",
-    contractNo: "12-3A94-24-B-0014",
-    scopeItems: [
-      "Long-haul freight for federal materials and equipment",
-      "Last-mile delivery to federal facilities nationwide",
-      "GPS tracking, chain-of-custody, and real-time reporting",
-      "Hazmat-certified drivers and TWIC-card holders on staff",
-    ],
-    value: "$340,000 / year",
-    period: "12 months + 3 option years",
-  },
-  {
-    id: "food",
-    label: "Alimentación",
-    icon: "🍽️",
-    naics: "722310",
-    contractTitle: "Contract for Food & Cafeteria Services",
-    agency: "Department of Defense",
-    contractNo: "W91248-24-D-0055",
-    scopeItems: [
-      "Daily cafeteria operations for up to 600 personnel",
-      "Special event catering and VIP dining services",
-      "USDA-compliant menu planning and allergen management",
-      "Monthly nutritional analysis reports to facility manager",
-    ],
-    value: "$1,200,000 / year",
-    period: "Base + 4 option years",
-  },
-  {
     id: "hvac",
     label: "HVAC",
     icon: "⚙️",
@@ -548,8 +395,15 @@ function VideoTutorial() {
         }}
       >
         {isPlaceholder ? (
-          /* Placeholder cuando no hay video configurado — poster con imagen */
-          <div style={{ position: "absolute", inset: 0 }}>
+          /* Tutorial "coming soon": invita a presionar pero avisa que está llegando */
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => toast("El tutorial está llegando — lo subimos en breve 🚀")}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toast("El tutorial está llegando — lo subimos en breve 🚀"); } }}
+            aria-label="Ver el tutorial (próximamente)"
+            style={{ position: "absolute", inset: 0, cursor: "pointer" }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/flag-usa.jpg"
@@ -598,11 +452,11 @@ function VideoTutorial() {
               </div>
               <span style={{
                 fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 800,
-                letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff",
-                background: "rgba(228,45,44,0.92)", border: "1px solid rgba(255,255,255,0.25)",
+                letterSpacing: "0.1em", textTransform: "uppercase", color: "#1a1205",
+                background: "#FFC53D", border: "1px solid rgba(255,255,255,0.25)",
                 borderRadius: "999px", padding: "5px 14px",
               }}>
-                ▶ Ver tutorial
+                ⏳ Próximamente · Coming soon
               </span>
             </div>
           </div>
