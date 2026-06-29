@@ -29,7 +29,7 @@ export function GiftCard() {
             Mi regalo para vos
           </span>
           <span style={{ display: "block", fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 1 }}>
-            Por completar el challenge — tocá para abrir
+            Porque valoro tu compromiso · tocá para abrir
           </span>
         </span>
         <ChevronDown size={20} style={{ flexShrink: 0, color: "var(--muted-foreground)", transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none" }} />
