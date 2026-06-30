@@ -435,6 +435,10 @@
 }
 ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
 
+/* La barra de tabs (DayTabs) scrollea en horizontal sin scrollbar visible. */
+.gb-daytabs { scrollbar-width: none; -ms-overflow-style: none; }
+.gb-daytabs::-webkit-scrollbar { display: none; }
+
 /* ── Cinematic Health Bar ────────────────────── */
 
 /* Edge crackle — electric spark at fill boundary */

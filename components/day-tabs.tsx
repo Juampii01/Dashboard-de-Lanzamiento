@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { createParticleBurst } from "@/lib/wow-effects";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 
 interface DayTabsProps {
   progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }>;
@@ -23,6 +23,19 @@ export function DayTabs({ progressMap }: DayTabsProps) {
   const pathname = usePathname();
   const router   = useRouter();
   const tabRef   = useRef<HTMLDivElement>(null);
+  const [showFade, setShowFade] = useState(false);
+
+  // Muestra el degradé de la derecha solo si quedan tabs fuera de vista (hay más
+  // para deslizar). Se recalcula al hacer scroll y al cambiar el tamaño.
+  useEffect(() => {
+    const el = tabRef.current;
+    if (!el) return;
+    const update = () => setShowFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => { el.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, []);
 
   function handleTabClick(e: React.MouseEvent, href: string, isUnlocked: boolean) {
     if (!isUnlocked) return;
@@ -32,6 +45,7 @@ export function DayTabs({ progressMap }: DayTabsProps) {
   }
 
   return (
+    <div style={{ position: "relative", flexShrink: 0 }}>
     <div
       ref={tabRef}
       className="gb-daytabs"
@@ -42,8 +56,10 @@ export function DayTabs({ progressMap }: DayTabsProps) {
         gap: "5px",
         background: "var(--card)",
         borderBottom: "1px solid var(--border)",
-        flexShrink: 0,
         height: "58px",
+        overflowX: "auto",
+        overflowY: "hidden",
+        scrollbarWidth: "none",
       }}
     >
       {TABS.map(({ day, label, sub, href }) => {
@@ -175,6 +191,20 @@ export function DayTabs({ progressMap }: DayTabsProps) {
           </div>
         );
       })}
+    </div>
+      {showFade && (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute", top: 0, right: 0, bottom: "1px", width: 40,
+            pointerEvents: "none",
+            background: "linear-gradient(to right, transparent 0%, var(--card) 78%)",
+            display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: 4,
+          }}
+        >
+          <span style={{ color: "var(--secondary)", fontSize: 18, fontWeight: 900 }}>›</span>
+        </div>
+      )}
     </div>
   );
 }
