@@ -256,6 +256,7 @@ ${webResult.html}
                 onClick={() => {
                   toast("Primero completá las misiones de aquí arriba 👆", {
                     description: "Mirá los videos y respondé las preguntas para desbloquear la tarea.",
+                    position: "bottom-center",
                   });
                   document.querySelector('[data-tour-id="capsules"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
