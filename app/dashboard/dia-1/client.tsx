@@ -417,7 +417,16 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   Mira los videos de la misión de hoy y responde las preguntas. Así llegas a la clase con todo el contexto.
                 </p>
               </div>
-              <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  toast("Primero completá las misiones de aquí arriba 👆", {
+                    description: "Mirá los videos y respondé las preguntas para desbloquear la tarea.",
+                  });
+                  document.querySelector('[data-tour-id="capsules"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="gap-2 h-12 px-7 text-base font-bold"
+              >
                 <Lock className="w-4 h-4" /> Realizar tareas — Día 1
               </Button>
             </CardContent>

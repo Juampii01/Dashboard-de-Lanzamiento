@@ -255,7 +255,16 @@ export function Dia4Client({
                   Mira los videos de la misión de hoy y responde las preguntas para desbloquear la tarea.
                 </p>
               </div>
-              <Button disabled className="gap-2 h-12 px-7 text-base font-bold">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  toast("Primero completá las misiones de aquí arriba 👆", {
+                    description: "Mirá los videos y respondé las preguntas para desbloquear la tarea.",
+                  });
+                  document.querySelector('[data-tour-id="capsules"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="gap-2 h-12 px-7 text-base font-bold"
+              >
                 <Lock className="w-4 h-4" /> Generar mi Capability Statement — Día 4
               </Button>
             </CardContent>
