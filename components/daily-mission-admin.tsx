@@ -25,6 +25,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
   const [mission, setMission] = useState<Mission | null>(initialMission);
   const [title, setTitle] = useState(initialMission?.title ?? "");
   const [desc, setDesc] = useState(initialMission?.description ?? "");
+  const [pts, setPts] = useState<number>(initialMission?.points_reward ?? 1000);
   const [saving, setSaving] = useState(false);
   const [subs, setSubs] = useState<Submission[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
             setMission(d.mission);
             setTitle(d.mission.title ?? "");
             setDesc(d.mission.description ?? "");
+            setPts(d.mission.points_reward ?? 1000);
           }
         }
       })
@@ -61,7 +63,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
     try {
       const r = await fetch("/api/admin/daily-mission", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action === "set" ? { action, title, description: desc } : { action }),
+        body: JSON.stringify(action === "set" ? { action, title, description: desc, points_reward: pts } : { action }),
       });
       const d = await r.json();
       if (r.ok) {
@@ -110,9 +112,15 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
         <input style={inputStyle} placeholder="Título de la misión (ej: Comparte tu Día 1 en LinkedIn)" value={title} onChange={(e) => setTitle(e.target.value)} />
         <textarea style={{ ...inputStyle, resize: "vertical", minHeight: 64 }} placeholder="Descripción / instrucciones para los participantes" value={desc ?? ""} onChange={(e) => setDesc(e.target.value)} />
         <div className="flex items-center gap-2 flex-wrap">
-          <span style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
-            Puntos: <strong style={{ color: "var(--foreground)" }}>1.000</strong> (fijo)
-          </span>
+          <label style={{ fontSize: 13, color: "var(--muted-foreground)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Puntos:
+            <input
+              type="number" min={0} max={100000} step={50}
+              value={pts}
+              onChange={(e) => setPts(Math.max(0, Math.min(100000, Math.round(Number(e.target.value) || 0))))}
+              style={{ width: 92, background: "var(--background)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--foreground)", fontSize: 14, padding: "7px 10px", outline: "none", fontFamily: "var(--font-sans)" }}
+            />
+          </label>
           <button onClick={() => save("set")} disabled={saving || !title.trim()}
             style={{ padding: "9px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13.5, background: "var(--primary)", color: "var(--primary-foreground)", opacity: (saving || !title.trim()) ? 0.6 : 1 }}>
             {saving ? "Guardando..." : mission ? "Actualizar misión" : "Publicar misión"}

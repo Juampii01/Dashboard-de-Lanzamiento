@@ -211,7 +211,7 @@ export default async function SumaPuntosPage() {
 
       {/* 4. Misiones Diarias */}
       <section className="space-y-3">
-        <SectionHeader emoji="🎯" title="Misión Diaria" subtitle="+1.000 pts · una por misión" />
+        <SectionHeader emoji="🎯" title="Misión Diaria" subtitle={ctx.mission ? `+${(ctx.over10k ? Math.floor(ctx.mission.points_reward / 2) : ctx.mission.points_reward).toLocaleString()} pts · una por misión` : "Una por misión"} />
         {ctx.mission ? (
           <DailyMissionUser mission={ctx.mission} alreadyDone={ctx.missionDone} />
         ) : ctx.missionExpired ? (
