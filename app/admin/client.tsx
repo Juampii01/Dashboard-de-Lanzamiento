@@ -109,6 +109,35 @@ interface LockState {
 
 const DEFAULT_MESSAGE = "La llamada en vivo está en curso. Volvé cuando termine.";
 
+// Tarjeta "Conectados ahora" — refresca sola cada 20s (cuenta /api/admin/online-count).
+function OnlineNowCard() {
+  const [online, setOnline] = useState<number | null>(null);
+  useEffect(() => {
+    let alive = true;
+    async function load() {
+      try {
+        const res = await fetch("/api/admin/online-count", { cache: "no-store" });
+        const d = await res.json();
+        if (alive && res.ok) setOnline(d.online ?? 0);
+      } catch { /* noop */ }
+    }
+    load();
+    const id = setInterval(load, 20_000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
+  return (
+    <Card style={{ borderColor: "color-mix(in srgb, var(--success) 55%, var(--border))" }}>
+      <CardContent className="pt-6">
+        <p className="text-3xl font-bold flex items-center gap-2" style={{ color: "var(--success)" }}>
+          <span className="inline-block w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: "var(--success)" }} />
+          {online === null ? "…" : online}
+        </p>
+        <p className="text-sm text-muted-foreground mt-1">Conectados ahora <span className="opacity-60">· en vivo</span></p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function DashboardLockControl() {
   const [lock, setLock] = useState<LockState>({
     is_locked: false,
@@ -1100,7 +1129,8 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
       </Card>
 
       {/* Métricas de ingreso */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <OnlineNowCard />
         <Card>
           <CardContent className="pt-6">
             <p className="text-3xl font-bold text-primary">{totalUsers}</p>

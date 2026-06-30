@@ -89,6 +89,19 @@ export function XpEngine() {
     return () => clearTimeout(timer);
   }, []);
 
+  // ── Presencia: marca "conectado ahora" cada 60s mientras la pestaña está visible ──
+  useEffect(() => {
+    async function ping() {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      try { await fetch("/api/presence", { method: "POST" }); } catch { /* red intermitente — reintenta en el próximo tick */ }
+    }
+    ping();
+    const id = setInterval(ping, 60_000);
+    function onVisible() { if (document.visibilityState === "visible") ping(); }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVisible); };
+  }, []);
+
   // ── Avatar click XP (triggered via custom event from progress-bar) ───
   useEffect(() => {
     async function handleAvatarClick() {
