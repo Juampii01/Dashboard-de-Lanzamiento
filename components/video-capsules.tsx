@@ -47,9 +47,14 @@ interface VideoCapsulesProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const COOLDOWN_SECONDS = 0; // sin cooldown: las misiones se pueden hacer en cualquier orden
-// Emergency fallback: unlock button if YouTube API never fires (e.g. API blocked).
-// Set high so the intended flow is always "video ends → button unlocks".
-const FALLBACK_LOCK_SECS = 60 * 60; // 1 hour — effectively "API only"
+// El botón "Marcar completada" se habilita cuando YouTube avisa que el video
+// terminó. Esa API a veces NO dispara (móvil, fullscreen, postMessage bloqueado),
+// así que hay un fallback por tiempo: tras ~la duración del video (acotada entre
+// un piso y un techo) el botón se habilita igual. Antes era 1 hora fija → dejaba
+// trabada a la gente que sí miró el video completo.
+const WATCH_GATE_MIN_SECS = 20;      // piso: no habilitar al instante
+const WATCH_GATE_MAX_SECS = 600;     // techo (10 min): nunca esperas eternas
+const WATCH_GATE_DEFAULT_SECS = 120; // si no se conoce la duración del video
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -171,12 +176,14 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
     const activeCap = capsules.find((c) => c.id === activeId);
     if (!activeCap) return;
 
-    const lockSecs = activeCap.duration_seconds ?? FALLBACK_LOCK_SECS;
+    const dur = activeCap.duration_seconds ?? WATCH_GATE_DEFAULT_SECS;
+    const lockSecs = Math.min(Math.max(dur, WATCH_GATE_MIN_SECS), WATCH_GATE_MAX_SECS);
 
-    // Fallback timer — fires after duration (or 30s minimum)
+    // Fallback por tiempo: si la API de YouTube no dispara "ended", el botón se
+    // habilita igual tras ~la duración del video (acotada). Nunca 1 hora.
     fallbackRef.current = setTimeout(() => {
       setVideoUnlocked(true);
-    }, Math.max(lockSecs, FALLBACK_LOCK_SECS) * 1000);
+    }, lockSecs * 1000);
 
     // YouTube IFrame API for ENDED event
     const videoId = getYoutubeId(activeCap.youtube_url);
