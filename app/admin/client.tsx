@@ -1302,6 +1302,25 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </CardContent>
       </Card>
 
+      {/* Stats rápidas — completaron cada día (arriba de la tabla) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((day) => {
+          const completed = allProgress.filter(
+            (p) => p.day_number === day && p.is_completed
+          ).length;
+          return (
+            <Card key={day} className="text-center">
+              <CardContent className="pt-6">
+                <p className="text-3xl font-bold text-primary">{completed}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Completaron Día {day}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
       {/* Tabla de usuarios */}
       <Card>
         <CardHeader>
@@ -1421,25 +1440,6 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
           </Table>
         </CardContent>
       </Card>
-
-      {/* Stats rápidas */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((day) => {
-          const completed = allProgress.filter(
-            (p) => p.day_number === day && p.is_completed
-          ).length;
-          return (
-            <Card key={day} className="text-center">
-              <CardContent className="pt-6">
-                <p className="text-3xl font-bold text-primary">{completed}</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Completaron Día {day}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
 
       {/* Modal: desglose de puntos de un usuario (de dónde salieron) */}
       {bdUser && (
