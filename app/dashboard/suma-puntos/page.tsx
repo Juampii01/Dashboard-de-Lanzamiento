@@ -185,7 +185,7 @@ export default async function SumaPuntosPage() {
         }}>
           <span style={{ fontSize: 18, lineHeight: 1.3, flexShrink: 0 }}>⚖️</span>
           <p style={{ fontSize: 13, color: "var(--foreground)", margin: 0, lineHeight: 1.55 }}>
-            Superaste los <strong>10.000 puntos</strong>: de acá en más cada misión te suma la <strong>mitad</strong> de los puntos que figuran. Y el <strong>tiempo en el dashboard</strong> y las <strong>rachas</strong> ya <strong>no suman</strong>. Por ejemplo: una misión de <strong>+1.000 pts</strong> te suma <strong>+500</strong>, y una de <strong>+500</strong> te suma <strong>+250</strong>.
+            Superaste los <strong>10.000 puntos</strong>: desde ahora, cada misión te suma la <strong>mitad</strong> de los puntos. Y el <strong>tiempo en el dashboard</strong> y las <strong>rachas</strong> ya <strong>no suman</strong>. Por ejemplo: una misión de <strong>+1.000 pts</strong> te suma <strong>+500</strong>, y una de <strong>+500</strong> te suma <strong>+250</strong>.
           </p>
         </div>
       )}
