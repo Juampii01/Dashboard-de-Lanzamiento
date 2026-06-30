@@ -11,6 +11,12 @@ import Link from "next/link";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
+// Los referidos se discontinuaron: la tarjeta con el link de referido ya NO se
+// muestra en pantalla en ninguna cuenta. La lógica de acreditación sigue intacta
+// (los referidos en curso se acreditan igual); solo se oculta la UI. Poner en
+// true para volver a mostrarla.
+const SHOW_REFERRALS = false;
+
 // Función para calcular la fecha Miami con reset 8AM
 function getMiamiStoryDate(): string {
   const now = new Date();
@@ -190,8 +196,8 @@ export default async function SumaPuntosPage() {
         </div>
       )}
 
-      {/* 1. Referidos */}
-      {ctx.refLink && (
+      {/* 1. Referidos — OCULTO (referidos discontinuados; la lógica sigue activa) */}
+      {SHOW_REFERRALS && ctx.refLink && (
         <section className="space-y-3">
           <SectionHeader emoji="🤝" title="Invita y gana" subtitle={`+${(ctx.over10k ? Math.floor(REFERRAL_LEAD_XP / 2) : REFERRAL_LEAD_XP).toLocaleString()} pts por cada persona que invitas al lanzamiento`} />
           <ReferralLinkCard link={ctx.refLink} xp={REFERRAL_LEAD_XP} over10k={ctx.over10k} />
