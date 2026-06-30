@@ -110,6 +110,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
 
   // Video locking — unlocks when video ends (IFrame API) or fallback timer fires
   const [videoUnlocked, setVideoUnlocked] = useState(false);
+  const [manualUnlockReady, setManualUnlockReady] = useState(false);
   // Modo repaso: reabre SOLO el video (sin quiz ni XP) para misiones ya completadas
   const [replayMode, setReplayMode] = useState(false);
   const [podcastClaiming, setPodcastClaiming] = useState(false);
@@ -224,6 +225,16 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
       if (fallbackRef.current) { clearTimeout(fallbackRef.current); fallbackRef.current = null; }
     };
   }, [activeId, capsules]);
+
+  // Escape manual: a los 20s con un video abierto, habilita "Ya lo vi" para
+  // desbloquear a mano. Cubre la pared anti-bot de YouTube y cualquier caso en
+  // que el embed no reproduzca (el quiz sigue siendo el verdadero gate de XP).
+  useEffect(() => {
+    setManualUnlockReady(false);
+    if (!activeId || replayMode) return;
+    const t = setTimeout(() => setManualUnlockReady(true), 20_000);
+    return () => clearTimeout(t);
+  }, [activeId, replayMode]);
 
   // ── Mark capsule as watched ───────────────────────────────────────────────────
 
@@ -435,31 +446,56 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                   </button>
                 </div>
               ) : (
-                /* Mark as watched row */
-                <div className="flex items-center justify-between">
-                  <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
-                    {videoUnlocked
-                      ? "Video visto — responde el quiz para ganar XP"
-                      : "⏳ Mira el video completo para desbloquear"}
-                  </p>
-                  <button
-                    ref={markBtnRef}
-                    onClick={handleMark}
-                    disabled={marking || !videoUnlocked}
-                    className="flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{
-                      background: videoUnlocked
-                        ? "linear-gradient(135deg, #00D67A, #00B865)"
-                        : "rgba(0,214,122,0.1)",
-                      color: videoUnlocked ? "#000" : "#647FA8",
-                      fontFamily: "var(--font-sans)",
-                      boxShadow: videoUnlocked ? "0 0 16px rgba(0,214,122,0.4)" : "none",
-                      transition: "background 0.4s, box-shadow 0.4s, color 0.3s",
-                    }}
-                  >
-                    {marking ? "Guardando..." : `Responder quiz → +${activeCap.points_reward} XP`}
-                  </button>
-                </div>
+                <>
+                  {/* Mark as watched row */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
+                      {videoUnlocked
+                        ? "Video visto — responde el quiz para ganar XP"
+                        : "⏳ Mira el video completo para desbloquear"}
+                    </p>
+                    <button
+                      ref={markBtnRef}
+                      onClick={handleMark}
+                      disabled={marking || !videoUnlocked}
+                      className="flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{
+                        background: videoUnlocked
+                          ? "linear-gradient(135deg, #00D67A, #00B865)"
+                          : "rgba(0,214,122,0.1)",
+                        color: videoUnlocked ? "#000" : "#647FA8",
+                        fontFamily: "var(--font-sans)",
+                        boxShadow: videoUnlocked ? "0 0 16px rgba(0,214,122,0.4)" : "none",
+                        transition: "background 0.4s, box-shadow 0.4s, color 0.3s",
+                      }}
+                    >
+                      {marking ? "Guardando..." : `Responder quiz → +${activeCap.points_reward} XP`}
+                    </button>
+                  </div>
+
+                  {/* Salidas si el embed no carga (p.ej. la pared anti-bot de YouTube) */}
+                  {!videoUnlocked && videoId && (
+                    <div className="flex items-center justify-between gap-3" style={{ fontSize: 11.5 }}>
+                      <a
+                        href={`https://www.youtube.com/watch?v=${videoId}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: "#00D4FF", textDecoration: "underline" }}
+                      >
+                        ¿No carga el video? Verlo en YouTube ↗
+                      </a>
+                      {manualUnlockReady && (
+                        <button
+                          type="button"
+                          onClick={() => setVideoUnlocked(true)}
+                          style={{ color: "#8DA2C4", textDecoration: "underline", background: "none", border: "none", cursor: "pointer", fontSize: 11.5 }}
+                        >
+                          Ya lo vi → desbloquear
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
