@@ -13,19 +13,26 @@ import { useCallback, useEffect, useState } from "react";
 export function useMissionsDone(day: number, devMode = false) {
   const [missionsDone, setMissionsDone] = useState(devMode);
   const [loading, setLoading] = useState(!devMode);
+  const [pending, setPending] = useState(0); // misiones de video que faltan completar
+  const [total, setTotal] = useState(0);
 
   const check = useCallback(async () => {
-    if (devMode) { setMissionsDone(true); setLoading(false); return; }
+    if (devMode) { setMissionsDone(true); setLoading(false); setPending(0); setTotal(0); return; }
     try {
       const res = await fetch(`/api/capsules?day=${day}`);
       if (!res.ok) { setLoading(false); return; }
       const data = await res.json() as { capsules?: { completed: boolean }[] };
       const caps = data.capsules ?? [];
+      const t = caps.length;
+      const done = caps.filter((c) => c.completed).length;
+      setTotal(t);
+      setPending(t - done);
       // Si no hay misiones cargadas para el día, no bloqueamos la tarea.
-      setMissionsDone(caps.length === 0 || caps.every((c) => c.completed));
+      setMissionsDone(t === 0 || done === t);
     } catch {
       /* ante error de red, no bloqueamos */
       setMissionsDone(true);
+      setPending(0);
     } finally {
       setLoading(false);
     }
@@ -43,5 +50,5 @@ export function useMissionsDone(day: number, devMode = false) {
     return () => window.removeEventListener("xp-gained", handler);
   }, [check]);
 
-  return { missionsDone, loading };
+  return { missionsDone, loading, pending, total };
 }

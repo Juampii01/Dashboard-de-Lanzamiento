@@ -85,7 +85,7 @@ export function Dia4Client({
   });
   const [hasGovContracts, setHasGovContracts] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
-  const { missionsDone } = useMissionsDone(4, devMode);
+  const { missionsDone, pending } = useMissionsDone(4, devMode);
   const [bonusOpen, setBonusOpen] = useState(false);
   const setCompanyField = (field: keyof typeof companyForm) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -255,6 +255,11 @@ export function Dia4Client({
                   Mira los videos de la misión de hoy y responde las preguntas para desbloquear la tarea.
                 </p>
               </div>
+              {pending > 0 && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "color-mix(in srgb, var(--primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--primary) 35%, transparent)", color: "var(--primary)", fontWeight: 800, fontSize: 14 }}>
+                  📹 {pending === 1 ? "Te falta 1 misión por completar" : `Te faltan ${pending} misiones por completar`}
+                </div>
+              )}
               <Button
                 variant="secondary"
                 onClick={() => {

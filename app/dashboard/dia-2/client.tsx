@@ -151,7 +151,7 @@ export function Dia2Client({
   const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
-  const { missionsDone } = useMissionsDone(2, devMode);
+  const { missionsDone, pending } = useMissionsDone(2, devMode);
 
   // Clean up loading interval on unmount
   useEffect(() => () => { if (loadingRef.current) clearInterval(loadingRef.current); }, []);
@@ -317,6 +317,11 @@ export function Dia2Client({
                   Mira los videos de la misión de hoy y responde las preguntas para desbloquear la tarea.
                 </p>
               </div>
+              {pending > 0 && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "color-mix(in srgb, var(--primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--primary) 35%, transparent)", color: "var(--primary)", fontWeight: 800, fontSize: 14 }}>
+                  📹 {pending === 1 ? "Te falta 1 misión por completar" : `Te faltan ${pending} misiones por completar`}
+                </div>
+              )}
               <Button
                 variant="secondary"
                 onClick={() => {

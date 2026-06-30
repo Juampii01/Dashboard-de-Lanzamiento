@@ -53,7 +53,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   const [wizardOpen, setWizardOpen] = useState(false);
 
   // La tarea se desbloquea SOLO después de completar la misión del día.
-  const { missionsDone } = useMissionsDone(1, devMode);
+  const { missionsDone, pending } = useMissionsDone(1, devMode);
 
   // ── Logo state ──────────────────────────────────────────────────────────────
   const [logoUrl, setLogoUrl] = useState<string | null>(
@@ -417,6 +417,11 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   Mira los videos de la misión de hoy y responde las preguntas. Así llegas a la clase con todo el contexto.
                 </p>
               </div>
+              {pending > 0 && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "color-mix(in srgb, var(--primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--primary) 35%, transparent)", color: "var(--primary)", fontWeight: 800, fontSize: 14 }}>
+                  📹 {pending === 1 ? "Te falta 1 misión por completar" : `Te faltan ${pending} misiones por completar`}
+                </div>
+              )}
               <Button
                 variant="secondary"
                 onClick={() => {
