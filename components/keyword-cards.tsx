@@ -15,9 +15,10 @@ const DAY_LABELS: Record<number, string> = {
   4: "Día 4",
 };
 
-function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumber: number) => void }) {
+function KeywordCard({ day, onClaimed, over10k }: { day: DayKeyword; onClaimed: (dayNumber: number) => void; over10k: boolean }) {
   const [input, setInput] = useState("");
   const [phase, setPhase] = useState<"idle" | "loading" | "wrong" | "error" | "done">(day.done ? "done" : "idle");
+  const pts = over10k ? "500" : "1,000"; // sobre 10k cuenta la mitad
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +93,7 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
             color: "var(--success)", background: "color-mix(in srgb, var(--success) 14%, transparent)",
             border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
             borderRadius: 999, padding: "3px 11px", whiteSpace: "nowrap",
-          }}>✓ +1,000 pts</span>
+          }}>✓ +{pts} pts</span>
         ) : !day.hasKeyword ? (
           <span style={{
             fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
@@ -107,7 +108,7 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
             borderRadius: 999, padding: "4px 13px", whiteSpace: "nowrap",
             letterSpacing: "0.01em",
             boxShadow: "0 2px 10px -2px color-mix(in srgb, var(--accent) 60%, transparent)",
-          }}>+1,000 pts</span>
+          }}>+{pts} pts</span>
         )}
       </div>
 
@@ -117,7 +118,7 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
 
       {phase === "done" ? (
         <p style={{ fontSize: 12, color: "var(--success)", margin: 0 }}>
-          ¡Keyword reclamada! +1,000 pts acreditados.
+          ¡Keyword reclamada! +{pts} pts acreditados.
         </p>
       ) : !day.hasKeyword ? (
         <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
@@ -164,7 +165,7 @@ function KeywordCard({ day, onClaimed }: { day: DayKeyword; onClaimed: (dayNumbe
   );
 }
 
-export function KeywordCards({ days }: { days: DayKeyword[] }) {
+export function KeywordCards({ days, over10k = false }: { days: DayKeyword[]; over10k?: boolean }) {
   const [doneDays, setDoneDays] = useState<Set<number>>(
     new Set(days.filter((d) => d.done).map((d) => d.day_number))
   );
@@ -182,7 +183,7 @@ export function KeywordCards({ days }: { days: DayKeyword[] }) {
       gap: 12,
     }}>
       {enriched.map((day) => (
-        <KeywordCard key={day.day_number} day={day} onClaimed={handleClaimed} />
+        <KeywordCard key={day.day_number} day={day} onClaimed={handleClaimed} over10k={over10k} />
       ))}
     </div>
   );

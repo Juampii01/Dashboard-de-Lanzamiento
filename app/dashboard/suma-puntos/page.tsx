@@ -34,6 +34,7 @@ interface Mission { id: string; title: string; description: string | null; point
 
 interface PageCtx {
   isAdmin: boolean;
+  over10k: boolean;
   refLink: string | null;
   mission: Mission | null;
   missionExpired: boolean;
@@ -50,6 +51,7 @@ async function getContext(): Promise<PageCtx> {
   if (DEV_MODE) {
     return {
       isAdmin: true,
+      over10k: false,
       refLink: "https://dboard.govbidder.net/referido?ref=DEVTEST",
       mission: null,
       missionExpired: false,
@@ -65,7 +67,7 @@ async function getContext(): Promise<PageCtx> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return {
-      isAdmin: false, refLink: null, mission: null, missionExpired: false, missionDone: false,
+      isAdmin: false, over10k: false, refLink: null, mission: null, missionExpired: false, missionDone: false,
       keywordDays: emptyKeywordDays, storyDoneToday: false,
       rafagas: [], rafagaClaimedIds: [],
     };
@@ -84,7 +86,7 @@ async function getContext(): Promise<PageCtx> {
     rafagaRows,
     rafagaSubsRows,
   ] = await Promise.all([
-    service.from("users").select("is_admin").eq("id", user.id).maybeSingle(),
+    service.from("users").select("is_admin, total_points").eq("id", user.id).maybeSingle(),
     getOrCreateReferralCode(service, user.id),
     service.from("daily_missions").select("id, title, description, points_reward").eq("is_active", true).maybeSingle(),
     service.from("call_keywords").select("day_number").order("day_number"),
@@ -99,6 +101,7 @@ async function getContext(): Promise<PageCtx> {
   ]);
 
   const isAdmin = (userRow.data as { is_admin?: boolean } | null)?.is_admin ?? false;
+  const over10k = ((userRow.data as { total_points?: number } | null)?.total_points ?? 0) >= 10000;
   const refLink = refCode ? referralLink(refCode) : null;
   const mission = (missionRow.data as Mission | null) ?? null;
 
@@ -138,7 +141,7 @@ async function getContext(): Promise<PageCtx> {
   const rafagas = (rafagaRows.data ?? []) as RafagaMission[];
   const rafagaClaimedIds = ((rafagaSubsRows.data ?? []) as { rafaga_id: string }[]).map((r) => r.rafaga_id);
 
-  return { isAdmin, refLink, mission, missionExpired, missionDone, keywordDays, storyDoneToday, rafagas, rafagaClaimedIds };
+  return { isAdmin, over10k, refLink, mission, missionExpired, missionDone, keywordDays, storyDoneToday, rafagas, rafagaClaimedIds };
 }
 
 export default async function SumaPuntosPage() {
@@ -172,6 +175,20 @@ export default async function SumaPuntosPage() {
         </p>
       )}
 
+      {/* Aviso sobre 10.000 pts: las misiones suman la mitad; tiempo y rachas no suman */}
+      {ctx.over10k && (
+        <div style={{
+          padding: "12px 14px", borderRadius: 12,
+          background: "rgba(255,215,0,0.10)", border: "1px solid rgba(255,215,0,0.32)",
+          display: "flex", alignItems: "flex-start", gap: 9,
+        }}>
+          <span style={{ fontSize: 17, lineHeight: 1.2 }}>⚖️</span>
+          <p style={{ fontSize: 13, color: "#FFE9A6", margin: 0, lineHeight: 1.5 }}>
+            Superaste los <strong style={{ color: "#FFD700" }}>10.000 puntos</strong>: de acá en más cada misión te suma la <strong style={{ color: "#FFD700" }}>mitad</strong> de los puntos que figuran. Y el <strong style={{ color: "#FFD700" }}>tiempo en el dashboard</strong> y las <strong style={{ color: "#FFD700" }}>rachas</strong> ya <strong style={{ color: "#FFD700" }}>no suman</strong>.
+          </p>
+        </div>
+      )}
+
       {/* 1. Referidos */}
       {ctx.refLink && (
         <section className="space-y-3">
@@ -182,8 +199,8 @@ export default async function SumaPuntosPage() {
 
       {/* 2. Palabras Clave */}
       <section className="space-y-3">
-        <SectionHeader emoji="📞" title="Palabras Clave de Llamadas" subtitle="+1,000 pts por keyword · una vez por día de llamada" />
-        <KeywordCards days={ctx.keywordDays} />
+        <SectionHeader emoji="📞" title="Palabras Clave de Llamadas" subtitle={ctx.over10k ? "+500 pts por keyword · una vez por día de llamada" : "+1,000 pts por keyword · una vez por día de llamada"} />
+        <KeywordCards days={ctx.keywordDays} over10k={ctx.over10k} />
       </section>
 
       {/* 3. Historia Diaria */}

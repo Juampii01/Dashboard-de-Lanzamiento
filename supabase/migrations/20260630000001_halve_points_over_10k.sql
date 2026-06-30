@@ -1,14 +1,9 @@
 -- ============================================================================
--- "A partir de los 10.000 puntos, cada punto POSITIVO vale la mitad" (redondeo
--- hacia abajo). Frena la subida rápida hacia Legacy (10k+).
---
--- Se aplica en LAS 4 funciones que otorgan puntos, porque heartbeat / streak /
--- ad NO pasan por add_points (suman directo):
---   1. add_points         (misiones, keywords, referidos, videos, quiz, call, community, story, rafaga…)
---   2. award_heartbeat_xp (permanencia · 'time')
---   3. claim_daily_streak (racha · 'streak')
---   4. claim_ad_xp        (anuncios · 'ad')
--- Los deltas NEGATIVOS (rechazos, ajustes) nunca se halvan.
+-- Frena la subida rápida hacia Legacy (10k+). Reglas A PARTIR de 10.000 pts:
+--   • Tiempo en el dashboard (heartbeat) y rachas: NO suman nada (0).
+--   • Todo lo demás (misiones, keywords, referidos, videos, quiz, call,
+--     community, story, rafaga, anuncios): vale la MITAD (redondeo abajo).
+-- Los deltas NEGATIVOS (rechazos, ajustes) nunca se tocan.
 -- ============================================================================
 
 -- 1. add_points -------------------------------------------------------------
@@ -79,6 +74,11 @@ BEGIN
     RETURN jsonb_build_object('awarded', false, 'error', 'user_not_found');
   END IF;
 
+  -- A partir de 10.000 pts, el tiempo en el dashboard NO suma.
+  IF v_rec.total_points >= 10000 THEN
+    RETURN jsonb_build_object('awarded', false, 'over_threshold', true);
+  END IF;
+
   IF NOT v_rec.is_admin THEN
     IF v_rec.last_time_xp_at IS NOT NULL
        AND NOW() - v_rec.last_time_xp_at < v_cooldown THEN
@@ -100,11 +100,6 @@ BEGIN
     END IF;
   ELSE
     v_new_count := COALESCE(v_rec.heartbeat_count_today, 0) + 1;
-  END IF;
-
-  -- A partir de 10.000 pts, la mitad.
-  IF v_rec.total_points >= 10000 THEN
-    v_points := floor(v_points / 2.0)::integer;
   END IF;
 
   UPDATE public.users
@@ -158,8 +153,9 @@ BEGIN
     v_points    := 0;
   END IF;
 
+  -- A partir de 10.000 pts, la racha NO suma puntos (la racha igual se mantiene).
   IF v_points > 0 AND v_rec.total_points >= 10000 THEN
-    v_points := floor(v_points / 2.0)::integer;
+    v_points := 0;
   END IF;
 
   UPDATE public.users
