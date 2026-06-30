@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   Shield, LogOut, Menu, X, ChevronLeft, ChevronDown,
   CheckCircle2, Lock, FileText, CalendarDays, FolderDown, Pencil,
+  Home, Zap, Trophy, Rocket, Compass,
 } from "lucide-react";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 import { ResetDashboardButton } from "@/components/reset-dashboard-button";
@@ -38,6 +39,14 @@ const DAY_META: Record<number, { label: string; href: string }> = {
   3: { label: "Web + Portales",     href: "/dashboard/dia-3" },
   4: { label: "Cap. Statement",     href: "/dashboard/dia-4" },
 };
+
+// Otras secciones (las mismas del nav de arriba) — también listadas en el sidebar.
+const EXPLORE_ITEMS: { icon: React.ReactNode; label: string; href: string }[] = [
+  { icon: <Home size={15} />,   label: "Inicio",          href: "/dashboard" },
+  { icon: <Zap size={15} />,    label: "Misiones Extra",  href: "/dashboard/suma-puntos" },
+  { icon: <Trophy size={15} />, label: "Ranking",         href: "/dashboard/ranking" },
+  { icon: <Rocket size={15} />, label: "Tu próximo paso", href: "/dashboard/proximo-paso" },
+];
 
 // ─── Day nav item ─────────────────────────────────────────────────────────────
 function DayNavItem({
@@ -102,6 +111,47 @@ function DayNavItem({
   if (locked) return <div style={{ display: "block", textDecoration: "none" }}>{inner}</div>;
   // prefetch={false}: evita que Next dispare un RSC de prefetch que pueda rotar
   // el refresh-token de Supabase fuera de una navegación real (logout fantasma).
+  return <Link href={href} prefetch={false} style={{ display: "block", textDecoration: "none" }}>{inner}</Link>;
+}
+
+// ─── Simple nav link (Inicio, Misiones Extra, Ranking, Próximo paso) ───────────
+function NavLinkItem({
+  icon, label, href, collapsed, active,
+}: {
+  icon: React.ReactNode; label: string; href: string; collapsed: boolean; active: boolean;
+}) {
+  const inner = (
+    <div
+      className="sb-item"
+      title={collapsed ? label : undefined}
+      style={{
+        display: "flex", alignItems: "center", gap: 11,
+        padding: collapsed ? "8px 0" : "8px 12px",
+        justifyContent: collapsed ? "center" : "flex-start",
+        borderRadius: 10,
+        background: active ? "var(--sidebar-accent)" : "transparent",
+        position: "relative",
+      }}
+    >
+      {active && !collapsed && (
+        <span style={{ position: "absolute", left: 0, top: 8, bottom: 8, width: 3, borderRadius: 3, background: "var(--primary)" }} />
+      )}
+      <span style={{
+        width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+        color: "var(--primary)",
+        border: "1px solid color-mix(in srgb, var(--primary) 28%, transparent)",
+      }}>{icon}</span>
+      {!collapsed && (
+        <span style={{
+          flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600,
+          color: "var(--sidebar-foreground)",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}>{label}</span>
+      )}
+    </div>
+  );
   return <Link href={href} prefetch={false} style={{ display: "block", textDecoration: "none" }}>{inner}</Link>;
 }
 
@@ -199,6 +249,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
   // Two-level collapse + accordions (persisted in localStorage)
   const [collapsed, setCollapsed] = useState(false);
   const [diasOpen, setDiasOpen] = useState(true);
+  const [exploreOpen, setExploreOpen] = useState(true);
   const [entregablesOpen, setEntregablesOpen] = useState(true);
 
   useEffect(() => {
@@ -207,6 +258,8 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
       if (c !== null) setCollapsed(c === "1");
       const d = localStorage.getItem("gb_section_dias");
       if (d !== null) setDiasOpen(d === "1");
+      const ex = localStorage.getItem("gb_section_explore");
+      if (ex !== null) setExploreOpen(ex === "1");
       const e = localStorage.getItem("gb_section_entregables");
       if (e !== null) setEntregablesOpen(e === "1");
     } catch { /* localStorage unavailable */ }
@@ -217,6 +270,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
   };
   const toggleCollapsed = () => setCollapsed((v) => { persist("gb_sidebar_collapsed", !v); return !v; });
   const toggleDias = () => setDiasOpen((v) => { persist("gb_section_dias", !v); return !v; });
+  const toggleExplore = () => setExploreOpen((v) => { persist("gb_section_explore", !v); return !v; });
   const toggleEntregables = () => setEntregablesOpen((v) => { persist("gb_section_entregables", !v); return !v; });
 
   const width = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
@@ -386,6 +440,30 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
                     <DayNavItem
                       key={day} day={day} label={label} href={href}
                       isCompleted={isCompleted} isUnlocked={isUnlocked}
+                      collapsed={collapsed} active={active}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Section: Explorar (mismas secciones del nav de arriba) ── */}
+        <div style={{ padding: "4px 6px 4px", flexShrink: 0 }}>
+          {!collapsed && (
+            <SectionHeader icon={<Compass size={13} />} label="Explorar" open={exploreOpen} onToggle={toggleExplore} />
+          )}
+          <div className="sb-acc" style={{ gridTemplateRows: collapsed || exploreOpen ? "1fr" : "0fr" }}>
+            <div className="sb-acc-inner">
+              <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: collapsed ? "4px 6px" : "2px 6px" }}>
+                {EXPLORE_ITEMS.map((item) => {
+                  const active = item.href === "/dashboard"
+                    ? pathname === "/dashboard"
+                    : (pathname === item.href || pathname.startsWith(item.href + "/"));
+                  return (
+                    <NavLinkItem
+                      key={item.href} icon={item.icon} label={item.label} href={item.href}
                       collapsed={collapsed} active={active}
                     />
                   );
