@@ -29,7 +29,8 @@ function miamiResetLocalLabel(hour = 8): string {
   }
 }
 
-export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
+export function StoryUpload({ alreadyDone, over10k = false }: { alreadyDone: boolean; over10k?: boolean }) {
+  const pts = over10k ? "250" : "500"; // sobre 10k cuenta la mitad
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [phase, setPhase] = useState<"idle" | "loading" | "done" | "error">(alreadyDone ? "done" : "idle");
@@ -113,7 +114,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
         <span style={{ fontSize: 24 }}>✅</span>
         <div>
           <p style={{ fontWeight: 700, color: "var(--success)", fontSize: 14, margin: 0 }}>
-            ¡Historia subida! +500 pts
+            ¡Historia subida! +{pts} pts
           </p>
           <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
             Vuelve mañana después de las {resetLabel} (tu hora local) para subir tu próxima historia.
@@ -141,7 +142,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
           fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
           color: "var(--accent-foreground)", background: "var(--accent)",
           borderRadius: 999, padding: "2px 10px",
-        }}>+500 pts</span>
+        }}>+{pts} pts</span>
       </div>
 
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
@@ -208,7 +209,7 @@ export function StoryUpload({ alreadyDone }: { alreadyDone: boolean }) {
               fontSize: 13, fontWeight: 700, cursor: "pointer",
             }}
           >
-            Subir y ganar 500 pts →
+            Subir y ganar {pts} pts →
           </button>
         </div>
       )}

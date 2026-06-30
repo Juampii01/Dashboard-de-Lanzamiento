@@ -179,12 +179,13 @@ export default async function SumaPuntosPage() {
       {ctx.over10k && (
         <div style={{
           padding: "12px 14px", borderRadius: 12,
-          background: "rgba(255,215,0,0.10)", border: "1px solid rgba(255,215,0,0.32)",
-          display: "flex", alignItems: "flex-start", gap: 9,
+          background: "color-mix(in srgb, #FFB300 14%, var(--card))",
+          border: "1px solid color-mix(in srgb, #FFB300 42%, transparent)",
+          display: "flex", alignItems: "flex-start", gap: 10,
         }}>
-          <span style={{ fontSize: 17, lineHeight: 1.2 }}>⚖️</span>
-          <p style={{ fontSize: 13, color: "#FFE9A6", margin: 0, lineHeight: 1.5 }}>
-            Superaste los <strong style={{ color: "#FFD700" }}>10.000 puntos</strong>: de acá en más cada misión te suma la <strong style={{ color: "#FFD700" }}>mitad</strong> de los puntos que figuran. Y el <strong style={{ color: "#FFD700" }}>tiempo en el dashboard</strong> y las <strong style={{ color: "#FFD700" }}>rachas</strong> ya <strong style={{ color: "#FFD700" }}>no suman</strong>.
+          <span style={{ fontSize: 18, lineHeight: 1.3, flexShrink: 0 }}>⚖️</span>
+          <p style={{ fontSize: 13, color: "var(--foreground)", margin: 0, lineHeight: 1.55 }}>
+            Superaste los <strong>10.000 puntos</strong>: de acá en más cada misión te suma la <strong>mitad</strong> de los puntos que figuran. Y el <strong>tiempo en el dashboard</strong> y las <strong>rachas</strong> ya <strong>no suman</strong>. Por ejemplo: una misión de <strong>+1.000 pts</strong> te suma <strong>+500</strong>, y una de <strong>+500</strong> te suma <strong>+250</strong>.
           </p>
         </div>
       )}
@@ -205,8 +206,8 @@ export default async function SumaPuntosPage() {
 
       {/* 3. Historia Diaria */}
       <section className="space-y-3">
-        <SectionHeader emoji="📸" title="Historia Diaria" subtitle="+500 pts · se reinicia cada día a la mañana" />
-        <StoryUpload alreadyDone={ctx.storyDoneToday} />
+        <SectionHeader emoji="📸" title="Historia Diaria" subtitle={ctx.over10k ? "+250 pts · se reinicia cada día a la mañana" : "+500 pts · se reinicia cada día a la mañana"} />
+        <StoryUpload alreadyDone={ctx.storyDoneToday} over10k={ctx.over10k} />
       </section>
 
       {/* 4. Misiones Diarias */}

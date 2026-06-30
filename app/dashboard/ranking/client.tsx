@@ -292,10 +292,10 @@ function StudentNote({ points }: { points: number }) {
 // ─── HowToEarnPoints — explica TODAS las formas de sumar puntos ───────────────
 // Valores verificados contra el código (constantes de las rutas /api/xp y
 // /api/missions; la migración points_x10 multiplicó todo ×10).
-const EARN_METHODS: { icon: string; title: string; points: string; variable?: boolean; detail: string }[] = [
-  { icon: "⏱️", title: "Tiempo activo en el dashboard", points: "+25", detail: "Con el dashboard abierto sumas automáticamente cada 10 minutos de actividad, hasta 20 veces por día (máx. 500 pts/día)." },
+const EARN_METHODS: { icon: string; title: string; points: string; variable?: boolean; zero10k?: boolean; detail: string }[] = [
+  { icon: "⏱️", title: "Tiempo activo en el dashboard", points: "+25", zero10k: true, detail: "Con el dashboard abierto sumas automáticamente cada 10 minutos de actividad, hasta 20 veces por día (máx. 500 pts/día)." },
   { icon: "👆", title: "Clic en el avatar de la barra de progreso", points: "+30", detail: "Toca el avatar ubicado en la barra de progreso. Puedes volver a sumar recién una hora después (sin tope diario)." },
-  { icon: "🔥", title: "Racha diaria", points: "+300", detail: "Entra al dashboard días seguidos: desde el segundo día consecutivo sumas racha, una vez por día." },
+  { icon: "🔥", title: "Racha diaria", points: "+300", zero10k: true, detail: "Entra al dashboard días seguidos: desde el segundo día consecutivo sumas racha, una vez por día." },
   { icon: "🎬", title: "Misiones en video", points: "+100", detail: "Mira y completa una cápsula de video del día. Suma una vez por cápsula, con 5 minutos de espera entre una y otra." },
   { icon: "❓", title: "Quiz de la cápsula", points: "+100", detail: "Responde bien el quiz de una cápsula. Solo el primer acierto otorga puntos." },
   { icon: "🎙️", title: "Cápsula de podcast", points: "+300", detail: "Escuchá y reclama una cápsula de tipo podcast. Suma una vez por cada una." },
@@ -310,7 +310,7 @@ const EARN_METHODS: { icon: string; title: string; points: string; variable?: bo
   { icon: "🤝", title: "Referido que ingresa", points: "+1.000", detail: "Comparte tu link de referido: ganas por cada persona que entra al challenge (se acredita cuando se crea su cuenta). Sin límite." },
 ];
 
-function HowToEarnPoints() {
+function HowToEarnPoints({ over10k = false }: { over10k?: boolean }) {
   return (
     <div style={{
       background: "rgba(10,37,64,0.8)",
@@ -326,6 +326,11 @@ function HowToEarnPoints() {
         <p style={{ fontSize: "12px", color: "#8DA2C4", marginTop: "3px" }}>
           Todas las formas de ganar puntos en el challenge. Cuanto más sumas, más alto es tu rango.
         </p>
+        {over10k && (
+          <p style={{ fontSize: "12px", color: "#FFD60A", marginTop: "5px", fontWeight: 600 }}>
+            ⚖️ Estás sobre los 10.000 puntos: estos valores ya van a la mitad, y el tiempo en el dashboard y las rachas no suman.
+          </p>
+        )}
       </div>
       <div style={{
         display: "grid",
@@ -333,7 +338,12 @@ function HowToEarnPoints() {
         gap: 10,
         padding: "14px 16px",
       }}>
-        {EARN_METHODS.map((m) => (
+        {EARN_METHODS.map((m) => {
+          const zeroed = over10k && m.zero10k;
+          const muted = m.variable || zeroed;
+          const half = m.variable ? m.points : "+" + Math.floor(parseInt(m.points.replace(/[^\d]/g, ""), 10) / 2).toLocaleString("es");
+          const label = m.variable ? m.points : zeroed ? "no suma" : `${over10k ? half : m.points} pts`;
+          return (
           <div key={m.title} style={{
             background: "rgba(20,58,107,0.45)",
             border: "1px solid #1E3A5C",
@@ -351,19 +361,20 @@ function HowToEarnPoints() {
               <span style={{
                 flexShrink: 0,
                 fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 800,
-                color: m.variable ? "#9FB4D4" : "#FFD60A",
-                background: m.variable ? "rgba(159,180,212,0.12)" : "rgba(255,214,10,0.1)",
-                border: `1px solid ${m.variable ? "rgba(159,180,212,0.3)" : "rgba(255,214,10,0.3)"}`,
+                color: muted ? "#9FB4D4" : "#FFD60A",
+                background: muted ? "rgba(159,180,212,0.12)" : "rgba(255,214,10,0.1)",
+                border: `1px solid ${muted ? "rgba(159,180,212,0.3)" : "rgba(255,214,10,0.3)"}`,
                 borderRadius: 5, padding: "3px 7px", whiteSpace: "nowrap",
               }}>
-                {m.variable ? m.points : `${m.points} pts`}
+                {label}
               </span>
             </div>
             <p style={{ fontSize: 11.5, color: "#A9BAD4", lineHeight: 1.45, margin: 0 }}>
               {m.detail}
             </p>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -434,7 +445,7 @@ export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStud
       </div>
 
       {/* Cómo sumar puntos — guía completa de todas las formas de ganar */}
-      <HowToEarnPoints />
+      <HowToEarnPoints over10k={(me?.total_points ?? 0) >= 10000} />
 
       {/* Prize tiers */}
       <div style={{
