@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MissionText } from "@/components/mission-text";
 
 export interface RafagaMission {
   id: string;
@@ -110,9 +111,7 @@ function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alrea
       </div>
 
       {mission.description && (
-        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
-          {mission.description}
-        </p>
+        <MissionText text={mission.description} fontSize={12.5} />
       )}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>

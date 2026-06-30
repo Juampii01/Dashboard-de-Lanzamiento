@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Camera, CheckCircle2, Loader2, Send } from "lucide-react";
+import { MissionText } from "@/components/mission-text";
 
 interface Mission {
   id: string;
@@ -98,9 +99,9 @@ export function DailyMissionUser({
         {mission.title}
       </h2>
       {mission.description && (
-        <p style={{ fontSize: 14.5, color: "var(--muted-foreground)", lineHeight: 1.55, marginTop: 10, maxWidth: "60ch" }}>
-          {mission.description}
-        </p>
+        <div style={{ marginTop: 12, maxWidth: "62ch" }}>
+          <MissionText text={mission.description} />
+        </div>
       )}
 
       <div style={{ marginTop: 18 }}>
