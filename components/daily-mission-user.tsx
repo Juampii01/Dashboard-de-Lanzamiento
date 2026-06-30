@@ -14,10 +14,14 @@ interface Mission {
 export function DailyMissionUser({
   mission,
   alreadyDone,
+  over10k = false,
 }: {
   mission: Mission;
   alreadyDone: boolean;
+  over10k?: boolean;
 }) {
+  // Sobre 10.000 pts cada misión suma la mitad → mostrar lo que realmente va a sumar.
+  const displayPts = over10k ? Math.floor(mission.points_reward / 2) : mission.points_reward;
   const [done, setDone] = useState(alreadyDone);
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState("");
@@ -93,7 +97,7 @@ export function DailyMissionUser({
         fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
         letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--primary)", marginBottom: 8,
       }}>
-        ⚡ Misión del día · +{mission.points_reward} XP
+        ⚡ Misión del día · +{displayPts} XP
       </p>
       <h2 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(20px, 3.5vw, 28px)", fontWeight: 800, color: "var(--foreground)", lineHeight: 1.15, margin: 0 }}>
         {mission.title}
@@ -111,7 +115,7 @@ export function DailyMissionUser({
             background: "color-mix(in srgb, var(--success) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--success) 45%, transparent)",
             borderRadius: 999, padding: "10px 18px", color: "var(--success)", fontWeight: 700, fontSize: 14,
           }}>
-            <CheckCircle2 size={18} /> ¡Respuesta enviada! Sumaste +{mission.points_reward} XP
+            <CheckCircle2 size={18} /> ¡Respuesta enviada! Sumaste +{displayPts} XP
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
