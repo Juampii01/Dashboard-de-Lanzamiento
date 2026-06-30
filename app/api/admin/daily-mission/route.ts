@@ -21,7 +21,8 @@ export async function GET() {
     .select("id, title, description, points_reward, is_active, created_at")
     .eq("is_active", true)
     .maybeSingle();
-  return NextResponse.json({ ok: true, mission: data ?? null });
+  const { count } = await auth.service.from("daily_missions").select("id", { count: "exact", head: true });
+  return NextResponse.json({ ok: true, mission: data ?? null, hasRows: (count ?? 0) > 0 });
 }
 
 /**
@@ -34,6 +35,21 @@ export async function POST(req: Request) {
 
   let body: { action?: string; title?: string; description?: string; points_reward?: number };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "invalid_json" }, { status: 400 }); }
+
+  // "remove" → Volver a "Próximamente": borra TODAS las misiones (y respuestas)
+  // para que la tabla quede vacía y el estado vacío sea "Próximamente".
+  if (body.action === "remove") {
+    const { data: allM } = await auth.service.from("daily_missions").select("id");
+    const allIds = ((allM ?? []) as Array<{ id: string }>).map((m) => m.id);
+    if (allIds.length) {
+      const { data: rsubs } = await auth.service.from("mission_submissions").select("storage_path").in("mission_id", allIds);
+      const rpaths = ((rsubs ?? []) as Array<{ storage_path: string | null }>).map((s) => s.storage_path).filter(Boolean) as string[];
+      if (rpaths.length) await auth.service.storage.from("avatars").remove(rpaths);
+      await auth.service.from("mission_submissions").delete().in("mission_id", allIds);
+      await auth.service.from("daily_missions").delete().in("id", allIds);
+    }
+    return NextResponse.json({ ok: true, mission: null });
+  }
 
   // Reset de la misión anterior: borrar sus respuestas (storage + filas) al
   // cambiar/quitar la misión. Las pendientes quedan validadas por defecto (los
@@ -53,6 +69,8 @@ export async function POST(req: Request) {
   await auth.service.from("daily_missions").update({ is_active: false }).eq("is_active", true);
 
   if (body.action === "clear") {
+    // Cerrar como "La misión caducó": la fila queda inactiva (NO se borra), así
+    // el estado vacío muestra "caducó" en vez de "Próximamente".
     return NextResponse.json({ ok: true, mission: null });
   }
 

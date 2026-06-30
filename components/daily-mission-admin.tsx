@@ -28,16 +28,20 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
   const [saving, setSaving] = useState(false);
   const [subs, setSubs] = useState<Submission[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [hasRows, setHasRows] = useState(false);
 
   // Cargar la misión activa al montar (permite usarlo sin pasar initialMission).
   useEffect(() => {
     fetch("/api/admin/daily-mission")
       .then((r) => r.json())
       .then((d) => {
-        if (d.ok && d.mission) {
-          setMission(d.mission);
-          setTitle(d.mission.title ?? "");
-          setDesc(d.mission.description ?? "");
+        if (d.ok) {
+          setHasRows(!!d.hasRows);
+          if (d.mission) {
+            setMission(d.mission);
+            setTitle(d.mission.title ?? "");
+            setDesc(d.mission.description ?? "");
+          }
         }
       })
       .catch(() => { /* noop */ });
@@ -52,17 +56,18 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
   }
   useEffect(() => { loadSubs(); }, [mission?.id]);
 
-  async function save(action: "set" | "clear") {
+  async function save(action: "set" | "clear" | "remove") {
     setSaving(true);
     try {
       const r = await fetch("/api/admin/daily-mission", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(action === "set" ? { action, title, description: desc } : { action: "clear" }),
+        body: JSON.stringify(action === "set" ? { action, title, description: desc } : { action }),
       });
       const d = await r.json();
       if (r.ok) {
         setMission(d.mission);
-        if (action === "clear") { setSubs([]); }
+        if (action !== "set") setSubs([]);
+        setHasRows(action !== "remove"); // set/clear dejan fila; remove la borra
       }
     } catch { /* noop */ }
     setSaving(false);
@@ -114,13 +119,23 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
           </button>
           {mission && (
             <button onClick={() => save("clear")} disabled={saving}
+              style={{ padding: "9px 14px", borderRadius: 8, border: "1px solid color-mix(in srgb, var(--destructive) 45%, transparent)", cursor: "pointer", fontWeight: 700, fontSize: 13, background: "transparent", color: "var(--destructive)" }}>
+              Cerrar — “La misión caducó”
+            </button>
+          )}
+          {(mission || hasRows) && (
+            <button onClick={() => save("remove")} disabled={saving}
               style={{ padding: "9px 14px", borderRadius: 8, border: "1px solid var(--border)", cursor: "pointer", fontWeight: 600, fontSize: 13, background: "transparent", color: "var(--muted-foreground)" }}>
-              Quitar (vuelve a "Próximamente")
+              Volver a “Próximamente”
             </button>
           )}
         </div>
         <p style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-          {mission ? "Los usuarios ven esta misión y pueden subir su captura." : "Sin misión activa: los usuarios ven “Próximamente”."}
+          {mission
+            ? "Los usuarios ven esta misión y pueden subir su captura."
+            : hasRows
+              ? "Sin misión activa: los usuarios ven “La misión caducó”."
+              : "Sin misión activa: los usuarios ven “Próximamente”."}
         </p>
       </div>
 

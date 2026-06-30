@@ -36,6 +36,7 @@ interface PageCtx {
   isAdmin: boolean;
   refLink: string | null;
   mission: Mission | null;
+  missionExpired: boolean;
   missionDone: boolean;
   keywordDays: { day_number: number; hasKeyword: boolean; done: boolean }[];
   storyDoneToday: boolean;
@@ -51,6 +52,7 @@ async function getContext(): Promise<PageCtx> {
       isAdmin: true,
       refLink: "https://dboard.govbidder.net/referido?ref=DEVTEST",
       mission: null,
+      missionExpired: false,
       missionDone: false,
       keywordDays: emptyKeywordDays,
       storyDoneToday: false,
@@ -63,7 +65,7 @@ async function getContext(): Promise<PageCtx> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return {
-      isAdmin: false, refLink: null, mission: null, missionDone: false,
+      isAdmin: false, refLink: null, mission: null, missionExpired: false, missionDone: false,
       keywordDays: emptyKeywordDays, storyDoneToday: false,
       rafagas: [], rafagaClaimedIds: [],
     };
@@ -100,6 +102,14 @@ async function getContext(): Promise<PageCtx> {
   const refLink = refCode ? referralLink(refCode) : null;
   const mission = (missionRow.data as Mission | null) ?? null;
 
+  // Sin misión activa pero con filas en daily_missions = alguna misión ya cerró
+  // → "La misión caducó". 0 filas = nunca hubo → "Próximamente".
+  let missionExpired = false;
+  if (!mission) {
+    const { count } = await service.from("daily_missions").select("id", { count: "exact", head: true });
+    missionExpired = (count ?? 0) > 0;
+  }
+
   // Check mission done
   let missionDone = false;
   if (mission) {
@@ -128,7 +138,7 @@ async function getContext(): Promise<PageCtx> {
   const rafagas = (rafagaRows.data ?? []) as RafagaMission[];
   const rafagaClaimedIds = ((rafagaSubsRows.data ?? []) as { rafaga_id: string }[]).map((r) => r.rafaga_id);
 
-  return { isAdmin, refLink, mission, missionDone, keywordDays, storyDoneToday, rafagas, rafagaClaimedIds };
+  return { isAdmin, refLink, mission, missionExpired, missionDone, keywordDays, storyDoneToday, rafagas, rafagaClaimedIds };
 }
 
 export default async function SumaPuntosPage() {
@@ -187,6 +197,23 @@ export default async function SumaPuntosPage() {
         <SectionHeader emoji="🎯" title="Misión Diaria" subtitle="+1.000 pts · una por misión" />
         {ctx.mission ? (
           <DailyMissionUser mission={ctx.mission} alreadyDone={ctx.missionDone} />
+        ) : ctx.missionExpired ? (
+          <div style={{
+            padding: "18px 20px",
+            background: "var(--muted)",
+            border: "1px dashed var(--border)",
+            borderRadius: 12,
+            textAlign: "center",
+          }}>
+            <p style={{ fontSize: 15, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
+              ⌛ La misión caducó
+            </p>
+            <p style={{ fontSize: 13, color: "var(--muted-foreground)", margin: "5px 0 0" }}>
+              {ctx.isAdmin
+                ? <>Esta misión ya cerró. Publicá una nueva desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.</>
+                : "Esta misión ya cerró. ¡Gracias por participar!"}
+            </p>
+          </div>
         ) : (
           <div style={{
             padding: "18px 20px",
