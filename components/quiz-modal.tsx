@@ -36,6 +36,8 @@ interface QuizModalProps {
   /** When set, replaces the podcast CTA with a "continue to next mission" button */
   continueLabel?: string | null;
   onContinue?: (() => void) | null;
+  /** Sobre 10.000 pts cada acción cuenta la mitad → ajustar lo mostrado. */
+  over10k?: boolean;
 }
 
 // ─── QuizModal ────────────────────────────────────────────────────────────────
@@ -54,7 +56,7 @@ interface QuizModalProps {
  * correct_option_index and explanation come from the server on every submit
  * response — never pre-loaded (client never sees correct answer before submitting).
  */
-export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsuleId, continueLabel, onContinue }: QuizModalProps) {
+export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsuleId, continueLabel, onContinue, over10k = false }: QuizModalProps) {
   const [questions,   setQuestions]   = useState<QuizRow[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [qIndex,      setQIndex]      = useState(0);
@@ -202,7 +204,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
 
       } else if (data.already_correct) {
         // Already earned before — count its value so the summary shows total XP
-        correctXpRef.current += q.xp_reward;
+        correctXpRef.current += over10k ? Math.floor(q.xp_reward / 2) : q.xp_reward;
         setResults((r) => ({ ...r, [qIndex]: "correct" }));
         setPhase("already_correct");
         setTimeout(advance, 900);
@@ -413,10 +415,10 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                         }}
                       >
                         {podcastState === "done"
-                          ? "✓ Podcast abierto · +300 XP"
+                          ? `✓ Podcast abierto · +${over10k ? 150 : 300} XP`
                           : podcastState === "claiming"
                           ? "..."
-                          : "🎙 Ver podcast → +300 XP ↗"}
+                          : `🎙 Ver podcast → +${over10k ? 150 : 300} XP ↗`}
                       </button>
                       {/* Cerrar solo aparece después de abrir el podcast */}
                       {podcastState === "done" && (
@@ -628,7 +630,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                   className="text-[10px] text-center"
                   style={{ color: "#647FA8", fontFamily: "var(--font-mono)" }}
                 >
-                  +{currentQ.xp_reward} XP por responder correctamente · Sin límite de intentos
+                  +{over10k ? Math.floor(currentQ.xp_reward / 2) : currentQ.xp_reward} XP por responder correctamente · Sin límite de intentos
                 </p>
               )}
 

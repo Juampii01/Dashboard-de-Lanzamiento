@@ -42,7 +42,7 @@ export default async function Dia1Page() {
     const isDone = devCompleted.split(",").includes("1");
     return (
       <div className="space-y-8">
-        <VideoCapsules day={1} />
+        <VideoCapsules day={1} over10k={false} />
         <Dia1Client userId="dev" isCompleted={isDone} existingProfile={null} devMode />
       </div>
     );
@@ -55,8 +55,9 @@ export default async function Dia1Page() {
   const { progress, profile, toggle } = await getDia1Data(user.id);
 
   const { data: userProfile } = await createServiceClient()
-    .from("users").select("is_admin").eq("id", user.id).maybeSingle();
+    .from("users").select("is_admin, total_points").eq("id", user.id).maybeSingle();
   const isAdmin = userProfile?.is_admin ?? false;
+  const over10k = (userProfile?.total_points ?? 0) >= 10000;
 
   // Desbloqueo 100% MANUAL: el admin abre el día tras la clase. El contador
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético; el día se VE
@@ -77,7 +78,7 @@ export default async function Dia1Page() {
         </Link>
         <AdminForceComplete day={1} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} />
       </div>
-      <VideoCapsules day={1} isAdmin={isAdmin} />
+      <VideoCapsules day={1} isAdmin={isAdmin} over10k={over10k} />
       <Dia1Client
         userId={user.id}
         isCompleted={progress?.is_completed ?? false}
@@ -87,6 +88,7 @@ export default async function Dia1Page() {
         <LaunchCountdown
           targetIso={targetIso}
           day={1}
+          over10k={over10k}
           callUrl={CLASS_LINKS[1]}
           title="Día 1 — Perfil Estratégico"
           subtitle="Este día se desbloquea luego de la clase en vivo. Se habilita cuando el equipo lo abra."

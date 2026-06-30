@@ -31,7 +31,9 @@ function formatCountdown(ms: number): string {
   return `${s}s`;
 }
 
-function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alreadyClaimed: boolean }) {
+function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMission; alreadyClaimed: boolean; over10k: boolean }) {
+  // Sobre 10.000 pts la ráfaga suma la mitad → mostrar el valor real.
+  const shownPts = over10k ? Math.floor(mission.points_reward / 2) : mission.points_reward;
   const [status, setStatus] = useState<"upcoming" | "active" | "expired">(getStatus(mission));
   const [countdown, setCountdown] = useState("");
   const [claimed, setClaimed] = useState(alreadyClaimed);
@@ -136,7 +138,7 @@ function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alrea
               color: "var(--success)", background: "color-mix(in srgb, var(--success) 12%, transparent)",
               border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
               borderRadius: 999, padding: "5px 14px",
-            }}>✓ +{mission.points_reward.toLocaleString()} pts</span>
+            }}>✓ +{shownPts.toLocaleString()} pts</span>
           ) : (
             <button
               onClick={handleClaim}
@@ -149,7 +151,7 @@ function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alrea
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              {loading ? "..." : `Reclamar +${mission.points_reward.toLocaleString()} pts →`}
+              {loading ? "..." : `Reclamar +${shownPts.toLocaleString()} pts →`}
             </button>
           )
         )}
@@ -161,9 +163,11 @@ function RafagaCard({ mission, alreadyClaimed }: { mission: RafagaMission; alrea
 export function RafagaSection({
   rafagas,
   claimedIds,
+  over10k = false,
 }: {
   rafagas: RafagaMission[];
   claimedIds: string[];
+  over10k?: boolean;
 }) {
   if (rafagas.length === 0) {
     return (
@@ -188,6 +192,7 @@ export function RafagaSection({
           key={r.id}
           mission={r}
           alreadyClaimed={claimedIds.includes(r.id)}
+          over10k={over10k}
         />
       ))}
     </div>

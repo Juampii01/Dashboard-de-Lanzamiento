@@ -449,7 +449,7 @@ function VideoTutorial({ videoId }: { videoId?: string }) {
 
 // ─── Comments ─────────────────────────────────────────────────────────────────
 
-function CommentsSection() {
+function CommentsSection({ over10k = false }: { over10k?: boolean }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -549,7 +549,7 @@ function CommentsSection() {
                     color: "var(--accent-foreground)", background: "var(--accent)",
                     borderRadius: 999, padding: "1px 8px",
                   }}>
-                    +200 pts · primeras 3 veces
+                    +{over10k ? 100 : 200} pts · primeras 3 veces
                   </span>
                 </div>
                 <textarea
@@ -1073,7 +1073,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
       <VideoTutorial videoId={tutorialVideoId} />
 
       {/* 3. Comments */}
-      {!devMode && <CommentsSection />}
+      {!devMode && <CommentsSection over10k={initialPoints >= 10000} />}
 
       {/* 4. Contract models */}
       <ContractModels fullName={fullName} />

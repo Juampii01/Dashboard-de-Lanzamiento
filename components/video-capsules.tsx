@@ -42,6 +42,8 @@ interface Capsule {
 interface VideoCapsulesProps {
   day: number;
   isAdmin?: boolean;
+  /** Sobre 10.000 pts cada cápsula suma la mitad → mostrar el valor real. */
+  over10k?: boolean;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -99,7 +101,7 @@ function CooldownBadge({ seconds }: { seconds: number }) {
 
 // ─── VideoCapsules ────────────────────────────────────────────────────────────
 
-export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
+export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesProps) {
   const [capsules, setCapsules]         = useState<Capsule[]>([]);
   const [loading, setLoading]           = useState(true);
   const [cooldownSecs, setCooldownSecs] = useState(0);
@@ -469,7 +471,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                         transition: "background 0.4s, box-shadow 0.4s, color 0.3s",
                       }}
                     >
-                      {marking ? "Guardando..." : `Responder quiz → +${activeCap.points_reward} XP`}
+                      {marking ? "Guardando..." : `Responder quiz → +${over10k ? Math.floor(activeCap.points_reward / 2) : activeCap.points_reward} XP`}
                     </button>
                   </div>
 
@@ -505,6 +507,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
       {/* ── Quiz Modal ──────────────────────────────────────────────────────── */}
       <QuizModal
         capsuleId={quizCapsuleId ?? ""}
+        over10k={over10k}
         isOpen={!!quizCapsuleId}
         onClose={() => setQuizCapsuleId(null)}
         podcastUrl={!isQuizForPodcast && podcastCap ? (podcastCap.podcast_url ?? podcastCap.youtube_url ?? null) : null}
@@ -535,7 +538,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                 Misiones en video
               </p>
               <p className="text-[10px] mt-0.5" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
-                {completed}/{total} completadas · {capsules.filter(c => !c.completed).reduce((sum, c) => sum + c.points_reward, 0)} XP disponibles
+                {completed}/{total} completadas · {capsules.filter(c => !c.completed).reduce((sum, c) => sum + (over10k ? Math.floor(c.points_reward / 2) : c.points_reward), 0)} XP disponibles
               </p>
             </div>
           </div>
@@ -662,7 +665,7 @@ export function VideoCapsules({ day, isAdmin }: VideoCapsulesProps) {
                       className="text-[10px] shrink-0"
                       style={{ color: c.completed ? "var(--success)" : "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}
                     >
-                      +{c.points_reward} XP
+                      +{over10k ? Math.floor(c.points_reward / 2) : c.points_reward} XP
                     </span>
 
                     {/* Per-capsule action button */}

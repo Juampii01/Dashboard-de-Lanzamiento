@@ -34,6 +34,7 @@ export function LaunchCountdown({
   reachedSubtitle,
   day,
   callUrl,
+  over10k = false,
 }: {
   targetIso: string;
   kicker?: string;
@@ -45,8 +46,11 @@ export function LaunchCountdown({
   day: number;
   /** Link de la clase en vivo (Zoom). Si se pasa, muestra el botón "Unirse a la clase". */
   callUrl?: string;
+  /** Sobre 10.000 pts la clase suma la mitad → mostrar el valor real. */
+  over10k?: boolean;
 }) {
   const targetMs = Date.parse(targetIso);
+  const callXp = over10k ? Math.floor(125 / 2) : 125;
   const [t, setT] = useState(() => diffParts(targetMs));
   const [reached, setReached] = useState(() => diffParts(targetMs).total <= 0);
   // La fecha legible se calcula tras montar para usar la zona horaria LOCAL del
@@ -237,12 +241,12 @@ export function LaunchCountdown({
             }}
           >
             {joined ? (
-              <>✓ Entraste a la clase · +125 XP</>
+              <>✓ Entraste a la clase · +{callXp} XP</>
             ) : (
               <>
                 <span style={{ fontSize: 17 }}>📹</span>
                 Unirse a la clase
-                <span style={{ background: "rgba(255,255,255,0.22)", borderRadius: 6, padding: "1px 7px", fontSize: 12, fontWeight: 800 }}>+125 XP</span>
+                <span style={{ background: "rgba(255,255,255,0.22)", borderRadius: 6, padding: "1px 7px", fontSize: 12, fontWeight: 800 }}>+{callXp} XP</span>
                 <span style={{ fontSize: 13, opacity: 0.8 }}>↗</span>
               </>
             )}

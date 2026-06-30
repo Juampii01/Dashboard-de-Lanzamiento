@@ -193,8 +193,8 @@ export default async function SumaPuntosPage() {
       {/* 1. Referidos */}
       {ctx.refLink && (
         <section className="space-y-3">
-          <SectionHeader emoji="🤝" title="Invita y gana" subtitle={`+${REFERRAL_LEAD_XP.toLocaleString()} pts por cada persona que invitas al lanzamiento`} />
-          <ReferralLinkCard link={ctx.refLink} xp={REFERRAL_LEAD_XP} />
+          <SectionHeader emoji="🤝" title="Invita y gana" subtitle={`+${(ctx.over10k ? Math.floor(REFERRAL_LEAD_XP / 2) : REFERRAL_LEAD_XP).toLocaleString()} pts por cada persona que invitas al lanzamiento`} />
+          <ReferralLinkCard link={ctx.refLink} xp={REFERRAL_LEAD_XP} over10k={ctx.over10k} />
         </section>
       )}
 
@@ -250,8 +250,8 @@ export default async function SumaPuntosPage() {
 
       {/* 5. Misiones Ráfaga */}
       <section className="space-y-3">
-        <SectionHeader emoji="⚡" title="Misiones Ráfaga" subtitle="+1,000 pts · ventanas de 2 horas programadas por el admin" />
-        <RafagaSection rafagas={ctx.rafagas} claimedIds={ctx.rafagaClaimedIds} />
+        <SectionHeader emoji="⚡" title="Misiones Ráfaga" subtitle={ctx.over10k ? "+500 pts · ventanas de 2 horas programadas por el admin" : "+1,000 pts · ventanas de 2 horas programadas por el admin"} />
+        <RafagaSection rafagas={ctx.rafagas} claimedIds={ctx.rafagaClaimedIds} over10k={ctx.over10k} />
       </section>
     </div>
   );

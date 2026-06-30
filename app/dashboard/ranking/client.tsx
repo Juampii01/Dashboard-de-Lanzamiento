@@ -292,15 +292,15 @@ function StudentNote({ points }: { points: number }) {
 // ─── HowToEarnPoints — explica TODAS las formas de sumar puntos ───────────────
 // Valores verificados contra el código (constantes de las rutas /api/xp y
 // /api/missions; la migración points_x10 multiplicó todo ×10).
-const EARN_METHODS: { icon: string; title: string; points: string; variable?: boolean; zero10k?: boolean; detail: string }[] = [
-  { icon: "⏱️", title: "Tiempo activo en el dashboard", points: "+25", zero10k: true, detail: "Con el dashboard abierto sumas automáticamente cada 10 minutos de actividad, hasta 20 veces por día (máx. 500 pts/día)." },
+const EARN_METHODS: { icon: string; title: string; points: string; variable?: boolean; zero10k?: boolean; detail: string; detail10k?: string }[] = [
+  { icon: "⏱️", title: "Tiempo activo en el dashboard", points: "+25", zero10k: true, detail: "Con el dashboard abierto sumas automáticamente cada 10 minutos de actividad, hasta 20 veces por día (máx. 500 pts/día).", detail10k: "Al superar los 10.000 puntos, el tiempo activo en el dashboard ya no suma puntos." },
   { icon: "👆", title: "Clic en el avatar de la barra de progreso", points: "+30", detail: "Toca el avatar ubicado en la barra de progreso. Puedes volver a sumar recién una hora después (sin tope diario)." },
   { icon: "🔥", title: "Racha diaria", points: "+300", zero10k: true, detail: "Entra al dashboard días seguidos: desde el segundo día consecutivo sumas racha, una vez por día." },
   { icon: "🎬", title: "Misiones en video", points: "+100", detail: "Mira y completa una cápsula de video del día. Suma una vez por cápsula, con 5 minutos de espera entre una y otra." },
   { icon: "❓", title: "Quiz de la cápsula", points: "+100", detail: "Responde bien el quiz de una cápsula. Solo el primer acierto otorga puntos." },
   { icon: "🎙️", title: "Cápsula de podcast", points: "+300", detail: "Escuchá y reclama una cápsula de tipo podcast. Suma una vez por cada una." },
   { icon: "🚀", title: "Iniciar un día", points: "+250", detail: "Entra por primera vez a un día desbloqueado. Una sola vez por cada día (1 a 4)." },
-  { icon: "🔴", title: "Unirte a la llamada en vivo", points: "+125", detail: "Cuando el contador del día llega a 0, entra con el botón “Unirse a la clase”. +125 por llamada · son 4 llamadas (hasta 500 pts)." },
+  { icon: "🔴", title: "Unirte a la llamada en vivo", points: "+125", detail: "Cuando el contador del día llega a 0, entra con el botón “Unirse a la clase”. +125 por llamada · son 4 llamadas (hasta 500 pts).", detail10k: "Cuando el contador del día llega a 0, entra con el botón “Unirse a la clase”. +62 por llamada · son 4 llamadas (hasta 248 pts)." },
   { icon: "🏁", title: "Completar un día", points: "+500", detail: "Terminá todas las misiones del día y marcá la fase como completada. Una sola vez por cada día." },
   { icon: "🔑", title: "Palabra clave del día", points: "+1.000", detail: "Escribe la palabra clave que se menciona en la clase (no importan mayúsculas ni acentos). Una vez por día." },
   { icon: "📸", title: "Historia diaria", points: "+500", detail: "Sube la captura de tu historia del día (imagen, máx. 8 MB). Una por día; se reinicia a las 8 AM hora Miami." },
@@ -370,7 +370,7 @@ function HowToEarnPoints({ over10k = false }: { over10k?: boolean }) {
               </span>
             </div>
             <p style={{ fontSize: 11.5, color: "#A9BAD4", lineHeight: 1.45, margin: 0 }}>
-              {m.detail}
+              {over10k && m.detail10k ? m.detail10k : m.detail}
             </p>
           </div>
           );

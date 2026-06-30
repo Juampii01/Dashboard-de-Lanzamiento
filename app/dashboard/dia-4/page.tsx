@@ -21,7 +21,7 @@ export default async function Dia4Page() {
     const isAdmin = true;
     return (
       <div className="space-y-8">
-        <VideoCapsules day={4} isAdmin={isAdmin} />
+        <VideoCapsules day={4} isAdmin={isAdmin} over10k={false} />
         <Dia4Client userId="dev" isCompleted={isDone} existingStatement={null} existingSorteo={null} profile={null} expansion={null} fullName="Dev Preview" accessExpiresAt={null} devMode />
       </div>
     );
@@ -37,10 +37,11 @@ export default async function Dia4Page() {
       supabase.from("day_progress").select("is_unlocked, is_completed").eq("user_id", user.id).eq("day_number", 4).single(),
       supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
       supabase.from("naics_expansions").select("*").eq("user_id", user.id).single(),
-      supabase.from("users").select("is_admin").eq("id", user.id).single(),
+      supabase.from("users").select("is_admin, total_points").eq("id", user.id).single(),
     ]);
 
   const isAdmin = adminUser?.is_admin === true;
+  const over10k = (adminUser?.total_points ?? 0) >= 10000;
 
   // Desbloqueo 100% MANUAL (el admin abre el día tras la clase). El contador
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético.
@@ -58,7 +59,7 @@ export default async function Dia4Page() {
   return (
     <div className="space-y-8" style={{ position: "relative" }}>
       <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={4} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
-      <VideoCapsules day={4} isAdmin={isAdmin} />
+      <VideoCapsules day={4} isAdmin={isAdmin} over10k={over10k} />
       <Dia4Client
       userId={user.id}
       isCompleted={progress?.is_completed ?? false}
@@ -73,6 +74,7 @@ export default async function Dia4Page() {
         <LaunchCountdown
           targetIso={targetIso}
           day={4}
+          over10k={over10k}
           callUrl={CLASS_LINKS[4]}
           title="Día 4 — Capability Statement"
           subtitle="Este día se desbloquea luego de la clase en vivo. Se habilita cuando el equipo lo abra."

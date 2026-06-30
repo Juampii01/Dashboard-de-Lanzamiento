@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   const service = createServiceClient();
   const { data: profile } = await service
     .from("users")
-    .select("full_name")
+    .select("full_name, total_points")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -80,6 +80,10 @@ export async function POST(req: NextRequest) {
     (profile?.full_name as string | null | undefined)?.trim() ||
     user.email?.split("@")[0] ||
     "Participante";
+
+  // Sobre 10.000 pts, add_points acredita la mitad. Replicamos la regla para que
+  // el delta devuelto (y el toast) reflejen lo realmente acreditado, no el bruto.
+  const priorTotal = Number((profile as { total_points?: number | null } | null)?.total_points ?? 0);
 
   const { error } = await service.from("program_comments").insert({
     user_id: user.id,
@@ -119,7 +123,7 @@ export async function POST(req: NextRequest) {
       console.error("[comments POST] add_points error:", rpcErr.message);
     } else {
       awarded = true;
-      delta = REWARD;
+      delta = priorTotal >= 10000 ? Math.floor(REWARD / 2) : REWARD;
       total = newTotal as number;
     }
   }

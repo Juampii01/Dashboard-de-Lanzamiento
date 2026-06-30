@@ -7,7 +7,10 @@ import { Copy, CheckCircle2, Link2, HelpCircle, X } from "lucide-react";
  * Tarjeta "Comparte tu link" — muestra el link de referido del usuario con
  * botón de copiar. Theme-aware (light + dark). El link se arma server-side.
  */
-export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
+export function ReferralLinkCard({ link, xp, over10k = false }: { link: string; xp: number; over10k?: boolean }) {
+  // Sobre 10.000 pts cada acción cuenta la mitad → mostrar lo que realmente va a sumar.
+  const shownXp = over10k ? Math.floor(xp / 2) : xp;
+  const refPtsLabel = over10k ? "+500" : "+1.000";
   const [copied, setCopied] = useState(false);
   const [showHow, setShowHow] = useState(false);
 
@@ -52,7 +55,7 @@ export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
       </div>
       <p style={{ fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5, margin: 0 }}>
         Compártelo y suma{" "}
-        <strong style={{ color: "var(--foreground)" }}>+{xp} pts</strong> por cada persona que invitas al lanzamiento.
+        <strong style={{ color: "var(--foreground)" }}>+{shownXp} pts</strong> por cada persona que invitas al lanzamiento.
       </p>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "stretch" }}>
@@ -132,7 +135,7 @@ export function ReferralLinkCard({ link, xp }: { link: string; xp: number }) {
             {[
               { n: "1", icon: "📤", title: "Comparte tu link", text: "Mándale tu link de referido a la persona que quieras invitar al challenge." },
               { n: "2", icon: "✍️", title: "La persona ingresa su email", text: "Al abrir tu link, escribe su email y se la redirige a la página donde debe ingresar al lanzamiento." },
-              { n: "3", icon: "🎉", title: "Ganas +1.000 pts", text: "Cuando esa persona ingresa al challenge, se te acreditan automáticamente +1.000 puntos." },
+              { n: "3", icon: "🎉", title: `Ganas ${refPtsLabel} pts`, text: `Cuando esa persona ingresa al challenge, se te acreditan automáticamente ${refPtsLabel} puntos.` },
             ].map((s) => (
               <div key={s.n} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "11px 0", borderTop: s.n === "1" ? "none" : "1px solid var(--border)" }}>
                 <span style={{ flexShrink: 0, width: 30, height: 30, borderRadius: "50%", display: "inline-flex", alignItems: "center", justifyContent: "center", background: "color-mix(in srgb, var(--primary) 14%, transparent)", color: "var(--primary)", fontWeight: 800, fontSize: 14 }}>{s.n}</span>
