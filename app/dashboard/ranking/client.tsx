@@ -148,8 +148,8 @@ function MyRankCard({ points }: { points: number }) {
           display: "flex", alignItems: "flex-start", gap: 8,
         }}>
           <span style={{ fontSize: 15, lineHeight: 1.2 }}>⚖️</span>
-          <p style={{ fontSize: "12.5px", color: "#FFE9A6", margin: 0, lineHeight: 1.45 }}>
-            Superaste los <strong style={{ color: "#FFD700" }}>10.000 puntos</strong>: a partir de acá cada punto que sumes <strong style={{ color: "#FFD700" }}>cuenta la mitad</strong>. Seguís sumando, pero más parejo para todos. 🦅
+          <p style={{ fontSize: "12.5px", color: "#FFE9A6", margin: 0, lineHeight: 1.5 }}>
+            Pasaste los <strong style={{ color: "#FFD700" }}>10.000 puntos</strong>: a partir de acá <strong style={{ color: "#FFD700" }}>todo lo que sumes cuenta la mitad</strong> — misiones, keywords, referidos, videos, llamadas… <strong style={{ color: "#FFD700" }}>en todos lados</strong>. Y el <strong style={{ color: "#FFD700" }}>tiempo en el dashboard</strong> y las <strong style={{ color: "#FFD700" }}>rachas</strong> ya <strong style={{ color: "#FFD700" }}>no suman</strong>. Es para emparejar la carrera en la cima. 🦅
           </p>
         </div>
       )}
