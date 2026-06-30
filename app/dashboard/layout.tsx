@@ -10,6 +10,7 @@ import { DashboardLockOverlay } from "@/components/dashboard-lock-overlay";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { DayTabs } from "@/components/day-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { DashboardAssistant } from "@/components/dashboard-assistant";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -294,6 +295,9 @@ export default async function DashboardLayout({
         />
       )}
       {!devMode && <DashboardLockOverlay isAdmin={profile?.is_admin ?? false} />}
+
+      {/* Asistente de IA flotante — guía a todos los usuarios */}
+      {!devMode && <DashboardAssistant />}
     </div>
   );
 }
