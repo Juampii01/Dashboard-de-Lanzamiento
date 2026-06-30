@@ -46,7 +46,7 @@ interface VideoCapsulesProps {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const COOLDOWN_SECONDS = 5 * 60; // 5 minutes
+const COOLDOWN_SECONDS = 0; // sin cooldown: las misiones se pueden hacer en cualquier orden
 // Emergency fallback: unlock button if YouTube API never fires (e.g. API blocked).
 // Set high so the intended flow is always "video ends → button unlocks".
 const FALLBACK_LOCK_SECS = 60 * 60; // 1 hour — effectively "API only"

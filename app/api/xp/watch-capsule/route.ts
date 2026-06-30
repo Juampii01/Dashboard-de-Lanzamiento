@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { isDayUnlocked } from "@/lib/supabase/day-access";
 
-const COOLDOWN_MINUTES = 5;
+const COOLDOWN_MINUTES = 0; // sin cooldown: las misiones se pueden hacer en cualquier orden
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
