@@ -16,8 +16,21 @@ interface RafagaRow {
   created_at: string;
 }
 
+interface RafagaSub {
+  id: string;
+  rafaga_title: string;
+  content_type: string;
+  content_text: string | null;
+  image_url: string | null;
+  points_earned: number;
+  full_name: string | null;
+  email: string;
+}
+
 export function RafagaAdminPanel() {
   const [missions, setMissions] = useState<RafagaRow[]>([]);
+  const [subs, setSubs] = useState<RafagaSub[]>([]);
+  const [reviewing, setReviewing] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startsAt, setStartsAt] = useState("");
@@ -35,6 +48,28 @@ export function RafagaAdminPanel() {
       .then((data: RafagaRow[]) => setMissions(data))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetch("/api/admin/rafaga/submissions")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setSubs(d.submissions ?? []); })
+      .catch(() => {});
+  }, []);
+
+  async function moderate(id: string, action: "approve" | "reject") {
+    setReviewing(id);
+    try {
+      await fetch("/api/admin/rafaga/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submission_id: id, action }),
+      });
+      setSubs((prev) => prev.filter((s) => s.id !== id));
+    } catch {
+      toast.error("Error al moderar la respuesta.");
+    }
+    setReviewing(null);
+  }
 
   async function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -315,6 +350,56 @@ export function RafagaAdminPanel() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Respuestas de ráfaga pendientes de revisar */}
+      {subs.length > 0 && (
+        <div className="space-y-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Respuestas de ráfaga pendientes · {subs.length}
+          </p>
+          <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: 0 }}>
+            Aceptar = queda cumplida. Rechazar = descuenta los puntos y la persona puede reintentar.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: 12 }}>
+            {subs.map((s) => (
+              <div key={s.id} style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
+                {s.content_type === "image" && s.image_url ? (
+                  <a href={s.image_url} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={s.image_url} alt="captura" style={{ width: "100%", height: 110, objectFit: "cover", display: "block", background: "var(--muted)" }} />
+                  </a>
+                ) : (
+                  <div style={{ padding: "10px 12px", minHeight: 70, background: "var(--muted)", fontSize: 12.5, color: "var(--foreground)", wordBreak: "break-word" }}>
+                    {s.content_type === "link" && s.content_text ? (
+                      <a href={s.content_text} target="_blank" rel="noreferrer" style={{ color: "var(--primary)", textDecoration: "underline" }}>{s.content_text}</a>
+                    ) : (
+                      <span>{s.content_text || "—"}</span>
+                    )}
+                  </div>
+                )}
+                <div style={{ padding: "8px 10px" }}>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {s.full_name || s.email || "—"}
+                  </p>
+                  <p style={{ fontSize: 10.5, color: "var(--muted-foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: "1px 0 0" }}>
+                    {s.rafaga_title} · +{s.points_earned.toLocaleString("es")} pts
+                  </p>
+                  <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                    <button onClick={() => moderate(s.id, "approve")} disabled={reviewing === s.id}
+                      style={{ flex: 1, padding: "5px", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)", background: "transparent", color: "var(--success)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
+                      {reviewing === s.id ? "..." : "Aceptar"}
+                    </button>
+                    <button onClick={() => moderate(s.id, "reject")} disabled={reviewing === s.id}
+                      style={{ flex: 1, padding: "5px", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--destructive) 40%, transparent)", background: "transparent", color: "var(--destructive)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
+                      {reviewing === s.id ? "..." : "Rechazar"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
