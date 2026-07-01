@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw, Gift, ChevronDown } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
-import { useMissionsDone } from "@/lib/hooks/use-missions-done";
+import { TaskCompleteModal } from "@/components/task-complete-modal";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 import { PortalsAccordion } from "@/components/portals-accordion";
@@ -57,7 +57,7 @@ export function Dia3Client({
   const [copiedHtml, setCopiedHtml] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
-  const { missionsDone, pending } = useMissionsDone(3, devMode);
+  const [celebrateOpen, setCelebrateOpen] = useState(false);
   const [portalsOpen, setPortalsOpen] = useState(false);  const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [webResult, setWebResult] = useState<WebResult | null>(
     existingPreview
@@ -199,6 +199,7 @@ ${webResult.html}
       setIsCompleted(true);
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       toast.success("¡Tu web ya está lista!", { id: toastId, duration: 5000 });
+      if (xpData.pointsAwarded > 0) setCelebrateOpen(true);
     } catch {
       toast.error("No pudimos generar tu web. Vuelve a intentar.", { id: toastId, duration: 6000 });
     } finally {
@@ -239,39 +240,6 @@ ${webResult.html}
 
       {/* ── Launch (sin web) / Showcase (con web) ── */}
       {!webResult ? (
-        !missionsDone ? (
-          <Card>
-            <CardContent className="py-8 flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "var(--muted)" }}>
-                <Lock className="w-6 h-6" style={{ color: "var(--muted-foreground)" }} />
-              </div>
-              <div>
-                <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Mira los videos de la misión de hoy y responde las preguntas para desbloquear la tarea.
-                </p>
-              </div>
-              {pending > 0 && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "color-mix(in srgb, var(--primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--primary) 35%, transparent)", color: "var(--primary)", fontWeight: 800, fontSize: 14 }}>
-                  📹 {pending === 1 ? "Te falta 1 misión por completar" : `Te faltan ${pending} misiones por completar`}
-                </div>
-              )}
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  toast("Primero completá las misiones de aquí arriba 👆", {
-                    description: "Mirá los videos y respondé las preguntas para desbloquear la tarea.",
-                    position: "bottom-center",
-                  });
-                  document.querySelector('[data-tour-id="capsules"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-                className="gap-2 h-12 px-7 text-base font-bold"
-              >
-                <Lock className="w-4 h-4" /> Generar mi web — Día 3
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
         <Card>
           <CardContent className="py-8 flex flex-col items-center text-center gap-3">
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
@@ -292,7 +260,6 @@ ${webResult.html}
             </Button>
           </CardContent>
         </Card>
-        )
       ) : (
         <div className="space-y-4 gb-preview-reveal">
           {/* ── Showcase: la web como un producto ── */}
@@ -469,6 +436,13 @@ ${webResult.html}
           </div>
         );
       })()}
+
+      <TaskCompleteModal
+        open={celebrateOpen}
+        onClose={() => setCelebrateOpen(false)}
+        onDownload={handleDownloadWeb}
+        downloadLabel="Descargar mi web (HTML)"
+      />
 
       {/* ── Wizard modal — confirmar perfil y generar ── */}
       <WizardModal

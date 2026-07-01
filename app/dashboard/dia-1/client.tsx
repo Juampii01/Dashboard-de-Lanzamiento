@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import confetti from "canvas-confetti";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +11,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
-import { CheckCircle2, Download, Loader2, ImagePlus, Trash2, ArrowRight, ListChecks, Plus, X, RefreshCw, Lock } from "lucide-react";
+import { CheckCircle2, Download, Loader2, ImagePlus, Trash2, ArrowRight, ListChecks, Plus, X, RefreshCw } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
+import { TaskCompleteModal } from "@/components/task-complete-modal";
 import { FieldHelp } from "@/components/field-help";
-import { useMissionsDone } from "@/lib/hooks/use-missions-done";
 
 const US_STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","Washington D.C.","Puerto Rico"];
 
@@ -51,9 +50,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
 
   // ── Wizard modal (presentation only — no XP/logic change) ──
   const [wizardOpen, setWizardOpen] = useState(false);
-
-  // La tarea se desbloquea SOLO después de completar la misión del día.
-  const { missionsDone, pending } = useMissionsDone(1, devMode);
+  const [celebrateOpen, setCelebrateOpen] = useState(false);
 
   // ── Logo state ──────────────────────────────────────────────────────────────
   const [logoUrl, setLogoUrl] = useState<string | null>(
@@ -334,21 +331,13 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       setIsCompleted(true);
       setWizardOpen(false); // cerrar el modal-wizard al terminar
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
-      toast.success("¡Perfil Estratégico guardado! Ya puedes descargar tu análisis.");
 
-      // Celebración sobria — una sola ráfaga breve, colores de marca,
-      // y respetando prefers-reduced-motion.
-      const prefersReduced =
-        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
-      if (!prefersReduced) {
-        confetti({
-          particleCount: 45,
-          spread: 60,
-          startVelocity: 32,
-          ticks: 120,
-          origin: { y: 0.5 },
-          colors: ["#E42D2C", "#152978", "#16A65F", "#FFD700"],
-        });
+      // Primera vez completada (se otorgó XP) → modal de festejo (dispara el confetti).
+      // En reediciones (pointsAwarded 0) solo un toast, sin reabrir el festejo.
+      if (xpData.pointsAwarded > 0) {
+        setCelebrateOpen(true);
+      } else {
+        toast.success("¡Perfil actualizado! Ya puedes descargar tu análisis.");
       }
     } catch (err) {
       console.error(err);
@@ -405,39 +394,6 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
 
       {/* ── Realizar tareas (launch) / Resultado ── */}
       {!isCompleted ? (
-        !missionsDone ? (
-          <Card>
-            <CardContent className="py-8 flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "var(--muted)" }}>
-                <Lock className="w-6 h-6" style={{ color: "var(--muted-foreground)" }} />
-              </div>
-              <div>
-                <p className="font-semibold text-lg">La tarea se desbloquea luego de realizar la misión</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Mira los videos de la misión de hoy y responde las preguntas. Así llegas a la clase con todo el contexto.
-                </p>
-              </div>
-              {pending > 0 && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999, background: "color-mix(in srgb, var(--primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--primary) 35%, transparent)", color: "var(--primary)", fontWeight: 800, fontSize: 14 }}>
-                  📹 {pending === 1 ? "Te falta 1 misión por completar" : `Te faltan ${pending} misiones por completar`}
-                </div>
-              )}
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  toast("Primero completá las misiones de aquí arriba 👆", {
-                    description: "Mirá los videos y respondé las preguntas para desbloquear la tarea.",
-                    position: "bottom-center",
-                  });
-                  document.querySelector('[data-tour-id="capsules"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-                className="gap-2 h-12 px-7 text-base font-bold"
-              >
-                <Lock className="w-4 h-4" /> Realizar tareas — Día 1
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
         <Card>
           <CardContent className="py-8 flex flex-col items-center text-center gap-3">
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "color-mix(in srgb, var(--primary) 12%, transparent)" }}>
@@ -454,7 +410,6 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             </Button>
           </CardContent>
         </Card>
-        )
       ) : (
         <>
           {naicsResult && (
@@ -555,6 +510,14 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
           </div>
         </>
       )}
+
+      <TaskCompleteModal
+        open={celebrateOpen}
+        onClose={() => setCelebrateOpen(false)}
+        onDownload={handleDownloadPdf}
+        downloading={downloadingPdf}
+        downloadLabel="Descargar mi análisis (PDF)"
+      />
 
       {/* ── Wizard modal — formulario guiado paso a paso ── */}
       <WizardModal
