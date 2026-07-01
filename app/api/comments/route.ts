@@ -23,15 +23,14 @@ import { NextRequest, NextResponse } from "next/server";
  *   with check (auth.uid() = user_id);
  */
 
-// GET — last 30 comments, newest first
+// GET — all comments, newest first
 export async function GET() {
   const service = createServiceClient();
 
   const { data, error } = await service
     .from("program_comments")
     .select("id, display_name, content, created_at")
-    .order("created_at", { ascending: false })
-    .limit(30);
+    .order("created_at", { ascending: false });
 
   // Table doesn't exist yet → graceful 501
   if (error?.code === "42P01") {
