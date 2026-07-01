@@ -1,23 +1,33 @@
 import React from "react";
 
-// Detecta URLs (http/https) en el texto y las convierte en enlaces clickeables.
-const URL_RE = /(https?:\/\/[^\s]+)/g;
+// Detecta URLs (http/https) y negrita — tanto **negrita** (markdown) como
+// *negrita* (el mismo formato que usa WhatsApp) — y los renderiza como link o
+// <strong>. Así el texto que escribe el admin (o pega desde WhatsApp) no sale
+// todo plano en el dashboard.
+const INLINE_RE = /(https?:\/\/[^\s]+|\*\*[^*]+\*\*|\*[^*]+\*)/g;
 function linkify(text: string): React.ReactNode[] {
-  return text.split(URL_RE).map((part, i) =>
-    /^https?:\/\//.test(part) ? (
-      <a
-        key={i}
-        href={part}
-        target="_blank"
-        rel="noreferrer"
-        style={{ color: "var(--primary)", textDecoration: "underline", fontWeight: 600, wordBreak: "break-word" }}
-      >
-        {part}
-      </a>
-    ) : (
-      <React.Fragment key={i}>{part}</React.Fragment>
-    )
-  );
+  return text.split(INLINE_RE).map((part, i) => {
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noreferrer"
+          style={{ color: "var(--primary)", textDecoration: "underline", fontWeight: 600, wordBreak: "break-word" }}
+        >
+          {part}
+        </a>
+      );
+    }
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return <strong key={i} style={{ color: "var(--foreground)" }}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2) {
+      return <strong key={i} style={{ color: "var(--foreground)" }}>{part.slice(1, -1)}</strong>;
+    }
+    return <React.Fragment key={i}>{part}</React.Fragment>;
+  });
 }
 
 /**
