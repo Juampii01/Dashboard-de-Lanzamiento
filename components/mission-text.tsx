@@ -1,5 +1,25 @@
 import React from "react";
 
+// Detecta URLs (http/https) en el texto y las convierte en enlaces clickeables.
+const URL_RE = /(https?:\/\/[^\s]+)/g;
+function linkify(text: string): React.ReactNode[] {
+  return text.split(URL_RE).map((part, i) =>
+    /^https?:\/\//.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noreferrer"
+        style={{ color: "var(--primary)", textDecoration: "underline", fontWeight: 600, wordBreak: "break-word" }}
+      >
+        {part}
+      </a>
+    ) : (
+      <React.Fragment key={i}>{part}</React.Fragment>
+    )
+  );
+}
+
 /**
  * Renderiza el texto de una misión preservando la estructura que el admin escribe
  * en el textarea (que se perdía al meterlo en un solo <p>):
@@ -24,7 +44,7 @@ export function MissionText({ text, fontSize = 14.5 }: { text: string; fontSize?
               color: isLabel ? "var(--foreground)" : "var(--muted-foreground)",
               fontWeight: isLabel ? 700 : 400,
             }}>
-              {lines[0]}
+              {linkify(lines[0])}
             </p>
           );
         }
@@ -34,7 +54,7 @@ export function MissionText({ text, fontSize = 14.5 }: { text: string; fontSize?
             {lines.map((line, j) => (
               <li key={j} style={{ display: "flex", gap: 8, fontSize, color: "var(--muted-foreground)", lineHeight: 1.45 }}>
                 <span style={{ color: "var(--primary)", flexShrink: 0, fontWeight: 800 }}>›</span>
-                <span>{line}</span>
+                <span>{linkify(line)}</span>
               </li>
             ))}
           </ul>
