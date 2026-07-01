@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DailyMissionAdmin } from "@/components/daily-mission-admin";
+import { RafagaAdminPanel } from "@/components/rafaga-admin-panel";
 
 export default function AdminMisionesPage() {
   return (
@@ -24,6 +25,19 @@ export default function AdminMisionesPage() {
         </CardHeader>
         <CardContent>
           <DailyMissionAdmin />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">⚡ Misiones Ráfaga</CardTitle>
+          <CardDescription>
+            Programá misiones de ventana corta. Los participantes las ven en Misiones Extra y pueden
+            reclamar los puntos durante la ventana. Nada se muestra hasta que empiece.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RafagaAdminPanel />
         </CardContent>
       </Card>
     </div>
