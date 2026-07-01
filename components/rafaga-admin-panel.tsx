@@ -352,7 +352,7 @@ export function RafagaAdminPanel() {
             <input
               style={inputStyle}
               type="number"
-              min={1}
+              min={0}
               max={100000}
               step={50}
               value={points}
