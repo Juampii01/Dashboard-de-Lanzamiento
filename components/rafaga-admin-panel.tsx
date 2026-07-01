@@ -12,6 +12,7 @@ interface RafagaRow {
   duration_minutes: number;
   points_reward: number;
   image_url: string | null;
+  link_buttons?: { label: string; url: string }[] | null;
   is_active: boolean;
   created_at: string;
 }
@@ -38,6 +39,7 @@ export function RafagaAdminPanel() {
   const [points, setPoints] = useState("1000");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [linkButtons, setLinkButtons] = useState<{ label: string; url: string }[]>([]);
   const [creating, setCreating] = useState(false);
   const [deactivating, setDeactivating] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -116,10 +118,12 @@ export function RafagaAdminPanel() {
           duration_minutes: parseInt(duration, 10) || 120,
           points_reward: parseInt(points, 10) || 1000,
           image_url: imageUrl,
+          link_buttons: linkButtons.filter((b) => b.url.trim()),
         }),
       });
       if (!res.ok) throw new Error();
       const json = (await res.json()) as { ok: boolean; id: string; imageSaved?: boolean };
+      const cleanButtons = linkButtons.filter((b) => b.url.trim());
       const newRow: RafagaRow = {
         id: json.id,
         title: title.trim(),
@@ -128,6 +132,7 @@ export function RafagaAdminPanel() {
         duration_minutes: parseInt(duration, 10) || 120,
         points_reward: parseInt(points, 10) || 1000,
         image_url: imageUrl,
+        link_buttons: cleanButtons,
         is_active: true,
         created_at: new Date().toISOString(),
       };
@@ -138,6 +143,7 @@ export function RafagaAdminPanel() {
       setDuration("120");
       setPoints("1000");
       setImageUrl(null);
+      setLinkButtons([]);
       if (imageUrl && json.imageSaved === false) {
         toast("Misión creada, pero la imagen no se guardó — falta correr la migración en Supabase.", { duration: 6000 });
       } else {
@@ -163,12 +169,13 @@ export function RafagaAdminPanel() {
     setDuration(String(m.duration_minutes));
     setPoints(String(m.points_reward));
     setImageUrl(m.image_url ?? null);
+    setLinkButtons(Array.isArray(m.link_buttons) ? m.link_buttons.map((b) => ({ ...b })) : []);
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function cancelEdit() {
     setEditingId(null);
-    setTitle(""); setDescription(""); setStartsAt(""); setDuration("120"); setPoints("1000"); setImageUrl(null);
+    setTitle(""); setDescription(""); setStartsAt(""); setDuration("120"); setPoints("1000"); setImageUrl(null); setLinkButtons([]);
   }
 
   async function update(e: React.FormEvent) {
@@ -188,11 +195,13 @@ export function RafagaAdminPanel() {
           duration_minutes: parseInt(duration, 10) || 120,
           points_reward: parseInt(points, 10) || 1000,
           image_url: imageUrl,
+          link_buttons: linkButtons.filter((b) => b.url.trim()),
         }),
       });
       if (!res.ok) throw new Error();
       const json = (await res.json()) as { ok: boolean; imageSaved?: boolean };
       const editedId = editingId;
+      const cleanButtons = linkButtons.filter((b) => b.url.trim());
       setMissions((prev) => prev.map((m) => (m.id === editedId ? {
         ...m,
         title: title.trim(),
@@ -201,6 +210,7 @@ export function RafagaAdminPanel() {
         duration_minutes: parseInt(duration, 10) || 120,
         points_reward: parseInt(points, 10) || 1000,
         image_url: imageUrl,
+        link_buttons: cleanButtons,
         is_active: true,
       } : m)));
       cancelEdit();
@@ -322,6 +332,47 @@ export function RafagaAdminPanel() {
           <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImagePick} />
           <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: "5px 0 0" }}>
             Se muestra en la tarjeta de la ráfaga que ven los participantes.
+          </p>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Botones de enlace (hasta 3) · {linkButtons.length}/3</label>
+          {linkButtons.map((b, i) => (
+            <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <input
+                style={{ ...inputStyle, flex: "1 1 140px" }}
+                type="text"
+                placeholder="Texto del botón (ej: Ver el video)"
+                value={b.label}
+                onChange={(e) => setLinkButtons((prev) => prev.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
+              />
+              <input
+                style={{ ...inputStyle, flex: "2 1 200px" }}
+                type="url"
+                placeholder="https://… (obligatorio)"
+                value={b.url}
+                onChange={(e) => setLinkButtons((prev) => prev.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
+              />
+              <button
+                type="button"
+                onClick={() => setLinkButtons((prev) => prev.filter((_, j) => j !== i))}
+                style={{ background: "transparent", border: "none", color: "var(--destructive)", cursor: "pointer", fontSize: 12, fontWeight: 700, padding: "6px 4px", flexShrink: 0 }}
+              >
+                Quitar
+              </button>
+            </div>
+          ))}
+          {linkButtons.length < 3 && (
+            <button
+              type="button"
+              onClick={() => setLinkButtons((prev) => [...prev, { label: "", url: "" }])}
+              style={{ ...inputStyle, width: "auto", cursor: "pointer", color: "var(--primary)", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6 }}
+            >
+              + Agregar botón de enlace
+            </button>
+          )}
+          <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: "5px 0 0" }}>
+            Cada botón necesita un link. Los que no tengan link no se guardan. Aparecen como botones en la tarjeta de la ráfaga.
           </p>
         </div>
 

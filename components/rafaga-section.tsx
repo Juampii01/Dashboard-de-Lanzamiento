@@ -12,6 +12,7 @@ export interface RafagaMission {
   duration_minutes: number;
   points_reward: number;
   image_url?: string | null;
+  link_buttons?: { label: string; url: string }[] | null;
 }
 
 function getStatus(mission: RafagaMission): "upcoming" | "active" | "expired" {
@@ -164,6 +165,27 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
 
       {mission.description && (
         <MissionText text={mission.description} fontSize={12.5} />
+      )}
+
+      {Array.isArray(mission.link_buttons) && mission.link_buttons.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {mission.link_buttons.map((b, i) => (
+            <a
+              key={i}
+              href={b.url}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                padding: "9px 15px", borderRadius: 8,
+                background: "var(--primary)", color: "var(--primary-foreground)",
+                fontSize: 13, fontWeight: 700, textDecoration: "none",
+              }}
+            >
+              🔗 {b.label} <span style={{ opacity: 0.8 }}>↗</span>
+            </a>
+          ))}
+        </div>
       )}
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>

@@ -1,6 +1,24 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
+type LinkButton = { label: string; url: string };
+
+// Sanea los botones de enlace (hasta 3): cada uno necesita URL; se normaliza a https.
+function parseLinkButtons(raw: unknown): LinkButton[] {
+  if (!Array.isArray(raw)) return [];
+  const out: LinkButton[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    let url = String((item as { url?: unknown }).url ?? "").trim();
+    if (!url) continue;
+    if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    const label = String((item as { label?: unknown }).label ?? "").trim().slice(0, 60) || "Abrir enlace";
+    out.push({ label, url: url.slice(0, 500) });
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+
 async function getAdmin() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -34,11 +52,13 @@ export async function POST(req: NextRequest) {
     duration_minutes?: number;
     points_reward?: number;
     image_url?: string | null;
+    link_buttons?: unknown;
   };
 
   const title = String(body.title ?? "").trim();
   const starts_at = String(body.starts_at ?? "").trim();
   const duration_minutes = Number(body.duration_minutes ?? 120);
+  const link_buttons = parseLinkButtons(body.link_buttons);
 
   if (!title || !starts_at || isNaN(duration_minutes) || duration_minutes < 1) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
@@ -61,18 +81,25 @@ export async function POST(req: NextRequest) {
     created_by: ctx.user.id,
   };
 
-  // Insert con image_url. Si la columna aún no existe (falta correr la migración
-  // 20260630000002_rafaga_image), reintenta sin la imagen para no romper la creación.
-  let imageSaved = !!image_url;
-  let ins = await ctx.service
-    .from("rafaga_missions")
-    .insert(image_url ? { ...base, image_url } : base)
-    .select("id")
-    .single();
+  // Columnas opcionales que dependen de migraciones (image_url: 20260630000002,
+  // link_buttons: 20260701000002). Si alguna no existe, se reintenta sin ella.
+  const optional: Record<string, unknown> = {};
+  if (image_url) optional.image_url = image_url;
+  if (link_buttons.length) optional.link_buttons = link_buttons;
 
-  if (ins.error && image_url && /image_url/i.test(ins.error.message)) {
+  let imageSaved = !!image_url;
+  let linksSaved = link_buttons.length > 0;
+  let ins = await ctx.service.from("rafaga_missions").insert({ ...base, ...optional }).select("id").single();
+
+  if (ins.error && /link_buttons/i.test(ins.error.message)) {
+    linksSaved = false;
+    delete optional.link_buttons;
+    ins = await ctx.service.from("rafaga_missions").insert({ ...base, ...optional }).select("id").single();
+  }
+  if (ins.error && /image_url/i.test(ins.error.message)) {
     imageSaved = false;
-    ins = await ctx.service.from("rafaga_missions").insert(base).select("id").single();
+    delete optional.image_url;
+    ins = await ctx.service.from("rafaga_missions").insert({ ...base, ...optional }).select("id").single();
   }
 
   if (ins.error) {
@@ -80,7 +107,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, id: (ins.data as { id: string }).id, imageSaved });
+  return NextResponse.json({ ok: true, id: (ins.data as { id: string }).id, imageSaved, linksSaved });
 }
 
 export async function PUT(req: NextRequest) {
@@ -95,12 +122,14 @@ export async function PUT(req: NextRequest) {
     duration_minutes?: number;
     points_reward?: number;
     image_url?: string | null;
+    link_buttons?: unknown;
   };
 
   const id = String(body.id ?? "").trim();
   const title = String(body.title ?? "").trim();
   const starts_at = String(body.starts_at ?? "").trim();
   const duration_minutes = Number(body.duration_minutes ?? 120);
+  const link_buttons = parseLinkButtons(body.link_buttons);
   if (!id || !title || !starts_at || isNaN(duration_minutes) || duration_minutes < 1) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
@@ -120,11 +149,22 @@ export async function PUT(req: NextRequest) {
     is_active: true,
   };
 
+  // En edición mandamos image_url (aunque sea null → quitar imagen) y link_buttons
+  // (aunque sea [] → vaciarlos). Fallback si alguna columna no existe todavía.
+  const optional: Record<string, unknown> = { image_url, link_buttons };
   let imageSaved = true;
-  let upd = await ctx.service.from("rafaga_missions").update({ ...base, image_url }).eq("id", id);
+  let linksSaved = true;
+  let upd = await ctx.service.from("rafaga_missions").update({ ...base, ...optional }).eq("id", id);
+
+  if (upd.error && /link_buttons/i.test(upd.error.message)) {
+    linksSaved = false;
+    delete optional.link_buttons;
+    upd = await ctx.service.from("rafaga_missions").update({ ...base, ...optional }).eq("id", id);
+  }
   if (upd.error && /image_url/i.test(upd.error.message)) {
     imageSaved = false;
-    upd = await ctx.service.from("rafaga_missions").update(base).eq("id", id);
+    delete optional.image_url;
+    upd = await ctx.service.from("rafaga_missions").update({ ...base, ...optional }).eq("id", id);
   }
 
   if (upd.error) {
@@ -132,7 +172,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, id, imageSaved });
+  return NextResponse.json({ ok: true, id, imageSaved, linksSaved });
 }
 
 export async function DELETE(req: NextRequest) {
