@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { ExpandableTextarea } from "@/components/expandable-textarea";
 
 interface Mission {
   id: string;
@@ -110,7 +111,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
 
       <div className="space-y-2">
         <input style={inputStyle} placeholder="Título de la misión (ej: Comparte tu Día 1 en LinkedIn)" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <textarea style={{ ...inputStyle, resize: "vertical", minHeight: 64 }} placeholder="Descripción / instrucciones para los participantes" value={desc ?? ""} onChange={(e) => setDesc(e.target.value)} />
+        <ExpandableTextarea style={{ ...inputStyle, resize: "vertical", minHeight: 64 }} placeholder="Descripción / instrucciones para los participantes" value={desc ?? ""} onChange={setDesc} title="Descripción de la misión diaria" />
         <div className="flex items-center gap-2 flex-wrap">
           <label style={{ fontSize: 13, color: "var(--muted-foreground)", display: "inline-flex", alignItems: "center", gap: 6 }}>
             Puntos:

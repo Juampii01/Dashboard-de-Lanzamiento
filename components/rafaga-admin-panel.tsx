@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { ExpandableTextarea } from "@/components/expandable-textarea";
 
 interface RafagaRow {
   id: string;
@@ -297,11 +298,12 @@ export function RafagaAdminPanel() {
 
         <div>
           <label style={labelStyle}>Descripción / instrucciones</label>
-          <textarea
+          <ExpandableTextarea
             style={{ ...inputStyle, resize: "vertical", minHeight: 96, lineHeight: 1.5 }}
             placeholder="Explicá qué tienen que hacer los participantes durante la ventana de la ráfaga. Podés escribir varias líneas."
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={setDescription}
+            title="Descripción de la misión ráfaga"
           />
         </div>
 
