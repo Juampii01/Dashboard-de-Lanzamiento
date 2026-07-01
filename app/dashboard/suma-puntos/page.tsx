@@ -99,7 +99,7 @@ async function getContext(): Promise<PageCtx> {
     service.from("keyword_submissions").select("day_number").eq("user_id", user.id),
     service.from("story_submissions").select("id").eq("user_id", user.id).eq("submission_date", getMiamiStoryDate()).maybeSingle(),
     service.from("rafaga_missions")
-      .select("id, title, description, starts_at, duration_minutes, points_reward")
+      .select("*")
       .eq("is_active", true)
       .gte("starts_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
       .order("starts_at", { ascending: false }),

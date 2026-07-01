@@ -10,6 +10,7 @@ export interface RafagaMission {
   starts_at: string;
   duration_minutes: number;
   points_reward: number;
+  image_url?: string | null;
 }
 
 function getStatus(mission: RafagaMission): "upcoming" | "active" | "expired" {
@@ -111,6 +112,15 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
           whiteSpace: "nowrap", flexShrink: 0,
         }}>{statusLabel}</span>
       </div>
+
+      {mission.image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={mission.image_url}
+          alt=""
+          style={{ width: "100%", maxHeight: 220, objectFit: "cover", borderRadius: 8, display: "block" }}
+        />
+      )}
 
       {mission.description && (
         <MissionText text={mission.description} fontSize={12.5} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,7 @@ interface RafagaRow {
   starts_at: string;
   duration_minutes: number;
   points_reward: number;
+  image_url: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -22,8 +23,11 @@ export function RafagaAdminPanel() {
   const [startsAt, setStartsAt] = useState("");
   const [duration, setDuration] = useState("120");
   const [points, setPoints] = useState("1000");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deactivating, setDeactivating] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/admin/rafaga")
@@ -31,6 +35,32 @@ export function RafagaAdminPanel() {
       .then((data: RafagaRow[]) => setMissions(data))
       .catch(() => {});
   }, []);
+
+  async function handleImagePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/rafaga/image", { method: "POST", body: fd });
+      const json = (await res.json()) as { ok?: boolean; url?: string; error?: string };
+      if (res.ok && json.url) {
+        setImageUrl(json.url);
+        toast.success("Imagen lista.");
+      } else {
+        toast.error(
+          json.error === "invalid_image" ? "Formato no válido (JPG, PNG o WEBP)."
+          : json.error === "file_too_large" ? "La imagen supera los 8 MB."
+          : "Error al subir la imagen."
+        );
+      }
+    } catch {
+      toast.error("Error al subir la imagen.");
+    }
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
+  }
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -48,10 +78,11 @@ export function RafagaAdminPanel() {
           starts_at: localDate.toISOString(),
           duration_minutes: parseInt(duration, 10) || 120,
           points_reward: parseInt(points, 10) || 1000,
+          image_url: imageUrl,
         }),
       });
       if (!res.ok) throw new Error();
-      const json = (await res.json()) as { ok: boolean; id: string };
+      const json = (await res.json()) as { ok: boolean; id: string; imageSaved?: boolean };
       const newRow: RafagaRow = {
         id: json.id,
         title: title.trim(),
@@ -59,6 +90,7 @@ export function RafagaAdminPanel() {
         starts_at: localDate.toISOString(),
         duration_minutes: parseInt(duration, 10) || 120,
         points_reward: parseInt(points, 10) || 1000,
+        image_url: imageUrl,
         is_active: true,
         created_at: new Date().toISOString(),
       };
@@ -68,7 +100,12 @@ export function RafagaAdminPanel() {
       setStartsAt("");
       setDuration("120");
       setPoints("1000");
-      toast.success("Misión ráfaga creada.");
+      setImageUrl(null);
+      if (imageUrl && json.imageSaved === false) {
+        toast("Misión creada, pero la imagen no se guardó — falta correr la migración en Supabase.", { duration: 6000 });
+      } else {
+        toast.success("Misión ráfaga creada.");
+      }
     } catch {
       toast.error("Error al crear misión ráfaga.");
     }
@@ -147,6 +184,36 @@ export function RafagaAdminPanel() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Imagen (opcional)</label>
+          {imageUrl ? (
+            <div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={imageUrl} alt="" style={{ maxHeight: 150, maxWidth: "100%", borderRadius: 8, display: "block", border: "1px solid var(--border)" }} />
+              <button
+                type="button"
+                onClick={() => setImageUrl(null)}
+                style={{ marginTop: 6, background: "transparent", border: "none", color: "var(--destructive)", fontSize: 12, fontWeight: 700, cursor: "pointer", padding: 0 }}
+              >
+                Quitar imagen
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              style={{ ...inputStyle, width: "auto", cursor: uploading ? "wait" : "pointer", display: "inline-flex", alignItems: "center", gap: 8, color: "var(--muted-foreground)" }}
+            >
+              {uploading ? "Subiendo…" : "📷 Elegir imagen (JPG, PNG, WEBP · máx 8 MB)"}
+            </button>
+          )}
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImagePick} />
+          <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: "5px 0 0" }}>
+            Se muestra en la tarjeta de la ráfaga que ven los participantes.
+          </p>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
