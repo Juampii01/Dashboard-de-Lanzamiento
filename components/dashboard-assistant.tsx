@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Sparkles, X, Send, Bot } from "lucide-react";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -95,7 +95,7 @@ export function DashboardAssistant() {
             bottom: 20,
             zIndex: 9000,
             width: "min(380px, calc(100vw - 32px))",
-            height: "min(560px, calc(100vh - 110px))",
+            height: "min(560px, calc(100vh - 148px))",
             display: "flex",
             flexDirection: "column",
             background: "var(--card)",
@@ -241,6 +241,18 @@ export function DashboardAssistant() {
   );
 }
 
+// Render mínimo de markdown: **negrita** → <strong>. El resto queda como texto
+// plano (whiteSpace: pre-wrap ya conserva los saltos de línea).
+function renderLite(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
+
 function Bubble({ role, children }: { role: "user" | "assistant"; children: React.ReactNode }) {
   const isUser = role === "user";
   return (
@@ -260,7 +272,7 @@ function Bubble({ role, children }: { role: "user" | "assistant"; children: Reac
           wordBreak: "break-word",
         }}
       >
-        {children}
+        {typeof children === "string" ? renderLite(children) : children}
       </div>
     </div>
   );

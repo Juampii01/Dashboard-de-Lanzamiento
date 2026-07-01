@@ -67,22 +67,33 @@ export async function getUserProgressSummary(userId: string): Promise<UserProgre
     { data: progressRows },
     { data: capsuleRows },
     { data: completionRows },
+    { data: toggleRows },
   ] = await Promise.all([
     supabase
       .from("users")
-      .select("full_name, total_points, is_student, streak_count")
+      .select("full_name, total_points, is_student, is_admin, streak_count")
       .eq("id", userId)
       .maybeSingle(),
     supabase
       .from("day_progress")
-      .select("day_number, is_unlocked, is_completed")
+      .select("day_number, is_completed")
       .eq("user_id", userId),
     supabase.from("video_capsules").select("id, day_number"),
     supabase.from("video_capsule_completions").select("capsule_id").eq("user_id", userId),
+    // El desbloqueo REAL del día es admin_toggles.is_globally_unlocked, no
+    // day_progress.is_unlocked (esa columna queda forzada en true por el layout;
+    // los 4 días son siempre navegables, lo que bloquea es el overlay del día).
+    supabase.from("admin_toggles").select("day_number, is_globally_unlocked"),
   ]);
 
-  const progressByDay = new Map(
-    ((progressRows ?? []) as { day_number: number; is_unlocked: boolean; is_completed: boolean }[]).map((p) => [p.day_number, p])
+  const u = userRow as { full_name?: string | null; total_points?: number; is_student?: boolean; is_admin?: boolean; streak_count?: number } | null;
+  const isAdmin = u?.is_admin ?? false;
+
+  const completedByDay = new Map(
+    ((progressRows ?? []) as { day_number: number; is_completed: boolean }[]).map((p) => [p.day_number, p.is_completed])
+  );
+  const unlockedByDay = new Map(
+    ((toggleRows ?? []) as { day_number: number; is_globally_unlocked: boolean }[]).map((t) => [t.day_number, t.is_globally_unlocked])
   );
   const completedCapsuleIds = new Set(
     ((completionRows ?? []) as { capsule_id: string }[]).map((c) => c.capsule_id)
@@ -97,18 +108,16 @@ export async function getUserProgressSummary(userId: string): Promise<UserProgre
   }
 
   const days: DayProgressSummary[] = [1, 2, 3, 4].map((day) => {
-    const prog = progressByDay.get(day);
     const caps = capsulesByDay.get(day) ?? { total: 0, done: 0 };
     return {
       day,
-      isUnlocked: prog?.is_unlocked ?? false,
-      isCompleted: prog?.is_completed ?? false,
+      isUnlocked: isAdmin || unlockedByDay.get(day) === true,
+      isCompleted: completedByDay.get(day) ?? false,
       capsulesTotal: caps.total,
       capsulesDone: caps.done,
     };
   });
 
-  const u = userRow as { full_name?: string | null; total_points?: number; is_student?: boolean; streak_count?: number } | null;
   return {
     userId,
     fullName: u?.full_name ?? null,
