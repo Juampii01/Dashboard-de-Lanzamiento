@@ -6,6 +6,7 @@ import { KeywordCards } from "@/components/keyword-cards";
 import { StoryUpload } from "@/components/story-upload";
 import { RafagaSection } from "@/components/rafaga-section";
 import type { RafagaMission } from "@/components/rafaga-section";
+import { getDailyMissionCloseState } from "@/lib/daily-mission";
 import Link from "next/link";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -111,13 +112,11 @@ async function getContext(): Promise<PageCtx> {
   const refLink = refCode ? referralLink(refCode) : null;
   const mission = (missionRow.data as Mission | null) ?? null;
 
-  // Sin misión activa pero con filas en daily_missions = alguna misión ya cerró
-  // → "La misión caducó". 0 filas = nunca hubo → "Próximamente".
-  let missionExpired = false;
-  if (!mission) {
-    const { count } = await service.from("daily_missions").select("id", { count: "exact", head: true });
-    missionExpired = (count ?? 0) > 0;
-  }
+  // Sin misión activa: "La misión caducó" si la última se cerró como
+  // "expired" (Cerrar), o "Próximamente" si se cerró como "removed" (Volver a
+  // Próximamente) o nunca hubo ninguna. Las filas ya NO se borran (quedan como
+  // historial), así que esto ya no puede inferirse solo de si existen filas.
+  const missionExpired = mission ? false : (await getDailyMissionCloseState(service)) === "expired";
 
   // Check mission done
   let missionDone = false;

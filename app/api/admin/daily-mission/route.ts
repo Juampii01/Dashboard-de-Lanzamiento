@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { getDailyMissionCloseState } from "@/lib/daily-mission";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -11,7 +12,7 @@ async function requireAdmin() {
   return { service, userId: user.id };
 }
 
-/** GET → misión activa actual (admin). */
+/** GET → misión activa actual (admin) + cómo quedó la última al cerrarse. */
 export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
@@ -21,13 +22,33 @@ export async function GET() {
     .select("id, title, description, points_reward, is_active, created_at")
     .eq("is_active", true)
     .maybeSingle();
-  const { count } = await auth.service.from("daily_missions").select("id", { count: "exact", head: true });
-  return NextResponse.json({ ok: true, mission: data ?? null, hasRows: (count ?? 0) > 0 });
+  const missionState = await getDailyMissionCloseState(auth.service);
+  return NextResponse.json({ ok: true, mission: data ?? null, missionState });
+}
+
+/**
+ * Apaga la(s) misión(es) activa(s) marcando cómo quedó cerrada, SIN borrar la
+ * fila ni sus respuestas — las misiones y sus fotos se conservan como
+ * historial (ver migración 20260701000003_mission_history.sql). Resiliente:
+ * si la columna `closed_as` aún no existe, reintenta sin ella.
+ */
+async function deactivateActive(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  service: ReturnType<typeof createServiceClient>,
+  closedAs: "expired" | "removed"
+) {
+  const first = await service
+    .from("daily_missions")
+    .update({ is_active: false, closed_as: closedAs } as Record<string, unknown>)
+    .eq("is_active", true);
+  if (first.error && /closed_as/i.test(first.error.message)) {
+    await service.from("daily_missions").update({ is_active: false }).eq("is_active", true);
+  }
 }
 
 /**
  * POST → setea o apaga la misión activa.
- * Body: { action: "set", title, description?, points_reward? } | { action: "clear" }
+ * Body: { action: "set", title, description?, points_reward? } | { action: "clear" } | { action: "remove" }
  */
 export async function POST(req: Request) {
   const auth = await requireAdmin();
@@ -36,43 +57,22 @@ export async function POST(req: Request) {
   let body: { action?: string; title?: string; description?: string; points_reward?: number };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "invalid_json" }, { status: 400 }); }
 
-  // "remove" → Volver a "Próximamente": borra TODAS las misiones (y respuestas)
-  // para que la tabla quede vacía y el estado vacío sea "Próximamente".
+  // "remove" → Volver a "Próximamente": apaga la misión activa (si hay), pero
+  // la fila y sus respuestas quedan en la base como historial.
   if (body.action === "remove") {
-    const { data: allM } = await auth.service.from("daily_missions").select("id");
-    const allIds = ((allM ?? []) as Array<{ id: string }>).map((m) => m.id);
-    if (allIds.length) {
-      const { data: rsubs } = await auth.service.from("mission_submissions").select("storage_path").in("mission_id", allIds);
-      const rpaths = ((rsubs ?? []) as Array<{ storage_path: string | null }>).map((s) => s.storage_path).filter(Boolean) as string[];
-      if (rpaths.length) await auth.service.storage.from("avatars").remove(rpaths);
-      await auth.service.from("mission_submissions").delete().in("mission_id", allIds);
-      await auth.service.from("daily_missions").delete().in("id", allIds);
-    }
+    await deactivateActive(auth.service, "removed");
     return NextResponse.json({ ok: true, mission: null });
   }
 
-  // Reset de la misión anterior: borrar sus respuestas (storage + filas) al
-  // cambiar/quitar la misión. Las pendientes quedan validadas por defecto (los
-  // puntos ya acreditados se mantienen; no se descuenta nada). Así la DB no
-  // acumula 200 capturas por día.
-  const { data: active } = await auth.service.from("daily_missions").select("id").eq("is_active", true);
-  const activeIds = ((active ?? []) as Array<{ id: string }>).map((m) => m.id);
-  if (activeIds.length) {
-    const { data: subs } = await auth.service
-      .from("mission_submissions").select("storage_path").in("mission_id", activeIds);
-    const paths = ((subs ?? []) as Array<{ storage_path: string | null }>).map((s) => s.storage_path).filter(Boolean) as string[];
-    if (paths.length) await auth.service.storage.from("avatars").remove(paths);
-    await auth.service.from("mission_submissions").delete().in("mission_id", activeIds);
-  }
-
-  // Apagar la(s) misión(es) activa(s).
-  await auth.service.from("daily_missions").update({ is_active: false }).eq("is_active", true);
-
+  // "clear" → Cerrar como "La misión caducó": misma idea, no se borra nada.
   if (body.action === "clear") {
-    // Cerrar como "La misión caducó": la fila queda inactiva (NO se borra), así
-    // el estado vacío muestra "caducó" en vez de "Próximamente".
+    await deactivateActive(auth.service, "expired");
     return NextResponse.json({ ok: true, mission: null });
   }
+
+  // "set" → publicar una misión nueva: apagar la(s) activa(s) (sin borrar) y
+  // crear la nueva.
+  await auth.service.from("daily_missions").update({ is_active: false }).eq("is_active", true);
 
   const title = String(body.title ?? "").trim();
   if (!title) return NextResponse.json({ error: "title_required" }, { status: 400 });

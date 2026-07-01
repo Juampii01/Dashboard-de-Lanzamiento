@@ -12,11 +12,14 @@ interface Mission {
 }
 interface Submission {
   id: string;
+  mission_id: string;
+  mission_title: string;
   image_url: string | null;
   content_type: string;          // 'image' | 'link' | 'text'
   content_text: string | null;
-  status: string;
+  status: string;                // approved | rejected
   points_awarded: number;
+  reviewed_at: string | null;
   created_at: string;
   full_name: string | null;
   email: string;
@@ -31,6 +34,10 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
   const [subs, setSubs] = useState<Submission[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [hasRows, setHasRows] = useState(false);
+  const [history, setHistory] = useState<Submission[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   // Cargar la misión activa al montar (permite usarlo sin pasar initialMission).
   useEffect(() => {
@@ -38,7 +45,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
       .then((r) => r.json())
       .then((d) => {
         if (d.ok) {
-          setHasRows(!!d.hasRows);
+          setHasRows(d.missionState === "expired");
           if (d.mission) {
             setMission(d.mission);
             setTitle(d.mission.title ?? "");
@@ -84,8 +91,39 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
         body: JSON.stringify({ submission_id: id, action }),
       });
       await loadSubs();
+      if (historyOpen) await loadHistory();
     } catch { /* noop */ }
     setBusy(null);
+  }
+
+  async function loadHistory() {
+    setHistoryLoading(true);
+    try {
+      const r = await fetch("/api/admin/mission-submissions?scope=history");
+      const d = await r.json();
+      if (d.ok) setHistory(d.submissions ?? []);
+    } catch { /* noop */ }
+    setHistoryLoading(false);
+  }
+
+  function toggleHistory() {
+    const next = !historyOpen;
+    setHistoryOpen(next);
+    if (next) loadHistory();
+  }
+
+  // Único botón que borra de verdad la foto/fila (aceptar/rechazar ya no lo hacen).
+  async function deleteSubmission(id: string) {
+    if (!confirm("¿Eliminar esta respuesta y su foto para siempre? No se puede deshacer.")) return;
+    setDeleting(id);
+    try {
+      await fetch("/api/admin/mission-submissions", {
+        method: "DELETE", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submission_id: id }),
+      });
+      setHistory((prev) => prev.filter((s) => s.id !== id));
+    } catch { /* noop */ }
+    setDeleting(null);
   }
 
   const inputStyle: React.CSSProperties = {
@@ -154,7 +192,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
           Respuestas pendientes {subs.length > 0 && <span style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>· {subs.length}</span>}
         </p>
         <p style={{ fontSize: 11.5, color: "var(--muted-foreground)" }}>
-          Aceptar = queda cumplida (se borra el contenido). Rechazar = resta los puntos y la persona puede reintentar. Lo que no revises queda como cumplido.
+          Aceptar = queda cumplida. Rechazar = resta los puntos y la persona puede reintentar. Ninguna de las dos borra la foto — queda en el Historial de abajo; ahí sí podés eliminarla si hace falta.
         </p>
         {subs.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>No hay respuestas para revisar.</p>
@@ -180,6 +218,11 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
                   <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {s.full_name || s.email || "—"}
                   </p>
+                  {s.mission_title && (
+                    <p style={{ fontSize: 10.5, color: "var(--muted-foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: "1px 0 0" }}>
+                      {s.mission_title}
+                    </p>
+                  )}
                   <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                     <button onClick={() => moderate(s.id, "approve")} disabled={busy === s.id}
                       style={{ flex: 1, padding: "5px", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)", background: "transparent", color: "var(--success)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
@@ -194,6 +237,75 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Historial de misiones — nada se borra al cerrar/cambiar la misión;
+          acá quedan todas las respuestas ya revisadas para seguir chequeándolas. */}
+      <div className="space-y-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+        <button
+          onClick={toggleHistory}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
+        >
+          <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>
+            📜 Historial de misiones {history.length > 0 && <span style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>· {history.length}</span>}
+          </p>
+          <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>{historyOpen ? "▲ Ocultar" : "▼ Ver historial"}</span>
+        </button>
+        {historyOpen && (
+          <>
+            <p style={{ fontSize: 11.5, color: "var(--muted-foreground)" }}>
+              Respuestas ya aceptadas o rechazadas, de todas las misiones (viejas incluidas). Eliminar borra la foto y la fila para siempre.
+            </p>
+            {historyLoading ? (
+              <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}><Loader2 size={13} className="animate-spin inline" /> Cargando...</p>
+            ) : history.length === 0 ? (
+              <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>Todavía no hay respuestas revisadas.</p>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: 12 }}>
+                {history.map((s) => (
+                  <div key={s.id} style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden", opacity: s.status === "rejected" ? 0.75 : 1 }}>
+                    {s.content_type === "image" && s.image_url ? (
+                      <a href={s.image_url} target="_blank" rel="noreferrer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={s.image_url} alt="captura" style={{ width: "100%", height: 110, objectFit: "cover", display: "block", background: "var(--muted)" }} />
+                      </a>
+                    ) : (
+                      <div style={{ padding: "10px 12px", minHeight: 70, background: "var(--muted)", fontSize: 12.5, color: "var(--foreground)", wordBreak: "break-word" }}>
+                        {s.content_type === "link" && s.content_text ? (
+                          <a href={s.content_text} target="_blank" rel="noreferrer" style={{ color: "var(--primary)", textDecoration: "underline" }}>{s.content_text}</a>
+                        ) : (
+                          <span>{s.content_text || "—"}</span>
+                        )}
+                      </div>
+                    )}
+                    <div style={{ padding: "8px 10px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: 0 }}>
+                          {s.full_name || s.email || "—"}
+                        </p>
+                        <span style={{
+                          fontSize: 9.5, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+                          color: s.status === "rejected" ? "var(--destructive)" : "var(--success)",
+                          background: s.status === "rejected" ? "color-mix(in srgb, var(--destructive) 14%, transparent)" : "color-mix(in srgb, var(--success) 14%, transparent)",
+                          borderRadius: 999, padding: "2px 7px", flexShrink: 0,
+                        }}>{s.status === "rejected" ? "Rechazada" : "Aceptada"}</span>
+                      </div>
+                      {s.mission_title && (
+                        <p style={{ fontSize: 10.5, color: "var(--muted-foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: "1px 0 0" }}>
+                          {s.mission_title}
+                        </p>
+                      )}
+                      <button onClick={() => deleteSubmission(s.id)} disabled={deleting === s.id}
+                        style={{ width: "100%", marginTop: 6, padding: "5px", borderRadius: 6, border: "1px solid var(--border)", background: "transparent", color: "var(--muted-foreground)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
+                        {deleting === s.id ? <Loader2 size={12} className="animate-spin inline" /> : "🗑 Eliminar"}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
