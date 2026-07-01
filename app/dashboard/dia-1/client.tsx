@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { CheckCircle2, Download, Loader2, ImagePlus, Trash2, ArrowRight, ListChe
 import { WizardModal } from "@/components/wizard-modal";
 import { TaskCompleteModal } from "@/components/task-complete-modal";
 import { FieldHelp } from "@/components/field-help";
+import { loadDraft, clearDraft, useAutosaveDraft } from "@/lib/hooks/use-draft";
 
 const US_STATES = ["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming","Washington D.C.","Puerto Rico"];
 
@@ -131,6 +132,22 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   );
   const [keywords, setKeywords] = useState<string[]>((p0.keywords as string[] | null) ?? []);
   const [keywordInput, setKeywordInput] = useState("");
+
+  // Borrador local: si el perfil todavía no se guardó en la base, restauramos lo
+  // que haya quedado en localStorage de un intento anterior (F5, "Atrás" del
+  // navegador, conexión caída, etc. no deben borrar lo que ya escribió).
+  const draftKey = `gb_draft_dia1_${userId}`;
+  useEffect(() => {
+    if (existingProfile) return; // ya hay datos reales guardados, no pisar con un draft viejo
+    const draft = loadDraft<{ form: typeof form; certifications: string[]; keywords: string[] }>(draftKey);
+    if (!draft) return;
+    setForm((f) => ({ ...f, ...draft.form }));
+    if (draft.certifications?.length) setCertifications(draft.certifications);
+    if (draft.keywords?.length) setKeywords(draft.keywords);
+    toast("Recuperamos un borrador que habías dejado sin guardar.", { duration: 4500 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useAutosaveDraft(draftKey, { form, certifications, keywords }, !isCompleted);
 
   const addKeyword = () => {
     const kw = keywordInput.trim();
@@ -330,6 +347,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
 
       setIsCompleted(true);
       setWizardOpen(false); // cerrar el modal-wizard al terminar
+      clearDraft(draftKey); // ya se guardó de verdad en la DB, no hace falta el borrador
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
 
       // Primera vez completada (se otorgó XP) → modal de festejo (dispara el confetti).

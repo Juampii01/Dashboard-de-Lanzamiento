@@ -12,6 +12,7 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 import { PortalsAccordion } from "@/components/portals-accordion";
 import { WizardModal } from "@/components/wizard-modal";
 import { TaskCompleteModal } from "@/components/task-complete-modal";
+import { loadDraft, clearDraft, useAutosaveDraft } from "@/lib/hooks/use-draft";
 import type { Database } from "@/lib/supabase/types";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
 import { DevTestBar } from "@/components/dev-test-bar";
@@ -90,6 +91,20 @@ export function Dia4Client({
   const setCompanyField = (field: keyof typeof companyForm) =>
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setCompanyForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+  // Borrador local: si el Capability Statement todavía no se generó, restauramos
+  // lo que haya quedado en localStorage de un intento anterior (F5, "Atrás" del
+  // navegador, conexión caída, etc. no deben borrar lo que ya escribió).
+  const draftKey = `gb_draft_dia4_${userId}`;
+  useEffect(() => {
+    if (existingStatement) return; // ya se generó de verdad, no pisar con un draft viejo
+    const draft = loadDraft<{ companyForm: typeof companyForm }>(draftKey);
+    if (!draft?.companyForm) return;
+    setCompanyForm((f) => ({ ...f, ...draft.companyForm }));
+    toast("Recuperamos un borrador que habías dejado sin guardar.", { duration: 4500 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useAutosaveDraft(draftKey, { companyForm }, !isCompleted);
 
   useEffect(() => () => { if (loadingRef.current) clearInterval(loadingRef.current); }, []);
 
@@ -181,6 +196,7 @@ export function Dia4Client({
 
       setIsCompleted(true);
       setWizardOpen(false);
+      clearDraft(draftKey); // ya se guardó de verdad, no hace falta el borrador
       router.refresh(); // refresca tabs + sidebar (server components) con el progreso nuevo
       if (xpData.pointsAwarded > 0) {
         setCelebrateOpen(true);
