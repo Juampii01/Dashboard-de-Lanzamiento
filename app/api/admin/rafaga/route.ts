@@ -83,6 +83,58 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true, id: (ins.data as { id: string }).id, imageSaved });
 }
 
+export async function PUT(req: NextRequest) {
+  const ctx = await getAdmin();
+  if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const body = await req.json() as {
+    id?: string;
+    title?: string;
+    description?: string;
+    starts_at?: string;
+    duration_minutes?: number;
+    points_reward?: number;
+    image_url?: string | null;
+  };
+
+  const id = String(body.id ?? "").trim();
+  const title = String(body.title ?? "").trim();
+  const starts_at = String(body.starts_at ?? "").trim();
+  const duration_minutes = Number(body.duration_minutes ?? 120);
+  if (!id || !title || !starts_at || isNaN(duration_minutes) || duration_minutes < 1) {
+    return NextResponse.json({ error: "bad_request" }, { status: 400 });
+  }
+
+  const rawPts = Math.round(Number(body.points_reward));
+  const points_reward = Number.isFinite(rawPts) && rawPts > 0 ? Math.min(100000, rawPts) : 1000;
+  const image_url =
+    typeof body.image_url === "string" && body.image_url.trim() ? body.image_url.trim() : null;
+
+  // Editar reactiva la misión (queda activa/programada según la nueva fecha).
+  const base = {
+    title,
+    description: String(body.description ?? "").trim() || null,
+    starts_at,
+    duration_minutes,
+    points_reward,
+    is_active: true,
+  };
+
+  let imageSaved = true;
+  let upd = await ctx.service.from("rafaga_missions").update({ ...base, image_url }).eq("id", id);
+  if (upd.error && /image_url/i.test(upd.error.message)) {
+    imageSaved = false;
+    upd = await ctx.service.from("rafaga_missions").update(base).eq("id", id);
+  }
+
+  if (upd.error) {
+    console.error("[admin/rafaga] update error:", upd.error);
+    return NextResponse.json({ error: "internal" }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true, id, imageSaved });
+}
+
 export async function DELETE(req: NextRequest) {
   const ctx = await getAdmin();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });

@@ -40,7 +40,9 @@ export function RafagaAdminPanel() {
   const [uploading, setUploading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deactivating, setDeactivating] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     fetch("/api/admin/rafaga")
@@ -147,6 +149,72 @@ export function RafagaAdminPanel() {
     setCreating(false);
   }
 
+  function isoToLocalInput(iso: string): string {
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function startEdit(m: RafagaRow) {
+    setEditingId(m.id);
+    setTitle(m.title);
+    setDescription(m.description ?? "");
+    setStartsAt(isoToLocalInput(m.starts_at));
+    setDuration(String(m.duration_minutes));
+    setPoints(String(m.points_reward));
+    setImageUrl(m.image_url ?? null);
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setTitle(""); setDescription(""); setStartsAt(""); setDuration("120"); setPoints("1000"); setImageUrl(null);
+  }
+
+  async function update(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingId || !title.trim() || !startsAt) return;
+    setCreating(true);
+    try {
+      const localDate = new Date(startsAt);
+      const res = await fetch("/api/admin/rafaga", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingId,
+          title: title.trim(),
+          description: description.trim() || null,
+          starts_at: localDate.toISOString(),
+          duration_minutes: parseInt(duration, 10) || 120,
+          points_reward: parseInt(points, 10) || 1000,
+          image_url: imageUrl,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const json = (await res.json()) as { ok: boolean; imageSaved?: boolean };
+      const editedId = editingId;
+      setMissions((prev) => prev.map((m) => (m.id === editedId ? {
+        ...m,
+        title: title.trim(),
+        description: description.trim() || null,
+        starts_at: localDate.toISOString(),
+        duration_minutes: parseInt(duration, 10) || 120,
+        points_reward: parseInt(points, 10) || 1000,
+        image_url: imageUrl,
+        is_active: true,
+      } : m)));
+      cancelEdit();
+      if (imageUrl && json.imageSaved === false) {
+        toast("Cambios guardados, pero la imagen no se guardó — falta correr la migración.", { duration: 6000 });
+      } else {
+        toast.success("Misión actualizada.");
+      }
+    } catch {
+      toast.error("Error al guardar los cambios.");
+    }
+    setCreating(false);
+  }
+
   async function deactivate(id: string) {
     setDeactivating(id);
     try {
@@ -197,8 +265,14 @@ export function RafagaAdminPanel() {
 
   return (
     <div className="space-y-5">
-      {/* Create form */}
-      <form onSubmit={create} className="space-y-3">
+      {/* Create / edit form */}
+      <form ref={formRef} onSubmit={editingId ? update : create} className="space-y-3">
+        {editingId && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "8px 12px", borderRadius: 8, background: "color-mix(in srgb, var(--primary) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--primary) 30%, transparent)" }}>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--primary)" }}>✏️ Editando misión</span>
+            <button type="button" onClick={cancelEdit} style={{ background: "transparent", border: "none", color: "var(--muted-foreground)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>Cancelar</button>
+          </div>
+        )}
         <div>
           <label style={labelStyle}>Título</label>
           <input
@@ -293,9 +367,16 @@ export function RafagaAdminPanel() {
 
         <Button type="submit" disabled={creating || !title.trim() || !startsAt} className="w-full">
           {creating
-            ? "Creando..."
+            ? (editingId ? "Guardando..." : "Creando...")
+            : editingId
+            ? "Guardar cambios"
             : `Crear misión ráfaga +${(parseInt(points, 10) || 1000).toLocaleString("es")} pts`}
         </Button>
+        {editingId && (
+          <Button type="button" variant="outline" onClick={cancelEdit} className="w-full">
+            Cancelar edición
+          </Button>
+        )}
       </form>
 
       {/* List */}
@@ -336,6 +417,14 @@ export function RafagaAdminPanel() {
                 <span className="text-[10px] font-bold shrink-0" style={{ color: statusColor }}>
                   {statusLabel}
                 </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => startEdit(m)}
+                  className="text-xs shrink-0"
+                >
+                  Editar
+                </Button>
                 {m.is_active && status !== "expired" && (
                   <Button
                     variant="outline"
