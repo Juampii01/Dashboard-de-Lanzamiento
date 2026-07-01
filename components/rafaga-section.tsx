@@ -158,7 +158,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
         <img
           src={mission.image_url}
           alt=""
-          style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }}
+          style={{ width: "auto", height: "auto", maxWidth: "100%", maxHeight: 200, display: "block", margin: "0 auto", borderRadius: 8 }}
         />
       )}
 
