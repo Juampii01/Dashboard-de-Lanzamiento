@@ -795,6 +795,7 @@ function RafagaAdminPanel() {
   const [description, setDescription] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [duration, setDuration] = useState("120");
+  const [points, setPoints] = useState("1000");
   const [creating, setCreating] = useState(false);
   const [deactivating, setDeactivating] = useState<string | null>(null);
 
@@ -820,6 +821,7 @@ function RafagaAdminPanel() {
           description: description.trim() || null,
           starts_at: localDate.toISOString(),
           duration_minutes: parseInt(duration, 10) || 120,
+          points_reward: parseInt(points, 10) || 1000,
         }),
       });
       if (!res.ok) throw new Error();
@@ -830,12 +832,12 @@ function RafagaAdminPanel() {
         description: description.trim() || null,
         starts_at: localDate.toISOString(),
         duration_minutes: parseInt(duration, 10) || 120,
-        points_reward: 1000,
+        points_reward: parseInt(points, 10) || 1000,
         is_active: true,
         created_at: new Date().toISOString(),
       };
       setMissions((prev) => [newRow, ...prev]);
-      setTitle(""); setDescription(""); setStartsAt(""); setDuration("120");
+      setTitle(""); setDescription(""); setStartsAt(""); setDuration("120"); setPoints("1000");
       toast.success("Misión ráfaga creada.");
     } catch {
       toast.error("Error al crear misión ráfaga.");
@@ -910,9 +912,19 @@ function RafagaAdminPanel() {
             style={{ borderColor: "#1E3A5C" }}
           />
         </div>
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Puntos que otorga</label>
+          <input
+            type="number" min={1} max={100000} step={50} value={points}
+            onChange={(e) => setPoints(e.target.value)}
+            className="w-full px-3 py-2.5 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            style={{ borderColor: "#1E3A5C" }}
+          />
+          <p className="text-[11px] text-muted-foreground">Cuántos puntos suma completar esta ráfaga.</p>
+        </div>
         <div className="sm:col-span-2">
           <Button type="submit" disabled={creating || !title.trim() || !startsAt} className="w-full">
-            {creating ? "Creando..." : "Crear misión ráfaga +1,000 pts"}
+            {creating ? "Creando..." : `Crear misión ráfaga +${(parseInt(points, 10) || 1000).toLocaleString("es")} pts`}
           </Button>
         </div>
       </form>
@@ -930,7 +942,7 @@ function RafagaAdminPanel() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{m.title}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {new Date(m.starts_at).toLocaleString("es-US", { dateStyle: "short", timeStyle: "short" })} · {m.duration_minutes} min
+                    {new Date(m.starts_at).toLocaleString("es-US", { dateStyle: "short", timeStyle: "short" })} · {m.duration_minutes} min · +{m.points_reward.toLocaleString("es")} pts
                   </p>
                 </div>
                 <span className="text-[10px] font-bold shrink-0" style={{ color: statusColor }}>{statusLabel}</span>

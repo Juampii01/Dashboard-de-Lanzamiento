@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
     description?: string;
     starts_at?: string;
     duration_minutes?: number;
+    points_reward?: number;
   };
 
   const title = String(body.title ?? "").trim();
@@ -42,6 +43,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
+  // Puntos elegibles por el admin (1–100.000). Si no es válido, default 1.000.
+  const rawPts = Math.round(Number(body.points_reward));
+  const points_reward = Number.isFinite(rawPts) && rawPts > 0 ? Math.min(100000, rawPts) : 1000;
+
   const { data, error } = await ctx.service
     .from("rafaga_missions")
     .insert({
@@ -49,7 +54,7 @@ export async function POST(req: NextRequest) {
       description: String(body.description ?? "").trim() || null,
       starts_at,
       duration_minutes,
-      points_reward: 1000,
+      points_reward,
       is_active: true,
       created_by: ctx.user.id,
     })
