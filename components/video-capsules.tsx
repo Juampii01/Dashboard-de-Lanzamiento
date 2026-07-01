@@ -107,7 +107,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
   const [cooldownSecs, setCooldownSecs] = useState(0);
   const [activeId, setActiveId]         = useState<string | null>(null);
   const [marking, setMarking]           = useState(false);
-  const [expanded, setExpanded]         = useState(false);
+  const [expanded, setExpanded]         = useState(true); // siempre abierto por defecto (más visible)
   const [quizCapsuleId, setQuizCapsuleId] = useState<string | null>(null);
 
   // Video locking — unlocks when video ends (IFrame API) or fallback timer fires
