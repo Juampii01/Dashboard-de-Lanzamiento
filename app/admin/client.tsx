@@ -53,8 +53,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Trash2, Mail, Video } from "lucide-react";
+import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Trash2, Mail, Video, MessageCircle } from "lucide-react";
 import { MagicBlastPanel } from "@/components/magic-blast-panel";
+import { WebReportsAdminPanel } from "@/components/web-reports-admin-panel";
 import { breakdownRows, type Breakdown } from "@/lib/points-breakdown";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
@@ -1023,6 +1024,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </CardHeader>
         <CardContent>
           <KeywordsAdminPanel />
+        </CardContent>
+      </Card>
+
+      {/* Reportes de Página Web (Día 3) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="w-5 h-5 text-[#FFD700]" />
+            Reportes de Página Web (Día 3)
+          </CardTitle>
+          <CardDescription>
+            Avisos de participantes cuyo sitio del Día 3 no quedó bien (imágenes rotas, etc.). Ya pueden regenerarla libremente por su cuenta — esto es solo para hacer seguimiento y ayudarlos puntualmente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WebReportsAdminPanel />
         </CardContent>
       </Card>
 

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw, Gift, ChevronDown } from "lucide-react";
+import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw, Gift, ChevronDown, MessageCircle, Send } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
 import { TaskCompleteModal } from "@/components/task-complete-modal";
 import type { Database } from "@/lib/supabase/types";
@@ -59,6 +59,33 @@ export function Dia3Client({
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [celebrateOpen, setCelebrateOpen] = useState(false);
   const [portalsOpen, setPortalsOpen] = useState(false);  const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // "Mi página no quedó bien" — canal de aviso al admin (no bloquea nada: ya se
+  // puede regenerar libremente, esto solo avisa para que ayuden puntualmente).
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportMessage, setReportMessage] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportSent, setReportSent] = useState(false);
+
+  async function handleReportSubmit() {
+    if (!reportMessage.trim()) return;
+    setReportSubmitting(true);
+    try {
+      const res = await fetch("/api/missions/web-report/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: reportMessage.trim() }),
+      });
+      if (!res.ok) throw new Error();
+      setReportSent(true);
+      setReportMessage("");
+      setReportOpen(false);
+      toast.success("¡Recibido! Mientras lo revisamos, ya podés tocar \"Regenerar mi web\" para intentarlo de nuevo.");
+    } catch {
+      toast.error("No se pudo enviar. Intenta de nuevo.");
+    } finally {
+      setReportSubmitting(false);
+    }
+  }
   const [webResult, setWebResult] = useState<WebResult | null>(
     existingPreview
       ? { html: existingPreview.generated_html ?? "", css: existingPreview.generated_css ?? "" }
@@ -374,6 +401,60 @@ ${webResult.html}
                 <><RefreshCw className="w-4 h-4" /> Regenerar mi web</>
               )}
             </Button>
+          </div>
+
+          {/* ¿La página no quedó bien? — canal de aviso al admin */}
+          <div style={{
+            marginTop: 8, padding: "16px 18px", borderRadius: 14,
+            background: "var(--muted)", border: "1px dashed var(--border)",
+          }}>
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" style={{ color: "var(--muted-foreground)", flexShrink: 0 }} />
+              <p className="text-sm font-semibold" style={{ margin: 0 }}>
+                ¿Tu página no te quedó bien? (imágenes rotas, algo raro)
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground" style={{ margin: "4px 0 0" }}>
+              Podés tocar &quot;Regenerar mi web&quot; arriba cuando quieras. Si el problema sigue, contanos qué pasó y te ayudamos.
+            </p>
+
+            {reportSent && !reportOpen && (
+              <p className="text-xs" style={{ margin: "8px 0 0", color: "var(--success)", fontWeight: 700 }}>
+                ✓ Ya recibimos tu aviso, gracias.
+              </p>
+            )}
+
+            {!reportOpen ? (
+              <Button
+                variant="outline" size="sm"
+                onClick={() => setReportOpen(true)}
+                className="gap-2 mt-2"
+              >
+                Avisar al equipo
+              </Button>
+            ) : (
+              <div className="flex gap-2 mt-2">
+                <input
+                  type="text"
+                  value={reportMessage}
+                  onChange={(e) => setReportMessage(e.target.value)}
+                  placeholder="Contanos qué salió mal…"
+                  maxLength={500}
+                  disabled={reportSubmitting}
+                  className="flex-1 min-w-0 px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  style={{ borderColor: "var(--border)" }}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleReportSubmit}
+                  disabled={reportSubmitting || !reportMessage.trim()}
+                  className="gap-2 shrink-0"
+                >
+                  {reportSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Enviar
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
