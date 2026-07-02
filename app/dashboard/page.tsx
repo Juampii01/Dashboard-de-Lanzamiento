@@ -5,6 +5,7 @@ import { HomeClient } from "./home-client";
 import { LaunchCountdown } from "@/components/launch-countdown";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { inicioUnlockIso } from "@/lib/launch";
+import { getNextIncompleteDay, type DayNudge } from "@/lib/day-nudge";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -23,6 +24,7 @@ export default async function DashboardPage() {
   let isAdmin = false;
   const recordings: (string | null)[] = [null, null, null, null];
   let tutorialVideoId = "2A6EB_cDk-A"; // default; el admin lo puede cambiar
+  let nextDayNudge: DayNudge = null;
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -50,6 +52,9 @@ export default async function DashboardPage() {
     initialPoints = (profile?.total_points as number | null) ?? 0;
     avatarUrl = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
     isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin === true;
+
+    // Aviso no bloqueante de Inicio: próximo día ya abierto que todavía no completó.
+    nextDayNudge = await getNextIncompleteDay(createServiceClient(), user.id, isAdmin);
 
     // Grabaciones de las clases (1-4) que el admin configura. Cada botón abre su
     // link de YouTube; si un número no tiene link, su botón queda deshabilitado.
@@ -95,6 +100,7 @@ export default async function DashboardPage() {
         avatarUrl={avatarUrl}
         recordings={recordings}
         tutorialVideoId={tutorialVideoId}
+        nextDayNudge={nextDayNudge}
       />
       {beforeLaunch && (
         <LaunchCountdown

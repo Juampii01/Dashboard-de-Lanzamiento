@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Send, MessageCircle, X, FileText, ChevronDown, Play } from "lucide-react";
+import Link from "next/link";
+import { Send, MessageCircle, X, FileText, ChevronDown, Play, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { FlagBanner } from "@/components/flag-banner";
 import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
 import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
+import type { DayNudge } from "@/lib/day-nudge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,6 +18,60 @@ interface HomeClientProps {
   avatarUrl?: string | null;
   recordings?: (string | null)[];
   tutorialVideoId?: string;
+  nextDayNudge?: DayNudge;
+}
+
+// ─── Aviso "completá el día pendiente" — no bloqueante, con botón directo ──────
+function DayNudgeBanner({ nudge }: { nudge: NonNullable<DayNudge> }) {
+  const [dismissed, setDismissed] = useState(false);
+  if (dismissed) return null;
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+        flexWrap: "wrap",
+        padding: "16px 20px",
+        borderRadius: "14px",
+        background: "color-mix(in srgb, var(--primary) 10%, var(--card))",
+        border: "1px solid color-mix(in srgb, var(--primary) 30%, var(--border))",
+      }}
+    >
+      <span style={{ fontSize: "22px", flexShrink: 0 }}>👋</span>
+      <div style={{ flex: "1 1 260px", minWidth: 0 }}>
+        <p style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+          ¡Hola! Notamos que no completaste el Día {nudge.day}
+        </p>
+        <p style={{ fontSize: "13px", color: "var(--muted-foreground)", margin: "2px 0 0" }}>
+          {nudge.title} — completalo tocando el botón para seguir sumando puntos.
+        </p>
+      </div>
+      <Link
+        href={nudge.href}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: "6px",
+          padding: "10px 18px", borderRadius: "10px",
+          background: "var(--primary)", color: "var(--primary-foreground)",
+          fontSize: "13.5px", fontWeight: 700, textDecoration: "none",
+          whiteSpace: "nowrap", flexShrink: 0,
+        }}
+      >
+        Completar Día {nudge.day} <ArrowRight style={{ width: "15px", height: "15px" }} />
+      </Link>
+      <button
+        type="button"
+        onClick={() => setDismissed(true)}
+        aria-label="Cerrar aviso"
+        style={{
+          background: "transparent", border: "none", cursor: "pointer",
+          color: "var(--muted-foreground)", display: "inline-flex", padding: "4px", flexShrink: 0,
+        }}
+      >
+        <X style={{ width: "18px", height: "18px" }} />
+      </button>
+    </div>
+  );
 }
 
 interface Comment {
@@ -1035,7 +1091,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId, nextDayNudge }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
@@ -1058,6 +1114,9 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
           Tu empresa puede ganar contratos con el Gobierno de USA. Completa las fases del programa para avanzar.
         </p>
       </FlagBanner>
+
+      {/* Aviso no bloqueante: completá el próximo día pendiente */}
+      {!devMode && nextDayNudge && <DayNudgeBanner nudge={nextDayNudge} />}
 
       {/* 1. Points card + botones de grabaciones (al lado, misma altura, compacto) */}
       {!devMode && (
