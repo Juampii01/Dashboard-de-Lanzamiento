@@ -59,13 +59,20 @@ export async function fetchNicheImageUrls(
 ): Promise<string[]> {
   const key = getUnsplashKey();
   const cleanNiche = niche?.trim();
+  const nicheQuery = shortNiche(cleanNiche);
 
-  // Queries CONCISAS para Unsplash. Las keywords (Día 2, en inglés) son las
-  // mejores búsquedas; el `niche` suele ser un párrafo largo que devuelve 0
-  // resultados. Por eso usamos keywords primero y el niche solo como respaldo.
+  // Queries CONCISAS para Unsplash. El `niche` real va primero SIEMPRE. Las
+  // keywords de Día 2 son jerga de contratación gubernamental (ej. "federal
+  // facility maintenance contract"), no descriptores visuales del rubro — si
+  // se usan solas, Unsplash devuelve fotos de oficinas/gobierno sin relación
+  // al negocio real. Por eso solo se usan como refinamiento ANCLADO al niche
+  // (`${niche} ${term}`), nunca como query standalone.
   const queries = [
-    ...refineTerms.map((t) => t?.trim()).filter(Boolean) as string[],
-    shortNiche(cleanNiche),
+    nicheQuery,
+    ...(refineTerms
+      .map((t) => t?.trim())
+      .filter(Boolean) as string[])
+      .map((t) => (nicheQuery ? `${nicheQuery} ${t}` : t)),
   ].filter(Boolean) as string[];
 
   if (queries.length === 0) return [];
@@ -108,17 +115,17 @@ function shortNiche(niche?: string): string {
  * siempre del mismo tema. Sirve de red de seguridad cuando Unsplash no está.
  */
 function loremFlickrUrls(niche: string, refineTerms: string[], count: number): string[] {
-  // Etiquetas concisas: priorizar keywords (cortas) sobre el niche (párrafo largo).
+  // Etiquetas concisas: priorizar el niche real (el rubro del negocio) sobre
+  // las keywords de Día 2, que son jerga de procurement y no describen fotos.
   const toTag = (s: string) =>
     s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").trim().split(/\s+/).slice(0, 2).join(",");
 
-  const tags = refineTerms
-    .map((t) => toTag(t))
-    .filter(Boolean);
+  const tags: string[] = [];
+  const nicheTag = toTag(niche);
+  if (nicheTag) tags.push(nicheTag);
 
   if (tags.length === 0) {
-    const nicheTag = toTag(niche);
-    if (nicheTag) tags.push(nicheTag);
+    tags.push(...refineTerms.map((t) => toTag(t)).filter(Boolean));
   }
   if (tags.length === 0) tags.push("business,office");
 
