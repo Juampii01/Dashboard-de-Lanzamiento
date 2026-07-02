@@ -775,33 +775,42 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
             topLevel.map((c) => {
               const canReply = isAdmin || c.user_id === userId;
               const replies = repliesByParent.get(c.id) ?? [];
+              const isAnnouncement = c.author_is_admin;
               return (
                 <div key={c.id} style={{ borderBottom: "1px solid var(--border)" }}>
                   {/* Comentario original */}
-                  <div style={{ padding: "12px 16px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                  <div
+                    style={{
+                      padding: isAnnouncement ? "14px 16px" : "12px 16px",
+                      display: "flex", gap: "10px", alignItems: "flex-start",
+                      background: isAnnouncement ? "color-mix(in srgb, var(--accent) 10%, transparent)" : "transparent",
+                      borderLeft: isAnnouncement ? "3px solid var(--accent)" : "3px solid transparent",
+                    }}
+                  >
                     <div
                       style={{
-                        width: "28px", height: "28px", borderRadius: "50%",
+                        width: isAnnouncement ? "36px" : "28px", height: isAnnouncement ? "36px" : "28px",
+                        borderRadius: "50%",
                         background: "linear-gradient(135deg, #143A6B 0%, #0A2540 100%)",
-                        border: "1px solid var(--border)",
+                        border: isAnnouncement ? "2px solid var(--accent)" : "1px solid var(--border)",
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: "11px", fontWeight: 700, color: "#E5ECF7",
+                        fontSize: isAnnouncement ? "13px" : "11px", fontWeight: 700, color: "#E5ECF7",
                         flexShrink: 0,
                       }}
                     >
                       {c.display_name.slice(0, 1).toUpperCase()}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px", flexWrap: "wrap" }}>
-                        <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--foreground)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
+                        <span style={{ fontSize: isAnnouncement ? "13px" : "12px", fontWeight: 700, color: "var(--foreground)" }}>
                           {c.display_name}
                         </span>
-                        {c.author_is_admin && (
+                        {isAnnouncement && (
                           <span style={{
-                            fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+                            fontSize: "10px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
                             color: "var(--accent-foreground)", background: "var(--accent)",
-                            borderRadius: 999, padding: "1px 7px",
-                          }}>Equipo</span>
+                            borderRadius: 999, padding: "2px 9px",
+                          }}>📢 Aviso del equipo</span>
                         )}
                         {isAdmin && c.hidden && (
                           <span
@@ -819,7 +828,11 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
                           {formatCommentDate(c.created_at)}
                         </span>
                       </div>
-                      <p style={{ fontSize: "13px", color: "var(--foreground)", lineHeight: 1.5, margin: 0 }}>
+                      <p style={{
+                        fontSize: isAnnouncement ? "14.5px" : "13px",
+                        fontWeight: isAnnouncement ? 600 : 400,
+                        color: "var(--foreground)", lineHeight: 1.55, margin: 0,
+                      }}>
                         {c.content}
                       </p>
                       {canReply && (
@@ -870,14 +883,22 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
 
                   {/* Respuestas (admin o del propio autor) */}
                   {replies.map((r) => (
-                    <div key={r.id} style={{ padding: "8px 16px 12px 46px", display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                    <div
+                      key={r.id}
+                      style={{
+                        padding: r.author_is_admin ? "10px 16px 12px 46px" : "8px 16px 12px 46px",
+                        display: "flex", gap: "8px", alignItems: "flex-start",
+                        background: r.author_is_admin ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "transparent",
+                      }}
+                    >
                       <div
                         style={{
-                          width: "22px", height: "22px", borderRadius: "50%",
+                          width: r.author_is_admin ? "26px" : "22px", height: r.author_is_admin ? "26px" : "22px",
+                          borderRadius: "50%",
                           background: r.author_is_admin ? "var(--accent)" : "var(--muted)",
-                          border: "1px solid var(--border)",
+                          border: r.author_is_admin ? "2px solid var(--accent)" : "1px solid var(--border)",
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: "9px", fontWeight: 700,
+                          fontSize: r.author_is_admin ? "10.5px" : "9px", fontWeight: 700,
                           color: r.author_is_admin ? "var(--accent-foreground)" : "var(--muted-foreground)",
                           flexShrink: 0,
                         }}
@@ -886,15 +907,15 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px", flexWrap: "wrap" }}>
-                          <span style={{ fontSize: "11.5px", fontWeight: 700, color: "var(--foreground)" }}>
+                          <span style={{ fontSize: r.author_is_admin ? "12.5px" : "11.5px", fontWeight: 700, color: "var(--foreground)" }}>
                             {r.display_name}
                           </span>
                           {r.author_is_admin && (
                             <span style={{
-                              fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+                              fontSize: "9.5px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
                               color: "var(--accent-foreground)", background: "var(--accent)",
-                              borderRadius: 999, padding: "1px 7px",
-                            }}>Equipo</span>
+                              borderRadius: 999, padding: "2px 8px",
+                            }}>📢 Equipo</span>
                           )}
                           {isAdmin && r.hidden && (
                             <span
@@ -912,7 +933,11 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
                             {formatCommentDate(r.created_at)}
                           </span>
                         </div>
-                        <p style={{ fontSize: "12.5px", color: "var(--foreground)", lineHeight: 1.5, margin: 0 }}>
+                        <p style={{
+                          fontSize: r.author_is_admin ? "13.5px" : "12.5px",
+                          fontWeight: r.author_is_admin ? 600 : 400,
+                          color: "var(--foreground)", lineHeight: 1.5, margin: 0,
+                        }}>
                           {r.content}
                         </p>
                       </div>
