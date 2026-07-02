@@ -18,6 +18,7 @@ const bodySchema = z.object({
   corporateEmail: z.string().optional(),
   website: z.string().optional(),
   logoUrl: z.string().url().optional(),
+  yearFounded: z.number().nullable().optional(),
 });
 
 interface WebPreviewResult {
@@ -132,6 +133,8 @@ export async function POST(request: Request) {
     website ? `Website: ${website}` : "",
   ].filter(Boolean).join("\n");
   const logoUrl       = parsed.data.logoUrl ?? null;  // already validated as URL by zod
+  const yearFounded   = parsed.data.yearFounded ?? null;
+  const yearsInBusiness = yearFounded ? Math.max(0, new Date().getFullYear() - yearFounded) : null;
 
   // Fetch real photos for the site (degrades to [] without UNSPLASH_ACCESS_KEY).
   // NICHE-LOCKED: every photo is pulled from the company's actual niche, so a
@@ -162,12 +165,12 @@ El CTA es comercial: "Get a Free Quote", "Request a Consultation", "Contact Us",
 ESTRUCTURA (sitio completo, rico)
 ═══════════════════════════════════════════
 1. NAV sticky: logo textual + links (Services, About, Why Us, Contact) + botón CTA.
-2. HERO impactante a pantalla completa: foto de fondo (IMG1) con overlay oscuro en gradiente para legibilidad, eyebrow chico, titular GRANDE y emocional (no genérico), subtítulo de valor, 2 botones, y una fila de 3-4 stats (años de experiencia, clientes, proyectos, satisfacción).
+2. HERO impactante a pantalla completa: foto de fondo (IMG1) con overlay oscuro en gradiente para legibilidad, eyebrow chico, titular GRANDE y emocional (no genérico), subtítulo de valor, 2 botones, y una fila de 3-4 "trust badges" SIN cifras inventadas (ver DATOS REALES abajo — usá SOLO lo que esté marcado como real; si no hay años de experiencia reales, usá badges cualitativos como "Licensed & Insured", "Locally Owned", "Fast Response Time", nunca un número inventado).
 3. SERVICES: grid de 3-4 tarjetas con foto o ícono, título, descripción, mini-lista de beneficios. Hover elevación.
 4. ABOUT: 2 columnas — foto real (IMG2) a un lado, texto cálido y profesional al otro (historia, misión, compromiso). Sin datos sensibles.
-5. WHY CHOOSE US: 3-4 diferenciales con ícono/numeral grande (confiabilidad, calidad, respuesta rápida, garantía).
+5. WHY CHOOSE US: 3-4 diferenciales con ícono/numeral grande (confiabilidad, calidad, respuesta rápida, garantía) — cualitativos, sin porcentajes ni cifras inventadas.
 6. GALLERY / SHOWCASE: 2-3 fotos (IMG3, IMG4) en un grid con leve overlay y hover zoom.
-7. TESTIMONIALS: 2-3 testimonios ficticios pero verosímiles (nombre + rol/empresa) en tarjetas.
+7. OUR PROCESS: 3-4 pasos numerados de cómo trabajan (consulta → propuesta → ejecución → seguimiento, adaptalo al rubro). NO uses testimonios ni citas atribuidas a clientes — la empresa no tiene reseñas reales cargadas y un testimonio inventado sería información falsa en su sitio público.
 8. FINAL CTA: banda con gradiente, titular fuerte, botón grande.
 9. FOOTER: nombre, tagline, links, datos de contacto (email/teléfono/ciudad placeholder), © año.
 
@@ -205,20 +208,24 @@ REGLAS TÉCNICAS
 - RESPONSIVE OBLIGATORIO: el sitio se verá en escritorio Y en celular. Incluí media queries (@media (max-width: 768px) y @media (max-width: 480px)) que apilen los grids en 1 columna, reduzcan el tamaño del hero/títulos y los paddings, y conviertan la nav en algo simple. NUNCA generes scroll horizontal: usá width:100%/max-width en contenedores, "img{max-width:100%;height:auto;display:block}", evitá anchos fijos en px que excedan la pantalla, y "box-sizing:border-box" global. El hero y todas las secciones deben verse perfectas a 390px de ancho.
 - HTML con clases semánticas claras.
 - Copy en INGLÉS, cálido y profesional, orientado a vender al cliente. Sin relleno genérico — específico al negocio.
+- PROHIBIDO INVENTAR DATOS: no inventes años de experiencia, cantidad de clientes/proyectos, porcentajes de satisfacción, certificaciones (OSHA/GSA/etc.), premios, ni testimonios/citas de clientes. Usá ÚNICAMENTE la información provista en "DATOS REALES DE LA EMPRESA" más abajo. Si un dato no está provisto, NO lo reemplaces con un número o afirmación inventada — usá lenguaje cualitativo genérico (confiabilidad, calidad, compromiso) en su lugar.
 
 Responde SIEMPRE en JSON válido:
 {
   "html": "Solo el contenido del <body> (sin <html>, <head> ni <body>).",
   "css": "Stylesheet COMPLETO y DETALLADO de calidad de agencia."
 }`,
-      `Empresa: ${companyName}
+      `═══ DATOS REALES DE LA EMPRESA (única fuente de verdad — no agregues nada que no esté acá) ═══
+Empresa: ${companyName}
 Qué vende/hace: ${niche}
 Problema que resuelve para sus clientes: ${problemSolved}
 ${keywords?.length ? `Servicios clave: ${keywords.slice(0, 6).join(", ")}` : ""}
 ${usState ? `Zona de operación: ${usState} y alrededores — mencionalo naturalmente en el hero/footer.` : ""}
+${yearsInBusiness !== null ? `Años de experiencia (REAL, verificado): ${yearsInBusiness}${yearsInBusiness === 0 ? " (fundada este año — no la muestres como '0 years', omití el stat de años directamente)" : " — podés usar este número real en un trust badge del hero."}` : "Años de experiencia: NO PROVISTO — no muestres ningún número de años en el hero."}
 ${contactLines ? `\nDatos de contacto REALES (usalos en la sección de contacto y el footer, NO inventes placeholders):\n${contactLines}` : ""}
+═══════════════════════════════════════════
 
-Generá el sitio web COMERCIAL premium de esta empresa, para atraer clientes. Que se vea como hecho por la mejor agencia del mundo. Recordá: NADA de NAICS, capability statement ni datos de procurement.`
+Generá el sitio web COMERCIAL premium de esta empresa, para atraer clientes, usando EXCLUSIVAMENTE los datos reales de arriba. Que se vea como hecho por la mejor agencia del mundo. Recordá: NADA de NAICS, capability statement ni datos de procurement, y NADA de cifras, certificaciones o testimonios inventados.`
     , 14000);
 
     return NextResponse.json(result);

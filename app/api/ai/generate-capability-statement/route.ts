@@ -124,8 +124,8 @@ Responde SIEMPRE en JSON válido con esta estructura EXACTA:
   "tagline": "tagline corto y potente (máx 8 palabras), ej: 'Federal-Grade Facility Solutions, Delivered'",
   "service_categories": ["3-4 categorías de servicio en MAYÚSCULAS para el header, ej: JANITORIAL", "FACILITY MAINTENANCE", "CUSTODIAL"],
   "company_overview": "párrafo sólido de 3-4 oraciones. Quién es la empresa, qué hace, para quién, y su foco. Incluí estructura legal y años si están disponibles.",
-  "core_competencies": ["6 competencias en lenguaje de procurement, cada una con un qualifier federal cuando aplique (OSHA-compliant, GSA-ready, etc.)"],
-  "differentiators": ["4 diferenciadores que atacan los riesgos que evalúa un CO (performance, compliance, disponibilidad). Cada uno con evidencia concreta."],
+  "core_competencies": ["6 competencias en lenguaje de procurement, específicas al negocio descrito abajo"],
+  "differentiators": ["4 diferenciadores que atacan los riesgos que evalúa un CO (performance, compliance, disponibilidad), redactados con lenguaje seguro y concreto pero SIN métricas o certificaciones inventadas."],
   "quality_commitment": "párrafo de 2-3 oraciones sobre el compromiso de calidad y los procesos de control (QA, documentación, follow-through).",
   "past_performance": "${hasGovContracts ? "instrucción: la empresa SÍ tiene experiencia con gobierno; redactá un párrafo que invite a solicitar referencias documentadas de contratos previos." : "instrucción: la empresa es NUEVA en gobierno; usá 'bridge mode' — redactá un párrafo que referencie su experiencia comercial transferible (clientes del sector privado en entornos regulados) y mencione que las referencias comerciales están disponibles. NO escribas solo 'available upon request'."}",
   "primary_markets": ["niveles de gobierno + comercial que la empresa puede servir, ej: Federal", "State", "Local", "Commercial"],
@@ -146,13 +146,15 @@ REGLAS DE LONGITUD (el documento DEBE entrar en 1 sola página — sé conciso):
 - quality_commitment: máximo 28 palabras.
 - past_performance: máximo 32 palabras.
 - service_categories: 3-4 categorías en MAYÚSCULAS, derivadas de lo que hace la empresa.
-- naics_with_desc: máximo 5 códigos. psc_with_desc: máximo 4 códigos. Usá los provistos abajo CON su descripción real (acortala a máximo 5 palabras). Si no hay PSC, inferí 3 relevantes.
+- naics_with_desc: máximo 5 códigos. psc_with_desc: máximo 4 códigos. Usá SOLO los códigos NAICS/PSC provistos explícitamente abajo, CON su descripción real (acortala a máximo 5 palabras). Si no hay ningún PSC provisto, podés sugerir hasta 3 PSC habituales para ese NAICS/rubro — pero basate en el NAICS y el rubro reales, nunca en un rubro genérico o inventado.
 - primary_markets: máximo 4.
+- PROHIBIDO INVENTAR: no le asignes a la empresa certificaciones (OSHA-compliant, GSA-ready, ISO, etc.), premios, métricas específicas (%, años exactos, cantidad de contratos/clientes) ni historial que no esté explícitamente en los datos provistos abajo. Si un dato no está provisto, no lo reemplaces por una afirmación inventada — usá lenguaje cualitativo (confiabilidad, calidad, cumplimiento) en su lugar. Las únicas certificaciones que podés mencionar son las listadas en "Certificaciones / set-asides que ya tiene" abajo; si dice "Sin certificaciones formales todavía", no menciones ninguna certificación específica.
 - image_keywords: exactamente 2-3 términos de búsqueda en INGLÉS que devuelvan fotos profesionales y limpias del sector de la empresa (no logos, no texto). Pensá en qué foto representa visualmente el trabajo (ej. limpieza → "commercial cleaning", "office janitorial"; IT → "data center", "server room"; construcción → "construction site", "commercial building").
 - key_promises: exactamente 3 promesas en MAYÚSCULAS, 2-4 palabras cada una, que comuniquen el valor central al gobierno (van en la portada con checkmarks).
 - value_proposition: una oración de máximo 20 palabras, potente, para la portada.
 - Todo en inglés profesional de procurement. Cada línea debe sonar a una empresa real y seria, sin relleno genérico.`,
-      `Empresa: ${data.companyName}
+      `═══ DATOS REALES DE LA EMPRESA (única fuente de verdad — no agregues nada que no esté acá) ═══
+Empresa: ${data.companyName}
 ${data.legalStructure ? `Estructura legal: ${data.legalStructure}` : ""}
 ${data.yearFounded ? `Año de fundación: ${data.yearFounded}` : ""}
 ${data.employeeCount ? `Empleados: ${data.employeeCount}` : ""}
@@ -164,12 +166,17 @@ ${certs.length ? `Certificaciones / set-asides que ya tiene: ${certs.join(", ")}
 Experiencia con contratos gubernamentales previos: ${hasGovContracts ? "Sí" : "No (empresa nueva en el mercado gubernamental)"}
 
 NAICS codes con descripción:
-${naicsRef.length ? naicsRef.map(c => `- ${c.code}: ${c.description}`).join("\n") : `- ${data.primaryNaics ?? "(inferir)"}`}
+${naicsRef.length
+  ? naicsRef.map(c => `- ${c.code}: ${c.description}`).join("\n")
+  : data.primaryNaics
+    ? `- ${data.primaryNaics} (sin descripción provista — inferí la descripción oficial real de este código NAICS, no la inventes)`
+    : "(NO se proveyó ningún código NAICS — inferí el más relevante según el rubro descrito arriba)"}
 
 PSC codes con descripción:
-${pscRef.length ? pscRef.map(c => `- ${c.code}: ${c.description}`).join("\n") : "(inferir 2-3 PSC relevantes)"}
+${pscRef.length ? pscRef.map(c => `- ${c.code}: ${c.description}`).join("\n") : "(NO se proveyó ningún código PSC — sugerí hasta 3 PSC habituales para el NAICS/rubro de arriba)"}
+═══════════════════════════════════════════
 
-Generá el Capability Statement completo, rico y profesional para esta empresa.`
+Generá el Capability Statement completo, rico y profesional para esta empresa, usando EXCLUSIVAMENTE los datos reales de arriba. Sin certificaciones, métricas ni historial inventado.`
     , 4000);
 
     return NextResponse.json(result);

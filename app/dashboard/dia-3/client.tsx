@@ -189,6 +189,7 @@ ${webResult.html}
           corporateEmail: (profile as Record<string, unknown>).corporate_email as string | undefined || undefined,
           website: (profile as Record<string, unknown>).website as string | undefined || undefined,
           logoUrl: (profile as Record<string, unknown>).logo_url as string | undefined || undefined,
+          yearFounded: (profile as Record<string, unknown>).year_founded as number | undefined ?? null,
         }),
       });
 
