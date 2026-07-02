@@ -55,6 +55,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClock, Key, Trash2, Mail, Video, MessageCircle } from "lucide-react";
 import { MagicBlastPanel } from "@/components/magic-blast-panel";
+import { ReminderBlastPanel } from "@/components/reminder-blast-panel";
 import { WebReportsAdminPanel } from "@/components/web-reports-admin-panel";
 import { breakdownRows, type Breakdown } from "@/lib/points-breakdown";
 import Link from "next/link";
@@ -933,6 +934,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </CardHeader>
         <CardContent>
           <MagicBlastPanel />
+        </CardContent>
+      </Card>
+
+      {/* Recordatorios segmentados (no ingresaron / no completaron Día 1) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="w-5 h-5 text-[#00D4FF]" />
+            Recordatorios de Acceso y Día 1
+          </CardTitle>
+          <CardDescription>
+            Emails segmentados: a los que nunca ingresaron les avisa que entren; a los que ingresaron pero no completaron el Día 1 les avisa que lo terminen. Remitente distinto al de arriba para que no se agrupen en el mismo hilo.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ReminderBlastPanel />
         </CardContent>
       </Card>
 
