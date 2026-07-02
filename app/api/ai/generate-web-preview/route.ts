@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { callClaudeJSON, sanitizeInput } from "@/lib/claude";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { fetchNicheImageUrls } from "@/lib/unsplash";
@@ -38,6 +38,49 @@ export async function POST(request: Request) {
     .maybeSingle()
 
   if (!profile?.is_admin) {
+    // Gate de regeneración: la PRIMERA generación (la que completa el Día 3)
+    // es siempre libre. Cualquier regeneración posterior requiere que el
+    // admin la habilite puntualmente (panel "Reportes de Página Web"), para
+    // no gastar presupuesto de IA en regeneraciones ilimitadas.
+    const service = createServiceClient();
+    const { data: dayProgress } = await service
+      .from('day_progress')
+      .select('is_completed')
+      .eq('user_id', user.id)
+      .eq('day_number', 3)
+      .maybeSingle();
+
+    const isRegeneration = dayProgress?.is_completed === true;
+
+    if (isRegeneration) {
+      const { data: grant, error: grantError } = await service
+        .from('web_issue_reports')
+        .select('id')
+        .eq('user_id', user.id)
+        .not('regen_granted_at', 'is', null)
+        .is('regen_consumed_at', null)
+        .order('regen_granted_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // Fail-closed: si la tabla/columnas todavía no existen (migración no
+      // corrida) o hay cualquier error, NO dejamos regenerar — mejor bloquear
+      // de más que gastar presupuesto de más.
+      if (grantError || !grant) {
+        return NextResponse.json(
+          {
+            error: 'regen_not_allowed',
+            message: 'Para volver a generar tu web necesitás que el equipo te habilite. Avisales con el botón de abajo ("¿Tu página no te quedó bien?") y te dan acceso.',
+          },
+          { status: 403 }
+        );
+      }
+
+      // Consumimos el permiso ANTES de generar, para que un reintento del
+      // cliente no vuelva a gastar el mismo permiso dos veces.
+      await service.from('web_issue_reports').update({ regen_consumed_at: new Date().toISOString() }).eq('id', grant.id);
+    }
+
     const rl = await checkRateLimit(user.id, 'generate-web', 3, 300)
     if (!rl.allowed) {
       return NextResponse.json(

@@ -16,11 +16,20 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const { data, error } = await auth.service
+  let { data, error } = await auth.service
     .from("web_issue_reports")
-    .select("id, user_id, message, status, created_at, resolved_at")
+    .select("id, user_id, message, status, created_at, resolved_at, regen_granted_at, regen_consumed_at")
     .order("status", { ascending: true }) // "pending" < "resolved" alfabéticamente
     .order("created_at", { ascending: false });
+
+  // Fallback si la migración de regen_granted_at/regen_consumed_at no corrió aún.
+  if (error?.code === "42703") {
+    ({ data, error } = await auth.service
+      .from("web_issue_reports")
+      .select("id, user_id, message, status, created_at, resolved_at")
+      .order("status", { ascending: true })
+      .order("created_at", { ascending: false }));
+  }
 
   if (error?.code === "42P01") {
     return NextResponse.json({ ok: true, reports: [] });
@@ -44,21 +53,30 @@ export async function GET() {
   return NextResponse.json({ ok: true, reports });
 }
 
-/** POST → marcar un reporte como resuelto. Body: { id } */
+/**
+ * POST → marcar un reporte como resuelto, o habilitar una regeneración puntual.
+ * Body: { id, action?: "resolve" | "grant_regen" }  (default: "resolve")
+ */
 export async function POST(req: Request) {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  let body: { id?: string };
+  let body: { id?: string; action?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "invalid_json" }, { status: 400 }); }
   const id = String(body.id ?? "").trim();
   if (!id) return NextResponse.json({ error: "bad_request" }, { status: 400 });
+  const action = body.action === "grant_regen" ? "grant_regen" : "resolve";
 
-  const { error } = await auth.service
-    .from("web_issue_reports")
-    .update({ status: "resolved", resolved_at: new Date().toISOString() })
-    .eq("id", id);
+  const update =
+    action === "grant_regen"
+      ? { regen_granted_at: new Date().toISOString(), regen_consumed_at: null, status: "resolved", resolved_at: new Date().toISOString() }
+      : { status: "resolved", resolved_at: new Date().toISOString() };
 
+  const { error } = await auth.service.from("web_issue_reports").update(update).eq("id", id);
+
+  if (error?.code === "42703") {
+    return NextResponse.json({ error: "migration_pending" }, { status: 501 });
+  }
   if (error) {
     console.error("[admin/web-reports POST]", error.message);
     return NextResponse.json({ error: "internal" }, { status: 500 });

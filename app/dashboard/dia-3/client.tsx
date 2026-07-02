@@ -59,8 +59,9 @@ export function Dia3Client({
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
   const [celebrateOpen, setCelebrateOpen] = useState(false);
   const [portalsOpen, setPortalsOpen] = useState(false);  const loadingRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // "Mi página no quedó bien" — canal de aviso al admin (no bloquea nada: ya se
-  // puede regenerar libremente, esto solo avisa para que ayuden puntualmente).
+  // "Mi página no quedó bien" — canal de aviso al admin. La regeneración está
+  // gateada: el equipo tiene que habilitarla puntualmente desde /admin (para
+  // no gastar presupuesto de IA en regeneraciones ilimitadas).
   const [reportOpen, setReportOpen] = useState(false);
   const [reportMessage, setReportMessage] = useState("");
   const [reportSubmitting, setReportSubmitting] = useState(false);
@@ -79,7 +80,7 @@ export function Dia3Client({
       setReportSent(true);
       setReportMessage("");
       setReportOpen(false);
-      toast.success("¡Recibido! Mientras lo revisamos, ya podés tocar \"Regenerar mi web\" para intentarlo de nuevo.");
+      toast.success("¡Recibido! El equipo lo revisa y te habilita para volver a generar tu web.");
     } catch {
       toast.error("No se pudo enviar. Intenta de nuevo.");
     } finally {
@@ -191,6 +192,14 @@ ${webResult.html}
         }),
       });
 
+      if (res.status === 403) {
+        const err: { error?: string; message?: string } = await res.json().catch(() => ({}));
+        if (err.error === "regen_not_allowed") {
+          toast.error(err.message ?? "Para regenerar tu web necesitás que el equipo te habilite.", { id: toastId, duration: 8000 });
+          setReportOpen(true);
+          return;
+        }
+      }
       if (!res.ok) throw new Error("API error");
       const data: WebResult = await res.json();
       setWebResult(data);
@@ -415,7 +424,7 @@ ${webResult.html}
               </p>
             </div>
             <p className="text-xs text-muted-foreground" style={{ margin: "4px 0 0" }}>
-              Podés tocar &quot;Regenerar mi web&quot; arriba cuando quieras. Si el problema sigue, contanos qué pasó y te ayudamos.
+              Contanos qué pasó y el equipo te habilita para volver a generarla.
             </p>
 
             {reportSent && !reportOpen && (

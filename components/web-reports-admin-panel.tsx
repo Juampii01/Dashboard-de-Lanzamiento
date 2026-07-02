@@ -12,12 +12,15 @@ interface WebReport {
   created_at: string;
   full_name: string | null;
   email: string;
+  regen_granted_at?: string | null;
+  regen_consumed_at?: string | null;
 }
 
 export function WebReportsAdminPanel() {
   const [reports, setReports] = useState<WebReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState<string | null>(null);
+  const [granting, setGranting] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/web-reports")
@@ -42,6 +45,28 @@ export function WebReportsAdminPanel() {
       toast.error("Error al marcar como resuelto.");
     }
     setResolving(null);
+  }
+
+  async function grantRegen(id: string) {
+    setGranting(id);
+    try {
+      const res = await fetch("/api/admin/web-reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: "grant_regen" }),
+      });
+      if (res.status === 501) {
+        toast.error("Falta correr la migración 20260702000004_web_regen_gate.sql en Supabase.");
+        return;
+      }
+      if (!res.ok) throw new Error();
+      const now = new Date().toISOString();
+      setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: "resolved", regen_granted_at: now, regen_consumed_at: null } : r)));
+      toast.success("Regeneración habilitada — ya puede tocar \"Regenerar mi web\" una vez.");
+    } catch {
+      toast.error("Error al habilitar la regeneración.");
+    }
+    setGranting(null);
   }
 
   const pending = reports.filter((r) => r.status !== "resolved");
@@ -79,14 +104,24 @@ export function WebReportsAdminPanel() {
                     {new Date(r.created_at).toLocaleString("es-US", { dateStyle: "short", timeStyle: "short" })}
                   </p>
                 </div>
-                <Button
-                  variant="outline" size="sm"
-                  disabled={resolving === r.id}
-                  onClick={() => resolve(r.id)}
-                  className="text-xs shrink-0"
-                >
-                  {resolving === r.id ? "..." : "Marcar resuelto"}
-                </Button>
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  <Button
+                    size="sm"
+                    disabled={granting === r.id}
+                    onClick={() => grantRegen(r.id)}
+                    className="text-xs"
+                  >
+                    {granting === r.id ? "..." : "Habilitar regenerar"}
+                  </Button>
+                  <Button
+                    variant="outline" size="sm"
+                    disabled={resolving === r.id}
+                    onClick={() => resolve(r.id)}
+                    className="text-xs"
+                  >
+                    {resolving === r.id ? "..." : "Marcar resuelto"}
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -102,13 +137,24 @@ export function WebReportsAdminPanel() {
             {resolved.map((r) => (
               <div
                 key={r.id}
-                className="flex items-start gap-3 p-3 border rounded-xl bg-card"
-                style={{ borderColor: "#1E3A5C", opacity: 0.55 }}
+                className="flex items-start justify-between gap-3 p-3 border rounded-xl bg-card"
+                style={{ borderColor: "#1E3A5C", opacity: 0.7 }}
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{r.full_name || r.email || "—"}</p>
                   <p className="text-sm mt-1">{r.message}</p>
                 </div>
+                {r.regen_granted_at && (
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-wide shrink-0 px-2 py-1 rounded-full"
+                    style={{
+                      color: r.regen_consumed_at ? "var(--muted-foreground)" : "var(--success)",
+                      background: r.regen_consumed_at ? "var(--muted)" : "color-mix(in srgb, var(--success) 15%, transparent)",
+                    }}
+                  >
+                    {r.regen_consumed_at ? "Regen. usada" : "Regen. habilitada"}
+                  </span>
+                )}
               </div>
             ))}
           </div>
