@@ -25,6 +25,7 @@ export default async function DashboardPage() {
   const recordings: (string | null)[] = [null, null, null, null];
   let tutorialVideoId = "2A6EB_cDk-A"; // default; el admin lo puede cambiar
   let nextDayNudge: DayNudge = null;
+  let userId = "";
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -41,6 +42,7 @@ export default async function DashboardPage() {
       // Network unreachable
     }
     if (!user) redirect("/login");
+    userId = user.id;
 
     const { data: profile } = await createServiceClient()
       .from("users")
@@ -101,6 +103,8 @@ export default async function DashboardPage() {
         recordings={recordings}
         tutorialVideoId={tutorialVideoId}
         nextDayNudge={nextDayNudge}
+        isAdmin={isAdmin}
+        userId={userId}
       />
       {beforeLaunch && (
         <LaunchCountdown

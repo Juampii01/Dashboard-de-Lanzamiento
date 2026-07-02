@@ -19,6 +19,8 @@ interface HomeClientProps {
   recordings?: (string | null)[];
   tutorialVideoId?: string;
   nextDayNudge?: DayNudge;
+  isAdmin?: boolean;
+  userId?: string;
 }
 
 // ─── Aviso "completá el día pendiente" — no bloqueante, con botón directo ──────
@@ -76,9 +78,21 @@ function DayNudgeBanner({ nudge }: { nudge: NonNullable<DayNudge> }) {
 
 interface Comment {
   id: string;
+  user_id: string;
   display_name: string;
   content: string;
   created_at: string;
+  parent_id: string | null;
+  author_is_admin?: boolean;
+}
+
+// Fecha + hora en el huso horario LOCAL de quien mira (por defecto de
+// toLocaleString cuando no se pasa timeZone).
+function formatCommentDate(iso: string): string {
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+  const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return `${date}, ${time}`;
 }
 
 interface ContractNiche {
@@ -505,11 +519,14 @@ function VideoTutorial({ videoId }: { videoId?: string }) {
 
 // ─── Comments ─────────────────────────────────────────────────────────────────
 
-function CommentsSection({ over10k = false }: { over10k?: boolean }) {
+function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k?: boolean; isAdmin?: boolean; userId: string }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [available, setAvailable] = useState(true);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [replySubmitting, setReplySubmitting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -551,6 +568,42 @@ function CommentsSection({ over10k = false }: { over10k?: boolean }) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleReplySubmit(parentId: string) {
+    if (!replyContent.trim()) return;
+    setReplySubmitting(true);
+    try {
+      const res = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: replyContent.trim(), parent_id: parentId }),
+      });
+      if (res.status === 501) { toast.error("Las respuestas todavía no están activas."); return; }
+      if (res.status === 403) { toast.error("Solo podés responder tu propio comentario."); return; }
+      if (!res.ok) throw new Error("error");
+      setReplyContent("");
+      setReplyingTo(null);
+      toast.success("¡Respuesta publicada!");
+      load();
+    } catch {
+      toast.error("No se pudo publicar la respuesta. Intenta de nuevo.");
+    } finally {
+      setReplySubmitting(false);
+    }
+  }
+
+  // Agrupar: comentarios de primer nivel (más nuevo arriba, ya vienen así) y
+  // sus respuestas (más vieja primero, orden de conversación natural).
+  const topLevel = comments.filter((c) => !c.parent_id);
+  const repliesByParent = new Map<string, Comment[]>();
+  for (const c of comments) {
+    if (!c.parent_id) continue;
+    if (!repliesByParent.has(c.parent_id)) repliesByParent.set(c.parent_id, []);
+    repliesByParent.get(c.parent_id)!.push(c);
+  }
+  for (const arr of repliesByParent.values()) {
+    arr.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   }
 
   return (
@@ -682,45 +735,131 @@ function CommentsSection({ over10k = false }: { over10k?: boolean }) {
               </p>
             </div>
           ) : (
-            comments.map((c) => (
-              <div
-                key={c.id}
-                style={{
-                  padding: "12px 16px",
-                  borderBottom: "1px solid var(--border)",
-                  display: "flex", gap: "10px", alignItems: "flex-start",
-                }}
-              >
-                {/* Avatar circle */}
-                <div
-                  style={{
-                    width: "28px", height: "28px", borderRadius: "50%",
-                    background: "linear-gradient(135deg, #143A6B 0%, #0A2540 100%)",
-                    border: "1px solid var(--border)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "11px", fontWeight: 700, color: "#E5ECF7",
-                    flexShrink: 0,
-                  }}
-                >
-                  {c.display_name.slice(0, 1).toUpperCase()}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
-                    <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--foreground)" }}>
-                      {c.display_name}
-                    </span>
-                    <span style={{ fontSize: "10px", color: "var(--muted-foreground)" }}>
-                      {new Date(c.created_at).toLocaleDateString("es-AR", {
-                        day: "numeric", month: "short",
-                      })}
-                    </span>
+            topLevel.map((c) => {
+              const canReply = isAdmin || c.user_id === userId;
+              const replies = repliesByParent.get(c.id) ?? [];
+              return (
+                <div key={c.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  {/* Comentario original */}
+                  <div style={{ padding: "12px 16px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                    <div
+                      style={{
+                        width: "28px", height: "28px", borderRadius: "50%",
+                        background: "linear-gradient(135deg, #143A6B 0%, #0A2540 100%)",
+                        border: "1px solid var(--border)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: "11px", fontWeight: 700, color: "#E5ECF7",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {c.display_name.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px", flexWrap: "wrap" }}>
+                        <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--foreground)" }}>
+                          {c.display_name}
+                        </span>
+                        {c.author_is_admin && (
+                          <span style={{
+                            fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+                            color: "var(--accent-foreground)", background: "var(--accent)",
+                            borderRadius: 999, padding: "1px 7px",
+                          }}>Equipo</span>
+                        )}
+                        <span style={{ fontSize: "10px", color: "var(--muted-foreground)" }}>
+                          {formatCommentDate(c.created_at)}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: "13px", color: "var(--foreground)", lineHeight: 1.5, margin: 0 }}>
+                        {c.content}
+                      </p>
+                      {canReply && (
+                        <button
+                          type="button"
+                          onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyContent(""); }}
+                          style={{
+                            marginTop: "6px", background: "transparent", border: "none", cursor: "pointer",
+                            fontSize: "11px", fontWeight: 700, color: "var(--primary)", padding: 0,
+                          }}
+                        >
+                          {replyingTo === c.id ? "Cancelar" : "Responder"}
+                        </button>
+                      )}
+
+                      {/* Caja de respuesta inline */}
+                      {replyingTo === c.id && (
+                        <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
+                          <input
+                            value={replyContent}
+                            onChange={(e) => setReplyContent(e.target.value)}
+                            placeholder="Escribí tu respuesta…"
+                            maxLength={500}
+                            disabled={replySubmitting}
+                            style={{
+                              flex: 1, minWidth: 0, padding: "8px 10px", borderRadius: "8px",
+                              border: "1px solid var(--border)", background: "var(--background)",
+                              color: "var(--foreground)", fontSize: "12.5px", outline: "none",
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleReplySubmit(c.id)}
+                            disabled={replySubmitting || !replyContent.trim()}
+                            style={{
+                              padding: "8px 14px", borderRadius: "8px", border: "none",
+                              background: replyContent.trim() ? "var(--primary)" : "color-mix(in srgb, var(--primary) 30%, transparent)",
+                              color: "var(--primary-foreground)", fontSize: "12px", fontWeight: 700,
+                              cursor: replyContent.trim() ? "pointer" : "not-allowed", whiteSpace: "nowrap",
+                            }}
+                          >
+                            {replySubmitting ? "..." : "Enviar"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p style={{ fontSize: "13px", color: "var(--foreground)", lineHeight: 1.5, margin: 0 }}>
-                    {c.content}
-                  </p>
+
+                  {/* Respuestas (admin o del propio autor) */}
+                  {replies.map((r) => (
+                    <div key={r.id} style={{ padding: "8px 16px 12px 46px", display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                      <div
+                        style={{
+                          width: "22px", height: "22px", borderRadius: "50%",
+                          background: r.author_is_admin ? "var(--accent)" : "var(--muted)",
+                          border: "1px solid var(--border)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: "9px", fontWeight: 700,
+                          color: r.author_is_admin ? "var(--accent-foreground)" : "var(--muted-foreground)",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {r.display_name.slice(0, 1).toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px", flexWrap: "wrap" }}>
+                          <span style={{ fontSize: "11.5px", fontWeight: 700, color: "var(--foreground)" }}>
+                            {r.display_name}
+                          </span>
+                          {r.author_is_admin && (
+                            <span style={{
+                              fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+                              color: "var(--accent-foreground)", background: "var(--accent)",
+                              borderRadius: 999, padding: "1px 7px",
+                            }}>Equipo</span>
+                          )}
+                          <span style={{ fontSize: "9.5px", color: "var(--muted-foreground)" }}>
+                            {formatCommentDate(r.created_at)}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "12.5px", color: "var(--foreground)", lineHeight: 1.5, margin: 0 }}>
+                          {r.content}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
@@ -1091,7 +1230,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId, nextDayNudge }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId, nextDayNudge, isAdmin = false, userId = "" }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
@@ -1132,7 +1271,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
       <VideoTutorial videoId={tutorialVideoId} />
 
       {/* 3. Comments */}
-      {!devMode && <CommentsSection over10k={initialPoints >= 10000} />}
+      {!devMode && <CommentsSection over10k={initialPoints >= 10000} isAdmin={isAdmin} userId={userId} />}
 
       {/* 4. Contract models */}
       <ContractModels fullName={fullName} />
