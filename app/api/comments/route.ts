@@ -41,7 +41,9 @@ export async function GET() {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  return NextResponse.json({ comments: (data ?? []).reverse() });
+  // Ya vienen ordenados del más nuevo al más viejo (created_at desc); el
+  // frontend los pinta tal cual, de arriba hacia abajo.
+  return NextResponse.json({ comments: data ?? [] });
 }
 
 // POST — insert a new comment
