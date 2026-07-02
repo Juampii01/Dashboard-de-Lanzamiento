@@ -2,7 +2,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * GET /api/comments   — public listing (no auth required)
+ * GET /api/comments   — listado (requiere sesión para saber qué "hidden" mostrar)
  * POST /api/comments  — authenticated users only
  *
  * Requires `program_comments` table. Returns 501 gracefully if table
@@ -29,25 +29,53 @@ import { NextRequest, NextResponse } from "next/server";
  * Reglas de respuesta: un admin puede responder CUALQUIER comentario (todos lo
  * ven); un usuario normal solo puede responder SU PROPIO comentario. Las
  * respuestas no otorgan puntos (solo el comentario original, primeras 3 veces).
+ *
+ * Shadow-ban de datos de contacto (migración 20260702000002_comments_shadow_ban.sql):
+ * alter table program_comments add column if not exists hidden boolean not null default false;
+ * Si el contenido tiene teléfono/email/link, se publica igual (el autor lo ve
+ * como cualquier otro) pero queda oculto para el resto — así cree que nadie le
+ * respondió, en vez de que "lo bloquearon".
  */
 
-// GET — all comments (+ replies), newest first
+// Teléfono, email, o link/página web dentro del texto → se oculta para todos
+// menos el propio autor (y los admins, para moderar).
+function looksLikeContactInfo(text: string): boolean {
+  // Email
+  if (/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(text)) return true;
+  // URL explícita o con "www."
+  if (/https?:\/\/\S+/i.test(text)) return true;
+  if (/\bwww\.[a-z0-9-]+\.[a-z]{2,}/i.test(text)) return true;
+  // Dominio "pelado" (ej. instagram.com/algo, miweb.com)
+  if (/\b[a-z0-9-]+\.(com|net|org|io|co|us|mx|es|ar|info|biz|me|app|dev|net\.co)\b/i.test(text)) return true;
+  // Teléfono: corrida de 7+ dígitos con separadores típicos (+, espacios, guiones, paréntesis)
+  const phoneLike = text.match(/(\+?\d[\d\s().-]{6,}\d)/g) ?? [];
+  for (const m of phoneLike) {
+    if (m.replace(/[^\d]/g, "").length >= 7) return true;
+  }
+  return false;
+}
+
+// GET — all comments (+ replies), newest first. Filtra los "hidden" salvo que
+// sean del propio usuario que pregunta, o el que pregunta sea admin.
 export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   const service = createServiceClient();
 
   let { data, error } = await service
     .from("program_comments")
-    .select("id, user_id, display_name, content, created_at, parent_id")
+    .select("id, user_id, display_name, content, created_at, parent_id, hidden")
     .order("created_at", { ascending: false });
 
-  // Columna parent_id todavía no existe (falta correr la migración) → reintenta
-  // sin ella, solo se ven comentarios de primer nivel hasta que se corra.
-  if (error && /parent_id/i.test(error.message)) {
+  // Columnas nuevas todavía no existen (falta correr alguna migración) →
+  // reintenta sin ellas para no romper el listado.
+  if (error && /(parent_id|hidden)/i.test(error.message)) {
     const retry = await service
       .from("program_comments")
       .select("id, user_id, display_name, content, created_at")
       .order("created_at", { ascending: false });
-    data = (retry.data ?? []).map((c) => ({ ...c, parent_id: null })) as typeof data;
+    data = (retry.data ?? []).map((c) => ({ ...c, parent_id: null, hidden: false })) as typeof data;
     error = retry.error;
   }
 
@@ -60,9 +88,9 @@ export async function GET() {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  const rows = (data ?? []) as Array<{ user_id: string; [k: string]: unknown }>;
+  const rows = (data ?? []) as Array<{ user_id: string; hidden?: boolean; [k: string]: unknown }>;
 
-  // Marcar qué autores son admin (para el badge "Equipo" en sus respuestas/comentarios).
+  // Marcar qué autores son admin (badge "Equipo") y si quien pregunta es admin.
   const userIds = [...new Set(rows.map((r) => r.user_id))];
   const adminSet = new Set<string>();
   if (userIds.length) {
@@ -71,8 +99,10 @@ export async function GET() {
       if (u.is_admin) adminSet.add(u.id);
     }
   }
+  const callerIsAdmin = !!user && adminSet.has(user.id);
 
-  const comments = rows.map((r) => ({ ...r, author_is_admin: adminSet.has(r.user_id) }));
+  const visible = rows.filter((r) => !r.hidden || r.user_id === user?.id || callerIsAdmin);
+  const comments = visible.map((r) => ({ ...r, author_is_admin: adminSet.has(r.user_id) }));
 
   // Ya vienen ordenados del más nuevo al más viejo (created_at desc); el
   // frontend los pinta tal cual, de arriba hacia abajo.
@@ -138,10 +168,16 @@ export async function POST(req: NextRequest) {
   // el delta devuelto (y el toast) reflejen lo realmente acreditado, no el bruto.
   const priorTotal = Number((profile as { total_points?: number | null } | null)?.total_points ?? 0);
 
+  // Shadow-ban: si trae teléfono/email/link, se guarda igual pero oculto para
+  // todos menos el autor — la respuesta al frontend es IDÉNTICA a la normal
+  // (nada delata que fue detectado), así el autor cree que se publicó bien.
+  const shouldHide = !isAdmin && looksLikeContactInfo(content);
+
   const basePayload: Record<string, unknown> = {
     user_id: user.id,
     display_name: displayName,
     content,
+    ...(shouldHide ? { hidden: true } : {}),
   };
 
   let insErr = (
@@ -156,6 +192,15 @@ export async function POST(req: NextRequest) {
   if (insErr && parentId && /parent_id/i.test(insErr.message)) {
     return NextResponse.json({ error: "replies_not_ready" }, { status: 501 });
   }
+  // Columna hidden todavía no existe → reintenta sin marcar (queda visible para
+  // todos hasta que se corra la migración; mejor eso que romper el POST).
+  if (insErr && shouldHide && /hidden/i.test(insErr.message)) {
+    insErr = (
+      await service.from("program_comments").insert(
+        parentId ? { user_id: user.id, display_name: displayName, content, parent_id: parentId } : { user_id: user.id, display_name: displayName, content }
+      )
+    ).error;
+  }
 
   if (insErr?.code === "42P01") {
     return NextResponse.json({ error: "table_not_found" }, { status: 501 });
@@ -165,13 +210,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  // Las respuestas NO otorgan puntos — solo el comentario original de primer
-  // nivel, y hasta 3 veces.
+  // Las respuestas y los comentarios ocultos NO otorgan puntos — solo el
+  // comentario original de primer nivel y visible, hasta 3 veces.
   let awarded = false;
   let delta = 0;
   let total: number | null = null;
 
-  if (!parentId) {
+  if (!parentId && !shouldHide) {
     const MAX_REWARDED = 3;
     const REWARD = 200;
 

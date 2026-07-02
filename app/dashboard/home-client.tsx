@@ -120,6 +120,7 @@ interface Comment {
   created_at: string;
   parent_id: string | null;
   author_is_admin?: boolean;
+  hidden?: boolean;
 }
 
 // Fecha + hora en el huso horario LOCAL de quien mira (por defecto de
@@ -802,6 +803,18 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
                             borderRadius: 999, padding: "1px 7px",
                           }}>Equipo</span>
                         )}
+                        {isAdmin && c.hidden && (
+                          <span
+                            title="Solo lo ve el autor y los admins (detectamos datos de contacto)"
+                            style={{
+                              fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+                              color: "var(--destructive)", background: "color-mix(in srgb, var(--destructive) 14%, transparent)",
+                              borderRadius: 999, padding: "1px 7px",
+                            }}
+                          >
+                            Oculto
+                          </span>
+                        )}
                         <span style={{ fontSize: "10px", color: "var(--muted-foreground)" }}>
                           {formatCommentDate(c.created_at)}
                         </span>
@@ -882,6 +895,18 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
                               color: "var(--accent-foreground)", background: "var(--accent)",
                               borderRadius: 999, padding: "1px 7px",
                             }}>Equipo</span>
+                          )}
+                          {isAdmin && r.hidden && (
+                            <span
+                              title="Solo lo ve el autor y los admins (detectamos datos de contacto)"
+                              style={{
+                                fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+                                color: "var(--destructive)", background: "color-mix(in srgb, var(--destructive) 14%, transparent)",
+                                borderRadius: 999, padding: "1px 7px",
+                              }}
+                            >
+                              Oculto
+                            </span>
                           )}
                           <span style={{ fontSize: "9.5px", color: "var(--muted-foreground)" }}>
                             {formatCommentDate(r.created_at)}
