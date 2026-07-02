@@ -23,55 +23,91 @@ interface HomeClientProps {
   userId?: string;
 }
 
-// ─── Aviso "completá el día pendiente" — no bloqueante, con botón directo ──────
+// ─── Aviso "completá el día pendiente" — modal grande, centrado, NO bloquea:
+// tiene X y se cierra tocando el fondo; el usuario sigue navegando normal. ────
 function DayNudgeBanner({ nudge }: { nudge: NonNullable<DayNudge> }) {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed) return null;
   return (
     <div
+      onClick={() => setDismissed(true)}
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "14px",
-        flexWrap: "wrap",
-        padding: "16px 20px",
-        borderRadius: "14px",
-        background: "color-mix(in srgb, var(--primary) 10%, var(--card))",
-        border: "1px solid color-mix(in srgb, var(--primary) 30%, var(--border))",
+        position: "fixed", inset: 0, zIndex: 99970,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "16px",
+        background: "rgba(4,10,25,0.72)", backdropFilter: "blur(6px)",
       }}
     >
-      <span style={{ fontSize: "22px", flexShrink: 0 }}>👋</span>
-      <div style={{ flex: "1 1 260px", minWidth: 0 }}>
-        <p style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
-          ¡Hola! Notamos que no completaste el Día {nudge.day}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative",
+          width: "min(560px, 100%)",
+          display: "flex", flexDirection: "column", alignItems: "center",
+          textAlign: "center", gap: 16,
+          padding: "clamp(28px, 5vw, 44px) 26px",
+          borderRadius: 20,
+          background: "linear-gradient(160deg, rgba(13,26,61,0.96) 0%, rgba(8,15,36,0.96) 100%)",
+          border: "1px solid rgba(228,45,44,0.4)",
+          boxShadow: "0 24px 70px -18px rgba(0,0,0,0.7), 0 0 36px -12px rgba(228,45,44,0.45)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setDismissed(true)}
+          aria-label="Cerrar"
+          style={{
+            position: "absolute", top: 14, right: 14,
+            background: "rgba(255,255,255,0.08)", border: "none", borderRadius: 8,
+            width: 32, height: 32, display: "inline-flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", color: "rgba(255,255,255,0.8)",
+          }}
+        >
+          <X style={{ width: 18, height: 18 }} />
+        </button>
+
+        <div style={{ background: "#fff", borderRadius: 14, padding: "8px 14px", boxShadow: "0 6px 22px rgba(0,0,0,0.3)" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/halcon.png" alt="" style={{ height: 48, width: "auto", display: "block" }} />
+        </div>
+
+        <p style={{
+          fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 800,
+          letterSpacing: "0.16em", textTransform: "uppercase", color: "#E42D2C",
+        }}>
+          GovBidder Challenge
         </p>
-        <p style={{ fontSize: "13px", color: "var(--muted-foreground)", margin: "2px 0 0" }}>
+
+        <h2 style={{
+          fontFamily: "var(--font-display)", fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800,
+          color: "#fff", lineHeight: 1.15, margin: 0, maxWidth: "22ch",
+        }}>
+          👋 ¡Notamos que no completaste el Día {nudge.day}!
+        </h2>
+
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", maxWidth: "42ch", margin: 0 }}>
           {nudge.title} — completalo tocando el botón para seguir sumando puntos.
         </p>
+
+        <Link
+          href={nudge.href}
+          onClick={() => setDismissed(true)}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 9,
+            marginTop: 4, padding: "15px 34px", borderRadius: 13,
+            background: "linear-gradient(135deg, #E42D2C 0%, #A11D2E 100%)",
+            color: "#fff", fontFamily: "var(--font-sans)", fontWeight: 800, fontSize: 15.5,
+            border: "1px solid rgba(255,255,255,0.15)", textDecoration: "none",
+            boxShadow: "0 8px 26px -6px rgba(228,45,44,0.6)",
+          }}
+        >
+          Completar Día {nudge.day} <ArrowRight style={{ width: 17, height: 17 }} />
+        </Link>
+
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0 }}>
+          Podés cerrar esta ventana y seguir navegando — te lo vamos a recordar hasta que lo completes.
+        </p>
       </div>
-      <Link
-        href={nudge.href}
-        style={{
-          display: "inline-flex", alignItems: "center", gap: "6px",
-          padding: "10px 18px", borderRadius: "10px",
-          background: "var(--primary)", color: "var(--primary-foreground)",
-          fontSize: "13.5px", fontWeight: 700, textDecoration: "none",
-          whiteSpace: "nowrap", flexShrink: 0,
-        }}
-      >
-        Completar Día {nudge.day} <ArrowRight style={{ width: "15px", height: "15px" }} />
-      </Link>
-      <button
-        type="button"
-        onClick={() => setDismissed(true)}
-        aria-label="Cerrar aviso"
-        style={{
-          background: "transparent", border: "none", cursor: "pointer",
-          color: "var(--muted-foreground)", display: "inline-flex", padding: "4px", flexShrink: 0,
-        }}
-      >
-        <X style={{ width: "18px", height: "18px" }} />
-      </button>
     </div>
   );
 }
