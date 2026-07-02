@@ -7,6 +7,12 @@ import { WhatsAppButton } from "@/components/whatsapp-button";
 // código de país, sin "+"). Configurable por env NEXT_PUBLIC_MENTORIA_WHATSAPP.
 const MENTORIA_WHATSAPP = (process.env.NEXT_PUBLIC_MENTORIA_WHATSAPP ?? "17329373088").replace(/\D/g, "");
 
+// Link de pago directo (elimina fricción: el que ya está convencido paga sin
+// tener que escribir por WhatsApp primero). Configurable por env
+// NEXT_PUBLIC_MENTORIA_PAYMENT_LINK.
+const PAYMENT_LINK =
+  process.env.NEXT_PUBLIC_MENTORIA_PAYMENT_LINK ?? "https://one.govbidder.net/payment-link/6a46c758a655fa0b802a26ec";
+
 export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
   function handleWhatsApp() {
     const name = (fullName || "").trim();
@@ -120,12 +126,26 @@ export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
           ⏳ Cupos limitados · se asignan por orden de llegada
         </span>
 
-        <div style={{ marginTop: 2 }}>
-          <WhatsAppButton onClick={handleWhatsApp}>QUIERO MI PRIMER CONTRATO</WhatsAppButton>
+        <div style={{ marginTop: 2, display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
+          <a
+            href={PAYMENT_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              height: 52, padding: "0 28px", borderRadius: 12,
+              background: "#E42D2C", color: "#fff", fontWeight: 800, fontSize: 16,
+              fontFamily: "var(--font-sans)", textDecoration: "none", whiteSpace: "nowrap",
+              boxShadow: "0 6px 18px -4px rgba(228,45,44,0.6)",
+            }}
+          >
+            PAGAR AHORA →
+          </a>
+          <WhatsAppButton onClick={handleWhatsApp}>Hablar con el equipo antes</WhatsAppButton>
         </div>
 
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0 }}>
-          Escríbenos por WhatsApp y te contamos cómo dar el siguiente paso.
+          Pagá directo y arrancamos, o escribinos por WhatsApp si preferís consultar antes.
         </p>
       </div>
     </div>
