@@ -152,7 +152,6 @@ export function Dia4Client({
           targetAvatar: profile.target_avatar ?? "",
           primaryNaics: profile.primary_naics ?? "",
           relatedCodes,
-          keywordsExpanded: expansion?.keywords_expanded ?? [],
           yearFounded: profile.year_founded ?? undefined,
           employeeCount: profile.employee_count ?? undefined,
           usState: (p.us_state as string) ?? undefined,

@@ -192,22 +192,24 @@ async function toDataUri(imageUrl: string): Promise<string | null> {
  * Fetch up to `count` images for the given keywords, returned as data URIs.
  * Index 0 = cover hero (landscape), 1+ = squarish accents.
  */
+/**
+ * NICHE-LOCKED (mismo criterio que fetchNicheImageUrls, ver arriba): el
+ * `niche` real de la empresa va siempre primero; `keywords` (generadas por
+ * la IA del Capability Statement) solo se usan como refinamiento anclado al
+ * niche, nunca como query sola — evita fotos de un rubro distinto si la IA
+ * devuelve keywords sesgadas por el few-shot del prompt. Tiene el mismo
+ * fallback keyless (LoremFlickr) que la web del Día 3, así que el PDF
+ * siempre tiene fotos relevantes al rubro aunque falte la key de Unsplash.
+ */
 export async function fetchCapabilityImages(
+  niche: string,
   keywords: string[],
   count = 2
 ): Promise<string[]> {
-  const key = getUnsplashKey();
-  if (!key || keywords.length === 0) return [];
-
-  const queries: string[] = [];
-  for (let i = 0; i < count; i++) queries.push(keywords[i % keywords.length]);
-
+  const urls = await fetchNicheImageUrls(niche, keywords, count);
   const out: string[] = [];
-  for (let i = 0; i < count; i++) {
-    const orientation = i === 0 ? "landscape" : "squarish";
-    const photoUrl = await searchOne(queries[i], key, orientation);
-    if (!photoUrl) continue;
-    const dataUri = await toDataUri(photoUrl);
+  for (const url of urls) {
+    const dataUri = await toDataUri(url);
     if (dataUri) out.push(dataUri);
   }
   return out;

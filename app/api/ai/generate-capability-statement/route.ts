@@ -15,7 +15,6 @@ const bodySchema = z.object({
     description: z.string(),
     type: z.string(),
   })).optional(),
-  keywordsExpanded: z.array(z.string()).nullable().optional(),
   yearFounded: z.number().nullable().optional(),
   employeeCount: z.number().nullable().optional(),
   usState: z.string().nullable().optional(),
@@ -121,21 +120,21 @@ Tu output debe ser RICO y COMPLETO, al nivel de un Capability Statement preparad
 
 Responde SIEMPRE en JSON válido con esta estructura EXACTA:
 {
-  "tagline": "tagline corto y potente (máx 8 palabras), ej: 'Federal-Grade Facility Solutions, Delivered'",
-  "service_categories": ["3-4 categorías de servicio en MAYÚSCULAS para el header, ej: JANITORIAL", "FACILITY MAINTENANCE", "CUSTODIAL"],
+  "tagline": "tagline corto y potente (máx 8 palabras), específico al rubro REAL de la empresa (NO copies un rubro de ejemplo — derivalo de 'Qué vende/hace' abajo)",
+  "service_categories": ["3-4 categorías de servicio en MAYÚSCULAS para el header, derivadas EXCLUSIVAMENTE del rubro real de la empresa descrito abajo"],
   "company_overview": "párrafo sólido de 3-4 oraciones. Quién es la empresa, qué hace, para quién, y su foco. Incluí estructura legal y años si están disponibles.",
   "core_competencies": ["6 competencias en lenguaje de procurement, específicas al negocio descrito abajo"],
   "differentiators": ["4 diferenciadores que atacan los riesgos que evalúa un CO (performance, compliance, disponibilidad), redactados con lenguaje seguro y concreto pero SIN métricas o certificaciones inventadas."],
   "quality_commitment": "párrafo de 2-3 oraciones sobre el compromiso de calidad y los procesos de control (QA, documentación, follow-through).",
-  "past_performance": "${hasGovContracts ? "instrucción: la empresa SÍ tiene experiencia con gobierno; redactá un párrafo que invite a solicitar referencias documentadas de contratos previos." : "instrucción: la empresa es NUEVA en gobierno; usá 'bridge mode' — redactá un párrafo que referencie su experiencia comercial transferible (clientes del sector privado en entornos regulados) y mencione que las referencias comerciales están disponibles. NO escribas solo 'available upon request'."}",
-  "primary_markets": ["niveles de gobierno + comercial que la empresa puede servir, ej: Federal", "State", "Local", "Commercial"],
-  "naics_with_desc": [{"code": "561720", "description": "Janitorial Services"}],
-  "psc_with_desc": [{"code": "S201", "description": "Custodial/Janitorial Services"}],
-  "image_keywords": ["2-3 términos visuales en inglés para buscar fotos profesionales del sector, ej: commercial cleaning", "office janitorial", "facility maintenance"],
-  "key_promises": ["3 promesas/beneficios CORTOS para la portada, en MAYÚSCULAS, 2-4 palabras, ej: OSHA-COMPLIANT OPERATIONS", "RAPID EMERGENCY RESPONSE", "DOCUMENTED PERFORMANCE TRAIL"],
+  "past_performance": "${hasGovContracts ? "instrucción: la empresa SÍ tiene experiencia con gobierno; redactá un párrafo que invite a solicitar referencias documentadas de contratos previos." : "instrucción: la empresa es NUEVA en gobierno; usá 'bridge mode' — redactá un párrafo genérico sobre su compromiso de calidad y su capacidad de escalar hacia el sector público, basado ÚNICAMENTE en el rubro/problema que resuelve descritos abajo. NO inventes clientes, sectores regulados, ni experiencia comercial específica que la empresa no mencionó explícitamente — si no dio detalles de clientes previos, no los inventes. Mencioná que hay referencias comerciales disponibles a pedido, sin escribir solo 'available upon request'."}",
+  "primary_markets": ["niveles de gobierno + comercial que la empresa puede servir, de esta lista fija: Federal", "State", "Local", "Commercial"],
+  "naics_with_desc": [{"code": "el código NAICS REAL provisto abajo (nunca inventado)", "description": "su descripción oficial real, máx 5 palabras"}],
+  "psc_with_desc": [{"code": "el código PSC REAL provisto abajo, o inferido del NAICS/rubro real si no hay ninguno provisto", "description": "su descripción oficial real, máx 5 palabras"}],
+  "image_keywords": ["2-3 términos visuales en inglés que describan EXACTAMENTE el rubro real de la empresa (no copies un rubro distinto al de abajo)"],
+  "key_promises": ["3 promesas/beneficios CORTOS para la portada, en MAYÚSCULAS, 2-4 palabras, basadas en lo que la empresa realmente ofrece — NO afirmes compliance/certificaciones que no estén en la lista de certificaciones reales de abajo"],
   "value_proposition": "una sola oración potente para la portada que resuma por qué una agencia debería elegir a esta empresa (máx 20 palabras)",
-  "naics_codes": ["561720", "561210"],
-  "psc_codes": ["S201"],
+  "naics_codes": ["los mismos códigos NAICS reales de naics_with_desc, solo el código"],
+  "psc_codes": ["los mismos códigos PSC reales de psc_with_desc, solo el código"],
   "contact_placeholder": "Contact information block"
 }
 

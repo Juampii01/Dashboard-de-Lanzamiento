@@ -31,9 +31,11 @@ export async function GET() {
   const p = (profile ?? {}) as Record<string, unknown>;
   const statementData = statement.statement_data as CapabilityStatementData;
 
-  // Fetch sector photos + company logo in parallel
+  // Fetch sector photos + company logo in parallel. Niche real de la empresa
+  // (no las image_keywords generadas por la IA) es la fuente principal —
+  // ver comentario en lib/unsplash.ts:fetchCapabilityImages.
   const [images, logoDataUri] = await Promise.all([
-    fetchCapabilityImages(statementData.image_keywords ?? [], 2),
+    fetchCapabilityImages((p.niche as string) ?? "", statementData.image_keywords ?? [], 2),
     fetchLogoDataUri(p.logo_url as string | null),
   ]);
 
