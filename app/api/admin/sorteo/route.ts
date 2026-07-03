@@ -3,13 +3,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRank, RANKS, type Rank } from "@/lib/ranks";
 
 /**
- * Sorteo de premios por rango. Elegibilidad = sorteo_submissions.eligible = true
- * (el usuario subió su Capability Statement antes del cierre, ver dia-4/client.tsx).
+ * Sorteo de premios por rango. Reglas de elegibilidad (distintas por rango):
+ *   - Legacy / Expert: OBLIGATORIO haber completado los 4 días del challenge.
+ *   - Elevate / Prime: NO hace falta completar los 4 días — cualquier usuario
+ *     real del rango entra al sorteo, ponderado por puntos (más puntos = más
+ *     probabilidad, ver weightedSampleWithoutReplacement en el POST).
  * Se excluyen SIEMPRE cuentas is_admin / is_student (equipo interno, nunca
- * compiten por premios reales) — no hay columna nueva, es un filtro en cada
- * consulta. El admin puede además destildar a mano cualquier otra cuenta rara
- * (test/duplicada) antes de sortear, desde la UI.
+ * compiten por premios reales). El admin puede además destildar a mano
+ * cualquier otra cuenta rara (test/duplicada) antes de sortear, desde la UI.
  */
+
+const WEIGHTED_RANKS = new Set(["elevate", "prime"]); // ponderado por puntos, sin requisito de días
+const GATED_RANKS = new Set(["legacy", "expert"]); // requiere completar los 4 días
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -28,31 +33,40 @@ interface EligibleUser {
   total_points: number;
 }
 
+/**
+ * A-Res (Efraimidis-Spirakis): sampling ponderado sin reemplazo. Cada id
+ * recibe una key = U^(1/peso) con U uniforme(0,1); los `count` con mayor key
+ * ganan. A más peso (puntos), mayor probabilidad de key alta — pero nunca 0
+ * probabilidad para nadie (peso mínimo 1).
+ */
+function weightedSampleWithoutReplacement(ids: string[], weights: number[], count: number): string[] {
+  const keyed = ids.map((id, i) => ({
+    id,
+    key: Math.pow(Math.random(), 1 / Math.max(1, weights[i])),
+  }));
+  keyed.sort((a, b) => b.key - a.key);
+  return keyed.slice(0, count).map((x) => x.id);
+}
+
 /** GET → pool elegible por rango + ganadores ya sorteados (persistidos). */
 export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const [{ data: submissions, error: subError }, { data: winnersData, error: winnersError }] = await Promise.all([
-    auth.service.from("sorteo_submissions").select("user_id").eq("eligible", true),
+  const [{ data: users, error: usersError }, { data: progress, error: progressError }, { data: winnersData, error: winnersError }] = await Promise.all([
+    auth.service.from("users").select("id, full_name, email, total_points, is_admin, is_student"),
+    auth.service.from("day_progress").select("user_id, day_number, is_completed").in("day_number", [1, 2, 3, 4]),
     auth.service.from("sorteo_winners").select("id, rank_key, user_id, drawn_at"),
   ]);
 
-  if (subError?.code === "42P01") {
-    return NextResponse.json({ error: "sorteo_submissions_missing" }, { status: 501 });
-  }
-  if (subError) return NextResponse.json({ error: "internal" }, { status: 500 });
-
-  const eligibleIds = ((submissions ?? []) as { user_id: string }[]).map((s) => s.user_id);
-  if (eligibleIds.length === 0) {
-    return NextResponse.json({ ok: true, pools: {}, winners: {} });
-  }
-
-  const { data: users, error: usersError } = await auth.service
-    .from("users")
-    .select("id, full_name, email, total_points, is_admin, is_student")
-    .in("id", eligibleIds);
   if (usersError) return NextResponse.json({ error: "internal" }, { status: 500 });
+  if (progressError?.code === "42P01") return NextResponse.json({ error: "internal" }, { status: 500 });
+
+  // user_id -> cuántos de los 4 días completó
+  const completedCount = new Map<string, number>();
+  for (const p of (progress ?? []) as Array<{ user_id: string; is_completed: boolean }>) {
+    if (p.is_completed) completedCount.set(p.user_id, (completedCount.get(p.user_id) ?? 0) + 1);
+  }
 
   const alreadyWon = new Set(
     winnersError ? [] : ((winnersData ?? []) as { user_id: string }[]).map((w) => w.user_id)
@@ -68,6 +82,7 @@ export async function GET() {
     if (u.is_admin || u.is_student) continue; // staff/test, nunca elegibles
     if (alreadyWon.has(u.id)) continue; // ya ganó algo, no vuelve al pool
     const rank = getRank(u.total_points ?? 0);
+    if (GATED_RANKS.has(rank.key) && (completedCount.get(u.id) ?? 0) < 4) continue; // Legacy/Expert: 4 días obligatorio
     pools[rank.key].push({ id: u.id, full_name: u.full_name, email: u.email, total_points: u.total_points ?? 0 });
   }
   for (const key of Object.keys(pools)) {
@@ -116,13 +131,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "not_enough_candidates", available: allowedIds.length }, { status: 400 });
   }
 
-  // Sorteo real: shuffle (Fisher-Yates) y tomo los primeros `count`.
-  const pool = [...allowedIds];
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
+  let winnerIds: string[];
+  if (WEIGHTED_RANKS.has(rank.key)) {
+    // Elevate/Prime: ponderado por puntos — recalculo los puntos FRESCOS acá
+    // (no confío en pesos que pudiera mandar el cliente).
+    const { data: weightRows } = await auth.service.from("users").select("id, total_points").in("id", allowedIds);
+    const pointsMap = new Map(
+      ((weightRows ?? []) as Array<{ id: string; total_points: number }>).map((u) => [u.id, u.total_points ?? 0])
+    );
+    const weights = allowedIds.map((id) => pointsMap.get(id) ?? 0);
+    winnerIds = weightedSampleWithoutReplacement(allowedIds, weights, count);
+  } else {
+    // Legacy/Expert: sorteo uniforme (shuffle Fisher-Yates), todos con la misma chance.
+    const pool = [...allowedIds];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    winnerIds = pool.slice(0, count);
   }
-  const winnerIds = pool.slice(0, count);
 
   const rows = winnerIds.map((user_id) => ({ rank_key: rank.key, user_id, drawn_by: auth.adminId }));
   const { error } = await auth.service.from("sorteo_winners").insert(rows);

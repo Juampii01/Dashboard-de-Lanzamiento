@@ -28,6 +28,9 @@ const TARGET_COUNT: Record<string, number> = {
   expert: 1,
 };
 
+const WEIGHTED_RANKS = new Set(["elevate", "prime"]);
+const GATED_RANKS = new Set(["legacy", "expert"]);
+
 export function SorteoClient() {
   const [loading, setLoading] = useState(true);
   const [pools, setPools] = useState<Record<string, EligibleUser[]>>({});
@@ -122,7 +125,7 @@ export function SorteoClient() {
           <Trophy className="w-6 h-6 text-[#FFD700]" /> Sorteo de premios
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Elegibles = subieron su Capability Statement antes del cierre. Se excluyen automáticamente cuentas de equipo/admin y de alumnos (is_admin / is_student). Podés destildar a mano cualquier otra cuenta antes de sortear.
+          <strong>Legacy y Expert</strong>: solo entran los que completaron los 4 días — sorteo con igual chance para todos. <strong>Elevate y Prime</strong>: entra cualquier usuario del rango sin necesidad de completar los 4 días, ponderado por puntos (más puntos = más probabilidad de salir sorteado). Se excluyen siempre cuentas de equipo/admin y de alumnos (is_admin / is_student); podés destildar a mano cualquier otra cuenta antes de sortear.
         </p>
       </div>
 
@@ -136,11 +139,21 @@ export function SorteoClient() {
         return (
           <Card key={rank.key}>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 flex-wrap">
                 <span>{rank.emoji}</span> {rank.name}
-                <span className="text-xs font-normal text-muted-foreground ml-2">
+                <span className="text-xs font-normal text-muted-foreground">
                   · {target} ganador{target > 1 ? "es" : ""} · premio: {rank.prize}
                 </span>
+                {GATED_RANKS.has(rank.key) && (
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "color-mix(in srgb, var(--primary) 15%, transparent)", color: "var(--primary)" }}>
+                    Requiere 4 días
+                  </span>
+                )}
+                {WEIGHTED_RANKS.has(rank.key) && (
+                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "color-mix(in srgb, #FFD700 20%, transparent)", color: "#B8860B" }}>
+                    Ponderado por puntos
+                  </span>
+                )}
               </CardTitle>
               <CardDescription>
                 {rankWinners.length > 0
