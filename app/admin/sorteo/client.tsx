@@ -45,7 +45,7 @@ export function SorteoClient() {
       const res = await fetch("/api/admin/sorteo");
       const json = await res.json();
       if (res.status === 501) {
-        toast.error("Falta correr la migración de sorteo (tabla sorteo_winners o sorteo_submissions).");
+        toast.error("Falta correr la migración de sorteo (sorteo_winners o sorteo_confirmed_payers).");
         return;
       }
       if (!res.ok) throw new Error(json.error ?? "error");
@@ -125,7 +125,7 @@ export function SorteoClient() {
           <Trophy className="w-6 h-6 text-[#FFD700]" /> Sorteo de premios
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          <strong>Legacy y Expert</strong>: solo entran los que completaron los 4 días — sorteo con igual chance para todos. <strong>Elevate y Prime</strong>: entra cualquier usuario del rango sin necesidad de completar los 4 días, ponderado por puntos (más puntos = más probabilidad de salir sorteado). Se excluyen siempre cuentas de equipo/admin y de alumnos (is_admin / is_student); podés destildar a mano cualquier otra cuenta antes de sortear.
+          Elegibles en los 4 rangos: pago 100% confirmado (Hotmart + SEM + Stripe) y haber ingresado al menos una vez al dashboard — quien pagó pero nunca entró no participa. <strong>Elevate y Prime</strong> sortean ponderado por puntos (más puntos = más probabilidad). <strong>Legacy y Expert</strong> sortean con igual chance para todos. Se excluyen siempre cuentas de equipo/admin y de alumnos; podés destildar a mano cualquier otra cuenta antes de sortear.
         </p>
       </div>
 
@@ -146,7 +146,7 @@ export function SorteoClient() {
                 </span>
                 {GATED_RANKS.has(rank.key) && (
                   <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "color-mix(in srgb, var(--primary) 15%, transparent)", color: "var(--primary)" }}>
-                    Requiere 4 días
+                    Igual chance
                   </span>
                 )}
                 {WEIGHTED_RANKS.has(rank.key) && (

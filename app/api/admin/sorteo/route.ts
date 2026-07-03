@@ -3,18 +3,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRank, RANKS, type Rank } from "@/lib/ranks";
 
 /**
- * Sorteo de premios por rango. Reglas de elegibilidad (distintas por rango):
- *   - Legacy / Expert: OBLIGATORIO haber completado los 4 días del challenge.
- *   - Elevate / Prime: NO hace falta completar los 4 días — cualquier usuario
- *     real del rango entra al sorteo, ponderado por puntos (más puntos = más
- *     probabilidad, ver weightedSampleWithoutReplacement en el POST).
+ * Sorteo de premios por rango. Elegibilidad (misma regla para los 4 rangos):
+ *   1. Pago 100% confirmado — email presente en sorteo_confirmed_payers
+ *      (cruce de las 3 plataformas de pago: Hotmart, SEM/"Sell", Stripe).
+ *   2. Haber ingresado al dashboard al menos una vez (users.last_seen_at
+ *      not null) — quien pagó pero nunca entró NO participa del sorteo.
+ * Dentro de cada rango: Elevate/Prime sortean PONDERADO por puntos (más
+ * puntos = más probabilidad, ver weightedSampleWithoutReplacement); Legacy/
+ * Expert sortean uniforme (todos con la misma chance).
  * Se excluyen SIEMPRE cuentas is_admin / is_student (equipo interno, nunca
  * compiten por premios reales). El admin puede además destildar a mano
  * cualquier otra cuenta rara (test/duplicada) antes de sortear, desde la UI.
  */
 
-const WEIGHTED_RANKS = new Set(["elevate", "prime"]); // ponderado por puntos, sin requisito de días
-const GATED_RANKS = new Set(["legacy", "expert"]); // requiere completar los 4 días
+const WEIGHTED_RANKS = new Set(["elevate", "prime"]); // ponderado por puntos
+const GATED_RANKS = new Set(["legacy", "expert"]); // sorteo uniforme entre elegibles
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -53,20 +56,21 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const [{ data: users, error: usersError }, { data: progress, error: progressError }, { data: winnersData, error: winnersError }] = await Promise.all([
-    auth.service.from("users").select("id, full_name, email, total_points, is_admin, is_student"),
-    auth.service.from("day_progress").select("user_id, day_number, is_completed").in("day_number", [1, 2, 3, 4]),
+  const [{ data: users, error: usersError }, { data: confirmedPayers, error: payersError }, { data: winnersData, error: winnersError }] = await Promise.all([
+    auth.service.from("users").select("id, full_name, email, total_points, is_admin, is_student, last_seen_at"),
+    auth.service.from("sorteo_confirmed_payers").select("email"),
     auth.service.from("sorteo_winners").select("id, rank_key, user_id, drawn_at"),
   ]);
 
   if (usersError) return NextResponse.json({ error: "internal" }, { status: 500 });
-  if (progressError?.code === "42P01") return NextResponse.json({ error: "internal" }, { status: 500 });
-
-  // user_id -> cuántos de los 4 días completó
-  const completedCount = new Map<string, number>();
-  for (const p of (progress ?? []) as Array<{ user_id: string; is_completed: boolean }>) {
-    if (p.is_completed) completedCount.set(p.user_id, (completedCount.get(p.user_id) ?? 0) + 1);
+  if (payersError?.code === "42P01") {
+    return NextResponse.json({ error: "sorteo_confirmed_payers_missing" }, { status: 501 });
   }
+  if (payersError) return NextResponse.json({ error: "internal" }, { status: 500 });
+
+  const confirmedEmails = new Set(
+    ((confirmedPayers ?? []) as { email: string }[]).map((p) => p.email.toLowerCase())
+  );
 
   const alreadyWon = new Set(
     winnersError ? [] : ((winnersData ?? []) as { user_id: string }[]).map((w) => w.user_id)
@@ -77,12 +81,13 @@ export async function GET() {
 
   for (const u of (users ?? []) as Array<{
     id: string; full_name: string | null; email: string; total_points: number;
-    is_admin: boolean; is_student: boolean;
+    is_admin: boolean; is_student: boolean; last_seen_at: string | null;
   }>) {
     if (u.is_admin || u.is_student) continue; // staff/test, nunca elegibles
     if (alreadyWon.has(u.id)) continue; // ya ganó algo, no vuelve al pool
+    if (!confirmedEmails.has((u.email || "").toLowerCase())) continue; // pago no confirmado en ninguna plataforma
+    if (!u.last_seen_at) continue; // pagó pero nunca ingresó — no participa
     const rank = getRank(u.total_points ?? 0);
-    if (GATED_RANKS.has(rank.key) && (completedCount.get(u.id) ?? 0) < 4) continue; // Legacy/Expert: 4 días obligatorio
     pools[rank.key].push({ id: u.id, full_name: u.full_name, email: u.email, total_points: u.total_points ?? 0 });
   }
   for (const key of Object.keys(pools)) {
