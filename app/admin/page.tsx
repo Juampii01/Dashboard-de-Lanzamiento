@@ -30,7 +30,7 @@ async function getAdminData() {
     fetchAllRows((from, to) =>
       supabase
         .from("users")
-        .select("id, email, full_name, total_points, access_expires_at, last_seen_at")
+        .select("id, email, full_name, total_points, access_expires_at, last_seen_at, is_admin, is_student")
         .order("created_at", { ascending: false })
         .range(from, to)
     ),

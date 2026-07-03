@@ -77,6 +77,8 @@ interface User {
   total_points: number;
   access_expires_at: string | null;
   last_seen_at: string | null;
+  is_admin?: boolean;
+  is_student?: boolean;
 }
 
 interface Progress {
@@ -897,14 +899,27 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
 
   const sorteoMap = Object.fromEntries(sorteos.map((s) => [s.user_id, s]));
 
-  // Métricas de ingreso al dashboard
-  const totalUsers = users.length;
-  const enteredCount = users.filter((u) => !!u.last_seen_at).length;
+  // Métricas de ingreso al dashboard — excluye cuentas de equipo (is_admin), y
+  // separa pagos (is_student = false) de gratuitos (is_student = true, se
+  // registraron solos por el link público, no pagaron ni compiten por premios).
+  const nonAdminUsers = users.filter((u) => !u.is_admin);
+  const paidUsers = nonAdminUsers.filter((u) => !u.is_student);
+  const freeUsers = nonAdminUsers.filter((u) => u.is_student);
   const todayStr = new Date().toDateString();
-  const activeTodayCount = users.filter(
-    (u) => u.last_seen_at && new Date(u.last_seen_at).toDateString() === todayStr
-  ).length;
-  const enteredPct = totalUsers > 0 ? Math.round((enteredCount / totalUsers) * 100) : 0;
+
+  function userMetrics(list: User[]) {
+    const total = list.length;
+    const entered = list.filter((u) => !!u.last_seen_at).length;
+    const activeToday = list.filter(
+      (u) => u.last_seen_at && new Date(u.last_seen_at).toDateString() === todayStr
+    ).length;
+    const enteredPct = total > 0 ? Math.round((entered / total) * 100) : 0;
+    return { total, entered, activeToday, enteredPct };
+  }
+
+  const totalUsers = nonAdminUsers.length;
+  const paidMetrics = userMetrics(paidUsers);
+  const freeMetrics = userMetrics(freeUsers);
 
   async function toggleDay(dayNumber: number, value: boolean) {
     setUpdatingDay(dayNumber);
@@ -1043,24 +1058,66 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         <Card>
           <CardContent className="pt-6">
             <p className="text-3xl font-bold text-primary">{totalUsers}</p>
-            <p className="text-sm text-muted-foreground mt-1">Usuarios con acceso</p>
+            <p className="text-sm text-muted-foreground mt-1">Usuarios con acceso (total)</p>
           </CardContent>
         </Card>
-        <Card style={{ borderColor: "color-mix(in srgb, var(--success) 40%, var(--border))" }}>
-          <CardContent className="pt-6">
-            <p className="text-3xl font-bold" style={{ color: "var(--success)" }}>
-              {enteredCount}
-              <span className="text-base font-medium text-muted-foreground"> / {totalUsers}</span>
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Ingresaron al dashboard <span className="font-semibold">({enteredPct}%)</span>
-            </p>
+      </div>
+
+      {/* Pagos vs gratuitos */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card style={{ borderColor: "color-mix(in srgb, var(--primary) 40%, var(--border))" }}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              💳 Usuarios pagos
+            </CardTitle>
+            <CardDescription>Pagaron el challenge (no incluye gratuitos ni cuentas de equipo).</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-2xl font-bold text-primary">{paidMetrics.total}</p>
+              <p className="text-xs text-muted-foreground mt-1">Usuarios pagos</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold" style={{ color: "var(--success)" }}>
+                {paidMetrics.entered}
+                <span className="text-sm font-medium text-muted-foreground"> / {paidMetrics.total}</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ingresaron <span className="font-semibold">({paidMetrics.enteredPct}%)</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-primary">{paidMetrics.activeToday}</p>
+              <p className="text-xs text-muted-foreground mt-1">Activos hoy</p>
+            </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-3xl font-bold text-primary">{activeTodayCount}</p>
-            <p className="text-sm text-muted-foreground mt-1">Activos hoy</p>
+
+        <Card style={{ borderColor: "color-mix(in srgb, var(--accent) 40%, var(--border))" }}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              🆓 Usuarios gratuitos
+            </CardTitle>
+            <CardDescription>Se registraron solos por el link público — no compiten por premios.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-2xl font-bold text-primary">{freeMetrics.total}</p>
+              <p className="text-xs text-muted-foreground mt-1">Usuarios gratuitos</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold" style={{ color: "var(--success)" }}>
+                {freeMetrics.entered}
+                <span className="text-sm font-medium text-muted-foreground"> / {freeMetrics.total}</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ingresaron <span className="font-semibold">({freeMetrics.enteredPct}%)</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-primary">{freeMetrics.activeToday}</p>
+              <p className="text-xs text-muted-foreground mt-1">Activos hoy</p>
+            </div>
           </CardContent>
         </Card>
       </div>
