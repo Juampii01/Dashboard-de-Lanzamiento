@@ -430,18 +430,21 @@ export function SorteoClient() {
                           <button
                             onClick={() => toggleClaim(rank.key, w.winnerId, !claimed)}
                             disabled={togglingId === w.winnerId}
-                            title={claimed ? "Reclamado — click para deshacer" : "Marcar como reclamado"}
+                            title={claimed ? "Está presente — click para deshacer" : "Marcar presente"}
                             style={{
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              width: 30, height: 30, borderRadius: 8, flexShrink: 0,
+                              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                              padding: "7px 12px", borderRadius: 8, flexShrink: 0,
+                              fontSize: 12, fontWeight: 700,
                               background: claimed ? rank.color : "rgba(255,255,255,0.08)",
+                              color: claimed ? "#0d1a3d" : "rgba(255,255,255,0.55)",
                               border: claimed ? "none" : "1px solid rgba(255,255,255,0.25)",
                               cursor: togglingId === w.winnerId ? "default" : "pointer",
                             }}
                           >
                             {togglingId === w.winnerId
-                              ? <Loader2 style={{ width: 15, height: 15, color: "#fff" }} className="animate-spin" />
-                              : <Check style={{ width: 16, height: 16, color: claimed ? "#0d1a3d" : "rgba(255,255,255,0.35)" }} />}
+                              ? <Loader2 style={{ width: 14, height: 14 }} className="animate-spin" />
+                              : <Check style={{ width: 14, height: 14 }} />}
+                            {claimed ? "Está" : "No está"}
                           </button>
                         </div>
                       );
