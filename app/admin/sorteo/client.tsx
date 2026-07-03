@@ -43,7 +43,14 @@ export function SorteoClient() {
   const [confettiRank, setConfettiRank] = useState<string | null>(null);
   const [resetting, setResetting] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [confirmState, setConfirmState] = useState<{ message: string; danger?: boolean; resolve: (v: boolean) => void } | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function askConfirm(message: string, opts?: { danger?: boolean }): Promise<boolean> {
+    return new Promise((resolve) => {
+      setConfirmState({ message, danger: opts?.danger, resolve });
+    });
+  }
 
   async function load() {
     setLoading(true);
@@ -111,7 +118,7 @@ export function SorteoClient() {
     const confirmMsg = pendingCount > 0
       ? `Hay ${pendingCount} sin reclamar — quedan eliminados y se sortean ${remaining} reemplazo${remaining > 1 ? "s" : ""}. ¿Confirmás?`
       : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${allowedIds.length} elegibles?`;
-    if (!confirm(confirmMsg)) return;
+    if (!(await askConfirm(confirmMsg))) return;
 
     setDrawingRank(rankKey);
     setConfettiRank(null);
@@ -150,7 +157,11 @@ export function SorteoClient() {
   }
 
   async function resetRank(rankKey: string) {
-    if (!confirm(`¿Reiniciar TODO "${RANKS.find((r) => r.key === rankKey)?.name}" (incluso los ya reclamados) para sortear de cero?`)) return;
+    const ok = await askConfirm(
+      `¿Reiniciar TODO "${RANKS.find((r) => r.key === rankKey)?.name}" (incluso los ya reclamados) para sortear de cero?`,
+      { danger: true }
+    );
+    if (!ok) return;
     setResetting(rankKey);
     try {
       const res = await fetch("/api/admin/sorteo", {
@@ -413,6 +424,70 @@ export function SorteoClient() {
           </div>
         );
       })}
+
+      {confirmState && (
+        <div
+          onClick={() => { confirmState.resolve(false); setConfirmState(null); }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 99995,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(4,8,20,0.72)", backdropFilter: "blur(3px)", padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="sorteo-winner-pop"
+            style={{
+              width: "100%", maxWidth: 420, borderRadius: 18, padding: "26px 26px 22px",
+              background: "radial-gradient(500px circle at 50% 0%, rgba(255,215,0,0.12), transparent 60%), linear-gradient(160deg, #12224d 0%, #080f24 100%)",
+              border: `1px solid ${confirmState.danger ? "rgba(228,45,44,0.4)" : "rgba(255,215,0,0.3)"}`,
+              boxShadow: "0 20px 60px -12px rgba(0,0,0,0.6)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              {confirmState.danger
+                ? <span style={{ fontSize: 22 }}>⚠️</span>
+                : <Trophy style={{ width: 20, height: 20, color: "#FFD700" }} />}
+              <p style={{
+                fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
+                letterSpacing: "0.14em", textTransform: "uppercase",
+                color: confirmState.danger ? "#ff6b6a" : "#FFD700", margin: 0,
+              }}>
+                {confirmState.danger ? "Confirmar reinicio" : "Confirmar sorteo"}
+              </p>
+            </div>
+            <p style={{ fontSize: 15, color: "#fff", lineHeight: 1.55, margin: "0 0 22px" }}>
+              {confirmState.message}
+            </p>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button
+                onClick={() => { confirmState.resolve(false); setConfirmState(null); }}
+                style={{
+                  padding: "10px 18px", borderRadius: 10, fontSize: 13.5, fontWeight: 700,
+                  background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)",
+                  color: "rgba(255,255,255,0.75)", cursor: "pointer",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { confirmState.resolve(true); setConfirmState(null); }}
+                style={{
+                  padding: "10px 20px", borderRadius: 10, fontSize: 13.5, fontWeight: 800,
+                  background: confirmState.danger ? "#E42D2C" : "#FFD700",
+                  color: confirmState.danger ? "#fff" : "#0d1a3d",
+                  border: "none", cursor: "pointer",
+                  boxShadow: confirmState.danger
+                    ? "0 6px 20px -4px rgba(228,45,44,0.55)"
+                    : "0 6px 20px -4px rgba(255,215,0,0.55)",
+                }}
+              >
+                {confirmState.danger ? "Sí, reiniciar" : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
