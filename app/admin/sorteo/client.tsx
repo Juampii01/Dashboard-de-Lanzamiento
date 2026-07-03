@@ -37,7 +37,6 @@ export function SorteoClient() {
   const [loading, setLoading] = useState(true);
   const [pools, setPools] = useState<Record<string, EligibleUser[]>>({});
   const [winners, setWinners] = useState<Record<string, Winner[]>>({});
-  const [excluded, setExcluded] = useState<Record<string, Set<string>>>({});
   const [drawingRank, setDrawingRank] = useState<string | null>(null);
   const [cyclingName, setCyclingName] = useState<string>("");
   const [confettiRank, setConfettiRank] = useState<string | null>(null);
@@ -68,14 +67,6 @@ export function SorteoClient() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
-  function toggleExclude(rankKey: string, userId: string) {
-    setExcluded((prev) => {
-      const set = new Set(prev[rankKey] ?? []);
-      if (set.has(userId)) set.delete(userId); else set.add(userId);
-      return { ...prev, [rankKey]: set };
-    });
-  }
-
   async function toggleClaim(rankKey: string, winnerId: string, claimed: boolean) {
     setTogglingId(winnerId);
     try {
@@ -101,23 +92,23 @@ export function SorteoClient() {
 
   async function draw(rankKey: string) {
     const pool = pools[rankKey] ?? [];
-    const exSet = excluded[rankKey] ?? new Set<string>();
     const rankWinners = winners[rankKey] ?? [];
     const target = TARGET_COUNT[rankKey] ?? 1;
     const claimedCount = rankWinners.filter((w) => w.status === "claimed").length;
     const pendingCount = rankWinners.filter((w) => w.status === "pending_claim").length;
     const remaining = target - claimedCount;
 
-    const allowed = pool.filter((u) => !exSet.has(u.id));
-    const allowedIds = allowed.map((u) => u.id);
+    // Todo el pool elegible entra automáticamente — no se elige a mano ni se
+    // muestran nombres en pantalla (esto se proyecta en vivo).
+    const allowedIds = pool.map((u) => u.id);
 
     if (allowedIds.length < remaining) {
-      toast.error(`Necesitás al menos ${remaining} candidatos seleccionados (hay ${allowedIds.length}).`);
+      toast.error(`Faltan candidatos: hacen falta ${remaining} y hay ${allowedIds.length} elegibles.`);
       return;
     }
     const confirmMsg = pendingCount > 0
       ? `Hay ${pendingCount} sin reclamar — quedan eliminados y se sortean ${remaining} reemplazo${remaining > 1 ? "s" : ""}. ¿Confirmás?`
-      : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${allowedIds.length} candidatos?`;
+      : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${allowedIds.length} elegibles?`;
     if (!confirm(confirmMsg)) return;
 
     setDrawingRank(rankKey);
@@ -125,7 +116,7 @@ export function SorteoClient() {
 
     // Animación "slot machine": cicla nombres al azar mientras esperamos la respuesta real.
     intervalRef.current = setInterval(() => {
-      const candidate = allowed[Math.floor(Math.random() * allowed.length)];
+      const candidate = pool[Math.floor(Math.random() * pool.length)];
       setCyclingName(candidate?.full_name || candidate?.email || "…");
     }, 90);
 
@@ -224,8 +215,6 @@ export function SorteoClient() {
         const pool = pools[rank.key] ?? [];
         const rankWinners = winners[rank.key] ?? [];
         const target = TARGET_COUNT[rank.key] ?? 1;
-        const exSet = excluded[rank.key] ?? new Set<string>();
-        const selectedCount = pool.filter((u) => !exSet.has(u.id)).length;
         const isDrawing = drawingRank === rank.key;
         const showConfetti = confettiRank === rank.key;
         const claimedCount = rankWinners.filter((w) => w.status === "claimed").length;
@@ -382,43 +371,23 @@ export function SorteoClient() {
 
                 {!isComplete && pool.length > 0 && (
                   <>
-                    <div style={{
-                      maxHeight: 200, overflowY: "auto", display: "flex", flexDirection: "column", gap: 3,
-                      padding: 6, borderRadius: 10, background: "rgba(0,0,0,0.22)",
-                    }}>
-                      {pool.map((u) => (
-                        <label
-                          key={u.id}
-                          style={{
-                            display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", borderRadius: 7,
-                            fontSize: 12.5, cursor: "pointer", color: "rgba(255,255,255,0.85)",
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={!exSet.has(u.id)}
-                            onChange={() => toggleExclude(rank.key, u.id)}
-                          />
-                          <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{u.full_name || "—"}</span>
-                          <span style={{ color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</span>
-                          <span style={{ color: rank.color, marginLeft: "auto", flexShrink: 0, fontWeight: 700 }}>{u.total_points.toLocaleString()} pts</span>
-                        </label>
-                      ))}
-                    </div>
+                    <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", margin: 0 }}>
+                      {pool.length} elegible{pool.length === 1 ? "" : "s"} en este rango.
+                    </p>
                     <button
                       onClick={() => draw(rank.key)}
-                      disabled={selectedCount < remaining}
+                      disabled={pool.length < remaining}
                       style={{
                         display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
                         alignSelf: "flex-start", padding: "12px 24px", borderRadius: 12,
-                        background: selectedCount < remaining ? "rgba(255,255,255,0.08)" : rank.color,
-                        color: selectedCount < remaining ? "rgba(255,255,255,0.4)" : "#0d1a3d",
+                        background: pool.length < remaining ? "rgba(255,255,255,0.08)" : rank.color,
+                        color: pool.length < remaining ? "rgba(255,255,255,0.4)" : "#0d1a3d",
                         fontWeight: 800, fontSize: 14.5, border: "none",
-                        cursor: selectedCount < remaining ? "not-allowed" : "pointer",
-                        boxShadow: selectedCount < remaining ? undefined : `0 6px 20px -4px color-mix(in srgb, ${rank.color} 60%, transparent)`,
+                        cursor: pool.length < remaining ? "not-allowed" : "pointer",
+                        boxShadow: pool.length < remaining ? undefined : `0 6px 20px -4px color-mix(in srgb, ${rank.color} 60%, transparent)`,
                       }}
                     >
-                      🎲 {pendingCount > 0 ? `Rehacer sorteo — faltan ${remaining}` : `Sortear ${remaining} de ${selectedCount} seleccionados`}
+                      🎲 {pendingCount > 0 ? `Rehacer sorteo — faltan ${remaining}` : `Sortear ${remaining}`}
                     </button>
                   </>
                 )}
