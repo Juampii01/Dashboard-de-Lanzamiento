@@ -36,6 +36,7 @@ const CONFETTI_COLORS = ["#E42D2C", "#FFD700", "#16A65F", "#ffffff", "#152978"];
 export function SorteoClient() {
   const [loading, setLoading] = useState(true);
   const [pools, setPools] = useState<Record<string, EligibleUser[]>>({});
+  const [displayCounts, setDisplayCounts] = useState<Record<string, number>>({});
   const [winners, setWinners] = useState<Record<string, Winner[]>>({});
   const [drawingRank, setDrawingRank] = useState<string | null>(null);
   const [cyclingName, setCyclingName] = useState<string>("");
@@ -56,6 +57,7 @@ export function SorteoClient() {
       if (!res.ok) throw new Error(json.error ?? "error");
       setPools(json.pools ?? {});
       setWinners(json.winners ?? {});
+      setDisplayCounts(json.displayCounts ?? {});
     } catch {
       toast.error("No se pudo cargar el sorteo.");
     }
@@ -213,6 +215,7 @@ export function SorteoClient() {
       {/* ── Rangos ── */}
       {RANKS.map((rank) => {
         const pool = pools[rank.key] ?? [];
+        const displayCount = displayCounts[rank.key] ?? pool.length;
         const rankWinners = winners[rank.key] ?? [];
         const target = TARGET_COUNT[rank.key] ?? 1;
         const isDrawing = drawingRank === rank.key;
@@ -372,7 +375,7 @@ export function SorteoClient() {
                 {!isComplete && pool.length > 0 && (
                   <>
                     <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-                      {pool.length} elegible{pool.length === 1 ? "" : "s"} en este rango.
+                      Sorteando entre {displayCount} participante{displayCount === 1 ? "" : "s"} de este rango.
                     </p>
                     <button
                       onClick={() => draw(rank.key)}

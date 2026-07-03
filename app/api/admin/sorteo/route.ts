@@ -117,6 +117,21 @@ export async function GET() {
     pools[key].sort((a, b) => b.total_points - a.total_points);
   }
 
+  // displayCounts = mismo criterio que la página pública de ranking
+  // (get_full_leaderboard: no-admin, no-alumno, total_points > 0) — a
+  // propósito NO aplica pago-confirmado/ingresó/mentoría. Es lo que se
+  // muestra en pantalla durante el sorteo en vivo, para que el número
+  // coincida con lo que cualquiera puede ver en /dashboard/ranking y no se
+  // note que el pool real (arriba) está más filtrado por dentro.
+  const displayCounts: Record<string, number> = {};
+  for (const r of RANKS) displayCounts[r.key] = 0;
+  for (const u of (users ?? []) as Array<{ total_points: number; is_admin: boolean; is_student: boolean }>) {
+    if (u.is_admin || u.is_student) continue;
+    if (!((u.total_points ?? 0) > 0)) continue;
+    const rank = getRank(u.total_points ?? 0);
+    displayCounts[rank.key]++;
+  }
+
   // Solo mostramos como "ganadores activos" a pending_claim/claimed —
   // los eliminated (no reclamaron, ya reemplazados) quedan ocultos pero
   // siguen bloqueando el pool arriba.
@@ -143,7 +158,7 @@ export async function GET() {
     });
   }
 
-  return NextResponse.json({ ok: true, pools, winners: winnersByRank });
+  return NextResponse.json({ ok: true, pools, winners: winnersByRank, displayCounts });
 }
 
 function confirmedEmails(rows: unknown): Set<string> {
