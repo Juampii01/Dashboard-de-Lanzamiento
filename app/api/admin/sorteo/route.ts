@@ -67,10 +67,11 @@ export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  const [{ data: users, error: usersError }, { data: confirmedPayers, error: payersError }, { data: winnersData, error: winnersError }] = await Promise.all([
+  const [{ data: users, error: usersError }, { data: confirmedPayers, error: payersError }, { data: winnersData, error: winnersError }, { data: mentorshipBuyers, error: mentorshipError }] = await Promise.all([
     auth.service.from("users").select("id, full_name, email, total_points, is_admin, is_student, last_seen_at"),
     auth.service.from("sorteo_confirmed_payers").select("email"),
     auth.service.from("sorteo_winners").select("id, rank_key, user_id, drawn_at, status, claimed_at"),
+    auth.service.from("sorteo_mentorship_buyers").select("email"),
   ]);
 
   if (usersError) return NextResponse.json({ error: "internal" }, { status: 500 });
@@ -78,6 +79,14 @@ export async function GET() {
     return NextResponse.json({ error: "sorteo_confirmed_payers_missing" }, { status: 501 });
   }
   if (payersError) return NextResponse.json({ error: "internal" }, { status: 500 });
+
+  // Ya compraron la mentoría de $15K por fuera del challenge — se excluyen
+  // SOLO de Expert (ese rango sortea justamente esa misma mentoría; ganarla
+  // de nuevo no tiene sentido). Si la tabla no existe todavía, no excluye a
+  // nadie (fail-open: es una exclusión extra, no la elegibilidad base).
+  const mentorshipEmails = new Set(
+    mentorshipError ? [] : ((mentorshipBuyers ?? []) as { email: string }[]).map((m) => m.email.toLowerCase())
+  );
 
   type WinnerRow = { rank_key: string; user_id: string; drawn_at: string; status: string; claimed_at: string | null };
   const allWinnerRows = (winnersError ? [] : (winnersData ?? [])) as WinnerRow[];
@@ -99,6 +108,7 @@ export async function GET() {
     if (!confirmedEmails(confirmedPayers).has((u.email || "").toLowerCase())) continue; // pago no confirmado
     if (!u.last_seen_at) continue; // pagó pero nunca ingresó — no participa
     const rank = getRank(u.total_points ?? 0);
+    if (rank.key === "expert" && mentorshipEmails.has((u.email || "").toLowerCase())) continue; // ya tiene la mentoría de $15K
     pools[rank.key].push({ id: u.id, full_name: u.full_name, email: u.email, total_points: u.total_points ?? 0 });
   }
   for (const key of Object.keys(pools)) {

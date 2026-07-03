@@ -274,6 +274,11 @@ export function SorteoClient() {
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", margin: "2px 0 0" }}>
                   {claimedCount}/{target} reclamado{target > 1 ? "s" : ""} · premio: <strong style={{ color: rank.color }}>{rank.prize}</strong>
                 </p>
+                {rank.key === "expert" && (
+                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: "3px 0 0" }}>
+                    Se excluyen quienes ya pagaron esta mentoría por fuera del challenge (no tendría sentido que la ganen de nuevo).
+                  </p>
+                )}
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {isComplete && (
