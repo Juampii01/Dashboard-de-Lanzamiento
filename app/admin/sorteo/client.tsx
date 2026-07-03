@@ -29,8 +29,6 @@ const TARGET_COUNT: Record<string, number> = {
   expert: 1,
 };
 
-const WEIGHTED_RANKS = new Set(["elevate", "prime"]);
-const GATED_RANKS = new Set(["legacy", "expert"]);
 const CONFETTI_COLORS = ["#E42D2C", "#FFD700", "#16A65F", "#ffffff", "#152978"];
 
 export function SorteoClient() {
@@ -290,24 +288,6 @@ export function SorteoClient() {
                     background: "rgba(22,166,95,0.18)", color: "#3ddc84", border: "1px solid rgba(22,166,95,0.4)",
                   }}>
                     ✓ Completo
-                  </span>
-                )}
-                {GATED_RANKS.has(rank.key) && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
-                    padding: "4px 10px", borderRadius: 999,
-                    background: "rgba(228,45,44,0.16)", color: "#ff6b6a", border: "1px solid rgba(228,45,44,0.4)",
-                  }}>
-                    Igual chance
-                  </span>
-                )}
-                {WEIGHTED_RANKS.has(rank.key) && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
-                    padding: "4px 10px", borderRadius: 999,
-                    background: "rgba(255,215,0,0.16)", color: "#FFD700", border: "1px solid rgba(255,215,0,0.4)",
-                  }}>
-                    Ponderado por puntos
                   </span>
                 )}
               </div>
