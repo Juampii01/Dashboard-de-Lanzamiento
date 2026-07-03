@@ -269,7 +269,7 @@ export function SorteoClient() {
         return (
           <div
             key={rank.key}
-            className={isDrawing ? "sorteo-drawing" : undefined}
+            className={isDrawing || isRevealing ? "sorteo-drawing" : undefined}
             style={{
               // @ts-expect-error CSS custom property
               "--sorteo-glow": `${rank.color}99`,
@@ -337,85 +337,6 @@ export function SorteoClient() {
                   Sorteando…
                 </p>
               </div>
-            ) : isRevealing ? (
-              (() => {
-                const current = revealQueue[revealIndex];
-                const live = current ? (winners[rank.key] ?? []).find((w) => w.winnerId === current.winnerId) ?? current : null;
-                const isLast = revealIndex + 1 >= revealQueue.length;
-                const claimed = live?.status === "claimed";
-                if (!live) return null;
-                return (
-                  <div
-                    key={live.winnerId}
-                    className="sorteo-reveal-in"
-                    style={{
-                      position: "relative", overflow: "visible",
-                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                      gap: 8, padding: "30px 16px", textAlign: "center",
-                    }}
-                  >
-                    <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-                      {Array.from({ length: 10 }).map((_, i) => (
-                        <span
-                          key={i}
-                          className="sorteo-sparkle-piece"
-                          style={{
-                            left: `${50 + (Math.random() - 0.5) * 70}%`,
-                            top: `${28 + (Math.random() - 0.5) * 30}%`,
-                            fontSize: 10 + Math.random() * 8,
-                            color: rank.color,
-                            animationDelay: `${0.1 + Math.random() * 0.3}s`,
-                          }}
-                        >
-                          ✦
-                        </span>
-                      ))}
-                    </div>
-                    <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: 0 }}>
-                      Ganador {revealIndex + 1} de {revealQueue.length}
-                    </p>
-                    <Trophy className="sorteo-trophy-pulse" style={{ width: 32, height: 32, color: rank.color, margin: "6px 0" }} />
-                    <p style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800, color: "#fff", margin: 0 }}>
-                      {live.full_name || live.email}
-                    </p>
-                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0 }}>{live.email}</p>
-                    <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap", justifyContent: "center" }}>
-                      <button
-                        onClick={() => toggleClaim(rank.key, live.winnerId, !claimed)}
-                        disabled={togglingId === live.winnerId}
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 6,
-                          padding: "10px 18px", borderRadius: 10, fontSize: 14, fontWeight: 700, border: "none",
-                          background: claimed ? rank.color : "rgba(255,255,255,0.08)",
-                          color: claimed ? "#0d1a3d" : "rgba(255,255,255,0.8)",
-                          boxShadow: claimed ? "none" : "inset 0 0 0 1px rgba(255,255,255,0.2)",
-                          cursor: togglingId === live.winnerId ? "default" : "pointer",
-                        }}
-                      >
-                        {togglingId === live.winnerId
-                          ? <Loader2 style={{ width: 15, height: 15 }} className="animate-spin" />
-                          : <Check style={{ width: 15, height: 15 }} />}
-                        {claimed ? "Está presente" : "Marcar presente"}
-                      </button>
-                      <button
-                        onClick={() => (isLast ? finishReveal(rank.key) : setRevealIndex((i) => i + 1))}
-                        style={{
-                          padding: "10px 18px", borderRadius: 10, fontSize: 14, fontWeight: 800, border: "none",
-                          background: isLast ? "#3ddc84" : "#FFD700", color: "#0d1a3d", cursor: "pointer",
-                        }}
-                      >
-                        {isLast ? "Finalizar ✓" : "Siguiente →"}
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => finishReveal(rank.key)}
-                      style={{ marginTop: 6, background: "none", border: "none", fontSize: 11.5, color: "rgba(255,255,255,0.4)", textDecoration: "underline", cursor: "pointer" }}
-                    >
-                      Ver todos de una vez
-                    </button>
-                  </div>
-                );
-              })()
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
                 {rankWinners.length > 0 && (
@@ -518,6 +439,116 @@ export function SorteoClient() {
           </div>
         );
       })}
+
+      {/* Ventana emergente de revelado — aparece PRIMERO acá, sobre toda la
+          pantalla (ideal para proyectar en vivo); al marcar presente/avanzar
+          también se actualiza la tarjeta del rango de fondo, así que al
+          cerrarla ya queda reflejado en la sección original. */}
+      {revealRank && (() => {
+        const rank = RANKS.find((r) => r.key === revealRank);
+        const current = revealQueue[revealIndex];
+        const live = current ? (winners[revealRank] ?? []).find((w) => w.winnerId === current.winnerId) ?? current : null;
+        if (!rank || !live) return null;
+        const isLast = revealIndex + 1 >= revealQueue.length;
+        const claimed = live.status === "claimed";
+        return (
+          <div
+            style={{
+              position: "fixed", inset: 0, zIndex: 99996,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "rgba(4,8,20,0.82)", backdropFilter: "blur(4px)", padding: 20,
+            }}
+          >
+            <div
+              style={{
+                position: "relative", overflow: "visible",
+                width: "100%", maxWidth: 440, borderRadius: 20, padding: "34px 28px 28px",
+                background: `radial-gradient(500px circle at 50% 0%, color-mix(in srgb, ${rank.color} 18%, transparent), transparent 60%), linear-gradient(160deg, color-mix(in srgb, ${rank.color} 12%, #0d1a3d) 0%, #080f24 100%)`,
+                border: `1px solid color-mix(in srgb, ${rank.color} 50%, transparent)`,
+                boxShadow: `0 24px 70px -14px rgba(0,0,0,0.65), 0 0 0 1px color-mix(in srgb, ${rank.color} 30%, transparent)`,
+              }}
+            >
+              <p style={{
+                fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
+                letterSpacing: "0.14em", textTransform: "uppercase", color: rank.color, margin: "0 0 4px", textAlign: "center",
+              }}>
+                {rank.emoji} {rank.name}
+              </p>
+
+              <div
+                key={live.winnerId}
+                className="sorteo-reveal-in"
+                style={{
+                  position: "relative", overflow: "visible",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  gap: 8, padding: "18px 4px 6px", textAlign: "center",
+                }}
+              >
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className="sorteo-sparkle-piece"
+                      style={{
+                        left: `${50 + (Math.random() - 0.5) * 80}%`,
+                        top: `${35 + (Math.random() - 0.5) * 40}%`,
+                        fontSize: 10 + Math.random() * 9,
+                        color: rank.color,
+                        animationDelay: `${0.1 + Math.random() * 0.3}s`,
+                      }}
+                    >
+                      ✦
+                    </span>
+                  ))}
+                </div>
+                <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: 0 }}>
+                  Ganador {revealIndex + 1} de {revealQueue.length}
+                </p>
+                <Trophy className="sorteo-trophy-pulse" style={{ width: 38, height: 38, color: rank.color, margin: "8px 0" }} />
+                <p style={{ fontFamily: "var(--font-display)", fontSize: 27, fontWeight: 800, color: "#fff", margin: 0 }}>
+                  {live.full_name || live.email}
+                </p>
+                <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.55)", margin: 0 }}>{live.email}</p>
+
+                <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap", justifyContent: "center" }}>
+                  <button
+                    onClick={() => toggleClaim(revealRank, live.winnerId, !claimed)}
+                    disabled={togglingId === live.winnerId}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 6,
+                      padding: "11px 20px", borderRadius: 10, fontSize: 14, fontWeight: 700, border: "none",
+                      background: claimed ? rank.color : "rgba(255,255,255,0.08)",
+                      color: claimed ? "#0d1a3d" : "rgba(255,255,255,0.8)",
+                      boxShadow: claimed ? "none" : "inset 0 0 0 1px rgba(255,255,255,0.2)",
+                      cursor: togglingId === live.winnerId ? "default" : "pointer",
+                    }}
+                  >
+                    {togglingId === live.winnerId
+                      ? <Loader2 style={{ width: 15, height: 15 }} className="animate-spin" />
+                      : <Check style={{ width: 15, height: 15 }} />}
+                    {claimed ? "Está presente" : "Marcar presente"}
+                  </button>
+                  <button
+                    onClick={() => (isLast ? finishReveal(revealRank) : setRevealIndex((i) => i + 1))}
+                    style={{
+                      padding: "11px 20px", borderRadius: 10, fontSize: 14, fontWeight: 800, border: "none",
+                      background: isLast ? "#3ddc84" : "#FFD700", color: "#0d1a3d", cursor: "pointer",
+                    }}
+                  >
+                    {isLast ? "Finalizar ✓" : "Siguiente →"}
+                  </button>
+                </div>
+                <button
+                  onClick={() => finishReveal(revealRank)}
+                  style={{ marginTop: 10, background: "none", border: "none", fontSize: 11.5, color: "rgba(255,255,255,0.4)", textDecoration: "underline", cursor: "pointer" }}
+                >
+                  Cerrar y ver todos de una vez
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {confirmState && (
         <div
