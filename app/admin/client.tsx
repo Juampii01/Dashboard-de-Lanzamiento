@@ -57,6 +57,7 @@ import { CheckCircle2, Trophy, Users, UserPlus, Radio, Lock, Unlock, CalendarClo
 import { MagicBlastPanel } from "@/components/magic-blast-panel";
 import { ReminderBlastPanel } from "@/components/reminder-blast-panel";
 import { WebReportsAdminPanel } from "@/components/web-reports-admin-panel";
+import { ProximoPasoClicksPanel } from "@/components/proximo-paso-clicks-panel";
 import { breakdownRows, type Breakdown } from "@/lib/points-breakdown";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
@@ -951,6 +952,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </CardHeader>
         <CardContent>
           <ReminderBlastPanel />
+        </CardContent>
+      </Card>
+
+      {/* Clicks en Tu Próximo Paso */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-[#00D4FF]" />
+            Clicks en &quot;Tu Próximo Paso&quot;
+          </CardTitle>
+          <CardDescription>
+            Quién tocó &quot;Pagar ahora&quot; o &quot;Hablar con el equipo&quot; en la página de después del challenge.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProximoPasoClicksPanel />
         </CardContent>
       </Card>
 

@@ -14,7 +14,16 @@ const PAYMENT_LINK =
   process.env.NEXT_PUBLIC_MENTORIA_PAYMENT_LINK ?? "https://one.govbidder.net/payment-link/6a46c758a655fa0b802a26ec";
 
 export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
+  function trackClick(button: "pagar_ahora" | "whatsapp") {
+    fetch("/api/proximo-paso/click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ button }),
+    }).catch(() => {});
+  }
+
   function handleWhatsApp() {
+    trackClick("whatsapp");
     const name = (fullName || "").trim();
     const msg = `Hola, soy ${name}. Acabo de terminar el GovBidder Challenge y quiero saber más sobre la mentoría “Tu Primer Contrato”. ¿Cómo sigo?`;
     const base = MENTORIA_WHATSAPP ? `https://wa.me/${MENTORIA_WHATSAPP}` : "https://wa.me/";
@@ -131,6 +140,7 @@ export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
             href={PAYMENT_LINK}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackClick("pagar_ahora")}
             style={{
               display: "inline-flex", alignItems: "center", justifyContent: "center",
               height: 52, padding: "0 28px", borderRadius: 12,
