@@ -834,6 +834,33 @@ function RecordingsAdminPanel() {
 
 // ---------------------------------------------------------------------------
 
+function AdminSection({
+  icon,
+  title,
+  description,
+  children,
+}: {
+  icon: string;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-6">
+      <div className="flex items-start gap-3 pb-3 border-b" style={{ borderColor: "#1E3A5C" }}>
+        <span className="text-2xl leading-none">{icon}</span>
+        <div>
+          <h2 className="text-xl font-bold text-primary leading-tight">{title}</h2>
+          {description && <p className="text-sm text-muted-foreground mt-0.5">{description}</p>}
+        </div>
+      </div>
+      <div className="space-y-6">{children}</div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
 interface AdminClientProps {
   initialToggles: AdminToggle[];
   users: User[];
@@ -988,474 +1015,502 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </div>
       </div>
 
-      {/* Acceso por Magic Link (envío masivo) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="w-5 h-5 text-[#00D4FF]" />
-            Acceso por Magic Link
-          </CardTitle>
-          <CardDescription>
-            Enviá a los usuarios el link de acceso directo al dashboard (sin contraseña). Probá con tu email antes de enviar a todos.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <MagicBlastPanel />
-        </CardContent>
-      </Card>
-
-      {/* Recordatorios segmentados (no ingresaron / no completaron Día 1) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="w-5 h-5 text-[#00D4FF]" />
-            Recordatorios de Acceso y Día 1
-          </CardTitle>
-          <CardDescription>
-            Emails segmentados: a los que nunca ingresaron les avisa que entren; a los que ingresaron pero no completaron el Día 1 les avisa que lo terminen. Remitente distinto al de arriba para que no se agrupen en el mismo hilo.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ReminderBlastPanel />
-        </CardContent>
-      </Card>
-
-      {/* Clicks en Tu Próximo Paso */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-[#00D4FF]" />
-            Clicks en &quot;Tu Próximo Paso&quot;
-          </CardTitle>
-          <CardDescription>
-            Quién tocó &quot;Pagar ahora&quot; o &quot;Hablar con el equipo&quot; en la página de después del challenge.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProximoPasoClicksPanel />
-        </CardContent>
-      </Card>
-
-      {/* Registro público de usuarios gratuitos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-[#FFD700]" />
-            Registro de usuarios gratuitos
-          </CardTitle>
-          <CardDescription>
-            Compartí este link: la gente se registra sola como usuario gratuito (suma puntos y usa todo el dashboard, pero no compite por los premios) y recibe el email de acceso automático.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RegistroLinkPanel />
-        </CardContent>
-      </Card>
-
-      {/* Métricas de ingreso */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <OnlineNowCard />
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-3xl font-bold text-primary">{totalUsers}</p>
-            <p className="text-sm text-muted-foreground mt-1">Usuarios con acceso (total)</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Pagos vs gratuitos */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card style={{ borderColor: "color-mix(in srgb, var(--primary) 40%, var(--border))" }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              💳 Usuarios pagos
-            </CardTitle>
-            <CardDescription>Pagaron el challenge (no incluye gratuitos ni cuentas de equipo).</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-3 gap-3">
-            <div>
-              <p className="text-2xl font-bold text-primary">{paidMetrics.total}</p>
-              <p className="text-xs text-muted-foreground mt-1">Usuarios pagos</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold" style={{ color: "var(--success)" }}>
-                {paidMetrics.entered}
-                <span className="text-sm font-medium text-muted-foreground"> / {paidMetrics.total}</span>
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Ingresaron <span className="font-semibold">({paidMetrics.enteredPct}%)</span>
-              </p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-primary">{paidMetrics.activeToday}</p>
-              <p className="text-xs text-muted-foreground mt-1">Activos hoy</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card style={{ borderColor: "color-mix(in srgb, var(--accent) 40%, var(--border))" }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              🆓 Usuarios gratuitos
-            </CardTitle>
-            <CardDescription>Se registraron solos por el link público — no compiten por premios.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-3 gap-3">
-            <div>
-              <p className="text-2xl font-bold text-primary">{freeMetrics.total}</p>
-              <p className="text-xs text-muted-foreground mt-1">Usuarios gratuitos</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold" style={{ color: "var(--success)" }}>
-                {freeMetrics.entered}
-                <span className="text-sm font-medium text-muted-foreground"> / {freeMetrics.total}</span>
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Ingresaron <span className="font-semibold">({freeMetrics.enteredPct}%)</span>
-              </p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-primary">{freeMetrics.activeToday}</p>
-              <p className="text-xs text-muted-foreground mt-1">Activos hoy</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Secciones propias: misiones y referidos */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Link href="/admin/misiones">
-          <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-2">📸 Misiones Diarias</span>
-                <span className="text-sm text-muted-foreground font-normal">Ir →</span>
-              </CardTitle>
-              <CardDescription>
-                Publicá y moderá la misión del día en su sección propia. Los participantes responden con captura, link o texto.
-              </CardDescription>
-            </CardHeader>
+      {/* ═══════════════ 📊 RESUMEN GENERAL ═══════════════ */}
+      <AdminSection icon="📊" title="Resumen General" description="Métricas de ingreso y actividad, de un vistazo.">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <OnlineNowCard />
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-3xl font-bold text-primary">{totalUsers}</p>
+              <p className="text-sm text-muted-foreground mt-1">Usuarios con acceso (total)</p>
+            </CardContent>
           </Card>
-        </Link>
+        </div>
 
-        <Link href="/admin/referidos">
-          <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card style={{ borderColor: "color-mix(in srgb, var(--primary) 40%, var(--border))" }}>
             <CardHeader>
-              <CardTitle className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-2">🤝 Referidos</span>
-                <span className="text-sm text-muted-foreground font-normal">Ir →</span>
+              <CardTitle className="flex items-center gap-2 text-base">
+                💳 Usuarios pagos
               </CardTitle>
-              <CardDescription>
-                Mirá quién refirió a quién, qué referidos ya pagaron y los puntos acreditados a cada referidor.
-              </CardDescription>
+              <CardDescription>Pagaron el challenge (no incluye gratuitos ni cuentas de equipo).</CardDescription>
             </CardHeader>
-          </Card>
-        </Link>
-      </div>
-
-      {/* Palabras Clave de Llamadas */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="w-5 h-5 text-[#FFD700]" />
-            Palabras Clave de Llamadas
-          </CardTitle>
-          <CardDescription>
-            Configurá la keyword secreta de cada día de llamada. Los participantes la ingresan en Misiones Extra para ganar +1,000 pts. Solo puede haber una keyword por día.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <KeywordsAdminPanel />
-        </CardContent>
-      </Card>
-
-      {/* Reportes de Página Web (Día 3) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageCircle className="w-5 h-5 text-[#FFD700]" />
-            Reportes de Página Web (Día 3)
-          </CardTitle>
-          <CardDescription>
-            Avisos de participantes cuyo sitio del Día 3 no quedó bien (imágenes rotas, etc.). Ya pueden regenerarla libremente por su cuenta — esto es solo para hacer seguimiento y ayudarlos puntualmente.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <WebReportsAdminPanel />
-        </CardContent>
-      </Card>
-
-      {/* Grabaciones de las Clases */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Video className="w-5 h-5 text-[#FFD700]" />
-            Grabaciones de las Clases
-          </CardTitle>
-          <CardDescription>
-            Pegá el link de YouTube de cada grabación (1 a 4). Aparecen como 4 botones al lado de los puntos en el dashboard; cada uno abre su grabación en una pestaña nueva.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RecordingsAdminPanel />
-        </CardContent>
-      </Card>
-
-      {/* Video del Tutorial de inicio */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Video className="w-5 h-5 text-[#FFD700]" />
-            Tutorial de inicio
-          </CardTitle>
-          <CardDescription>
-            Pegá el link de YouTube del tutorial. Aparece en el inicio del dashboard. Si lo dejás vacío, se muestra “Próximamente”.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <TutorialAdminPanel />
-        </CardContent>
-      </Card>
-
-      {/* Bloqueo de dashboard */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Radio className="w-5 h-5 text-[#D7263D]" />
-            Bloqueo de Dashboard — Llamada en Vivo
-          </CardTitle>
-          <CardDescription>
-            Cuando está bloqueado, los usuarios ven un overlay a pantalla completa y no pueden interactuar con el dashboard.
-            El overlay desaparece automáticamente (en hasta 20 segundos) cuando desbloqueás.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DashboardLockControl />
-        </CardContent>
-      </Card>
-
-      {/* Programación de lanzamiento (fecha y hora por día) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarClock className="w-5 h-5 text-[#00D4FF]" />
-            Hora del Contador (Inicio + Días)
-          </CardTitle>
-          <CardDescription>
-            Hora que marca el contador de cada día/Inicio (cosmético: la hora de la clase, 7pm Miami). El
-            desbloqueo real es <strong>manual</strong>, desde “Desbloqueo Manual” más abajo. Cada usuario ve el
-            contador en su hora local.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LaunchScheduleControl initialToggles={toggles} />
-        </CardContent>
-      </Card>
-
-      {/* Toggles globales */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Desbloqueo Manual (Inicio + Días)</CardTitle>
-          <CardDescription>
-            Activá el switch para abrir el Inicio o un día para TODOS los usuarios al instante (podés abrirlo
-            antes o después de la hora del contador). Tras cada clase, abrí el día acá. A los admins nunca se les bloquea.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {toggles.map((toggle) => (
-              <div
-                key={toggle.day_number}
-                className="flex items-center justify-between p-4 border rounded-xl bg-card"
-              >
-                <div>
-                  <p className="font-semibold text-sm">{DAY_LABELS[toggle.day_number]}</p>
-                  {toggle.unlocked_at && toggle.is_globally_unlocked && (
-                    <p className="text-xs text-muted-foreground">
-                      Abierto: {new Date(toggle.unlocked_at).toLocaleString("es-US")}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge
-                    className={
-                      toggle.is_globally_unlocked
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-500"
-                    }
-                  >
-                    {toggle.is_globally_unlocked ? "Abierto" : "Cerrado"}
-                  </Badge>
-                  <Switch
-                    checked={toggle.is_globally_unlocked}
-                    onCheckedChange={(val) => toggleDay(toggle.day_number, val)}
-                    disabled={updatingDay === toggle.day_number}
-                  />
-                </div>
+            <CardContent className="grid grid-cols-3 gap-3">
+              <div>
+                <p className="text-2xl font-bold text-primary">{paidMetrics.total}</p>
+                <p className="text-xs text-muted-foreground mt-1">Usuarios pagos</p>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Pausa global de puntos */}
-      <Card style={{ borderColor: "#D7263D55" }}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-[#D7263D]" />
-            Pausa de Puntos
-          </CardTitle>
-          <CardDescription>
-            Congela TODO el sistema de puntos (heartbeat, misiones, videos, quiz, keywords, referidos, community, story, rafaga, anuncios, racha). Nadie suma ni pierde puntos mientras esté activa — pensado para el sorteo, así el ranking no se mueve. Reversible en cualquier momento.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PausePointsPanel />
-        </CardContent>
-      </Card>
-
-      {/* Stats rápidas — completaron cada día (arriba de la tabla) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((day) => {
-          const completed = allProgress.filter(
-            (p) => p.day_number === day && p.is_completed
-          ).length;
-          return (
-            <Card key={day} className="text-center">
-              <CardContent className="pt-6">
-                <p className="text-3xl font-bold text-primary">{completed}</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Completaron Día {day}
+              <div>
+                <p className="text-2xl font-bold" style={{ color: "var(--success)" }}>
+                  {paidMetrics.entered}
+                  <span className="text-sm font-medium text-muted-foreground"> / {paidMetrics.total}</span>
                 </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ingresaron <span className="font-semibold">({paidMetrics.enteredPct}%)</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-primary">{paidMetrics.activeToday}</p>
+                <p className="text-xs text-muted-foreground mt-1">Activos hoy</p>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Tabla de usuarios — separada en pagos / gratuitos */}
-      {([
-        { key: "paid", title: "Progreso Global — Usuarios Pagos", list: paidUsers },
-        { key: "free", title: "Progreso Global — Usuarios Gratuitos", list: freeUsers },
-      ] as const).map(({ key, title, list }) => (
-        <Card key={key}>
+          <Card style={{ borderColor: "color-mix(in srgb, var(--accent) 40%, var(--border))" }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                🆓 Usuarios gratuitos
+              </CardTitle>
+              <CardDescription>Se registraron solos por el link público — no compiten por premios.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-3 gap-3">
+              <div>
+                <p className="text-2xl font-bold text-primary">{freeMetrics.total}</p>
+                <p className="text-xs text-muted-foreground mt-1">Usuarios gratuitos</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold" style={{ color: "var(--success)" }}>
+                  {freeMetrics.entered}
+                  <span className="text-sm font-medium text-muted-foreground"> / {freeMetrics.total}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ingresaron <span className="font-semibold">({freeMetrics.enteredPct}%)</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-primary">{freeMetrics.activeToday}</p>
+                <p className="text-xs text-muted-foreground mt-1">Activos hoy</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((day) => {
+            const completed = allProgress.filter(
+              (p) => p.day_number === day && p.is_completed
+            ).length;
+            return (
+              <Card key={day} className="text-center">
+                <CardContent className="pt-6">
+                  <p className="text-3xl font-bold text-primary">{completed}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Completaron Día {day}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </AdminSection>
+
+      {/* ═══════════════ 👥 USUARIOS ═══════════════ */}
+      <AdminSection icon="👥" title="Usuarios" description="Registro, acceso, recordatorios y progreso individual.">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              {title}
+              <UserPlus className="w-5 h-5 text-[#FFD700]" />
+              Registro de usuarios gratuitos
             </CardTitle>
             <CardDescription>
-              {list.length} usuario{list.length === 1 ? "" : "s"} registrado{list.length === 1 ? "" : "s"}.
+              Compartí este link: la gente se registra sola como usuario gratuito (suma puntos y usa todo el dashboard, pero no compite por los premios) y recibe el email de acceso automático.
             </CardDescription>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead className="text-center">D1</TableHead>
-                  <TableHead className="text-center">D2</TableHead>
-                  <TableHead className="text-center">D3</TableHead>
-                  <TableHead className="text-center">D4</TableHead>
-                  <TableHead className="text-center">Puntos</TableHead>
-                  <TableHead className="text-center">Sorteo</TableHead>
-                  <TableHead className="text-center">Acceso</TableHead>
-                  <TableHead className="text-center">Override</TableHead>
-                  <TableHead className="text-center">Reset</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {list.map((user) => {
-                  const userProgress = progressByUser[user.id] ?? [];
-                  const sorteo = sorteoMap[user.id];
-                  const expired = isExpired(user.access_expires_at);
-
-                  return (
-                    <TableRow key={user.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-sm">{user.full_name ?? "—"}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
-                          <button
-                            onClick={() => openAccessLink(user)}
-                            title="Generar un link de acceso para enviárselo vos mismo"
-                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:opacity-80"
-                          >
-                            🔗 Link de acceso
-                          </button>
-                        </div>
-                      </TableCell>
-                      {[1, 2, 3, 4].map((day) => {
-                        const p = userProgress.find((pr) => pr.day_number === day);
-                        return (
-                          <TableCell key={day} className="text-center">
-                            {p?.is_completed ? (
-                              <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                            ) : (
-                              <span className="text-muted-foreground text-xs">—</span>
-                            )}
-                          </TableCell>
-                        );
-                      })}
-                      <TableCell className="text-center font-medium">
-                        <button
-                          onClick={() => openBreakdown(user)}
-                          title="Ver de dónde salieron los puntos"
-                          className="font-medium text-primary underline decoration-dotted underline-offset-2 hover:opacity-80 cursor-pointer"
-                        >
-                          {user.total_points}
-                        </button>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {sorteo?.eligible ? (
-                          <Trophy className="w-4 h-4 text-amber-500 mx-auto" />
-                        ) : (
-                          <span className="text-muted-foreground text-xs">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          className={
-                            expired
-                              ? "bg-red-100 text-red-700 text-xs"
-                              : "bg-green-100 text-green-700 text-xs"
-                          }
-                        >
-                          {expired ? "Expirado" : "Activo"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          {[1, 2, 3, 4].map((day) => {
-                            const p = userProgress.find((pr) => pr.day_number === day);
-                            const overrideKey = `${user.id}-${day}`;
-                            return (
-                              <Button
-                                key={day}
-                                variant="outline"
-                                size="sm"
-                                className="h-6 w-7 p-0 text-xs"
-                                disabled={overrideLoading === overrideKey}
-                                onClick={() => overrideUserDay(user.id, day, !(p?.is_unlocked))}
-                                title={`${p?.is_unlocked ? "Bloquear" : "Desbloquear"} Día ${day}`}
-                              >
-                                {day}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <UserResetButton userId={user.id} userEmail={user.email} />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+          <CardContent>
+            <RegistroLinkPanel />
           </CardContent>
         </Card>
-      ))}
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-[#00D4FF]" />
+              Acceso por Magic Link
+            </CardTitle>
+            <CardDescription>
+              Enviá a los usuarios el link de acceso directo al dashboard (sin contraseña). Probá con tu email antes de enviar a todos.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MagicBlastPanel />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-[#00D4FF]" />
+              Recordatorios de Acceso y Día 1
+            </CardTitle>
+            <CardDescription>
+              Emails segmentados: a los que nunca ingresaron les avisa que entren; a los que ingresaron pero no completaron el Día 1 les avisa que lo terminen. Remitente distinto al de arriba para que no se agrupen en el mismo hilo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ReminderBlastPanel />
+          </CardContent>
+        </Card>
+
+        {([
+          { key: "paid", title: "Progreso Global — Usuarios Pagos", list: paidUsers },
+          { key: "free", title: "Progreso Global — Usuarios Gratuitos", list: freeUsers },
+        ] as const).map(({ key, title, list }) => (
+          <Card key={key}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                {title}
+              </CardTitle>
+              <CardDescription>
+                {list.length} usuario{list.length === 1 ? "" : "s"} registrado{list.length === 1 ? "" : "s"}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead className="text-center">D1</TableHead>
+                    <TableHead className="text-center">D2</TableHead>
+                    <TableHead className="text-center">D3</TableHead>
+                    <TableHead className="text-center">D4</TableHead>
+                    <TableHead className="text-center">Puntos</TableHead>
+                    <TableHead className="text-center">Sorteo</TableHead>
+                    <TableHead className="text-center">Acceso</TableHead>
+                    <TableHead className="text-center">Override</TableHead>
+                    <TableHead className="text-center">Reset</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {list.map((user) => {
+                    const userProgress = progressByUser[user.id] ?? [];
+                    const sorteo = sorteoMap[user.id];
+                    const expired = isExpired(user.access_expires_at);
+
+                    return (
+                      <TableRow key={user.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-sm">{user.full_name ?? "—"}</p>
+                            <p className="text-xs text-muted-foreground">{user.email}</p>
+                            <button
+                              onClick={() => openAccessLink(user)}
+                              title="Generar un link de acceso para enviárselo vos mismo"
+                              className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:opacity-80"
+                            >
+                              🔗 Link de acceso
+                            </button>
+                          </div>
+                        </TableCell>
+                        {[1, 2, 3, 4].map((day) => {
+                          const p = userProgress.find((pr) => pr.day_number === day);
+                          return (
+                            <TableCell key={day} className="text-center">
+                              {p?.is_completed ? (
+                                <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
+                              ) : (
+                                <span className="text-muted-foreground text-xs">—</span>
+                              )}
+                            </TableCell>
+                          );
+                        })}
+                        <TableCell className="text-center font-medium">
+                          <button
+                            onClick={() => openBreakdown(user)}
+                            title="Ver de dónde salieron los puntos"
+                            className="font-medium text-primary underline decoration-dotted underline-offset-2 hover:opacity-80 cursor-pointer"
+                          >
+                            {user.total_points}
+                          </button>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {sorteo?.eligible ? (
+                            <Trophy className="w-4 h-4 text-amber-500 mx-auto" />
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge
+                            className={
+                              expired
+                                ? "bg-red-100 text-red-700 text-xs"
+                                : "bg-green-100 text-green-700 text-xs"
+                            }
+                          >
+                            {expired ? "Expirado" : "Activo"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            {[1, 2, 3, 4].map((day) => {
+                              const p = userProgress.find((pr) => pr.day_number === day);
+                              const overrideKey = `${user.id}-${day}`;
+                              return (
+                                <Button
+                                  key={day}
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-6 w-7 p-0 text-xs"
+                                  disabled={overrideLoading === overrideKey}
+                                  onClick={() => overrideUserDay(user.id, day, !(p?.is_unlocked))}
+                                  title={`${p?.is_unlocked ? "Bloquear" : "Desbloquear"} Día ${day}`}
+                                >
+                                  {day}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <UserResetButton userId={user.id} userEmail={user.email} />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        ))}
+      </AdminSection>
+
+      {/* ═══════════════ 🎯 MISIONES Y CONTENIDO ═══════════════ */}
+      <AdminSection icon="🎯" title="Misiones y Contenido" description="Misión diaria, palabras clave, reportes y videos.">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link href="/admin/misiones">
+            <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">📸 Misiones Diarias</span>
+                  <span className="text-sm text-muted-foreground font-normal">Ir →</span>
+                </CardTitle>
+                <CardDescription>
+                  Publicá y moderá la misión del día en su sección propia. Los participantes responden con captura, link o texto.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/admin/contenido">
+            <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">📺 Contenido</span>
+                  <span className="text-sm text-muted-foreground font-normal">Ir →</span>
+                </CardTitle>
+                <CardDescription>
+                  Gestioná el contenido de cada día del challenge desde su sección propia.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="w-5 h-5 text-[#FFD700]" />
+              Palabras Clave de Llamadas
+            </CardTitle>
+            <CardDescription>
+              Configurá la keyword secreta de cada día de llamada. Los participantes la ingresan en Misiones Extra para ganar +1,000 pts. Solo puede haber una keyword por día.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <KeywordsAdminPanel />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-[#FFD700]" />
+              Reportes de Página Web (Día 3)
+            </CardTitle>
+            <CardDescription>
+              Avisos de participantes cuyo sitio del Día 3 no quedó bien (imágenes rotas, etc.). Ya pueden regenerarla libremente por su cuenta — esto es solo para hacer seguimiento y ayudarlos puntualmente.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <WebReportsAdminPanel />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5 text-[#FFD700]" />
+              Grabaciones de las Clases
+            </CardTitle>
+            <CardDescription>
+              Pegá el link de YouTube de cada grabación (1 a 4). Aparecen como 4 botones al lado de los puntos en el dashboard; cada uno abre su grabación en una pestaña nueva.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RecordingsAdminPanel />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5 text-[#FFD700]" />
+              Tutorial de inicio
+            </CardTitle>
+            <CardDescription>
+              Pegá el link de YouTube del tutorial. Aparece en el inicio del dashboard. Si lo dejás vacío, se muestra “Próximamente”.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TutorialAdminPanel />
+          </CardContent>
+        </Card>
+      </AdminSection>
+
+      {/* ═══════════════ 🏆 PUNTUACIÓN Y PREMIOS ═══════════════ */}
+      <AdminSection icon="🏆" title="Puntuación y Premios" description="Puntos, referidos, próximo paso y sorteo final.">
+        <Card style={{ borderColor: "#D7263D55" }}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-[#D7263D]" />
+              Pausa de Puntos
+            </CardTitle>
+            <CardDescription>
+              Congela TODO el sistema de puntos (heartbeat, misiones, videos, quiz, keywords, referidos, community, story, rafaga, anuncios, racha). Nadie suma ni pierde puntos mientras esté activa — pensado para el sorteo, así el ranking no se mueve. Reversible en cualquier momento.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PausePointsPanel />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-[#00D4FF]" />
+              Clicks en &quot;Tu Próximo Paso&quot;
+            </CardTitle>
+            <CardDescription>
+              Quién tocó &quot;Pagar ahora&quot; o &quot;Hablar con el equipo&quot; en la página de después del challenge.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProximoPasoClicksPanel />
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link href="/admin/referidos">
+            <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">🤝 Referidos</span>
+                  <span className="text-sm text-muted-foreground font-normal">Ir →</span>
+                </CardTitle>
+                <CardDescription>
+                  Mirá quién refirió a quién, qué referidos ya pagaron y los puntos acreditados a cada referidor.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/admin/sorteo">
+            <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full" style={{ borderColor: "color-mix(in srgb, #FFD700 40%, var(--border))" }}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">🎲 Sorteo Final</span>
+                  <span className="text-sm text-muted-foreground font-normal">Ir →</span>
+                </CardTitle>
+                <CardDescription>
+                  Sorteo de premios por rango (Elevate, Prime, Legacy, Expert). Página para usar en vivo el día del evento.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        </div>
+      </AdminSection>
+
+      {/* ═══════════════ ⚙️ CONFIGURACIÓN DEL CHALLENGE ═══════════════ */}
+      <AdminSection icon="⚙️" title="Configuración del Challenge" description="Bloqueo en vivo, horarios y desbloqueo manual de días.">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Radio className="w-5 h-5 text-[#D7263D]" />
+              Bloqueo de Dashboard — Llamada en Vivo
+            </CardTitle>
+            <CardDescription>
+              Cuando está bloqueado, los usuarios ven un overlay a pantalla completa y no pueden interactuar con el dashboard.
+              El overlay desaparece automáticamente (en hasta 20 segundos) cuando desbloqueás.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DashboardLockControl />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarClock className="w-5 h-5 text-[#00D4FF]" />
+              Hora del Contador (Inicio + Días)
+            </CardTitle>
+            <CardDescription>
+              Hora que marca el contador de cada día/Inicio (cosmético: la hora de la clase, 7pm Miami). El
+              desbloqueo real es <strong>manual</strong>, desde “Desbloqueo Manual” más abajo. Cada usuario ve el
+              contador en su hora local.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LaunchScheduleControl initialToggles={toggles} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Desbloqueo Manual (Inicio + Días)</CardTitle>
+            <CardDescription>
+              Activá el switch para abrir el Inicio o un día para TODOS los usuarios al instante (podés abrirlo
+              antes o después de la hora del contador). Tras cada clase, abrí el día acá. A los admins nunca se les bloquea.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {toggles.map((toggle) => (
+                <div
+                  key={toggle.day_number}
+                  className="flex items-center justify-between p-4 border rounded-xl bg-card"
+                >
+                  <div>
+                    <p className="font-semibold text-sm">{DAY_LABELS[toggle.day_number]}</p>
+                    {toggle.unlocked_at && toggle.is_globally_unlocked && (
+                      <p className="text-xs text-muted-foreground">
+                        Abierto: {new Date(toggle.unlocked_at).toLocaleString("es-US")}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge
+                      className={
+                        toggle.is_globally_unlocked
+                          ? "bg-green-100 text-green-700"
+                          : "bg-gray-100 text-gray-500"
+                      }
+                    >
+                      {toggle.is_globally_unlocked ? "Abierto" : "Cerrado"}
+                    </Badge>
+                    <Switch
+                      checked={toggle.is_globally_unlocked}
+                      onCheckedChange={(val) => toggleDay(toggle.day_number, val)}
+                      disabled={updatingDay === toggle.day_number}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </AdminSection>
 
       {/* Modal: desglose de puntos de un usuario (de dónde salieron) */}
       {bdUser && (
