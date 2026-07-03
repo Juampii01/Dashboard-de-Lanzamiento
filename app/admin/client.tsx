@@ -835,18 +835,20 @@ function RecordingsAdminPanel() {
 // ---------------------------------------------------------------------------
 
 function AdminSection({
+  id,
   icon,
   title,
   description,
   children,
 }: {
+  id: string;
   icon: string;
   title: string;
   description?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-6">
+    <section id={id} className="space-y-6 scroll-mt-24">
       <div className="flex items-start gap-3 pb-3 border-b" style={{ borderColor: "#1E3A5C" }}>
         <span className="text-2xl leading-none">{icon}</span>
         <div>
@@ -856,6 +858,35 @@ function AdminSection({
       </div>
       <div className="space-y-6">{children}</div>
     </section>
+  );
+}
+
+const ADMIN_SECTIONS = [
+  { id: "resumen", icon: "📊", label: "Resumen" },
+  { id: "usuarios", icon: "👥", label: "Usuarios" },
+  { id: "misiones", icon: "🎯", label: "Misiones" },
+  { id: "puntuacion", icon: "🏆", label: "Puntuación" },
+  { id: "configuracion", icon: "⚙️", label: "Configuración" },
+] as const;
+
+function AdminSectionNav() {
+  return (
+    <div
+      className="sticky top-0 z-20 -mx-6 px-6 py-2.5 mb-2 flex items-center gap-2 overflow-x-auto border-b backdrop-blur"
+      style={{ borderColor: "#1E3A5C", background: "color-mix(in srgb, var(--background) 92%, transparent)" }}
+    >
+      {ADMIN_SECTIONS.map((s) => (
+        <a
+          key={s.id}
+          href={`#${s.id}`}
+          className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors hover:bg-primary/10"
+          style={{ borderColor: "#1E3A5C" }}
+        >
+          <span>{s.icon}</span>
+          {s.label}
+        </a>
+      ))}
+    </div>
   );
 }
 
@@ -1015,8 +1046,10 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         </div>
       </div>
 
+      <AdminSectionNav />
+
       {/* ═══════════════ 📊 RESUMEN GENERAL ═══════════════ */}
-      <AdminSection icon="📊" title="Resumen General" description="Métricas de ingreso y actividad, de un vistazo.">
+      <AdminSection id="resumen" icon="📊" title="Resumen General" description="Métricas de ingreso y actividad, de un vistazo.">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <OnlineNowCard />
           <Card>
@@ -1105,7 +1138,7 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
       </AdminSection>
 
       {/* ═══════════════ 👥 USUARIOS ═══════════════ */}
-      <AdminSection icon="👥" title="Usuarios" description="Registro, acceso, recordatorios y progreso individual.">
+      <AdminSection id="usuarios" icon="👥" title="Usuarios" description="Registro, acceso, recordatorios y progreso individual.">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -1276,7 +1309,7 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
       </AdminSection>
 
       {/* ═══════════════ 🎯 MISIONES Y CONTENIDO ═══════════════ */}
-      <AdminSection icon="🎯" title="Misiones y Contenido" description="Misión diaria, palabras clave, reportes y videos.">
+      <AdminSection id="misiones" icon="🎯" title="Misiones y Contenido" description="Misión diaria, palabras clave, reportes y videos.">
         <div className="grid gap-4 sm:grid-cols-2">
           <Link href="/admin/misiones">
             <Card className="hover:border-[var(--secondary)] transition-colors cursor-pointer h-full">
@@ -1369,7 +1402,7 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
       </AdminSection>
 
       {/* ═══════════════ 🏆 PUNTUACIÓN Y PREMIOS ═══════════════ */}
-      <AdminSection icon="🏆" title="Puntuación y Premios" description="Puntos, referidos, próximo paso y sorteo final.">
+      <AdminSection id="puntuacion" icon="🏆" title="Puntuación y Premios" description="Puntos, referidos, próximo paso y sorteo final.">
         <Card style={{ borderColor: "#D7263D55" }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -1432,7 +1465,7 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
       </AdminSection>
 
       {/* ═══════════════ ⚙️ CONFIGURACIÓN DEL CHALLENGE ═══════════════ */}
-      <AdminSection icon="⚙️" title="Configuración del Challenge" description="Bloqueo en vivo, horarios y desbloqueo manual de días.">
+      <AdminSection id="configuracion" icon="⚙️" title="Configuración del Challenge" description="Bloqueo en vivo, horarios y desbloqueo manual de días.">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
