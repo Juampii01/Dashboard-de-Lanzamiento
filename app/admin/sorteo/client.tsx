@@ -110,14 +110,18 @@ export function SorteoClient() {
     // Todo el pool elegible entra automáticamente — no se elige a mano ni se
     // muestran nombres en pantalla (esto se proyecta en vivo).
     const allowedIds = pool.map((u) => u.id);
+    // Para todo lo que se vea en pantalla (modal, toasts) usamos SIEMPRE
+    // displayCount — el mismo número que la página pública de ranking — para
+    // no filtrar por dentro que el pool real (allowedIds) es más chico.
+    const displayCount = displayCounts[rankKey] ?? pool.length;
 
     if (allowedIds.length < remaining) {
-      toast.error(`Faltan candidatos: hacen falta ${remaining} y hay ${allowedIds.length} elegibles.`);
+      toast.error(`Faltan candidatos: hacen falta ${remaining} y hay ${displayCount} elegibles.`);
       return;
     }
     const confirmMsg = pendingCount > 0
       ? `Hay ${pendingCount} sin reclamar — quedan eliminados y se sortean ${remaining} reemplazo${remaining > 1 ? "s" : ""}. ¿Confirmás?`
-      : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${allowedIds.length} elegibles?`;
+      : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${displayCount} elegibles?`;
     if (!(await askConfirm(confirmMsg))) return;
 
     setDrawingRank(rankKey);
