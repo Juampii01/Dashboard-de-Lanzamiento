@@ -42,6 +42,11 @@ export function SorteoClient() {
   const [resetting, setResetting] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<{ message: string; danger?: boolean; resolve: (v: boolean) => void } | null>(null);
+  // Revelado uno por uno (en vivo): tras sortear, en vez de mostrar toda la
+  // grilla de golpe, se va mostrando un ganador a la vez con "Siguiente →".
+  const [revealRank, setRevealRank] = useState<string | null>(null);
+  const [revealQueue, setRevealQueue] = useState<Winner[]>([]);
+  const [revealIndex, setRevealIndex] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   function askConfirm(message: string, opts?: { danger?: boolean }): Promise<boolean> {
@@ -50,23 +55,34 @@ export function SorteoClient() {
     });
   }
 
-  async function load() {
+  async function load(): Promise<{ pools?: Record<string, EligibleUser[]>; winners?: Record<string, Winner[]>; displayCounts?: Record<string, number> } | null> {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/sorteo");
       const json = await res.json();
       if (res.status === 501) {
         toast.error("Falta correr la migración de sorteo (sorteo_winners o sorteo_confirmed_payers).");
-        return;
+        return null;
       }
       if (!res.ok) throw new Error(json.error ?? "error");
       setPools(json.pools ?? {});
       setWinners(json.winners ?? {});
       setDisplayCounts(json.displayCounts ?? {});
+      return json;
     } catch {
       toast.error("No se pudo cargar el sorteo.");
+      return null;
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  }
+
+  function finishReveal(rankKey: string) {
+    setRevealRank(null);
+    setRevealQueue([]);
+    setRevealIndex(0);
+    setConfettiRank(rankKey);
+    setTimeout(() => setConfettiRank((cur) => (cur === rankKey ? null : cur)), 1700);
   }
 
   useEffect(() => {
@@ -145,10 +161,20 @@ export function SorteoClient() {
       if (elapsed < 1400) await new Promise((r) => setTimeout(r, 1400 - elapsed));
 
       if (intervalRef.current) clearInterval(intervalRef.current);
-      await load(); // recarga winners + pool (los eliminados salen de la vista, el pool se actualiza)
-      setConfettiRank(rankKey);
+      const fresh = await load(); // recarga winners + pool (los eliminados salen de la vista, el pool se actualiza)
       toast.success(`¡Sorteados ${json.winners.length} ganador${json.winners.length > 1 ? "es" : ""}!`);
-      setTimeout(() => setConfettiRank((cur) => (cur === rankKey ? null : cur)), 1700);
+
+      const newIds = new Set((json.winners as Array<{ id: string }>).map((w) => w.id));
+      const freshWinners = (fresh?.winners?.[rankKey] ?? []).filter((w) => newIds.has(w.id));
+      if (freshWinners.length > 1) {
+        // Varios ganadores a la vez (Elevate): revelar de a uno, en vivo.
+        setRevealRank(rankKey);
+        setRevealQueue(freshWinners);
+        setRevealIndex(0);
+      } else {
+        setConfettiRank(rankKey);
+        setTimeout(() => setConfettiRank((cur) => (cur === rankKey ? null : cur)), 1700);
+      }
     } catch (e) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       const msg = (e as Error).message;
@@ -232,6 +258,7 @@ export function SorteoClient() {
         const rankWinners = winners[rank.key] ?? [];
         const target = TARGET_COUNT[rank.key] ?? 1;
         const isDrawing = drawingRank === rank.key;
+        const isRevealing = revealRank === rank.key;
         const showConfetti = confettiRank === rank.key;
         const claimedCount = rankWinners.filter((w) => w.status === "claimed").length;
         const pendingCount = rankWinners.filter((w) => w.status === "pending_claim").length;
@@ -309,6 +336,67 @@ export function SorteoClient() {
                   Sorteando…
                 </p>
               </div>
+            ) : isRevealing ? (
+              (() => {
+                const current = revealQueue[revealIndex];
+                const live = current ? (winners[rank.key] ?? []).find((w) => w.winnerId === current.winnerId) ?? current : null;
+                const isLast = revealIndex + 1 >= revealQueue.length;
+                const claimed = live?.status === "claimed";
+                if (!live) return null;
+                return (
+                  <div
+                    key={live.winnerId}
+                    className="sorteo-winner-pop"
+                    style={{
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                      gap: 8, padding: "30px 16px", textAlign: "center",
+                    }}
+                  >
+                    <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: 0 }}>
+                      Ganador {revealIndex + 1} de {revealQueue.length}
+                    </p>
+                    <Trophy style={{ width: 32, height: 32, color: rank.color, margin: "6px 0" }} />
+                    <p style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800, color: "#fff", margin: 0 }}>
+                      {live.full_name || live.email}
+                    </p>
+                    <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", margin: 0 }}>{live.email}</p>
+                    <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap", justifyContent: "center" }}>
+                      <button
+                        onClick={() => toggleClaim(rank.key, live.winnerId, !claimed)}
+                        disabled={togglingId === live.winnerId}
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 6,
+                          padding: "10px 18px", borderRadius: 10, fontSize: 14, fontWeight: 700, border: "none",
+                          background: claimed ? rank.color : "rgba(255,255,255,0.08)",
+                          color: claimed ? "#0d1a3d" : "rgba(255,255,255,0.8)",
+                          boxShadow: claimed ? "none" : "inset 0 0 0 1px rgba(255,255,255,0.2)",
+                          cursor: togglingId === live.winnerId ? "default" : "pointer",
+                        }}
+                      >
+                        {togglingId === live.winnerId
+                          ? <Loader2 style={{ width: 15, height: 15 }} className="animate-spin" />
+                          : <Check style={{ width: 15, height: 15 }} />}
+                        {claimed ? "Está presente" : "Marcar presente"}
+                      </button>
+                      <button
+                        onClick={() => (isLast ? finishReveal(rank.key) : setRevealIndex((i) => i + 1))}
+                        style={{
+                          padding: "10px 18px", borderRadius: 10, fontSize: 14, fontWeight: 800, border: "none",
+                          background: isLast ? "#3ddc84" : "#FFD700", color: "#0d1a3d", cursor: "pointer",
+                        }}
+                      >
+                        {isLast ? "Finalizar ✓" : "Siguiente →"}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => finishReveal(rank.key)}
+                      style={{ marginTop: 6, background: "none", border: "none", fontSize: 11.5, color: "rgba(255,255,255,0.4)", textDecoration: "underline", cursor: "pointer" }}
+                    >
+                      Ver todos de una vez
+                    </button>
+                  </div>
+                );
+              })()
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
                 {rankWinners.length > 0 && (
