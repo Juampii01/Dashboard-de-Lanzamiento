@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Settings genéricos editables desde el admin (clave/valor en app_settings).
 // Whitelist de claves para no exponer un key/value libre.
-const ALLOWED = new Set(["tutorial_youtube"]);
+const ALLOWED = new Set(["tutorial_youtube", "points_paused"]);
 
 // Extrae el ID de YouTube de una URL (youtu.be/ID, watch?v=ID, embed/ID, shorts/ID)
 // o acepta el ID pelado. Devuelve "" si no se reconoce (= "coming soon").
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
 
   let value = String(body.value ?? "").trim();
   if (key === "tutorial_youtube") value = ytId(value); // normaliza a ID (o "" si vacío)
+  if (key === "points_paused") value = value === "true" ? "true" : "false"; // solo true/false
 
   const { error } = await ctx.service
     .from("app_settings")

@@ -713,6 +713,56 @@ function TutorialAdminPanel() {
   );
 }
 
+function PausePointsPanel() {
+  const [paused, setPaused] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((d) => setPaused(d?.points_paused === "true"))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function toggle(val: boolean) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "points_paused", value: val ? "true" : "false" }),
+      });
+      if (!res.ok) throw new Error();
+      setPaused(val);
+      toast.success(val ? "⏸ Puntos pausados — nadie suma ni pierde puntos." : "▶ Puntos reanudados.");
+    } catch {
+      toast.error("No se pudo cambiar la pausa.");
+    }
+    setSaving(false);
+  }
+
+  if (loading) return <p className="text-sm text-muted-foreground">Cargando…</p>;
+
+  return (
+    <div className="flex items-center justify-between p-4 border rounded-xl bg-card" style={{ borderColor: paused ? "#D7263D" : "#1E3A5C" }}>
+      <div>
+        <p className="font-semibold text-sm">{paused ? "⏸ Puntos PAUSADOS" : "▶ Puntos activos (normal)"}</p>
+        <p className="text-xs text-muted-foreground">
+          {paused ? "Nadie está sumando puntos ahora mismo." : "El sistema de puntos funciona con normalidad."}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <Badge className={paused ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}>
+          {paused ? "Pausado" : "Activo"}
+        </Badge>
+        <Switch checked={paused} onCheckedChange={toggle} disabled={saving} />
+      </div>
+    </div>
+  );
+}
+
 interface RecordingRow { recording_number: number; youtube_url?: string | null; }
 
 function RecordingsAdminPanel() {
@@ -1188,6 +1238,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Pausa global de puntos */}
+      <Card style={{ borderColor: "#D7263D55" }}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-[#D7263D]" />
+            Pausa de Puntos
+          </CardTitle>
+          <CardDescription>
+            Congela TODO el sistema de puntos (heartbeat, misiones, videos, quiz, keywords, referidos, community, story, rafaga, anuncios, racha). Nadie suma ni pierde puntos mientras esté activa — pensado para el sorteo, así el ranking no se mueve. Reversible en cualquier momento.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PausePointsPanel />
         </CardContent>
       </Card>
 
