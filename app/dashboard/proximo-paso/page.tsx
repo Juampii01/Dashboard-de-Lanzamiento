@@ -19,9 +19,10 @@ export default async function ProximoPasoPage() {
     if (!user) redirect("/login");
 
     const service = createServiceClient();
-    const [{ data: progress }, { data: profile }] = await Promise.all([
+    const [{ data: progress }, { data: profile }, { data: toggle }] = await Promise.all([
       service.from("day_progress").select("day_number, is_completed").eq("user_id", user.id),
       service.from("users").select("full_name, is_admin").eq("id", user.id).maybeSingle(),
+      service.from("admin_toggles").select("is_globally_unlocked").eq("day_number", 5).maybeSingle(),
     ]);
 
     const completed = new Set(
@@ -30,7 +31,10 @@ export default async function ProximoPasoPage() {
         .map((p) => p.day_number)
     );
     const allDone = [1, 2, 3, 4].every((d) => completed.has(d));
-    unlocked = allDone || (profile as { is_admin?: boolean } | null)?.is_admin === true;
+    // Se desbloquea al completar los 4 días, O si el admin lo habilitó manualmente
+    // (día 5 en admin_toggles, igual que Inicio y los otros 4 días).
+    const adminUnlocked = (toggle as { is_globally_unlocked?: boolean } | null)?.is_globally_unlocked === true;
+    unlocked = allDone || adminUnlocked || (profile as { is_admin?: boolean } | null)?.is_admin === true;
     fullName = (profile as { full_name?: string } | null)?.full_name ?? "";
   }
 

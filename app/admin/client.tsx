@@ -97,6 +97,7 @@ const DAY_LABELS: Record<number, string> = {
   2: "Día 2 — Mapa de Códigos",
   3: "Día 3 — Web + Portales",
   4: "Día 4 — Capability Statement",
+  5: "Tu Próximo Paso",
 };
 
 // ---------------------------------------------------------------------------
