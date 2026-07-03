@@ -1333,125 +1333,129 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         })}
       </div>
 
-      {/* Tabla de usuarios */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Progreso Global de Alumnos
-          </CardTitle>
-          <CardDescription>
-            {users.length} usuarios registrados.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Usuario</TableHead>
-                <TableHead className="text-center">D1</TableHead>
-                <TableHead className="text-center">D2</TableHead>
-                <TableHead className="text-center">D3</TableHead>
-                <TableHead className="text-center">D4</TableHead>
-                <TableHead className="text-center">Puntos</TableHead>
-                <TableHead className="text-center">Sorteo</TableHead>
-                <TableHead className="text-center">Acceso</TableHead>
-                <TableHead className="text-center">Override</TableHead>
-                <TableHead className="text-center">Reset</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => {
-                const userProgress = progressByUser[user.id] ?? [];
-                const sorteo = sorteoMap[user.id];
-                const expired = isExpired(user.access_expires_at);
-                const completedCount = userProgress.filter((p) => p.is_completed).length;
+      {/* Tabla de usuarios — separada en pagos / gratuitos */}
+      {([
+        { key: "paid", title: "Progreso Global — Usuarios Pagos", list: paidUsers },
+        { key: "free", title: "Progreso Global — Usuarios Gratuitos", list: freeUsers },
+      ] as const).map(({ key, title, list }) => (
+        <Card key={key}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              {title}
+            </CardTitle>
+            <CardDescription>
+              {list.length} usuario{list.length === 1 ? "" : "s"} registrado{list.length === 1 ? "" : "s"}.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Usuario</TableHead>
+                  <TableHead className="text-center">D1</TableHead>
+                  <TableHead className="text-center">D2</TableHead>
+                  <TableHead className="text-center">D3</TableHead>
+                  <TableHead className="text-center">D4</TableHead>
+                  <TableHead className="text-center">Puntos</TableHead>
+                  <TableHead className="text-center">Sorteo</TableHead>
+                  <TableHead className="text-center">Acceso</TableHead>
+                  <TableHead className="text-center">Override</TableHead>
+                  <TableHead className="text-center">Reset</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {list.map((user) => {
+                  const userProgress = progressByUser[user.id] ?? [];
+                  const sorteo = sorteoMap[user.id];
+                  const expired = isExpired(user.access_expires_at);
 
-                return (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-sm">{user.full_name ?? "—"}</p>
-                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-sm">{user.full_name ?? "—"}</p>
+                          <p className="text-xs text-muted-foreground">{user.email}</p>
+                          <button
+                            onClick={() => openAccessLink(user)}
+                            title="Generar un link de acceso para enviárselo vos mismo"
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:opacity-80"
+                          >
+                            🔗 Link de acceso
+                          </button>
+                        </div>
+                      </TableCell>
+                      {[1, 2, 3, 4].map((day) => {
+                        const p = userProgress.find((pr) => pr.day_number === day);
+                        return (
+                          <TableCell key={day} className="text-center">
+                            {p?.is_completed ? (
+                              <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell className="text-center font-medium">
                         <button
-                          onClick={() => openAccessLink(user)}
-                          title="Generar un link de acceso para enviárselo vos mismo"
-                          className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:opacity-80"
+                          onClick={() => openBreakdown(user)}
+                          title="Ver de dónde salieron los puntos"
+                          className="font-medium text-primary underline decoration-dotted underline-offset-2 hover:opacity-80 cursor-pointer"
                         >
-                          🔗 Link de acceso
+                          {user.total_points}
                         </button>
-                      </div>
-                    </TableCell>
-                    {[1, 2, 3, 4].map((day) => {
-                      const p = userProgress.find((pr) => pr.day_number === day);
-                      return (
-                        <TableCell key={day} className="text-center">
-                          {p?.is_completed ? (
-                            <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
-                          ) : (
-                            <span className="text-muted-foreground text-xs">—</span>
-                          )}
-                        </TableCell>
-                      );
-                    })}
-                    <TableCell className="text-center font-medium">
-                      <button
-                        onClick={() => openBreakdown(user)}
-                        title="Ver de dónde salieron los puntos"
-                        className="font-medium text-primary underline decoration-dotted underline-offset-2 hover:opacity-80 cursor-pointer"
-                      >
-                        {user.total_points}
-                      </button>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {sorteo?.eligible ? (
-                        <Trophy className="w-4 h-4 text-amber-500 mx-auto" />
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge
-                        className={
-                          expired
-                            ? "bg-red-100 text-red-700 text-xs"
-                            : "bg-green-100 text-green-700 text-xs"
-                        }
-                      >
-                        {expired ? "Expirado" : "Activo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        {[1, 2, 3, 4].map((day) => {
-                          const p = userProgress.find((pr) => pr.day_number === day);
-                          const key = `${user.id}-${day}`;
-                          return (
-                            <Button
-                              key={day}
-                              variant="outline"
-                              size="sm"
-                              className="h-6 w-7 p-0 text-xs"
-                              disabled={overrideLoading === key}
-                              onClick={() => overrideUserDay(user.id, day, !(p?.is_unlocked))}
-                              title={`${p?.is_unlocked ? "Bloquear" : "Desbloquear"} Día ${day}`}
-                            >
-                              {day}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <UserResetButton userId={user.id} userEmail={user.email} />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {sorteo?.eligible ? (
+                          <Trophy className="w-4 h-4 text-amber-500 mx-auto" />
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge
+                          className={
+                            expired
+                              ? "bg-red-100 text-red-700 text-xs"
+                              : "bg-green-100 text-green-700 text-xs"
+                          }
+                        >
+                          {expired ? "Expirado" : "Activo"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          {[1, 2, 3, 4].map((day) => {
+                            const p = userProgress.find((pr) => pr.day_number === day);
+                            const overrideKey = `${user.id}-${day}`;
+                            return (
+                              <Button
+                                key={day}
+                                variant="outline"
+                                size="sm"
+                                className="h-6 w-7 p-0 text-xs"
+                                disabled={overrideLoading === overrideKey}
+                                onClick={() => overrideUserDay(user.id, day, !(p?.is_unlocked))}
+                                title={`${p?.is_unlocked ? "Bloquear" : "Desbloquear"} Día ${day}`}
+                              >
+                                {day}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <UserResetButton userId={user.id} userEmail={user.email} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ))}
 
       {/* Modal: desglose de puntos de un usuario (de dónde salieron) */}
       {bdUser && (
