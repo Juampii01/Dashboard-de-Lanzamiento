@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RANKS } from "@/lib/ranks";
-import { Loader2, Trophy } from "lucide-react";
+import { Loader2, Trophy, Sparkles } from "lucide-react";
 
 interface EligibleUser {
   id: string;
@@ -30,14 +28,18 @@ const TARGET_COUNT: Record<string, number> = {
 
 const WEIGHTED_RANKS = new Set(["elevate", "prime"]);
 const GATED_RANKS = new Set(["legacy", "expert"]);
+const CONFETTI_COLORS = ["#E42D2C", "#FFD700", "#16A65F", "#ffffff", "#152978"];
 
 export function SorteoClient() {
   const [loading, setLoading] = useState(true);
   const [pools, setPools] = useState<Record<string, EligibleUser[]>>({});
   const [winners, setWinners] = useState<Record<string, Winner[]>>({});
   const [excluded, setExcluded] = useState<Record<string, Set<string>>>({});
-  const [drawing, setDrawing] = useState<string | null>(null);
+  const [drawingRank, setDrawingRank] = useState<string | null>(null);
+  const [cyclingName, setCyclingName] = useState<string>("");
+  const [confettiRank, setConfettiRank] = useState<string | null>(null);
   const [resetting, setResetting] = useState<string | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function load() {
     setLoading(true);
@@ -57,7 +59,10 @@ export function SorteoClient() {
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, []);
 
   function toggleExclude(rankKey: string, userId: string) {
     setExcluded((prev) => {
@@ -70,7 +75,8 @@ export function SorteoClient() {
   async function draw(rankKey: string) {
     const pool = pools[rankKey] ?? [];
     const exSet = excluded[rankKey] ?? new Set<string>();
-    const allowedIds = pool.filter((u) => !exSet.has(u.id)).map((u) => u.id);
+    const allowed = pool.filter((u) => !exSet.has(u.id));
+    const allowedIds = allowed.map((u) => u.id);
     const target = TARGET_COUNT[rankKey] ?? 1;
 
     if (allowedIds.length < target) {
@@ -79,7 +85,16 @@ export function SorteoClient() {
     }
     if (!confirm(`¿Sortear ${target} ganador${target > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${allowedIds.length} candidatos? Esto queda guardado.`)) return;
 
-    setDrawing(rankKey);
+    setDrawingRank(rankKey);
+    setConfettiRank(null);
+
+    // Animación "slot machine": cicla nombres al azar mientras esperamos la respuesta real.
+    intervalRef.current = setInterval(() => {
+      const candidate = allowed[Math.floor(Math.random() * allowed.length)];
+      setCyclingName(candidate?.full_name || candidate?.email || "…");
+    }, 90);
+
+    const started = Date.now();
     try {
       const res = await fetch("/api/admin/sorteo", {
         method: "POST",
@@ -88,12 +103,21 @@ export function SorteoClient() {
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "error");
+
+      // Mínimo de suspenso: ~1.4s aunque la respuesta venga instantánea.
+      const elapsed = Date.now() - started;
+      if (elapsed < 1400) await new Promise((r) => setTimeout(r, 1400 - elapsed));
+
+      if (intervalRef.current) clearInterval(intervalRef.current);
       setWinners((prev) => ({ ...prev, [rankKey]: json.winners.map((w: { id: string; full_name: string | null; email: string }) => ({ ...w, drawn_at: new Date().toISOString() })) }));
+      setConfettiRank(rankKey);
       toast.success(`¡Sorteados ${json.winners.length} ganador${json.winners.length > 1 ? "es" : ""}!`);
+      setTimeout(() => setConfettiRank((cur) => (cur === rankKey ? null : cur)), 1700);
     } catch (e) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
       toast.error("Error al sortear: " + (e as Error).message);
     }
-    setDrawing(null);
+    setDrawingRank(null);
   }
 
   async function resetRank(rankKey: string) {
@@ -115,98 +139,226 @@ export function SorteoClient() {
   }
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin inline mr-2" />Cargando elegibles…</p>;
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "40vh", color: "rgba(255,255,255,0.6)" }}>
+        <Loader2 className="w-5 h-5 animate-spin" style={{ marginRight: 10 }} />
+        Cargando elegibles…
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Trophy className="w-6 h-6 text-[#FFD700]" /> Sorteo de premios
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+      {/* ── Hero ── */}
+      <div
+        style={{
+          position: "relative", overflow: "hidden",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          textAlign: "center", gap: 14, padding: "clamp(28px, 5vw, 48px) 24px",
+          borderRadius: 20,
+          background: "radial-gradient(700px circle at 50% 0%, rgba(255,215,0,0.14), transparent 60%), linear-gradient(160deg, #0d1a3d 0%, #080f24 100%)",
+          border: "1px solid rgba(255,215,0,0.28)",
+        }}
+      >
+        <div style={{ background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 28px rgba(0,0,0,0.35)" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/halcon.png" alt="GovBidder Challenge" style={{ height: 48, width: "auto", display: "block" }} />
+        </div>
+        <p style={{
+          fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 800,
+          letterSpacing: "0.16em", textTransform: "uppercase", color: "#FFD700",
+        }}>
+          GovBidder Challenge
+        </p>
+        <h1 style={{
+          fontFamily: "var(--font-display)", fontSize: "clamp(26px, 5vw, 42px)", fontWeight: 800,
+          color: "#fff", lineHeight: 1.1, margin: 0, display: "flex", alignItems: "center", gap: 12,
+        }}>
+          <Trophy style={{ width: "1em", height: "1em", color: "#FFD700" }} /> Sorteo de Premios
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Elegibles en los 4 rangos: pago 100% confirmado (Hotmart + SEM + Stripe) y haber ingresado al menos una vez al dashboard — quien pagó pero nunca entró no participa. <strong>Elevate y Prime</strong> sortean ponderado por puntos (más puntos = más probabilidad). <strong>Legacy y Expert</strong> sortean con igual chance para todos. Se excluyen siempre cuentas de equipo/admin y de alumnos; podés destildar a mano cualquier otra cuenta antes de sortear.
+        <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.75)", maxWidth: "62ch", margin: 0, lineHeight: 1.6 }}>
+          Elegibles en los 4 rangos: pago 100% confirmado (Hotmart + SEM + Stripe) y haber ingresado al menos una vez
+          al dashboard. <strong style={{ color: "#fff" }}>Elevate y Prime</strong> sortean ponderado por puntos.{" "}
+          <strong style={{ color: "#fff" }}>Legacy y Expert</strong> sortean con igual chance para todos.
         </p>
       </div>
 
+      {/* ── Rangos ── */}
       {RANKS.map((rank) => {
         const pool = pools[rank.key] ?? [];
         const rankWinners = winners[rank.key] ?? [];
         const target = TARGET_COUNT[rank.key] ?? 1;
         const exSet = excluded[rank.key] ?? new Set<string>();
         const selectedCount = pool.filter((u) => !exSet.has(u.id)).length;
+        const isDrawing = drawingRank === rank.key;
+        const showConfetti = confettiRank === rank.key;
+        const hasWinners = rankWinners.length > 0;
 
         return (
-          <Card key={rank.key}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 flex-wrap">
-                <span>{rank.emoji}</span> {rank.name}
-                <span className="text-xs font-normal text-muted-foreground">
-                  · {target} ganador{target > 1 ? "es" : ""} · premio: {rank.prize}
-                </span>
+          <div
+            key={rank.key}
+            className={isDrawing ? "sorteo-drawing" : undefined}
+            style={{
+              // @ts-expect-error CSS custom property
+              "--sorteo-glow": `${rank.color}99`,
+              position: "relative", overflow: "hidden",
+              borderRadius: 18, padding: "22px 24px",
+              background: `linear-gradient(160deg, color-mix(in srgb, ${rank.color} 10%, #0d1a3d) 0%, #080f24 100%)`,
+              border: `1px solid color-mix(in srgb, ${rank.color} 45%, transparent)`,
+              boxShadow: hasWinners ? `0 0 0 1px color-mix(in srgb, ${rank.color} 40%, transparent), 0 8px 32px -8px color-mix(in srgb, ${rank.color} 35%, transparent)` : undefined,
+            }}
+          >
+            {showConfetti && (
+              <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+                {Array.from({ length: 28 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="sorteo-confetti-piece"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+                      animationDelay: `${Math.random() * 0.4}s`,
+                      transform: `rotate(${Math.random() * 360}deg)`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Header del rango */}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 6 }}>
+              <span style={{ fontSize: 34, lineHeight: 1 }}>{rank.emoji}</span>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: "#fff", margin: 0 }}>
+                  {rank.name}
+                </h2>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", margin: "2px 0 0" }}>
+                  {target} ganador{target > 1 ? "es" : ""} · premio: <strong style={{ color: rank.color }}>{rank.prize}</strong>
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {GATED_RANKS.has(rank.key) && (
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "color-mix(in srgb, var(--primary) 15%, transparent)", color: "var(--primary)" }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
+                    padding: "4px 10px", borderRadius: 999,
+                    background: "rgba(228,45,44,0.16)", color: "#ff6b6a", border: "1px solid rgba(228,45,44,0.4)",
+                  }}>
                     Igual chance
                   </span>
                 )}
                 {WEIGHTED_RANKS.has(rank.key) && (
-                  <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ background: "color-mix(in srgb, #FFD700 20%, transparent)", color: "#B8860B" }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase",
+                    padding: "4px 10px", borderRadius: 999,
+                    background: "rgba(255,215,0,0.16)", color: "#FFD700", border: "1px solid rgba(255,215,0,0.4)",
+                  }}>
                     Ponderado por puntos
                   </span>
                 )}
-              </CardTitle>
-              <CardDescription>
-                {rankWinners.length > 0
-                  ? `Ya sorteado el ${new Date(rankWinners[0].drawn_at).toLocaleString("es-US", { dateStyle: "short", timeStyle: "short" })}.`
-                  : `${pool.length} elegibles en este rango.`}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {rankWinners.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="space-y-1.5">
-                    {rankWinners.map((w) => (
-                      <div key={w.id} className="flex items-center gap-2 p-2 rounded-lg border" style={{ borderColor: "#FFD70055", background: "color-mix(in srgb, #FFD700 8%, transparent)" }}>
-                        <Trophy className="w-4 h-4 text-[#FFD700] shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{w.full_name || w.email}</p>
-                          <p className="text-xs text-muted-foreground truncate">{w.email}</p>
-                        </div>
+              </div>
+            </div>
+
+            {/* Contenido */}
+            {isDrawing ? (
+              <div style={{
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                gap: 10, padding: "36px 16px", textAlign: "center",
+              }}>
+                <Sparkles style={{ width: 26, height: 26, color: rank.color }} className="spin-slow" />
+                <p key={cyclingName} className="sorteo-name-cycling" style={{
+                  fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: "#fff", margin: 0,
+                }}>
+                  {cyclingName || "…"}
+                </p>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  Sorteando…
+                </p>
+              </div>
+            ) : hasWinners ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+                <div style={{ display: "grid", gap: 8, gridTemplateColumns: rankWinners.length > 3 ? "repeat(auto-fill, minmax(180px, 1fr))" : "1fr" }}>
+                  {rankWinners.map((w, i) => (
+                    <div
+                      key={w.id}
+                      className="sorteo-winner-pop"
+                      style={{
+                        animationDelay: `${i * 60}ms`,
+                        display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 12,
+                        background: `linear-gradient(135deg, color-mix(in srgb, ${rank.color} 18%, transparent) 0%, color-mix(in srgb, ${rank.color} 6%, transparent) 100%)`,
+                        border: `1px solid color-mix(in srgb, ${rank.color} 50%, transparent)`,
+                      }}
+                    >
+                      <Trophy style={{ width: 20, height: 20, color: rank.color, flexShrink: 0 }} />
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: 14.5, fontWeight: 700, color: "#fff", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {w.full_name || w.email}
+                        </p>
+                        <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {w.email}
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                  <Button variant="outline" size="sm" disabled={resetting === rank.key} onClick={() => resetRank(rank.key)}>
-                    {resetting === rank.key ? "..." : "Volver a sortear"}
-                  </Button>
+                    </div>
+                  ))}
                 </div>
-              ) : pool.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay elegibles en este rango todavía.</p>
-              ) : (
-                <div className="space-y-3">
-                  <div className="max-h-64 overflow-y-auto space-y-1 pr-1">
-                    {pool.map((u) => (
-                      <label key={u.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-muted cursor-pointer text-sm">
-                        <input
-                          type="checkbox"
-                          checked={!exSet.has(u.id)}
-                          onChange={() => toggleExclude(rank.key, u.id)}
-                        />
-                        <span className="font-medium truncate">{u.full_name || "—"}</span>
-                        <span className="text-muted-foreground truncate">{u.email}</span>
-                        <span className="text-muted-foreground ml-auto shrink-0">{u.total_points.toLocaleString()} pts</span>
-                      </label>
-                    ))}
-                  </div>
-                  <Button
-                    disabled={drawing === rank.key || selectedCount < target}
-                    onClick={() => draw(rank.key)}
-                  >
-                    {drawing === rank.key ? "Sorteando…" : `🎲 Sortear ${target} de ${selectedCount} seleccionados`}
-                  </Button>
+                <button
+                  onClick={() => resetRank(rank.key)}
+                  disabled={resetting === rank.key}
+                  style={{
+                    alignSelf: "flex-start", marginTop: 4, padding: "7px 14px", borderRadius: 8,
+                    background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.7)",
+                    fontSize: 12, fontWeight: 600, cursor: resetting === rank.key ? "default" : "pointer",
+                  }}
+                >
+                  {resetting === rank.key ? "..." : "Volver a sortear"}
+                </button>
+              </div>
+            ) : pool.length === 0 ? (
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", padding: "16px 0 4px" }}>
+                No hay elegibles en este rango todavía.
+              </p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+                <div style={{
+                  maxHeight: 220, overflowY: "auto", display: "flex", flexDirection: "column", gap: 3,
+                  padding: 6, borderRadius: 10, background: "rgba(0,0,0,0.22)",
+                }}>
+                  {pool.map((u) => (
+                    <label
+                      key={u.id}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", borderRadius: 7,
+                        fontSize: 12.5, cursor: "pointer", color: "rgba(255,255,255,0.85)",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!exSet.has(u.id)}
+                        onChange={() => toggleExclude(rank.key, u.id)}
+                      />
+                      <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{u.full_name || "—"}</span>
+                      <span style={{ color: "rgba(255,255,255,0.45)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</span>
+                      <span style={{ color: rank.color, marginLeft: "auto", flexShrink: 0, fontWeight: 700 }}>{u.total_points.toLocaleString()} pts</span>
+                    </label>
+                  ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <button
+                  onClick={() => draw(rank.key)}
+                  disabled={selectedCount < target}
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    alignSelf: "flex-start", padding: "12px 24px", borderRadius: 12,
+                    background: selectedCount < target ? "rgba(255,255,255,0.08)" : rank.color,
+                    color: selectedCount < target ? "rgba(255,255,255,0.4)" : "#0d1a3d",
+                    fontWeight: 800, fontSize: 14.5, border: "none",
+                    cursor: selectedCount < target ? "not-allowed" : "pointer",
+                    boxShadow: selectedCount < target ? undefined : `0 6px 20px -4px color-mix(in srgb, ${rank.color} 60%, transparent)`,
+                  }}
+                >
+                  🎲 Sortear {target} de {selectedCount} seleccionados
+                </button>
+              </div>
+            )}
+          </div>
         );
       })}
     </div>

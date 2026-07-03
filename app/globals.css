@@ -809,4 +809,52 @@
   from { opacity: 0; transform: translateY(24px) scale(0.97); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ── Sorteo de premios (/admin/sorteo) ── */
+
+/* Confetti — piezas cayendo, para el momento de revelar ganador */
+@keyframes sorteo-confetti-fall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+  10%  { opacity: 1; }
+  100% { transform: translateY(220px) rotate(540deg); opacity: 0; }
+}
+.sorteo-confetti-piece {
+  position: absolute;
+  top: 0;
+  width: 7px;
+  height: 12px;
+  border-radius: 2px;
+  animation: sorteo-confetti-fall 1.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+
+/* Card "girando" (sorteando) — pulso más intenso en el color del rango */
+@keyframes sorteo-drawing-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px var(--sorteo-glow, rgba(228,45,44,0.4)), 0 0 24px var(--sorteo-glow, rgba(228,45,44,0.2)); }
+  50%       { box-shadow: 0 0 0 3px var(--sorteo-glow, rgba(228,45,44,0.75)), 0 0 44px var(--sorteo-glow, rgba(228,45,44,0.4)); }
+}
+.sorteo-drawing {
+  animation: sorteo-drawing-pulse 0.6s ease-in-out infinite;
+}
+
+/* Nombre cicleando durante el sorteo (slot-machine) */
+@keyframes sorteo-name-cycle {
+  0%   { opacity: 0; transform: translateY(6px); }
+  20%  { opacity: 1; transform: translateY(0); }
+  80%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+.sorteo-name-cycling {
+  animation: sorteo-name-cycle 0.18s linear;
+}
+
+/* Card de ganador — pop dramático */
+@keyframes sorteo-winner-pop {
+  0%   { opacity: 0; transform: scale(0.85) translateY(8px); }
+  55%  { opacity: 1; transform: scale(1.03) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.sorteo-winner-pop {
+  animation: sorteo-winner-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 .gb-preview-reveal { animation: preview-reveal var(--dur-slow) var(--ease-expo) both; }
