@@ -38,6 +38,8 @@ export async function POST(request: Request) {
     .eq('id', user.id)
     .maybeSingle()
 
+  let grantIdToConsume: string | null = null;
+
   if (!profile?.is_admin) {
     // Gate de regeneración: la PRIMERA generación (la que completa el Día 3)
     // es siempre libre. Cualquier regeneración posterior requiere que el
@@ -77,9 +79,11 @@ export async function POST(request: Request) {
         );
       }
 
-      // Consumimos el permiso ANTES de generar, para que un reintento del
-      // cliente no vuelva a gastar el mismo permiso dos veces.
-      await service.from('web_issue_reports').update({ regen_consumed_at: new Date().toISOString() }).eq('id', grant.id);
+      // El permiso se consume DESPUÉS de generar con éxito (más abajo), no
+      // acá. Si la llamada a la IA falla (rate limit, timeout, error de
+      // Claude), el usuario no debe perder su único permiso sin haber
+      // conseguido nada — solo se gasta cuando el resultado realmente sale.
+      grantIdToConsume = grant.id;
     }
 
     const rl = await checkRateLimit(user.id, 'generate-web', 3, 300)
@@ -227,6 +231,10 @@ ${contactLines ? `\nDatos de contacto REALES (usalos en la sección de contacto 
 
 Generá el sitio web COMERCIAL premium de esta empresa, para atraer clientes, usando EXCLUSIVAMENTE los datos reales de arriba. Que se vea como hecho por la mejor agencia del mundo. Recordá: NADA de NAICS, capability statement ni datos de procurement, y NADA de cifras, certificaciones o testimonios inventados.`
     , 14000);
+
+    if (grantIdToConsume) {
+      await createServiceClient().from('web_issue_reports').update({ regen_consumed_at: new Date().toISOString() }).eq('id', grantIdToConsume);
+    }
 
     return NextResponse.json(result);
   } catch (err) {
