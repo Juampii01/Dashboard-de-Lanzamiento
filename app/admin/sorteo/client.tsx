@@ -166,8 +166,9 @@ export function SorteoClient() {
 
       const newIds = new Set((json.winners as Array<{ id: string }>).map((w) => w.id));
       const freshWinners = (fresh?.winners?.[rankKey] ?? []).filter((w) => newIds.has(w.id));
-      if (freshWinners.length > 1) {
-        // Varios ganadores a la vez (Elevate): revelar de a uno, en vivo.
+      if (freshWinners.length > 0) {
+        // Revelado dramático (flip + chispas + trofeo pulsando) para cada
+        // ganador — 1 sola pantalla si es 1 ganador, "Siguiente →" si son varios.
         setRevealRank(rankKey);
         setRevealQueue(freshWinners);
         setRevealIndex(0);
@@ -346,16 +347,34 @@ export function SorteoClient() {
                 return (
                   <div
                     key={live.winnerId}
-                    className="sorteo-winner-pop"
+                    className="sorteo-reveal-in"
                     style={{
+                      position: "relative", overflow: "visible",
                       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                       gap: 8, padding: "30px 16px", textAlign: "center",
                     }}
                   >
+                    <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className="sorteo-sparkle-piece"
+                          style={{
+                            left: `${50 + (Math.random() - 0.5) * 70}%`,
+                            top: `${28 + (Math.random() - 0.5) * 30}%`,
+                            fontSize: 10 + Math.random() * 8,
+                            color: rank.color,
+                            animationDelay: `${0.1 + Math.random() * 0.3}s`,
+                          }}
+                        >
+                          ✦
+                        </span>
+                      ))}
+                    </div>
                     <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: 0 }}>
                       Ganador {revealIndex + 1} de {revealQueue.length}
                     </p>
-                    <Trophy style={{ width: 32, height: 32, color: rank.color, margin: "6px 0" }} />
+                    <Trophy className="sorteo-trophy-pulse" style={{ width: 32, height: 32, color: rank.color, margin: "6px 0" }} />
                     <p style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800, color: "#fff", margin: 0 }}>
                       {live.full_name || live.email}
                     </p>

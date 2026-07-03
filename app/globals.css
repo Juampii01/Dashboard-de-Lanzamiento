@@ -857,4 +857,36 @@
 .sorteo-winner-pop {
   animation: sorteo-winner-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* Revelado individual (uno por uno) — flip 3D dramático con blur-in */
+@keyframes sorteo-reveal-in {
+  0%   { opacity: 0; transform: perspective(700px) scale(0.55) rotateY(70deg); filter: blur(6px); }
+  55%  { opacity: 1; transform: perspective(700px) scale(1.06) rotateY(-6deg); filter: blur(0); }
+  75%  { transform: perspective(700px) scale(0.98) rotateY(3deg); }
+  100% { opacity: 1; transform: perspective(700px) scale(1) rotateY(0deg); }
+}
+.sorteo-reveal-in {
+  animation: sorteo-reveal-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Trofeo pulsando con brillo mientras se muestra un ganador */
+@keyframes sorteo-trophy-pulse {
+  0%, 100% { filter: drop-shadow(0 0 3px currentColor); transform: scale(1); }
+  50%      { filter: drop-shadow(0 0 12px currentColor); transform: scale(1.18); }
+}
+.sorteo-trophy-pulse {
+  animation: sorteo-trophy-pulse 1.1s ease-in-out infinite;
+}
+
+/* Chispas cortas alrededor del nombre revelado */
+@keyframes sorteo-sparkle-pop {
+  0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+  40%  { opacity: 1; transform: scale(1) rotate(90deg); }
+  100% { opacity: 0; transform: scale(0.4) rotate(180deg); }
+}
+.sorteo-sparkle-piece {
+  position: absolute;
+  animation: sorteo-sparkle-pop 0.9s ease-out forwards;
+  pointer-events: none;
+}
 .gb-preview-reveal { animation: preview-reveal var(--dur-slow) var(--ease-expo) both; }
