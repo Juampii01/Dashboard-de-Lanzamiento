@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * POST /api/proximo-paso/click
- * Body: { button: "pagar_ahora" | "whatsapp" }
+ * Body: { button: "pagar_ahora" | "whatsapp" | "banner_inicio" }
  *
  * Solo tracking — registra que el usuario tocó uno de los botones de
- * "Tu Próximo Paso". No otorga puntos ni cambia ningún estado.
+ * "Tu Próximo Paso" o el banner de la mentoría en Inicio ("banner_inicio").
+ * No otorga puntos ni cambia ningún estado.
  */
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -14,7 +15,8 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = (await req.json().catch(() => ({}))) as { button?: string };
-  const button = body.button === "whatsapp" ? "whatsapp" : body.button === "pagar_ahora" ? "pagar_ahora" : null;
+  const ALLOWED = new Set(["whatsapp", "pagar_ahora", "banner_inicio"]);
+  const button = ALLOWED.has(body.button ?? "") ? (body.button as string) : null;
   if (!button) return NextResponse.json({ error: "bad_button" }, { status: 400 });
 
   const service = createServiceClient();

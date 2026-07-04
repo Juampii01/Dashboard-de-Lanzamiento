@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { Send, MessageCircle, X, FileText, ChevronDown, Play, ArrowRight } from "lucide-react";
+import { Send, MessageCircle, X, FileText, ChevronDown, Play } from "lucide-react";
 import { toast } from "sonner";
 import { FlagBanner } from "@/components/flag-banner";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
 import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
-import type { DayNudge } from "@/lib/day-nudge";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,16 +17,33 @@ interface HomeClientProps {
   avatarUrl?: string | null;
   recordings?: (string | null)[];
   tutorialVideoId?: string;
-  nextDayNudge?: DayNudge;
   isAdmin?: boolean;
   userId?: string;
 }
 
-// ─── Aviso "completá el día pendiente" — modal grande, centrado, NO bloquea:
-// tiene X y se cierra tocando el fondo; el usuario sigue navegando normal. ────
-function DayNudgeBanner({ nudge }: { nudge: NonNullable<DayNudge> }) {
+// Número de WhatsApp de la mentoría "Tu Primer Contrato" (mismo que en
+// /dashboard/proximo-paso). Configurable por env NEXT_PUBLIC_MENTORIA_WHATSAPP.
+const MENTORIA_WHATSAPP = (process.env.NEXT_PUBLIC_MENTORIA_WHATSAPP ?? "17329373088").replace(/\D/g, "");
+
+// ─── Banner de la mentoría "Tu Primer Contrato" (plan de pagos) — modal
+// grande, centrado, NO bloquea: tiene X y se cierra tocando el fondo. ────
+function MentoriaBanner({ fullName }: { fullName: string }) {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed) return null;
+
+  function handleWhatsApp() {
+    fetch("/api/proximo-paso/click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ button: "banner_inicio" }),
+    }).catch(() => {});
+    const name = (fullName || "").trim();
+    const msg = `Hola, soy ${name}. Vengo del dashboard y quiero saber más sobre cómo puedo entrar a Tu Primer Contrato en un plan de pagos.`;
+    const base = MENTORIA_WHATSAPP ? `https://wa.me/${MENTORIA_WHATSAPP}` : "https://wa.me/";
+    window.open(`${base}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+    setDismissed(true);
+  }
+
   return (
     <div
       onClick={() => setDismissed(true)}
@@ -75,37 +91,24 @@ function DayNudgeBanner({ nudge }: { nudge: NonNullable<DayNudge> }) {
           fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 800,
           letterSpacing: "0.16em", textTransform: "uppercase", color: "#E42D2C",
         }}>
-          GovBidder Challenge
+          Programa · Tu Primer Contrato
         </p>
 
         <h2 style={{
           fontFamily: "var(--font-display)", fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800,
-          color: "#fff", lineHeight: 1.15, margin: 0, maxWidth: "22ch",
+          color: "#fff", lineHeight: 1.15, margin: 0, maxWidth: "28ch",
         }}>
-          👋 ¡Notamos que no completaste el Día {nudge.day}!
+          ¿Todavía estás pensando en unirte a Tu Primer Contrato?
         </h2>
 
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", maxWidth: "42ch", margin: 0 }}>
-          {nudge.title} — completalo tocando el botón para seguir sumando puntos.
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", maxWidth: "44ch", margin: 0 }}>
+          Este es el momento ideal. Tenemos una propuesta específicamente para vos, ya que venís directo desde el dashboard.
         </p>
 
-        <Link
-          href={nudge.href}
-          onClick={() => setDismissed(true)}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 9,
-            marginTop: 4, padding: "15px 34px", borderRadius: 13,
-            background: "linear-gradient(135deg, #E42D2C 0%, #A11D2E 100%)",
-            color: "#fff", fontFamily: "var(--font-sans)", fontWeight: 800, fontSize: 15.5,
-            border: "1px solid rgba(255,255,255,0.15)", textDecoration: "none",
-            boxShadow: "0 8px 26px -6px rgba(228,45,44,0.6)",
-          }}
-        >
-          Completar Día {nudge.day} <ArrowRight style={{ width: 17, height: 17 }} />
-        </Link>
+        <WhatsAppButton onClick={handleWhatsApp}>Comunicate ya mismo por WhatsApp</WhatsAppButton>
 
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0 }}>
-          Podés cerrar esta ventana y seguir navegando — te lo vamos a recordar hasta que lo completes.
+          Enterate de la propuesta ahora mismo.
         </p>
       </div>
     </div>
@@ -1316,7 +1319,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId, nextDayNudge, isAdmin = false, userId = "" }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId, isAdmin = false, userId = "" }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
@@ -1340,8 +1343,8 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
         </p>
       </FlagBanner>
 
-      {/* Aviso no bloqueante: completá el próximo día pendiente */}
-      {!devMode && nextDayNudge && <DayNudgeBanner nudge={nextDayNudge} />}
+      {/* Banner no bloqueante: propuesta de la mentoría "Tu Primer Contrato" */}
+      {!devMode && <MentoriaBanner fullName={fullName} />}
 
       {/* 1. Points card + botones de grabaciones (al lado, misma altura, compacto) */}
       {!devMode && (

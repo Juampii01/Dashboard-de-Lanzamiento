@@ -15,6 +15,7 @@ interface Click {
 const BUTTON_LABEL: Record<string, string> = {
   pagar_ahora: "💳 Pagar ahora",
   whatsapp: "💬 Hablar con el equipo",
+  banner_inicio: "🏠 Banner Inicio (mentoría)",
 };
 
 export function ProximoPasoClicksPanel() {
@@ -34,16 +35,17 @@ export function ProximoPasoClicksPanel() {
   }
 
   if (clicks.length === 0) {
-    return <p className="text-sm text-muted-foreground">Todavía nadie tocó ninguno de los dos botones.</p>;
+    return <p className="text-sm text-muted-foreground">Todavía nadie tocó ninguno de los botones.</p>;
   }
 
   const pagoCount = clicks.filter((c) => c.button === "pagar_ahora").length;
   const whatsappCount = clicks.filter((c) => c.button === "whatsapp").length;
+  const bannerCount = clicks.filter((c) => c.button === "banner_inicio").length;
 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        💳 Pagar ahora: <strong>{pagoCount}</strong> &nbsp;·&nbsp; 💬 WhatsApp: <strong>{whatsappCount}</strong>
+        💳 Pagar ahora: <strong>{pagoCount}</strong> &nbsp;·&nbsp; 💬 WhatsApp: <strong>{whatsappCount}</strong> &nbsp;·&nbsp; 🏠 Banner Inicio: <strong>{bannerCount}</strong>
       </p>
       <div className="max-h-80 overflow-y-auto space-y-1.5 pr-1">
         {clicks.map((c) => (
