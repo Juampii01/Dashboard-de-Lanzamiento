@@ -69,13 +69,17 @@ export function SorteoClient() {
   const quickIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function quickDraw() {
-    const names = quickNamesText.split("\n").map((s) => s.trim()).filter(Boolean);
+    const allNames = quickNamesText.split("\n").map((s) => s.trim()).filter(Boolean);
+    // Nunca repetir a alguien que ya salió sorteado en una tanda anterior
+    // (ej.: sortear 9 y después 1 sin que el 1 pueda ser uno de los 9).
+    const alreadyDrawn = new Set(quickResults.map((n) => n.toLowerCase()));
+    const names = allNames.filter((n) => !alreadyDrawn.has(n.toLowerCase()));
     if (names.length === 0) {
       toast.error("Pegá al menos un nombre.");
       return;
     }
     if (names.length < quickCount) {
-      toast.error(`Hacen falta ${quickCount} y solo hay ${names.length} nombres.`);
+      toast.error(`Hacen falta ${quickCount} y solo quedan ${names.length} nombres disponibles (sin contar los ya sorteados).`);
       return;
     }
     const ok = await askConfirm(`¿Sortear ${quickCount} ganador${quickCount > 1 ? "es" : ""} entre los nombres pegados?`);
