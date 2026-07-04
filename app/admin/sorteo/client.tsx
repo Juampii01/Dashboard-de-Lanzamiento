@@ -159,12 +159,18 @@ export function SorteoClient() {
     const displayCount = usingPresentMode ? pool.length : (displayCounts[rankKey] ?? pool.length);
 
     if (allowedIds.length < remaining) {
-      toast.error(`Faltan candidatos: hacen falta ${remaining} y hay ${displayCount} elegibles.`);
+      toast.error(
+        usingPresentMode
+          ? `Faltan candidatos: hacen falta ${remaining} y no alcanza con la lista de presentes.`
+          : `Faltan candidatos: hacen falta ${remaining} y hay ${displayCount} elegibles.`
+      );
       return;
     }
     const confirmMsg = pendingCount > 0
       ? `Hay ${pendingCount} sin reclamar — quedan eliminados y se sortean ${remaining} reemplazo${remaining > 1 ? "s" : ""}. ¿Confirmás?`
-      : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${displayCount} ${usingPresentMode ? "presentes en la llamada" : "elegibles"}?`;
+      : usingPresentMode
+        ? `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre los presentes en la llamada?`
+        : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${displayCount} elegibles?`;
     if (!(await askConfirm(confirmMsg))) return;
 
     setDrawingRank(rankKey);
@@ -321,7 +327,7 @@ export function SorteoClient() {
               }}
             />
             <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", margin: "6px 0 0" }}>
-              {presentEmails.size} email{presentEmails.size === 1 ? "" : "s"} pegado{presentEmails.size === 1 ? "" : "s"}.
+              {presentEmails.size > 0 ? "Lista cargada." : ""}
             </p>
           </>
         )}
@@ -478,7 +484,7 @@ export function SorteoClient() {
                   <>
                     <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", margin: 0 }}>
                       {usingPresentMode
-                        ? `Sorteando entre ${displayCount} presente${displayCount === 1 ? "" : "s"} en la llamada (cualquier rango).`
+                        ? `Sorteando entre los presentes en la llamada (cualquier rango).`
                         : `Sorteando entre ${displayCount} participante${displayCount === 1 ? "" : "s"} de este rango.`}
                     </p>
                     <button
