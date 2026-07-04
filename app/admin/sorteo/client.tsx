@@ -47,7 +47,33 @@ export function SorteoClient() {
   const [revealRank, setRevealRank] = useState<string | null>(null);
   const [revealQueue, setRevealQueue] = useState<Winner[]>([]);
   const [revealIndex, setRevealIndex] = useState(0);
+  // Modo "presentes": si se completa, Elevate y Prime dejan de sortear por
+  // rango de puntos y sortean entre TODA esta lista (pegada por email),
+  // sin importar el rango real de cada uno — para cuando solo importa
+  // quién está en la llamada, no cuántos puntos tiene.
+  const [presentEmailsText, setPresentEmailsText] = useState("");
+  const [presentModeOn, setPresentModeOn] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const presentEmails = new Set(
+    presentEmailsText.split(/[\n,;]+/).map((s) => s.trim().toLowerCase()).filter(Boolean)
+  );
+
+  function effectivePool(rankKey: string): EligibleUser[] {
+    if (presentModeOn && presentEmails.size > 0 && (rankKey === "elevate" || rankKey === "prime")) {
+      const all = Object.values(pools).flat();
+      const seen = new Set<string>();
+      const union: EligibleUser[] = [];
+      for (const u of all) {
+        if (presentEmails.has(u.email.toLowerCase()) && !seen.has(u.id)) {
+          seen.add(u.id);
+          union.push(u);
+        }
+      }
+      return union;
+    }
+    return pools[rankKey] ?? [];
+  }
 
   function askConfirm(message: string, opts?: { danger?: boolean }): Promise<boolean> {
     return new Promise((resolve) => {
@@ -114,7 +140,7 @@ export function SorteoClient() {
   }
 
   async function draw(rankKey: string) {
-    const pool = pools[rankKey] ?? [];
+    const pool = effectivePool(rankKey);
     const rankWinners = winners[rankKey] ?? [];
     const target = TARGET_COUNT[rankKey] ?? 1;
     const claimedCount = rankWinners.filter((w) => w.status === "claimed").length;
@@ -124,10 +150,13 @@ export function SorteoClient() {
     // Todo el pool elegible entra automáticamente — no se elige a mano ni se
     // muestran nombres en pantalla (esto se proyecta en vivo).
     const allowedIds = pool.map((u) => u.id);
+    const usingPresentMode = presentModeOn && presentEmails.size > 0 && (rankKey === "elevate" || rankKey === "prime");
     // Para todo lo que se vea en pantalla (modal, toasts) usamos SIEMPRE
     // displayCount — el mismo número que la página pública de ranking — para
     // no filtrar por dentro que el pool real (allowedIds) es más chico.
-    const displayCount = displayCounts[rankKey] ?? pool.length;
+    // Excepción: en modo presentes el número YA es intencional (lista de
+    // Zoom), no hay nada que ocultar ahí.
+    const displayCount = usingPresentMode ? pool.length : (displayCounts[rankKey] ?? pool.length);
 
     if (allowedIds.length < remaining) {
       toast.error(`Faltan candidatos: hacen falta ${remaining} y hay ${displayCount} elegibles.`);
@@ -135,7 +164,7 @@ export function SorteoClient() {
     }
     const confirmMsg = pendingCount > 0
       ? `Hay ${pendingCount} sin reclamar — quedan eliminados y se sortean ${remaining} reemplazo${remaining > 1 ? "s" : ""}. ¿Confirmás?`
-      : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${displayCount} elegibles?`;
+      : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${displayCount} ${usingPresentMode ? "presentes en la llamada" : "elegibles"}?`;
     if (!(await askConfirm(confirmMsg))) return;
 
     setDrawingRank(rankKey);
@@ -252,10 +281,57 @@ export function SorteoClient() {
         </p>
       </div>
 
+      {/* ── Modo presentes (opcional) ── */}
+      <div
+        style={{
+          borderRadius: 14, padding: "16px 18px",
+          background: presentModeOn ? "rgba(255,215,0,0.06)" : "rgba(255,255,255,0.02)",
+          border: `1px solid ${presentModeOn ? "rgba(255,215,0,0.35)" : "rgba(255,255,255,0.1)"}`,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10, marginBottom: presentModeOn ? 10 : 0 }}>
+          <div>
+            <p style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", margin: 0 }}>🎥 Modo presentes (Elevate + Prime)</p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: "2px 0 0" }}>
+              Pegá los emails de quienes están en la llamada. Si lo activás, Elevate y Prime sortean entre TODOS ellos
+              sin importar su rango real de puntos.
+            </p>
+          </div>
+          <button
+            onClick={() => setPresentModeOn((v) => !v)}
+            style={{
+              padding: "8px 16px", borderRadius: 999, fontSize: 12.5, fontWeight: 800, border: "none", cursor: "pointer", flexShrink: 0,
+              background: presentModeOn ? "#FFD700" : "rgba(255,255,255,0.1)",
+              color: presentModeOn ? "#0d1a3d" : "rgba(255,255,255,0.7)",
+            }}
+          >
+            {presentModeOn ? "✓ Activado" : "Activar"}
+          </button>
+        </div>
+        {presentModeOn && (
+          <>
+            <textarea
+              value={presentEmailsText}
+              onChange={(e) => setPresentEmailsText(e.target.value)}
+              placeholder="un-email@ejemplo.com&#10;otro-email@ejemplo.com&#10;..."
+              rows={4}
+              style={{
+                width: "100%", borderRadius: 10, padding: "10px 12px", fontSize: 13, fontFamily: "monospace",
+                background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", resize: "vertical",
+              }}
+            />
+            <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.45)", margin: "6px 0 0" }}>
+              {presentEmails.size} email{presentEmails.size === 1 ? "" : "s"} pegado{presentEmails.size === 1 ? "" : "s"}.
+            </p>
+          </>
+        )}
+      </div>
+
       {/* ── Rangos ── */}
       {RANKS.map((rank) => {
-        const pool = pools[rank.key] ?? [];
-        const displayCount = displayCounts[rank.key] ?? pool.length;
+        const pool = effectivePool(rank.key);
+        const usingPresentMode = presentModeOn && presentEmails.size > 0 && (rank.key === "elevate" || rank.key === "prime");
+        const displayCount = usingPresentMode ? pool.length : (displayCounts[rank.key] ?? pool.length);
         const rankWinners = winners[rank.key] ?? [];
         const target = TARGET_COUNT[rank.key] ?? 1;
         const isDrawing = drawingRank === rank.key;
@@ -401,7 +477,9 @@ export function SorteoClient() {
                 {!isComplete && pool.length > 0 && (
                   <>
                     <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-                      Sorteando entre {displayCount} participante{displayCount === 1 ? "" : "s"} de este rango.
+                      {usingPresentMode
+                        ? `Sorteando entre ${displayCount} presente${displayCount === 1 ? "" : "s"} en la llamada (cualquier rango).`
+                        : `Sorteando entre ${displayCount} participante${displayCount === 1 ? "" : "s"} de este rango.`}
                     </p>
                     <button
                       onClick={() => draw(rank.key)}
