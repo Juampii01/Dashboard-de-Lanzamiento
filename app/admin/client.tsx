@@ -58,6 +58,7 @@ import { MagicBlastPanel } from "@/components/magic-blast-panel";
 import { ReminderBlastPanel } from "@/components/reminder-blast-panel";
 import { WebReportsAdminPanel } from "@/components/web-reports-admin-panel";
 import { ProximoPasoClicksPanel } from "@/components/proximo-paso-clicks-panel";
+import { MentoriaBlastPanel } from "@/components/mentoria-blast-panel";
 import { breakdownRows, type Breakdown } from "@/lib/points-breakdown";
 import Link from "next/link";
 import { isExpired } from "@/lib/utils";
@@ -1430,6 +1431,21 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
           </CardHeader>
           <CardContent>
             <ProximoPasoClicksPanel />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="w-5 h-5 text-[#25D366]" />
+              Propuesta de Mentoría por Email
+            </CardTitle>
+            <CardDescription>
+              Email masivo a todos con la propuesta de &quot;Tu Primer Contrato&quot; en plan de pagos, con botón directo a WhatsApp.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <MentoriaBlastPanel />
           </CardContent>
         </Card>
 
