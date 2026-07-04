@@ -55,6 +55,60 @@ export function SorteoClient() {
   const [presentModeOn, setPresentModeOn] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Sorteo rápido por nombres — no depende de la base de datos ni de
+  // cuentas reales. Solo toma la lista de texto pegada, sortea al azar y
+  // revela uno por uno con la misma animación. No se guarda en ningún lado.
+  const [quickNamesText, setQuickNamesText] = useState("");
+  const [quickCount, setQuickCount] = useState(9);
+  const [quickDrawing, setQuickDrawing] = useState(false);
+  const [quickCycling, setQuickCycling] = useState("");
+  const [quickRevealQueue, setQuickRevealQueue] = useState<string[]>([]);
+  const [quickRevealIndex, setQuickRevealIndex] = useState(0);
+  const [quickConfetti, setQuickConfetti] = useState(false);
+  const [quickResults, setQuickResults] = useState<string[]>([]);
+  const quickIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  async function quickDraw() {
+    const names = quickNamesText.split("\n").map((s) => s.trim()).filter(Boolean);
+    if (names.length === 0) {
+      toast.error("Pegá al menos un nombre.");
+      return;
+    }
+    if (names.length < quickCount) {
+      toast.error(`Hacen falta ${quickCount} y solo hay ${names.length} nombres.`);
+      return;
+    }
+    const ok = await askConfirm(`¿Sortear ${quickCount} ganador${quickCount > 1 ? "es" : ""} entre los nombres pegados?`);
+    if (!ok) return;
+
+    setQuickDrawing(true);
+    setQuickConfetti(false);
+    quickIntervalRef.current = setInterval(() => {
+      setQuickCycling(names[Math.floor(Math.random() * names.length)] || "…");
+    }, 90);
+
+    await new Promise((r) => setTimeout(r, 1400));
+    if (quickIntervalRef.current) clearInterval(quickIntervalRef.current);
+
+    const shuffled = [...names];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const winners = shuffled.slice(0, quickCount);
+    setQuickDrawing(false);
+    setQuickRevealQueue(winners);
+    setQuickRevealIndex(0);
+  }
+
+  function finishQuickReveal() {
+    setQuickResults((prev) => [...prev, ...quickRevealQueue]);
+    setQuickRevealQueue([]);
+    setQuickRevealIndex(0);
+    setQuickConfetti(true);
+    setTimeout(() => setQuickConfetti(false), 1700);
+  }
+
   const presentEmails = new Set(
     presentEmailsText.split(/[\n,;]+/).map((s) => s.trim().toLowerCase()).filter(Boolean)
   );
@@ -286,6 +340,197 @@ export function SorteoClient() {
           no reclamaron quedan eliminados y se sortean reemplazos solo para los lugares que faltan.
         </p>
       </div>
+
+      {/* ── Sorteo rápido por nombres (sin base de datos) ── */}
+      <div
+        className={quickDrawing ? "sorteo-drawing" : undefined}
+        style={{
+          position: "relative", overflow: "hidden",
+          borderRadius: 18, padding: "22px 24px",
+          background: "linear-gradient(160deg, color-mix(in srgb, #FFD700 10%, #0d1a3d) 0%, #080f24 100%)",
+          border: "1px solid color-mix(in srgb, #FFD700 45%, transparent)",
+          // @ts-expect-error CSS custom property
+          "--sorteo-glow": "#FFD70099",
+        }}
+      >
+        {quickConfetti && (
+          <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+            {Array.from({ length: 28 }).map((_, i) => (
+              <span
+                key={i}
+                className="sorteo-confetti-piece"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+                  animationDelay: `${Math.random() * 0.4}s`,
+                  transform: `rotate(${Math.random() * 360}deg)`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 800, color: "#fff", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 8 }}>
+          🎲 Sorteo rápido por nombres
+        </h2>
+        <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", margin: "0 0 14px" }}>
+          Independiente de la base de datos — pegá cualquier lista de nombres, sortea entre ellos y no se guarda en ningún lado.
+        </p>
+
+        {quickDrawing ? (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: "36px 16px", textAlign: "center" }}>
+            <Sparkles style={{ width: 26, height: 26, color: "#FFD700" }} className="spin-slow" />
+            <p key={quickCycling} className="sorteo-name-cycling" style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 800, color: "#fff", margin: 0 }}>
+              {quickCycling || "…"}
+            </p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0, letterSpacing: "0.04em", textTransform: "uppercase" }}>Sorteando…</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <textarea
+              value={quickNamesText}
+              onChange={(e) => setQuickNamesText(e.target.value)}
+              placeholder={"Un nombre por línea…"}
+              rows={6}
+              style={{
+                width: "100%", borderRadius: 10, padding: "10px 12px", fontSize: 13,
+                background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", resize: "vertical",
+              }}
+            />
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <label style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", gap: 6 }}>
+                Ganadores:
+                <input
+                  type="number"
+                  min={1}
+                  value={quickCount}
+                  onChange={(e) => setQuickCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  style={{
+                    width: 60, borderRadius: 8, padding: "6px 8px", fontSize: 13,
+                    background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff",
+                  }}
+                />
+              </label>
+              <button
+                onClick={quickDraw}
+                style={{
+                  padding: "10px 20px", borderRadius: 10, fontSize: 14, fontWeight: 800, border: "none",
+                  background: "#FFD700", color: "#0d1a3d", cursor: "pointer",
+                }}
+              >
+                🎲 Sortear
+              </button>
+              {quickResults.length > 0 && (
+                <button
+                  onClick={() => setQuickResults([])}
+                  style={{ padding: "8px 14px", borderRadius: 8, fontSize: 11.5, background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}
+                >
+                  Limpiar resultados
+                </button>
+              )}
+            </div>
+
+            {quickResults.length > 0 && (
+              <div style={{ display: "grid", gap: 6, gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", marginTop: 4 }}>
+                {quickResults.map((name, i) => (
+                  <div
+                    key={i}
+                    className="sorteo-winner-pop"
+                    style={{
+                      animationDelay: `${i * 40}ms`,
+                      display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", borderRadius: 10,
+                      background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)",
+                    }}
+                  >
+                    <Trophy style={{ width: 16, height: 16, color: "#FFD700", flexShrink: 0 }} />
+                    <p style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {name}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Ventana emergente del revelado del sorteo rápido */}
+      {quickRevealQueue.length > 0 && (() => {
+        const current = quickRevealQueue[quickRevealIndex];
+        const isLast = quickRevealIndex + 1 >= quickRevealQueue.length;
+        return (
+          <div
+            style={{
+              position: "fixed", inset: 0, zIndex: 99996,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "rgba(4,8,20,0.82)", backdropFilter: "blur(4px)", padding: 20,
+            }}
+          >
+            <div
+              style={{
+                position: "relative", overflow: "visible",
+                width: "100%", maxWidth: 440, borderRadius: 20, padding: "34px 28px 28px",
+                background: "radial-gradient(500px circle at 50% 0%, rgba(255,215,0,0.18), transparent 60%), linear-gradient(160deg, color-mix(in srgb, #FFD700 12%, #0d1a3d) 0%, #080f24 100%)",
+                border: "1px solid rgba(255,215,0,0.5)",
+                boxShadow: "0 24px 70px -14px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,215,0,0.3)",
+              }}
+            >
+              <p style={{
+                fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
+                letterSpacing: "0.14em", textTransform: "uppercase", color: "#FFD700", margin: "0 0 4px", textAlign: "center",
+              }}>
+                🎲 Sorteo rápido
+              </p>
+              <div
+                key={`${current}-${quickRevealIndex}`}
+                className="sorteo-reveal-in"
+                style={{
+                  position: "relative", overflow: "visible",
+                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                  gap: 8, padding: "18px 4px 6px", textAlign: "center",
+                }}
+              >
+                <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <span
+                      key={i}
+                      className="sorteo-sparkle-piece"
+                      style={{
+                        left: `${50 + (Math.random() - 0.5) * 80}%`,
+                        top: `${35 + (Math.random() - 0.5) * 40}%`,
+                        fontSize: 10 + Math.random() * 9,
+                        color: "#FFD700",
+                        animationDelay: `${0.1 + Math.random() * 0.3}s`,
+                      }}
+                    >
+                      ✦
+                    </span>
+                  ))}
+                </div>
+                <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", margin: 0 }}>
+                  Ganador {quickRevealIndex + 1} de {quickRevealQueue.length}
+                </p>
+                <Trophy className="sorteo-trophy-pulse" style={{ width: 38, height: 38, color: "#FFD700", margin: "8px 0" }} />
+                <p style={{ fontFamily: "var(--font-display)", fontSize: 27, fontWeight: 800, color: "#fff", margin: 0 }}>
+                  {current}
+                </p>
+
+                <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap", justifyContent: "center" }}>
+                  <button
+                    onClick={() => (isLast ? finishQuickReveal() : setQuickRevealIndex((i) => i + 1))}
+                    style={{
+                      padding: "11px 20px", borderRadius: 10, fontSize: 14, fontWeight: 800, border: "none",
+                      background: isLast ? "#3ddc84" : "#FFD700", color: "#0d1a3d", cursor: "pointer",
+                    }}
+                  >
+                    {isLast ? "Finalizar ✓" : "Siguiente →"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Modo presentes (opcional) ── */}
       <div
