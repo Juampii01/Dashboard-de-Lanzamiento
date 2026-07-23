@@ -168,6 +168,20 @@ export default async function DashboardLayout({
     }
   }
 
+  // Cierre total de acceso (app_settings.access_closed = "true"): el admin
+  // apagó el challenge para todos menos para sí mismo. Chequea ANTES que
+  // expirado/paywall para que ningún caso se cuele.
+  if (!devMode && profile && !profile.is_admin) {
+    const { data: closedSetting } = await createServiceClient()
+      .from("app_settings")
+      .select("value")
+      .eq("key", "access_closed")
+      .maybeSingle();
+    if ((closedSetting as { value?: string } | null)?.value === "true") {
+      redirect("/acceso-cerrado");
+    }
+  }
+
   if (profile && isExpired(profile.access_expires_at)) {
     redirect("/dashboard/expirado");
   }

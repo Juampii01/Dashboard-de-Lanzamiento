@@ -766,6 +766,60 @@ function PausePointsPanel() {
   );
 }
 
+function AccessClosedPanel() {
+  const [closed, setClosed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((d) => setClosed(d?.access_closed === "true"))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function toggle(val: boolean) {
+    if (val && !confirm(
+      "¿Cerrar el acceso al dashboard para TODOS los usuarios (menos admins)? " +
+      "Van a ver una pantalla de \"el challenge finalizó\" en vez del dashboard. Podés reabrirlo cuando quieras."
+    )) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "access_closed", value: val ? "true" : "false" }),
+      });
+      if (!res.ok) throw new Error();
+      setClosed(val);
+      toast.success(val ? "🔒 Acceso cerrado — nadie (menos admins) puede entrar al dashboard." : "🔓 Acceso reabierto.");
+    } catch {
+      toast.error("No se pudo cambiar el acceso.");
+    }
+    setSaving(false);
+  }
+
+  if (loading) return <p className="text-sm text-muted-foreground">Cargando…</p>;
+
+  return (
+    <div className="flex items-center justify-between p-4 border rounded-xl bg-card" style={{ borderColor: closed ? "#D7263D" : "#1E3A5C" }}>
+      <div>
+        <p className="font-semibold text-sm">{closed ? "🔒 Acceso CERRADO" : "🔓 Acceso abierto (normal)"}</p>
+        <p className="text-xs text-muted-foreground">
+          {closed ? "Los usuarios ven \"el challenge finalizó\" al entrar. Los admins entran normal." : "Todos pueden entrar al dashboard con normalidad."}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <Badge className={closed ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}>
+          {closed ? "Cerrado" : "Abierto"}
+        </Badge>
+        <Switch checked={closed} onCheckedChange={toggle} disabled={saving} />
+      </div>
+    </div>
+  );
+}
+
 interface RecordingRow { recording_number: number; youtube_url?: string | null; }
 
 function RecordingsAdminPanel() {
@@ -1495,6 +1549,22 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
           </CardHeader>
           <CardContent>
             <DashboardLockControl />
+          </CardContent>
+        </Card>
+
+        <Card style={{ borderColor: "#D7263D55" }}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5 text-[#D7263D]" />
+              Cierre Total de Acceso
+            </CardTitle>
+            <CardDescription>
+              Cierra el dashboard para todos los usuarios (menos admins) de forma permanente — para cuando el challenge terminó
+              del todo. Los usuarios ven una pantalla de "el challenge finalizó" en vez del dashboard. Reversible en cualquier momento.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AccessClosedPanel />
           </CardContent>
         </Card>
 
