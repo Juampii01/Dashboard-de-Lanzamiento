@@ -182,7 +182,10 @@ export default async function DashboardLayout({
     }
   }
 
-  if (profile && isExpired(profile.access_expires_at)) {
+  // Los admins NUNCA vencen — antes esto se chequeaba para todos por igual,
+  // así que un admin cuyo access_expires_at ya pasó (ej. Santo) quedaba
+  // bloqueado igual que un usuario común. Bug real, no cosmético.
+  if (profile && !profile.is_admin && isExpired(profile.access_expires_at)) {
     redirect("/dashboard/expirado");
   }
 
