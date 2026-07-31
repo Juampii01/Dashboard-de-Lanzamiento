@@ -1018,6 +1018,7 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
   const nonAdminUsers = users.filter((u) => !u.is_admin);
   const paidUsers = nonAdminUsers.filter((u) => !u.is_student);
   const freeUsers = nonAdminUsers.filter((u) => u.is_student);
+  const adminUsers = users.filter((u) => u.is_admin);
   const todayStr = new Date().toDateString();
 
   function userMetrics(list: User[]) {
@@ -1242,6 +1243,7 @@ export function AdminClient({ initialToggles, users, allProgress, sorteos }: Adm
         {([
           { key: "paid", title: "Progreso Global — Usuarios Pagos", list: paidUsers },
           { key: "free", title: "Progreso Global — Usuarios Gratuitos", list: freeUsers },
+          { key: "admin", title: "Equipo (Admins)", list: adminUsers },
         ] as const).map(({ key, title, list }) => (
           <Card key={key}>
             <CardHeader>
