@@ -1,45 +1,44 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Camera, Zap, Globe } from "lucide-react";
 import { DailyMissionAdmin } from "@/components/daily-mission-admin";
 import { RafagaAdminPanel } from "@/components/rafaga-admin-panel";
+import { WebReportsAdminPanel } from "@/components/web-reports-admin-panel";
+import { PageHeader, Panel } from "../_components/ui";
 
 export default function AdminMisionesPage() {
   return (
-    <div className="space-y-6">
-      <Link
-        href="/admin"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Panel admin
-      </Link>
+    <>
+      <PageHeader
+        eyebrow="Durante el challenge"
+        title="Misiones"
+        description="Publicá y moderá misiones, programá ráfagas y seguí los reportes de la web del Día 3."
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">📸 Misiones Diarias</CardTitle>
-          <CardDescription>
-            Publicá la misión del día (los participantes pueden responder con captura, link o texto).
-            Aceptar deja la respuesta como cumplida y borra el contenido; rechazar resta los puntos y
-            la persona puede reintentar. Al publicar una nueva misión se limpian las respuestas anteriores.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="space-y-6">
+        <Panel
+          icon={Camera}
+          title="Misión diaria"
+          description="Los participantes responden con captura, link o texto. Publicar una nueva limpia las respuestas anteriores."
+        >
           <DailyMissionAdmin />
-        </CardContent>
-      </Card>
+        </Panel>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">⚡ Misiones Ráfaga</CardTitle>
-          <CardDescription>
-            Programá misiones de ventana corta. Los participantes las ven en Misiones Extra y pueden
-            reclamar los puntos durante la ventana. Nada se muestra hasta que empiece.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Panel
+          icon={Zap}
+          title="Misiones ráfaga"
+          description="Misiones de ventana corta. Aparecen en Misiones Extra recién cuando empieza la ventana."
+        >
           <RafagaAdminPanel />
-        </CardContent>
-      </Card>
-    </div>
+        </Panel>
+
+        <Panel
+          icon={Globe}
+          tone="danger"
+          title="Reportes de la web (Día 3)"
+          description="Participantes cuyo sitio no quedó bien. Pueden regenerarla solos; esto es para seguimiento y ayuda puntual."
+        >
+          <WebReportsAdminPanel />
+        </Panel>
+      </div>
+    </>
   );
 }

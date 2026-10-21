@@ -1,5 +1,7 @@
 "use client";
 
+import { PageHeader } from "../_components/ui";
+
 import { useState } from "react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -815,12 +817,11 @@ export function GuiaClient() {
     <div className="space-y-6">
 
       {/* Page header */}
-      <div>
-        <h1 className="text-2xl font-bold">Guía del Sistema</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Referencia completa del dashboard — cómo funciona para usuarios y administradores.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Ayuda"
+        title="Guía del sistema"
+        description="Referencia completa del dashboard: cómo funciona para participantes y administradores."
+      />
 
       {/* Quick nav cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

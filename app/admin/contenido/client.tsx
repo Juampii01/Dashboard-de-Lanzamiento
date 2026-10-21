@@ -36,17 +36,19 @@ interface Day {
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 
+// Paleta ligada a los tokens del tema (antes eran hex del diseño oscuro viejo y
+// el texto quedaba casi blanco sobre fondo claro).
 const P = {
-  bg:      "#061528",
-  surface: "#0A2540",
-  border:  "#1E3A5C",
-  cyan:    "#00D4FF",
-  green:   "#00D67A",
-  orange:  "#FF9500",
-  red:     "#FF453A",
-  text:    "#E8F0FE",
-  muted:   "#8DA2C4",
-  subtle:  "#C9D6EC",
+  bg:      "var(--background)",
+  surface: "var(--card)",
+  border:  "var(--border)",
+  cyan:    "var(--admin-accent)",
+  green:   "var(--success)",
+  orange:  "#C77700",
+  red:     "var(--primary)",
+  text:    "var(--foreground)",
+  muted:   "var(--muted-foreground)",
+  subtle:  "var(--muted-foreground)",
 };
 
 // ─── Tiny helpers ─────────────────────────────────────────────────────────────
@@ -69,7 +71,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "#0F1E30",
+  background: "var(--background)",
   border: `1px solid ${P.border}`,
   borderRadius: "6px",
   color: P.text,
@@ -186,8 +188,8 @@ function QuizBlock({
   return (
     <div
       style={{
-        background: "rgba(0,212,255,0.04)",
-        border: `1px solid rgba(0,212,255,0.12)`,
+        background: "rgba(21,41,120,0.04)",
+        border: `1px solid rgba(21,41,120,0.12)`,
         borderRadius: "8px",
         padding: "12px",
         display: "flex",
@@ -228,7 +230,7 @@ function QuizBlock({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
           <Label>Opciones</Label>
           {q.options.length < 5 && (
-            <button style={btnStyle(P.cyan, "rgba(0,212,255,0.1)")} onClick={addOption}>
+            <button style={btnStyle(P.cyan, "rgba(21,41,120,0.1)")} onClick={addOption}>
               + Agregar opción
             </button>
           )}
@@ -359,14 +361,14 @@ function NewQuizForm({
 
   if (!open) {
     return (
-      <button style={btnStyle(P.cyan, "rgba(0,212,255,0.08)")} onClick={() => setOpen(true)}>
+      <button style={btnStyle(P.cyan, "rgba(21,41,120,0.08)")} onClick={() => setOpen(true)}>
         + Nueva pregunta
       </button>
     );
   }
 
   return (
-    <div style={{ background: "rgba(0,214,122,0.04)", border: `1px solid rgba(0,214,122,0.15)`, borderRadius: "8px", padding: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
+    <div style={{ background: "rgba(22,166,95,0.04)", border: `1px solid rgba(22,166,95,0.15)`, borderRadius: "8px", padding: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <Label>Nueva pregunta (orden {nextOrder})</Label>
         <button style={btnStyle(P.muted, "transparent")} onClick={() => setOpen(false)}>Cancelar</button>
@@ -467,7 +469,7 @@ function CapsuleEditor({ capsule: initial }: { capsule: Capsule }) {
       {/* Capsule header */}
       <div
         style={{
-          background: "rgba(0,212,255,0.06)",
+          background: "rgba(21,41,120,0.06)",
           borderBottom: `1px solid ${P.border}`,
           padding: "10px 14px",
           display: "flex",
@@ -576,7 +578,7 @@ function CapsuleEditor({ capsule: initial }: { capsule: Capsule }) {
         {/* Save capsule */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button
-            style={btnStyle("#000", capChanged ? P.cyan : P.border)}
+            style={btnStyle(capChanged ? "#fff" : P.muted, capChanged ? P.cyan : P.border)}
             onClick={saveCapsule}
             disabled={!capChanged || saving}
           >
@@ -645,7 +647,7 @@ function DayAccordion({ day }: { day: Day }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          background: "rgba(0,212,255,0.06)",
+          background: "rgba(21,41,120,0.06)",
           border: "none",
           borderBottom: open ? `1px solid ${P.border}` : "none",
           padding: "14px 18px",
@@ -681,25 +683,6 @@ function DayAccordion({ day }: { day: Day }) {
 export function ContentAdminClient({ days }: { days: Day[] }) {
   return (
     <div style={{ color: P.text, fontFamily: "var(--font-sans)" }}>
-      {/* Page header */}
-      <div style={{ marginBottom: "24px" }}>
-        <h1
-          style={{
-            fontFamily: "var(--font-arcade)",
-            fontSize: "18px",
-            color: P.cyan,
-            letterSpacing: "0.08em",
-            marginBottom: "4px",
-          }}
-        >
-          📺 CONTENIDO DE VIDEOS
-        </h1>
-        <p style={{ fontSize: "13px", color: P.subtle }}>
-          Editá URLs, tipos, orientaciones y preguntas del quiz por cada cápsula de video.
-          Los cambios se guardan en Supabase de forma inmediata.
-        </p>
-      </div>
-
       {/* Legend */}
       <div
         style={{

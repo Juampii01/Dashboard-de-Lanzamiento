@@ -94,7 +94,7 @@ export function WebReportsAdminPanel() {
               <div
                 key={r.id}
                 className="flex items-start justify-between gap-3 p-3 border rounded-xl bg-card"
-                style={{ borderColor: "#1E3A5C" }}
+                style={{ borderColor: "var(--border)" }}
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{r.full_name || r.email || "—"}</p>
@@ -138,7 +138,7 @@ export function WebReportsAdminPanel() {
               <div
                 key={r.id}
                 className="flex items-start justify-between gap-3 p-3 border rounded-xl bg-card"
-                style={{ borderColor: "#1E3A5C", opacity: 0.7 }}
+                style={{ borderColor: "var(--border)", opacity: 0.7 }}
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold truncate">{r.full_name || r.email || "—"}</p>

@@ -99,6 +99,9 @@
 
   --radius: 0.75rem;
 
+  /* Acento de UI del panel admin (links, chips): navy en claro, celeste en oscuro */
+  --admin-accent: #152978;
+
   /* Sidebar (light) */
   --sidebar:                    #ffffff;
   --sidebar-foreground:         #0d1a3d;
@@ -118,6 +121,7 @@
 }
 
 .dark {
+  --admin-accent: #8FB3FF;
   /* ── DARK MODE — navy background, white text (like the public site) ── */
   --background:           #0d1a3d;
   --foreground:           #ffffff;

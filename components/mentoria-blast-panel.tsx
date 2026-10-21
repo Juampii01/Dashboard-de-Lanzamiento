@@ -67,7 +67,7 @@ export function MentoriaBlastPanel() {
         Manda el email de la propuesta de &quot;Tu Primer Contrato&quot; (plan de pagos) con botón de WhatsApp.
         Probá primero (&quot;test&quot;, te lo manda a vos) y después enviá a todos.
       </p>
-      <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: "#1E3A5C" }}>
+      <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: "var(--border)" }}>
         <p className="text-sm font-semibold">
           Todos los usuarios{" "}
           <span className="text-muted-foreground font-normal">
@@ -83,7 +83,7 @@ export function MentoriaBlastPanel() {
           </Button>
         </div>
         {result && (
-          <div className="text-xs rounded-lg border p-2" style={{ borderColor: "#1E3A5C" }}>
+          <div className="text-xs rounded-lg border p-2" style={{ borderColor: "var(--border)" }}>
             <p>✅ Enviados: <strong>{result.sent}</strong> &nbsp;·&nbsp; ❌ Fallidos: <strong>{result.failed}</strong></p>
             {result.errors.length > 0 && (
               <details className="mt-1">

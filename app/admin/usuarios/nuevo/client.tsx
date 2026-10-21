@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { SingleUserForm } from "./_components/single-user-form";
 import { CsvBulkImport } from "./_components/csv-bulk-import";
-import { ArrowLeft, UserPlus, Users } from "lucide-react";
-import Link from "next/link";
+import { UserPlus, Users } from "lucide-react";
+import { PageHeader } from "../../_components/ui";
 
 type Mode = "single" | "bulk";
 
@@ -12,24 +12,12 @@ export function NuevoUsuarioClient() {
   const [mode, setMode] = useState<Mode>("single");
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {/* Back link */}
-      <div className="mb-6">
-        <Link
-          href="/admin"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Volver al Panel Admin
-        </Link>
-      </div>
-
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">Crear usuarios</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Creá usuarios manualmente y enviá el acceso por magic link.
-        </p>
-      </div>
+    <div className="max-w-4xl">
+      <PageHeader
+        eyebrow="Usuarios"
+        title="Crear usuarios"
+        description="Creá usuarios uno por uno o por CSV y mandales el acceso por magic link."
+      />
 
       {/* Mode selector */}
       <div className="flex gap-2 mb-8 p-1 bg-muted rounded-lg w-fit">
