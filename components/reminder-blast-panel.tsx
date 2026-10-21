@@ -77,7 +77,7 @@ export function ReminderBlastPanel() {
         const result = results[segment];
         const count = counts?.[segment];
         return (
-          <div key={segment} className="rounded-xl border p-3 space-y-2" style={{ borderColor: "#1E3A5C" }}>
+          <div key={segment} className="rounded-xl border p-3 space-y-2" style={{ borderColor: "var(--border)" }}>
             <p className="text-sm font-semibold">
               {LABELS[segment].title}{" "}
               <span className="text-muted-foreground font-normal">
@@ -93,7 +93,7 @@ export function ReminderBlastPanel() {
               </Button>
             </div>
             {result && (
-              <div className="text-xs rounded-lg border p-2" style={{ borderColor: "#1E3A5C" }}>
+              <div className="text-xs rounded-lg border p-2" style={{ borderColor: "var(--border)" }}>
                 <p>✅ Enviados: <strong>{result.sent}</strong> &nbsp;·&nbsp; ❌ Fallidos: <strong>{result.failed}</strong></p>
                 {result.errors.length > 0 && (
                   <details className="mt-1">

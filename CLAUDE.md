@@ -162,6 +162,25 @@ ANTHROPIC_API_KEY=sk-ant-...
 - **Sin `pointer-events-none`** en wrappers de elementos interactivos.
 - **Z-index del tutorial**: overlay `99980`, spotlight `99981`, card `99990`. Tooltip del HUD: `99999` (fixed position).
 
+## Panel admin (`/admin`)
+
+Organizado por secciones con sidebar fija (`app/admin/_components/admin-shell.tsx`):
+
+| Ruta | Qué tiene |
+|------|-----------|
+| `/admin` | Inicio: estado (bloqueo, pausa, cierre), métricas y embudo D1→D4 |
+| `/admin/usuarios` | Tabla única con buscador, filtros, paginación y ficha lateral (override de días, link de acceso, reset) |
+| `/admin/en-vivo` | Bloqueo por llamada, apertura de días, keywords, hora del contador |
+| `/admin/contenido` | Grabaciones, tutorial y videos/quizzes por día |
+| `/admin/misiones` | Misión diaria, ráfagas, reportes de la web del Día 3 |
+| `/admin/comunicaciones` | Magic link, recordatorios, propuesta de mentoría, link de registro |
+| `/admin/ventas` | Clicks de "Tu Próximo Paso" agrupados por persona |
+| `/admin/referidos` · `/admin/cierre` · `/admin/sorteo` | Referidos, pausa de puntos, sorteo y cierre del acceso |
+
+- Primitivas visuales en `app/admin/_components/ui.tsx` (`PageHeader`, `Panel`, `Stat`, `StatusPill`, `LinkTile`, `ToggleRow`). Usar tokens del tema, no hex sueltos.
+- Paneles de control reutilizables en `app/admin/_components/panels.tsx`; carga de datos en `app/admin/_lib/data.ts`.
+- Para agregar una sección: crear la ruta y sumarla a `NAV` en `admin-shell.tsx`.
+
 ## Comandos útiles
 
 ```bash

@@ -72,7 +72,7 @@ export function MagicBlastPanel() {
           onKeyDown={(e) => { if (e.key === "Enter" && !busy && email.trim()) sendToEmail(); }}
           disabled={!!busy}
           className="px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-          style={{ borderColor: "#1E3A5C", minWidth: 240 }}
+          style={{ borderColor: "var(--border)", minWidth: 240 }}
         />
         <Button variant="outline" onClick={sendToEmail} disabled={!!busy || !email.trim()}>
           {busy === "email" ? "Enviando…" : "Enviar a este email"}
@@ -82,7 +82,7 @@ export function MagicBlastPanel() {
         </Button>
       </div>
       {result && (
-        <div className="text-xs rounded-lg border p-3" style={{ borderColor: "#1E3A5C" }}>
+        <div className="text-xs rounded-lg border p-3" style={{ borderColor: "var(--border)" }}>
           <p>✅ Enviados: <strong>{result.sent}</strong> &nbsp;·&nbsp; ❌ Fallidos: <strong>{result.failed}</strong></p>
           {result.errors.length > 0 && (
             <details className="mt-2">

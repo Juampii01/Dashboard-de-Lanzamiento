@@ -1,5 +1,8 @@
 import { createServiceClient } from "@/lib/supabase/server";
+import { Video, PlayCircle, Clapperboard } from "lucide-react";
 import { ContentAdminClient } from "./client";
+import { PageHeader, Panel } from "../_components/ui";
+import { RecordingsAdminPanel, TutorialAdminPanel } from "../_components/panels";
 
 export const dynamic = "force-dynamic";
 
@@ -71,5 +74,34 @@ async function getData(): Promise<Day[]> {
 
 export default async function ContenidoPage() {
   const days = await getData();
-  return <ContentAdminClient days={days} />;
+  return (
+    <>
+      <PageHeader
+        eyebrow="Durante el challenge"
+        title="Contenido"
+        description="Videos y quizzes de cada día, grabaciones de las clases y el tutorial de inicio. Los cambios se guardan al instante."
+      />
+      <div className="space-y-6">
+        <div className="grid gap-6 xl:grid-cols-2">
+          <Panel
+            icon={Clapperboard}
+            title="Grabaciones de las clases"
+            description="Aparecen como botones al lado de los puntos en el dashboard; cada uno abre su grabación en otra pestaña."
+          >
+            <RecordingsAdminPanel />
+          </Panel>
+          <Panel
+            icon={PlayCircle}
+            title="Tutorial de inicio"
+            description="Video que se ve en el inicio del dashboard. Vacío = “Próximamente”."
+          >
+            <TutorialAdminPanel />
+          </Panel>
+        </div>
+        <Panel icon={Video} title="Videos y quizzes por día" description="Editá URL, tipo, orientación y preguntas de cada cápsula.">
+          <ContentAdminClient days={days} />
+        </Panel>
+      </div>
+    </>
+  );
 }

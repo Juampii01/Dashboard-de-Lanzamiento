@@ -1,9 +1,7 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Users2, ListChecks } from "lucide-react";
+import { PageHeader, Panel, Stat, StatusPill } from "../_components/ui";
 import { createServiceClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { REFERRAL_LEAD_XP } from "@/lib/referrals";
 
 export const dynamic = "force-dynamic";
@@ -74,50 +72,27 @@ export default async function AdminReferidosPage() {
 
   return (
     <div className="space-y-8">
-      <Link
-        href="/admin"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Panel admin
-      </Link>
-
-      <div>
-        <h1 className="text-2xl font-bold text-primary">🤝 Referidos</h1>
-        <p className="text-muted-foreground mt-1">
-          Cada referidor gana <strong>+{REFERRAL_LEAD_XP} pts</strong> cuando el email que invitó se crea como
-          usuario (= pagó). Hasta entonces el lead queda <strong>pendiente</strong>.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Después del challenge"
+        title="Referidos"
+        description={
+          <>
+            Cada referidor gana <strong>+{REFERRAL_LEAD_XP} pts</strong> cuando el email que invitó se crea como usuario (= pagó).
+            Hasta entonces el lead queda <strong>pendiente</strong>.
+          </>
+        }
+      />
 
       {/* Métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-3xl font-bold text-primary">{total}</p>
-            <p className="text-sm text-muted-foreground mt-1">Referidos registrados</p>
-          </CardContent>
-        </Card>
-        <Card style={{ borderColor: "color-mix(in srgb, var(--success) 40%, var(--border))" }}>
-          <CardContent className="pt-6">
-            <p className="text-3xl font-bold" style={{ color: "var(--success)" }}>{credited}</p>
-            <p className="text-sm text-muted-foreground mt-1">Pagaron (acreditados)</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-3xl font-bold text-primary">{pending}</p>
-            <p className="text-sm text-muted-foreground mt-1">Pendientes de pago</p>
-          </CardContent>
-        </Card>
+        <Stat label="Referidos registrados" value={total} />
+        <Stat label="Pagaron" value={credited} tone="success" hint={total ? `${Math.round((credited / total) * 100)}% de conversión` : undefined} />
+        <Stat label="Pendientes de pago" value={pending} />
       </div>
 
       {/* Resumen por referidor */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Por referidor</CardTitle>
-          <CardDescription>Quién invitó a quién y cuántos de sus referidos ya pagaron.</CardDescription>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
+      <Panel icon={Users2} title="Por referidor" description="Quién invitó a quién y cuántos de sus referidos ya pagaron.">
+        <div className="overflow-x-auto">
           {byReferrer.length === 0 ? (
             <p className="text-sm text-muted-foreground">Todavía no hay referidos registrados.</p>
           ) : (
@@ -147,16 +122,12 @@ export default async function AdminReferidosPage() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </Panel>
 
       {/* Detalle de cada referido */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Detalle de referidos</CardTitle>
-          <CardDescription>{total} registros. Ordenados del más reciente al más antiguo.</CardDescription>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
+      <Panel icon={ListChecks} title="Detalle de referidos" description={`${total} registros, del más reciente al más antiguo.`}>
+        <div className="overflow-x-auto">
           {leads.length === 0 ? (
             <p className="text-sm text-muted-foreground">Todavía no hay referidos registrados.</p>
           ) : (
@@ -182,9 +153,9 @@ export default async function AdminReferidosPage() {
                         <p className="text-xs text-muted-foreground">{ref?.email ?? l.referrer_id}</p>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge className={paid ? "bg-green-100 text-green-700 text-xs" : "bg-gray-100 text-gray-500 text-xs"}>
+                        <StatusPill tone={paid ? "success" : "muted"}>
                           {paid ? `Pagó · +${REFERRAL_LEAD_XP}` : "Pendiente"}
-                        </Badge>
+                        </StatusPill>
                       </TableCell>
                       <TableCell className="text-center text-xs text-muted-foreground">{fmt(l.created_at)}</TableCell>
                       <TableCell className="text-center text-xs text-muted-foreground">{fmt(l.credited_at)}</TableCell>
@@ -194,8 +165,8 @@ export default async function AdminReferidosPage() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </Panel>
     </div>
   );
 }
