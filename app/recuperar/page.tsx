@@ -12,7 +12,7 @@ export default async function RecuperarPage({ searchParams }: { searchParams: Pr
       title="Crea o recupera tu contraseña"
       subtitle="Escribe el email de tu cuenta y te enviamos un enlace para elegir una contraseña nueva. Sirve también si participaste en un challenge anterior y nunca tuviste contraseña."
       footer={
-        <Link href="/login" className="font-bold text-white lg:text-[#152978] hover:underline">
+        <Link href="/login" className="font-bold text-[#152978] hover:underline">
           ← Volver a iniciar sesión
         </Link>
       }

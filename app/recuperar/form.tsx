@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MailCheck } from "lucide-react";
+import { MailCheck, Mail } from "lucide-react";
 import { Field, FormError, SubmitButton } from "@/components/auth/fields";
 
 export function RecoverForm({ initialEmail = "" }: { initialEmail?: string }) {
@@ -53,7 +53,7 @@ export function RecoverForm({ initialEmail = "" }: { initialEmail?: string }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Field label="Email" type="email" autoComplete="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      <Field label="Email" icon={Mail} type="email" autoComplete="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
       <FormError>{error}</FormError>
       <SubmitButton loading={loading}>{loading ? "Enviando…" : "Enviarme el enlace"}</SubmitButton>
     </form>
