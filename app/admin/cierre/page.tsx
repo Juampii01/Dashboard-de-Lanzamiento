@@ -8,7 +8,7 @@ export default function CierrePage() {
       <PageHeader
         eyebrow="Después del challenge"
         title="Cierre y sorteo"
-        description="En orden: pausá los puntos para congelar el ranking, hacé el sorteo en vivo y, cuando termine todo, cerrá el acceso."
+        description="En orden: pausa los puntos para congelar el ranking, haz el sorteo en vivo y, cuando termine todo, cierra el acceso."
       />
 
       <div className="space-y-6">

@@ -80,7 +80,7 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
   };
 
   const counts = useMemo(() => {
-    const c = { all: users.length, paid: 0, free: 0, team: 0 } as Record<SegFilter, number>;
+    const c = { all: users.length, paid: 0, free: 0, team: 0, pending: 0 } as Record<SegFilter, number>;
     for (const u of users) c[segmentOf(u)]++;
     return c;
   }, [users]);
@@ -133,7 +133,7 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
       <PageHeader
         eyebrow="General"
         title="Usuarios"
-        description="Buscá a cualquier participante, filtrá por avance y abrí su ficha para gestionar acceso, días y puntos."
+        description="Busca a cualquier participante, filtra por avance y abre su ficha para gestionar acceso, días y puntos."
         actions={
           <>
             <Button variant="outline" onClick={exportCsv} className="gap-2">
@@ -150,7 +150,7 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
 
       {/* Segmentos */}
       <div className="flex flex-wrap items-center gap-1.5 mb-4">
-        {(["paid", "free", "team", "all"] as SegFilter[]).map((s) => (
+        {(["paid", "free", "pending", "team", "all"] as SegFilter[]).filter((s) => s !== "pending" || counts.pending > 0).map((s) => (
           <button
             key={s}
             onClick={() => resetPage(setSeg)(s)}
@@ -159,7 +159,7 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
               seg === s ? "border-secondary bg-secondary text-white" : "border-border bg-card text-muted-foreground hover:text-foreground"
             )}
           >
-            {s === "all" ? "Todos" : s === "paid" ? "Pagos" : s === "free" ? "Gratuitos" : "Equipo"}
+            {s === "all" ? "Todos" : s === "paid" ? "Pagos" : s === "free" ? "Gratuitos" : s === "pending" ? "Sin verificar" : "Equipo"}
             <span className={cn("text-[11px] tabular-nums", seg === s ? "text-white/70" : "text-muted-foreground/70")}>{counts[s]}</span>
           </button>
         ))}
@@ -502,7 +502,7 @@ function UserDrawer({
                     </a>
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">Un solo uso y con vencimiento. Si caduca, generá otro.</p>
+                <p className="text-[11px] text-muted-foreground">Un solo uso y con vencimiento. Si caduca, genera otro.</p>
               </div>
             ) : (
               <Button variant="outline" onClick={generateLink} disabled={linkLoading} className="gap-2 w-full">

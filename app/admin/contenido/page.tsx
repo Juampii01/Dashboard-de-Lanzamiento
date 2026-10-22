@@ -98,7 +98,7 @@ export default async function ContenidoPage() {
             <TutorialAdminPanel />
           </Panel>
         </div>
-        <Panel icon={Video} title="Videos y quizzes por día" description="Editá URL, tipo, orientación y preguntas de cada cápsula.">
+        <Panel icon={Video} title="Videos y quizzes por día" description="Edita URL, tipo, orientación y preguntas de cada cápsula.">
           <ContentAdminClient days={days} />
         </Panel>
       </div>

@@ -15,6 +15,8 @@ export interface AdminUser {
   last_seen_at: string | null;
   is_admin?: boolean;
   is_student?: boolean;
+  /** 'pending' | 'rejected' = se registró sin compra que coincida (ver /admin/compras). */
+  access_status?: "pending" | "rejected" | null;
 }
 
 export interface Progress {
@@ -30,17 +32,19 @@ export interface Sorteo {
   submitted_at: string | null;
 }
 
-export type Segment = "paid" | "free" | "team";
+export type Segment = "paid" | "free" | "team" | "pending";
 
 export function segmentOf(u: AdminUser): Segment {
   if (u.is_admin) return "team";
-  return u.is_student ? "free" : "paid";
+  if (u.is_student) return "free";
+  return u.access_status ? "pending" : "paid";
 }
 
 export const SEGMENT_LABEL: Record<Segment, string> = {
   paid: "Pago",
   free: "Gratuito",
   team: "Equipo",
+  pending: "Sin verificar",
 };
 
 export const DAY_LABELS: Record<number, string> = {

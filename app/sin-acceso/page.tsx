@@ -59,8 +59,8 @@ export default function SinAccesoPage() {
           >
             <p className="font-semibold text-white">¿Ya compraste el acceso?</p>
             <p style={{ color: "#C9D6EC" }}>
-              Asegurate de iniciar sesión con el mismo email que usaste al
-              comprar. Si el problema persiste, contactanos en{" "}
+              Asegúrate de iniciar sesión con el mismo email que usaste al
+              comprar. Si el problema persiste, contáctanos en{" "}
               <a
                 href="https://govbidder.net"
                 target="_blank"

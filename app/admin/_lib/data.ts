@@ -43,6 +43,17 @@ export async function getUsersAndProgress() {
     supabase.from("sorteo_submissions").select("user_id, eligible, submitted_at"),
   ]);
 
+  // Cuentas en verificación (registro sin compra que coincida). Query aparte y
+  // tolerante: si la migración de compras aún no corrió, la columna no existe.
+  const { data: statusRows, error: statusErr } = await supabase
+    .from("users")
+    .select("id, access_status")
+    .not("access_status", "is", null);
+  if (!statusErr) {
+    const map = new Map((statusRows as { id: string; access_status: AdminUser["access_status"] }[]).map((r) => [r.id, r.access_status]));
+    for (const u of users) u.access_status = map.get(u.id) ?? null;
+  }
+
   return { users, allProgress, sorteos: (sorteos ?? []) as Sorteo[] };
 }
 

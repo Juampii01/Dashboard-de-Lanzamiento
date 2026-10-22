@@ -4,7 +4,10 @@ import {
   validateHotmartTimestamp,
   type HotmartWebhookPayload,
 } from "@/lib/hotmart";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceClient } from "@/lib/supabase/server";
+import { CURRENT_PRODUCT, autoClaimByAccountEmail, normalizeEmail } from "@/lib/access/purchases";
+import { sendAccessActivatedEmail } from "@/lib/email/send-access-activated-email";
 
 export async function POST(request: Request) {
   const payload = await request.text();
@@ -39,99 +42,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, skipped: true });
   }
 
-  const { email, name } = body.data.buyer;
+  const { name } = body.data.buyer;
+  const email = normalizeEmail(body.data.buyer.email);
   const { transaction } = body.data.purchase;
 
-  const supabase = createServiceClient();
+  // Ahora el webhook solo REGISTRA LA COMPRA. La cuenta la crea el comprador
+  // en /registro con email y contraseña; si se registra con este mismo email,
+  // el acceso se activa solo. Si ya se había registrado y estaba en
+  // verificación, se vincula ahora.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = createServiceClient() as unknown as SupabaseClient<any, any, any>;
 
-  // Crear usuario en Supabase Auth
-  const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-    email,
-    email_confirm: true,
-  });
-
-  if (authError && authError.message !== "User already registered") {
-    console.error("Error creando usuario en Auth:", authError);
-    return NextResponse.json({ error: "Auth error" }, { status: 500 });
-  }
-
-  // M3 fix: listUsers() only returns the first page (default: 50 users).
-  // If createUser returned a user, use that id directly.
-  // If the user already existed, query public.users by email (indexed,
-  // O(1)) instead of scanning a potentially paginated auth.users list.
-  let userId: string | undefined = authUser?.user?.id;
-  if (!userId) {
-    const { data: existingRow } = await supabase
-      .from("users")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
-    userId = existingRow?.id;
-  }
-
-  if (!userId) {
-    return NextResponse.json({ error: "Could not resolve user id" }, { status: 500 });
-  }
-
-  const now = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-
-  // ── C3: Upsert in users — hotmart_transaction_id persisted ──────────────
-  const { error: upsertError } = await supabase.from("users").upsert(
-    {
-      id: userId,
-      email,
-      full_name: name,
-      hotmart_transaction_id: transaction,   // saved → paywall proof
-      access_starts_at: now,
-      access_expires_at: expiresAt,
-      is_admin: false,
-      total_points: 0,
-    },
-    { onConflict: "id" }
-  );
-
-  if (upsertError) {
-    console.error("Error upserting user:", upsertError);
+  const { error: insErr } = await db
+    .from("purchases")
+    .upsert(
+      { email, full_name: name ?? null, source: "hotmart", external_ref: transaction ?? null, product: CURRENT_PRODUCT },
+      { onConflict: "product,email", ignoreDuplicates: true }
+    );
+  if (insErr) {
+    console.error("[hotmart] insert purchase:", insErr.message);
     return NextResponse.json({ error: "DB error" }, { status: 500 });
   }
 
-  // Create placeholder day_progress rows for days that don't exist yet.
-  // ignoreDuplicates: true so we never overwrite progress for repeat purchases.
-  const progressRows = [1, 2, 3, 4].map((day) => ({
-    user_id: userId,
-    day_number: day,
-    is_unlocked: day === 1,
-    is_completed: false,
-  }));
-
-  await supabase
-    .from("day_progress")
-    .upsert(progressRows, { onConflict: "user_id,day_number", ignoreDuplicates: true });
-
-  // ── C2 fix: Explicitly unlock Day 1 regardless of trigger state.
-  //    The handle_new_user trigger now creates rows with is_unlocked = false.
-  //    We must flip day 1 here to grant access after a verified purchase.
-  //    We use a targeted UPDATE so we never touch is_completed for any day.
-  const { error: unlockError } = await supabase
-    .from("day_progress")
-    .update({ is_unlocked: true })
-    .eq("user_id", userId)
-    .eq("day_number", 1);
-
-  if (unlockError) {
-    console.error("Error unlocking day 1:", unlockError);
-    // Non-fatal: user row + expiry are correct; admin can manually unlock
+  const { data: account } = await db
+    .from("users")
+    .select("id, full_name, access_status, hotmart_transaction_id")
+    .eq("email", email)
+    .maybeSingle();
+  const acc = account as { id: string; full_name: string | null; access_status: string | null; hotmart_transaction_id: string | null } | null;
+  if (acc && !acc.hotmart_transaction_id && acc.access_status === "pending") {
+    const r = await autoClaimByAccountEmail(db, acc.id, email);
+    if (r === "claimed") await sendAccessActivatedEmail({ to: email, name: acc.full_name });
   }
-
-  // Enviar magic link de primer acceso
-  await supabase.auth.admin.generateLink({
-    type: "magiclink",
-    email,
-    options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://dboard.govbidder.net"}/dashboard`,
-    },
-  });
 
   return NextResponse.json({ ok: true });
 }

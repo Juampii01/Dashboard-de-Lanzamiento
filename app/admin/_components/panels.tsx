@@ -2,7 +2,7 @@
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Paneles de control del admin (lógica idéntica a la versión anterior de
-   app/admin/client.tsx; solo se movieron acá y se unificó el estilo).
+   app/admin/client.tsx; solo se movieron aquí y se unificó el estilo).
    ───────────────────────────────────────────────────────────────────────────── */
 
 import { useEffect, useState } from "react";
@@ -44,7 +44,7 @@ interface LockState {
   locked_at: string | null;
 }
 
-const DEFAULT_MESSAGE = "La llamada en vivo está en curso. Volvé cuando termine.";
+const DEFAULT_MESSAGE = "La llamada en vivo está en curso. Vuelve cuando termine.";
 
 export function DashboardLockControl() {
   const [lock, setLock] = useState<LockState>({ is_locked: false, call_url: null, message: null, locked_at: null });
@@ -282,7 +282,7 @@ export function LaunchScheduleControl({ initialToggles }: { initialToggles: Admi
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        Escribís en tu hora local{tz ? ` (${tz})` : ""}; cada usuario ve el contador en la suya. Vaciar el campo vuelve a la hora por defecto.
+        Escribe en tu hora local{tz ? ` (${tz})` : ""}; cada usuario ve el contador en la suya. Vaciar el campo vuelve a la hora por defecto.
       </p>
       <div className="divide-y divide-border rounded-xl border border-border">
         {days.map((day) => {
@@ -343,7 +343,7 @@ export function DayUnlockControl({ initialToggles }: { initialToggles: AdminTogg
       const lbl = dayNumber === 0 ? "Inicio" : `Día ${dayNumber}`;
       toast.success(value ? `${lbl} desbloqueado para todos.` : `${lbl} bloqueado.`);
     } catch {
-      toast.error("Error al actualizar. Recargá la página.");
+      toast.error("Error al actualizar. Recarga la página.");
     }
     setUpdatingDay(null);
   }
@@ -477,7 +477,7 @@ export function KeywordsAdminPanel() {
 // ─── Link de registro gratuito ──────────────────────────────────────────────
 
 export function RegistroLinkPanel() {
-  const url = "https://dboard.govbidder.net/registro";
+  const url = "https://dboard.govbidder.net/registro/gratis";
   const [copied, setCopied] = useState(false);
   async function copy() {
     try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* noop */ }
@@ -640,7 +640,7 @@ export function AccessClosedPanel() {
       {confirming && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/40 bg-primary/[0.05] p-3">
           <p className="text-sm">
-            ¿Cerrar el dashboard para <strong>todos</strong> los usuarios (menos admins)? Podés reabrirlo cuando quieras.
+            ¿Cerrar el dashboard para <strong>todos</strong> los usuarios (menos admins)? Puedes reabrirlo cuando quieras.
           </p>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => setConfirming(false)}>Cancelar</Button>

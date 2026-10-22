@@ -10,7 +10,7 @@ export default function AdminMisionesPage() {
       <PageHeader
         eyebrow="Durante el challenge"
         title="Misiones"
-        description="Publicá y moderá misiones, programá ráfagas y seguí los reportes de la web del Día 3."
+        description="Publica y modera misiones, programa ráfagas y sigue los reportes de la web del Día 3."
       />
 
       <div className="space-y-6">

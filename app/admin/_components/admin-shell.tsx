@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Handshake,
   Trophy,
+  ShoppingBag,
   BookOpen,
   ArrowLeft,
   Menu,
@@ -42,6 +43,7 @@ const NAV: NavGroup[] = [
     items: [
       { href: "/admin", label: "Inicio", icon: LayoutDashboard },
       { href: "/admin/usuarios", label: "Usuarios", icon: Users },
+      { href: "/admin/compras", label: "Compras y accesos", icon: ShoppingBag },
     ],
   },
   {

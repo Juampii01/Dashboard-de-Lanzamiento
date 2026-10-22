@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { UserPlus, Radio, Mail, PlaySquare, TrendingUp, Trophy, Users } from "lucide-react";
+import { UserPlus, Radio, Mail, PlaySquare, TrendingUp, Trophy, Users, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Stat, LinkTile } from "./_components/ui";
 import { getUsersAndProgress } from "./_lib/data";
@@ -25,9 +25,11 @@ export default async function AdminHome() {
     funnel[key] = { registered: list.length, entered: list.filter((u) => !!u.last_seen_at).length, days };
   }
   funnel.team = { registered: 0, entered: 0, days: [0, 0, 0, 0] };
+  funnel.pending = funnel.team;
 
   const paidCount = participants.filter((u) => segOf.get(u.id) === "paid").length;
-  const freeCount = participants.length - paidCount;
+  const freeCount = participants.filter((u) => segOf.get(u.id) === "free").length;
+  const pendingCount = participants.filter((u) => segOf.get(u.id) === "pending").length;
   const finished = funnel.all.days[3];
 
   return (
@@ -47,6 +49,21 @@ export default async function AdminHome() {
 
       <div className="space-y-8">
         <LiveStatus />
+
+        {pendingCount > 0 && (
+          <Link
+            href="/admin/compras"
+            className="flex items-center justify-between gap-3 rounded-2xl border border-[color-mix(in_srgb,var(--accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] px-5 py-4 hover:bg-[color-mix(in_srgb,var(--accent)_18%,transparent)] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ShoppingBag className="w-5 h-5 text-[#8a6d00] dark:text-accent" />
+              <p className="text-sm text-foreground">
+                <strong>{pendingCount} cuenta{pendingCount === 1 ? "" : "s"} esperando verificación</strong>: se registraron con un email que no está en la lista de compras.
+              </p>
+            </div>
+            <span className="text-sm font-bold text-foreground whitespace-nowrap">Verificar →</span>
+          </Link>
+        )}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <OnlineStat />
@@ -70,6 +87,7 @@ export default async function AdminHome() {
           <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground mb-3">Accesos rápidos</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <LinkTile href="/admin/usuarios" icon={Users} title="Usuarios" description="Buscar, filtrar y gestionar a cada participante." />
+            <LinkTile href="/admin/compras" icon={ShoppingBag} title="Compras y accesos" description="Cargar compradores y verificar cuentas sin compra que coincida." />
             <LinkTile href="/admin/en-vivo" icon={Radio} title="En vivo" description="Bloqueo por llamada, horarios y apertura de días." />
             <LinkTile href="/admin/comunicaciones" icon={Mail} title="Comunicaciones" description="Magic links, recordatorios y emails masivos." />
             <LinkTile
