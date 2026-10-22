@@ -95,9 +95,18 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Si ya está autenticado y va a /login, redirigir al dashboard
-  if (user && pathname === "/login") {
+  // Si ya está autenticado y va a /login o /registro, redirigir al dashboard
+  // (el layout del dashboard lo manda a /en-verificacion si corresponde).
+  if (user && (pathname === "/login" || pathname === "/registro" || pathname === "/registro/gratis")) {
     return redirectWithCookies(new URL("/dashboard", request.url));
+  }
+
+  // Pantallas que necesitan sesión pero viven fuera de /dashboard.
+  if (!user && pathname === "/en-verificacion") {
+    return redirectWithCookies(new URL("/login", request.url));
+  }
+  if (!user && pathname === "/nueva-contrasena") {
+    return redirectWithCookies(new URL("/recuperar", request.url));
   }
 
   return supabaseResponse;

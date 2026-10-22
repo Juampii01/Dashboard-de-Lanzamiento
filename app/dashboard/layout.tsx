@@ -124,6 +124,7 @@ export default async function DashboardLayout({
   let profile: typeof DEV_PROFILE | null = devMode ? DEV_PROFILE : null;
   let completedDays = 0;
   let userEmail = "";
+  let authUserId = "";
   let streak = 0;
   let progressMapFromLayout: Record<number, { is_unlocked: boolean; is_completed: boolean }> = {};
 
@@ -148,6 +149,7 @@ export default async function DashboardLayout({
     if (!user) redirect("/login");
 
     userEmail = user.email ?? "";
+    authUserId = user.id;
 
     const layoutData = await getLayoutData(user.id);
     // Use SAFE_EMPTY_PROFILE (not DEV_PROFILE) so that users without a DB row
@@ -207,7 +209,17 @@ export default async function DashboardLayout({
     const hasPurchase = !!(profile as { hotmart_transaction_id?: string | null })
       .hotmart_transaction_id;
     if (!hasPurchase) {
-      redirect("/sin-acceso");
+      // Cuentas registradas con email y contraseña sin compra que coincida:
+      // quedan "en verificación" hasta que el equipo las vincule a una compra.
+      // Query aparte y tolerante: si la migración de compras aún no corrió,
+      // la columna no existe y se mantiene el comportamiento anterior.
+      const { data: statusRow, error: statusErr } = await createServiceClient()
+        .from("users")
+        .select("access_status")
+        .eq("id", authUserId)
+        .maybeSingle();
+      const status = statusErr ? null : (statusRow as { access_status?: string | null } | null)?.access_status;
+      redirect(status === "pending" || status === "rejected" ? "/en-verificacion" : "/sin-acceso");
     }
   }
   // ─────────────────────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 /* ─────────────────────────────────────────────────────────────────────────────
    Primitivas visuales del panel admin.
    Todo sale de los tokens de globals.css (navy / rojo / dorado de la marca) para
-   que funcione igual en modo claro y oscuro. Nada de hex sueltos acá.
+   que funcione igual en modo claro y oscuro. Nada de hex sueltos aquí.
    ───────────────────────────────────────────────────────────────────────────── */
 
 export const inputClass =

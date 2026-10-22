@@ -30,7 +30,7 @@ export default async function EnVivoPage() {
           icon={DoorOpen}
           tone="success"
           title="Apertura de días"
-          description="Abre el Inicio o un día para todos al instante. Después de cada clase, abrí el día acá. A los admins nunca se les bloquea."
+          description="Abre el Inicio o un día para todos al instante. Después de cada clase, abre el día aquí. A los admins nunca se les bloquea."
         >
           <DayUnlockControl initialToggles={toggles} />
         </Panel>
@@ -47,7 +47,7 @@ export default async function EnVivoPage() {
           <Panel
             icon={CalendarClock}
             title="Hora del contador"
-            description="Solo visual: el día no se abre solo al llegar a cero, lo abrís arriba en Apertura de días."
+            description="Solo visual: el día no se abre solo al llegar a cero, se abre arriba, en Apertura de días."
           >
             <LaunchScheduleControl initialToggles={toggles} />
           </Panel>

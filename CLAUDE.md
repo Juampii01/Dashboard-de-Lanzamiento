@@ -2,6 +2,14 @@
 
 # Govbidder Challenge Dashboard — Guía para Claude
 
+## Idioma: español neutro (obligatorio)
+
+Todo lo que se escriba en este proyecto va en **español neutro**: textos de la interfaz, emails, mensajes de error, documentación, comentarios y mensajes de commit. Los participantes son hispanohablantes de distintos países que viven en Estados Unidos, y los regionalismos confunden.
+
+- Tratamiento de **tú**, nunca voseo: "ingresa", "puedes", "tienes", "revisa"; nunca "ingresá", "podés", "tenés", "revisá".
+- Sin regionalismos: nada de "acá", "laburo", "che", "dale", "boludo", "plata", "celu". Usar "aquí", "trabajo", "dinero", "teléfono".
+- Si se edita un archivo que todavía tiene voseo, corregir el texto que se toque.
+
 ## Stack
 
 | Capa | Tecnología |
@@ -162,6 +170,32 @@ ANTHROPIC_API_KEY=sk-ant-...
 - **Sin `pointer-events-none`** en wrappers de elementos interactivos.
 - **Z-index del tutorial**: overlay `99980`, spotlight `99981`, card `99990`. Tooltip del HUD: `99999` (fixed position).
 
+## Acceso: registro con email y contraseña
+
+Desde octubre de 2026 el acceso NO depende de magic links. Hay dos registros separados que se cruzan:
+
+| Qué | Dónde | Cómo se llena |
+|-----|-------|---------------|
+| Quién **compró** | `public.purchases` | CSV desde `/admin/compras` o webhook de Hotmart |
+| Quién **se registró** | `public.users` (+ Supabase Auth) | `/registro` con email y contraseña |
+
+Flujo:
+
+1. La persona se registra en `/registro` (`POST /api/auth/register`). La cuenta se crea con el email ya confirmado, así que puede iniciar sesión al instante.
+2. Si su email está en `purchases` y esa compra está libre → `claim_purchase()` la vincula y le da acceso.
+3. Si no → `users.access_status = 'pending'` y el layout del dashboard la manda a `/en-verificacion`, donde puede dejar el email con el que compró.
+4. El equipo la vincula a mano en `/admin/compras` (o la rechaza). Al vincularla se le envía un email de "acceso activo".
+5. Al cargar compras nuevas, las cuentas pendientes con el mismo email se vinculan solas.
+
+Reglas:
+
+- **Una compra = una cuenta.** `purchases.claimed_by` es único y `claim_purchase()` rechaza si la compra ya está tomada o si la cuenta ya tiene una. Toda vinculación debe pasar por esta función.
+- El acceso automático solo usa el **email de la cuenta**, nunca un email que la persona declara (si no, cualquiera podría tomar la compra de otro). Lo declarado solo lo usa el equipo para verificar.
+- `hotmart_transaction_id` sigue siendo la marca de "tiene compra" que usa el layout (`PUR-<id de compra>` para cuentas nuevas).
+- Fin del acceso del lanzamiento: `app_settings.launch_access_expires_at` (editable en `/admin/compras`).
+- Contraseña olvidada o participantes viejos sin contraseña: `/recuperar` → email por Resend → `/auth/confirm` → `/nueva-contrasena`.
+- Registro gratuito (no compite por premios): `/registro/gratis`.
+
 ## Panel admin (`/admin`)
 
 Organizado por secciones con sidebar fija (`app/admin/_components/admin-shell.tsx`):
@@ -170,6 +204,7 @@ Organizado por secciones con sidebar fija (`app/admin/_components/admin-shell.ts
 |------|-----------|
 | `/admin` | Inicio: estado (bloqueo, pausa, cierre), métricas y embudo D1→D4 |
 | `/admin/usuarios` | Tabla única con buscador, filtros, paginación y ficha lateral (override de días, link de acceso, reset) |
+| `/admin/compras` | Lista de compradores (CSV), cuentas por verificar, vincular/rechazar, fin del acceso |
 | `/admin/en-vivo` | Bloqueo por llamada, apertura de días, keywords, hora del contador |
 | `/admin/contenido` | Grabaciones, tutorial y videos/quizzes por día |
 | `/admin/misiones` | Misión diaria, ráfagas, reportes de la web del Día 3 |

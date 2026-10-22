@@ -11,7 +11,7 @@ export default function ComunicacionesPage() {
       <PageHeader
         eyebrow="Durante el challenge"
         title="Comunicaciones"
-        description="Todos los envíos masivos en un solo lugar. Regla de oro: probá siempre con tu email antes de mandar a todos."
+        description="Todos los envíos masivos en un solo lugar. Regla de oro: prueba siempre con tu email antes de mandar a todos."
       />
 
       <div className="space-y-6">
@@ -41,7 +41,7 @@ export default function ComunicacionesPage() {
         <Panel
           icon={UserPlus}
           title="Link de registro gratuito"
-          description="Quien entra por acá queda como usuario gratuito: usa todo el dashboard y suma puntos, pero no compite por premios. Recibe el email de acceso automático."
+          description="Quien se registra por aquí queda como usuario gratuito: usa todo el dashboard y suma puntos, pero no compite por premios. Crea su cuenta con email y contraseña y entra al instante."
         >
           <RegistroLinkPanel />
         </Panel>
