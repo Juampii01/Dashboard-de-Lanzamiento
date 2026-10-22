@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Mail } from "lucide-react";
 import { Field, FormError, Notice, PasswordField, SubmitButton } from "@/components/auth/fields";
 
 export function LoginForm({ linkExpired = false }: { linkExpired?: boolean }) {
@@ -57,6 +58,7 @@ export function LoginForm({ linkExpired = false }: { linkExpired?: boolean }) {
 
       <Field
         label="Email"
+        icon={Mail}
         type="email"
         autoComplete="email"
         placeholder="tu@email.com"

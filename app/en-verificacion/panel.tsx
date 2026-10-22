@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, CheckCircle2, RefreshCw } from "lucide-react";
+import { Clock, CheckCircle2, RefreshCw, Mail } from "lucide-react";
 import { Field, FormError, Notice, SubmitButton } from "@/components/auth/fields";
 
 export function VerificationPanel({
@@ -80,6 +80,7 @@ export function VerificationPanel({
           <p className="text-sm font-bold text-[#0d1a3d]">Ayúdanos a encontrar tu compra</p>
           <Field
             label="Email con el que hiciste la compra"
+            icon={Mail}
             type="email"
             placeholder="email@ejemplo.com"
             value={purchaseEmail}

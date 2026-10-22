@@ -13,7 +13,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       footer={
         <>
           ¿Todavía no tienes cuenta?{" "}
-          <Link href="/registro" className="font-bold text-white lg:text-[#152978] hover:underline">
+          <Link href="/registro" className="font-bold text-[#152978] hover:underline">
             Regístrate
           </Link>
         </>

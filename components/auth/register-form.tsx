@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Mail, User, Phone } from "lucide-react";
 import { Field, FormError, PasswordField, SubmitButton } from "./fields";
 
 /**
@@ -77,9 +78,10 @@ export function RegisterForm({ mode = "buyer" }: { mode?: "buyer" | "free" }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Field label="Nombre y apellido" autoComplete="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={2} />
+      <Field label="Nombre y apellido" icon={User} autoComplete="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={2} />
       <Field
         label="Email"
+        icon={Mail}
         type="email"
         autoComplete="email"
         placeholder="tu@email.com"
@@ -88,7 +90,7 @@ export function RegisterForm({ mode = "buyer" }: { mode?: "buyer" | "free" }) {
         required
         hint={mode === "buyer" ? "Usa el mismo email con el que hiciste la compra." : undefined}
       />
-      <Field label="WhatsApp (opcional)" type="tel" autoComplete="tel" placeholder="+1 305 555 0123" value={phone} onChange={(e) => setPhone(e.target.value)} />
+      <Field label="WhatsApp (opcional)" icon={Phone} type="tel" autoComplete="tel" placeholder="+1 305 555 0123" value={phone} onChange={(e) => setPhone(e.target.value)} />
       <PasswordField label="Contraseña" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} hint="Mínimo 8 caracteres." />
       <PasswordField label="Repite la contraseña" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={8} />
 

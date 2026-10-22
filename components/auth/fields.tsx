@@ -1,25 +1,31 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle, ArrowRight, Lock, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const inputCls =
-  "w-full rounded-xl border border-[rgba(13,26,61,0.16)] bg-white px-3.5 py-3 text-[15px] text-[#0d1a3d] " +
-  "placeholder:text-[#94a3b8] outline-none transition-colors focus:border-[#152978] focus:ring-4 focus:ring-[#152978]/10 " +
-  "disabled:opacity-60";
+  "h-[50px] w-full rounded-xl border border-[rgba(13,26,61,0.14)] bg-[#F7F8FA] px-3.5 text-[15px] text-[#0d1a3d] " +
+  "placeholder:text-[#9AA7BA] outline-none transition-all hover:border-[rgba(13,26,61,0.24)] " +
+  "focus:border-[#152978] focus:bg-white focus:ring-4 focus:ring-[#152978]/10 disabled:opacity-60";
 
 export function Field({
   label,
   hint,
+  icon: Icon,
   className,
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: React.ReactNode }) {
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: React.ReactNode; icon?: LucideIcon }) {
   const id = useId();
   return (
     <div className={cn("space-y-1.5", className)}>
       <label htmlFor={id} className="block text-[13px] font-semibold text-[#0d1a3d]">{label}</label>
-      <input id={id} className={inputCls} {...props} />
+      <div className="group relative">
+        {Icon && (
+          <Icon className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#9AA7BA] transition-colors group-focus-within:text-[#152978]" />
+        )}
+        <input id={id} className={cn(inputCls, Icon && "pl-11")} {...props} />
+      </div>
       {hint && <p className="text-xs text-[#5A6B85]">{hint}</p>}
     </div>
   );
@@ -35,8 +41,9 @@ export function PasswordField({
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="block text-[13px] font-semibold text-[#0d1a3d]">{label}</label>
-      <div className="relative">
-        <input id={id} type={show ? "text" : "password"} className={cn(inputCls, "pr-11")} {...props} />
+      <div className="group relative">
+        <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#9AA7BA] transition-colors group-focus-within:text-[#152978]" />
+        <input id={id} type={show ? "text" : "password"} className={cn(inputCls, "pl-11 pr-11")} {...props} />
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
@@ -56,10 +63,11 @@ export function SubmitButton({ loading, children }: { loading: boolean; children
     <button
       type="submit"
       disabled={loading}
-      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#E42D2C] px-4 py-3.5 text-[15px] font-bold text-white shadow-[0_8px_20px_-8px_rgba(228,45,44,0.7)] transition-colors hover:bg-[#c92221] disabled:opacity-60"
+      className="group flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#E42D2C] px-4 text-[15.5px] font-bold text-white shadow-[0_10px_24px_-10px_rgba(228,45,44,0.8),inset_0_1px_0_rgba(255,255,255,0.18)] transition-all hover:bg-[#cf2423] hover:shadow-[0_14px_28px_-10px_rgba(228,45,44,0.85)] active:translate-y-px disabled:opacity-60"
     >
-      {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
       {children}
+      {!loading && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
     </button>
   );
 }
