@@ -44,11 +44,11 @@ export function DashboardAssistant() {
       });
       const json = (await res.json().catch(() => ({}))) as { reply?: string; message?: string; error?: string };
       const reply = res.ok
-        ? json.reply ?? "Perdón, no pude responder. Probá de nuevo."
-        : json.message ?? "Hubo un error. Probá de nuevo en un momento.";
+        ? json.reply ?? "Perdón, no pude responder. Prueba de nuevo."
+        : json.message ?? "Hubo un error. Prueba de nuevo en un momento.";
       setMessages((m) => [...m, { role: "assistant", content: reply }]);
     } catch {
-      setMessages((m) => [...m, { role: "assistant", content: "No me pude conectar. Revisá tu conexión y probá de nuevo." }]);
+      setMessages((m) => [...m, { role: "assistant", content: "No me pude conectar. Revisa tu conexión y prueba de nuevo." }]);
     } finally {
       setLoading(false);
     }
@@ -144,7 +144,7 @@ export function DashboardAssistant() {
           <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "14px", display: "flex", flexDirection: "column", gap: 10 }}>
             {/* Saludo */}
             <Bubble role="assistant">
-              ¡Hola! 👋 Soy tu asistente del GovBidder Challenge. Preguntame lo que no entiendas: por qué algo está bloqueado, cómo sumar puntos, cómo funcionan los días, lo que sea.
+              ¡Hola! 👋 Soy tu asistente del GovBidder Challenge. Pregúntame lo que no entiendas: por qué algo está bloqueado, cómo sumar puntos, cómo funcionan los días, lo que sea.
             </Bubble>
 
             {messages.length === 0 && (
@@ -199,7 +199,7 @@ export function DashboardAssistant() {
                   send(input);
                 }
               }}
-              placeholder="Escribí tu pregunta…"
+              placeholder="Escribe tu pregunta…"
               rows={1}
               style={{
                 flex: 1,

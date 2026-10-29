@@ -57,13 +57,13 @@ const COPY: Record<ReminderSegment, { kicker: string; title: string; body: strin
   never_accessed: {
     kicker: "GovBidder Challenge",
     title: "Todavía no ingresaste al dashboard",
-    body: "Vimos que todavía no entraste al GovBidder Challenge. Tu cuenta ya está lista — hacé clic en el botón para entrar y arrancar.",
+    body: "Vimos que todavía no has entrado al GovBidder Challenge. Tu cuenta ya está lista — haz clic en el botón para entrar y comenzar.",
     cta: "Entrar al dashboard →",
   },
   day1_incomplete: {
     kicker: "GovBidder Challenge",
     title: "Te falta completar el Día 1",
-    body: "Vimos que ya entraste al dashboard, pero todavía no completaste el Día 1. Hacé clic en el botón para entrar y terminarlo.",
+    body: "Vimos que ya entraste al dashboard, pero todavía no completaste el Día 1. Haz clic en el botón para entrar y terminarlo.",
     cta: "Completar el Día 1 →",
   },
 };
@@ -98,14 +98,14 @@ function buildHtml(segment: ReminderSegment, magicLink: string, appUrl: string):
           </a>
         </td></tr>
         <tr><td style="padding:18px 32px 6px;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">Si el botón no funciona, copiá y pegá este enlace en tu navegador:</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
           <p style="margin:6px 0 0;font-size:12px;word-break:break-all;"><a href="${magicLink}" style="color:#152978;">${magicLink}</a></p>
         </td></tr>
         <tr><td style="padding:14px 32px 6px;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">Este enlace es de un solo uso y expira por seguridad. Si ya pasó un rato y no funciona, entrá a <a href="${loginUrl}" style="color:#152978;">${loginUrl.replace(/^https?:\/\//, "")}</a> e ingresá tu email para recibir uno nuevo.</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">Este enlace es de un solo uso y expira por seguridad. Si ya pasó un rato y no funciona, entra a <a href="${loginUrl}" style="color:#152978;">${loginUrl.replace(/^https?:\/\//, "")}</a> e ingresa tu email para recibir uno nuevo.</p>
         </td></tr>
         <tr><td style="padding:22px 32px 28px;text-align:center;border-top:1px solid #eef1f6;margin-top:16px;">
-          <p style="margin:14px 0 0;font-size:11px;color:#94a3b8;">Si no esperabas este email, podés ignorarlo.</p>
+          <p style="margin:14px 0 0;font-size:11px;color:#94a3b8;">Si no esperabas este email, puedes ignorarlo.</p>
         </td></tr>
       </table>
     </td></tr>

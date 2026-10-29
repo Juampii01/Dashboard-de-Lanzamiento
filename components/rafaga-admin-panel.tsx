@@ -340,7 +340,7 @@ export function RafagaAdminPanel() {
           <label style={labelStyle}>Descripción / instrucciones</label>
           <ExpandableTextarea
             style={{ ...inputStyle, resize: "vertical", minHeight: 96, lineHeight: 1.5 }}
-            placeholder="Explicá qué tienen que hacer los participantes durante la ventana de la ráfaga. Podés escribir varias líneas."
+            placeholder="Explica qué tienen que hacer los participantes durante la ventana de la ráfaga. Puedes escribir varias líneas."
             value={description}
             onChange={setDescription}
             title="Descripción de la misión ráfaga"
@@ -542,7 +542,7 @@ export function RafagaAdminPanel() {
             Respuestas de ráfaga pendientes · {subs.length}
           </p>
           <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: 0 }}>
-            Aceptar = queda cumplida. Rechazar = descuenta los puntos y la persona puede reintentar. Ninguna de las dos borra la foto — queda en el Historial de abajo; ahí sí podés eliminarla si hace falta.
+            Aceptar = queda cumplida. Rechazar = descuenta los puntos y la persona puede reintentar. Ninguna de las dos borra la foto — queda en el Historial de abajo; ahí sí puedes eliminarla si hace falta.
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: 12 }}>
             {subs.map((s) => (
@@ -586,7 +586,7 @@ export function RafagaAdminPanel() {
       )}
 
       {/* Historial de misiones ráfaga — nada se borra al desactivar/vencer una
-          ráfaga; acá quedan todas las respuestas ya revisadas. */}
+          ráfaga; aquí quedan todas las respuestas ya revisadas. */}
       <div className="space-y-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
         <button
           onClick={toggleHistory}

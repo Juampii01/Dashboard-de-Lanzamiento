@@ -75,7 +75,7 @@ export function SorteoClient() {
     const alreadyDrawn = new Set(quickResults.map((n) => n.toLowerCase()));
     const names = allNames.filter((n) => !alreadyDrawn.has(n.toLowerCase()));
     if (names.length === 0) {
-      toast.error("Pegá al menos un nombre.");
+      toast.error("Pega al menos un nombre.");
       return;
     }
     if (names.length < quickCount) {
@@ -225,7 +225,7 @@ export function SorteoClient() {
       return;
     }
     const confirmMsg = pendingCount > 0
-      ? `Hay ${pendingCount} sin reclamar — quedan eliminados y se sortean ${remaining} reemplazo${remaining > 1 ? "s" : ""}. ¿Confirmás?`
+      ? `Hay ${pendingCount} sin reclamar — quedan eliminados y se sortean ${remaining} reemplazo${remaining > 1 ? "s" : ""}. ¿Confirmas?`
       : usingPresentMode
         ? `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre los presentes en la llamada?`
         : `¿Sortear ${remaining} ganador${remaining > 1 ? "es" : ""} de "${RANKS.find((r) => r.key === rankKey)?.name}" entre ${displayCount} elegibles?`;
@@ -293,7 +293,7 @@ export function SorteoClient() {
       });
       if (!res.ok) throw new Error();
       await load();
-      toast.success("Reiniciado. Ya podés volver a sortear.");
+      toast.success("Reiniciado. Ya puedes volver a sortear.");
     } catch {
       toast.error("Error al reiniciar.");
     }
@@ -340,7 +340,7 @@ export function SorteoClient() {
         </h1>
         <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.75)", maxWidth: "66ch", margin: 0, lineHeight: 1.6 }}>
           Elegibles: pago 100% confirmado (Hotmart + SEM + Stripe) y haber ingresado al menos una vez al dashboard.{" "}
-          <strong style={{ color: "#fff" }}>Marcá quién reclamó su premio en vivo</strong> — si sortear de nuevo, los que
+          <strong style={{ color: "#fff" }}>Marca quién reclamó su premio en vivo</strong> — si sortear de nuevo, los que
           no reclamaron quedan eliminados y se sortean reemplazos solo para los lugares que faltan.
         </p>
       </div>
@@ -378,7 +378,7 @@ export function SorteoClient() {
           🎲 Sorteo rápido por nombres
         </h2>
         <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)", margin: "0 0 14px" }}>
-          Independiente de la base de datos — pegá cualquier lista de nombres, sortea entre ellos y no se guarda en ningún lado.
+          Independiente de la base de datos — pega cualquier lista de nombres, sortea entre ellos y no se guarda en ningún lado.
         </p>
 
         {quickDrawing ? (
@@ -548,7 +548,7 @@ export function SorteoClient() {
           <div>
             <p style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", margin: 0 }}>🎥 Modo presentes (Elevate + Prime)</p>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: "2px 0 0" }}>
-              Pegá los emails de quienes están en la llamada. Si lo activás, Elevate y Prime sortean entre TODOS ellos
+              Pega los emails de quienes están en la llamada. Si lo activas, Elevate y Prime sortean entre TODOS ellos
               sin importar su rango real de puntos.
             </p>
           </div>
@@ -773,7 +773,7 @@ export function SorteoClient() {
         );
       })}
 
-      {/* Ventana emergente de revelado — aparece PRIMERO acá, sobre toda la
+      {/* Ventana emergente de revelado — aparece PRIMERO aquí, sobre toda la
           pantalla (ideal para proyectar en vivo); al marcar presente/avanzar
           también se actualiza la tarjeta del rango de fondo, así que al
           cerrarla ya queda reflejado en la sección original. */}

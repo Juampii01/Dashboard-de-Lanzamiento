@@ -32,7 +32,7 @@ const STEPS: Step[] = [
   },
   {
     title: "Tu barra de progreso 💪",
-    body: "Acá ves cuánto avanzaste en la misión. Completa cada fase y el indicador se llena. El avatar soy yo — haz clic para una sorpresa.",
+    body: "Aquí ves cuánto avanzaste en la misión. Completa cada fase y el indicador se llena. El avatar soy yo — haz clic para una sorpresa.",
     targetId: "progress-bar",
     santoMood: "point",
     highlightPadding: 16,
@@ -55,7 +55,7 @@ const STEPS: Step[] = [
   },
   {
     title: "Misiones en Video 📺",
-    body: "¡Acá están! Marca cada video como visto y sumas +100 XP — uno cada 5 minutos. Son 4 videos por fase. ¡Vuelve seguido para acumular puntos!",
+    body: "¡Aquí están! Marca cada video como visto y sumas +100 XP — uno cada 5 minutos. Son 4 videos por fase. ¡Vuelve seguido para acumular puntos!",
     targetId: "capsules",
     santoMood: "star",
     highlightPadding: 16,

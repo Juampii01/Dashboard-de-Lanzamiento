@@ -93,7 +93,7 @@ async function getLayoutData(userId: string) {
 
   // Los 4 días son SIEMPRE navegables (clickeables). El bloqueo NO es de
   // navegación: es el overlay de cada día (contador + botón) que tapa el
-  // contenido hasta que el admin lo abre. Por eso is_unlocked = true acá.
+  // contenido hasta que el admin lo abre. Por eso is_unlocked = true aquí.
   const completedByDay = new Map(
     (progress ?? []).map((p) => [p.day_number, p.is_completed])
   );

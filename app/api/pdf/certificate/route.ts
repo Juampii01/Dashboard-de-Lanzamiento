@@ -19,7 +19,7 @@ export async function GET() {
 
   if (!day4?.is_completed) {
     return NextResponse.json(
-      { error: "Completá el challenge primero para descargar el certificado." },
+      { error: "Completa el challenge primero para descargar el certificado." },
       { status: 403 }
     );
   }

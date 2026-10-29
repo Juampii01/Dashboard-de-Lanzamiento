@@ -326,7 +326,7 @@ function NewQuizForm({
 
   const create = async () => {
     if (!question.trim() || options.some((o) => !o.trim())) {
-      setErr("Completá el enunciado y todas las opciones");
+      setErr("Completa el enunciado y todas las opciones");
       return;
     }
     setSaving(true);
@@ -379,7 +379,7 @@ function NewQuizForm({
       </Field>
 
       <div>
-        <Label>Opciones (seleccioná la correcta)</Label>
+        <Label>Opciones (selecciona la correcta)</Label>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
           {options.map((opt, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px" }}>

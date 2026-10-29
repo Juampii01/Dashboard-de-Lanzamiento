@@ -199,7 +199,7 @@ export function Dia3Client({
       if (res.status === 403) {
         const err: { error?: string; message?: string } = await res.json().catch(() => ({}));
         if (err.error === "regen_not_allowed") {
-          toast.error(err.message ?? "Para regenerar tu web necesitás que el equipo te habilite.", { id: toastId, duration: 8000 });
+          toast.error(err.message ?? "Para regenerar tu web necesitas que el equipo te habilite.", { id: toastId, duration: 8000 });
           setReportOpen(true);
           return;
         }
@@ -428,7 +428,7 @@ export function Dia3Client({
               </p>
             </div>
             <p className="text-xs text-muted-foreground" style={{ margin: "4px 0 0" }}>
-              Contanos qué pasó y el equipo te habilita para volver a generarla.
+              Cuéntanos qué pasó y el equipo te habilita para volver a generarla.
             </p>
 
             {reportSent && !reportOpen && (
@@ -451,7 +451,7 @@ export function Dia3Client({
                   type="text"
                   value={reportMessage}
                   onChange={(e) => setReportMessage(e.target.value)}
-                  placeholder="Contanos qué salió mal…"
+                  placeholder="Cuéntanos qué salió mal…"
                   maxLength={500}
                   disabled={reportSubmitting}
                   className="flex-1 min-w-0 px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -569,7 +569,7 @@ export function Dia3Client({
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  ¿Algo no coincide? Edítalo en el Día 1 y vuelve. Acá no se cambia nada.
+                  ¿Algo no coincide? Edítalo en el Día 1 y vuelve. Aquí no se cambia nada.
                 </p>
               </div>
             ),

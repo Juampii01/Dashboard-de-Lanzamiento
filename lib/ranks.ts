@@ -1,5 +1,5 @@
 /**
- * Rangos del challenge. Subís de rango acumulando puntos; al cierre el premio
+ * Rangos del challenge. Subes de rango acumulando puntos; al cierre el premio
  * se SORTEA (ponderado: más puntos/rango = más chances).
  */
 export interface Rank {

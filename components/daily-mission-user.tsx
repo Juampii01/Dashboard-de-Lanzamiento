@@ -123,7 +123,7 @@ export function DailyMissionUser({
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Pega un link o escribe tu respuesta acá…"
+              placeholder="Pega un link o escribe tu respuesta aquí…"
               style={inputStyle}
               disabled={busy}
             />

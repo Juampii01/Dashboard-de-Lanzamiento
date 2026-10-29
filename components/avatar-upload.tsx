@@ -238,7 +238,7 @@ export function AvatarCropModal({ file, onClose, onUploaded }: AvatarCropModalPr
                 CAMBIAR AVATAR
               </p>
               <p style={{ fontSize: "11px", color: "#A0BCDE", lineHeight: 1.4 }}>
-                Arrastrá para centrar · Scroll para zoom
+                Arrastra para centrar · Scroll para zoom
               </p>
             </div>
             <button

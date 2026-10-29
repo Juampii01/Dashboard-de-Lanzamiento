@@ -16,7 +16,7 @@ export function TaskCompleteModal({
   onDownload,
   downloading = false,
   title = "¡Tu tarea ya fue resuelta!",
-  subtitle = "¡Excelente trabajo! Ya podés descargar tu documento.",
+  subtitle = "¡Excelente trabajo! Ya puedes descargar tu documento.",
   downloadLabel = "Descargar mi PDF",
 }: {
   open: boolean;
@@ -165,7 +165,7 @@ export function TaskCompleteModal({
         </button>
 
         <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", margin: "16px 0 0" }}>
-          Tranqui: podés descargar tu documento cuando quieras desde esta misma página.
+          Tranqui: puedes descargar tu documento cuando quieras desde esta misma página.
         </p>
       </div>
     </div>

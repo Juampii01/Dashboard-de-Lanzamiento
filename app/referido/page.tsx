@@ -44,7 +44,7 @@ export default async function ReferidoPage({
         </h1>
 
         <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.78)", lineHeight: 1.55, margin: 0 }}>
-          Coloque acá su email y será redirigido a la página para acceder al lanzamiento.
+          Coloque aquí su email y será redirigido a la página para acceder al lanzamiento.
         </p>
 
         <ReferidoForm refCode={ref} />

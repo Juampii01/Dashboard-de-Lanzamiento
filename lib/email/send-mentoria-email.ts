@@ -2,7 +2,7 @@
  * Email masivo con la propuesta de la mentoría "Tu Primer Contrato" (plan de
  * pagos) — mismo mensaje que el banner de Inicio, pero por email. El CTA es
  * un link de WhatsApp con el mensaje pre-armado (no un magic link: el objetivo
- * acá es que escriban por WhatsApp, no que entren al dashboard).
+ * aquí es que escriban por WhatsApp, no que entren al dashboard).
  *
  * Requiere RESEND_API_KEY (en Vercel). Remitente propio para no agruparse en
  * el mismo hilo que los otros emails masivos.
@@ -10,7 +10,7 @@
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const FROM = "GovBidder Challenge <mentoria@send.govbidder.net>";
-const SUBJECT = "¿Todavía pensás unirte a Tu Primer Contrato?";
+const SUBJECT = "¿Todavía piensas unirte a Tu Primer Contrato?";
 
 const MENTORIA_WHATSAPP = (process.env.NEXT_PUBLIC_MENTORIA_WHATSAPP ?? "17329373088").replace(/\D/g, "");
 
@@ -78,20 +78,20 @@ function buildHtml(fullName: string, appUrl: string): string {
         <tr><td style="padding:14px 32px 0;text-align:center;">
           <p style="margin:0;font-size:15px;line-height:1.55;color:#475569;">
             ${firstName ? `${firstName}, si` : "Si"} todavía estás pensando en sumarte a la mentoría <strong>Tu Primer Contrato</strong>,
-            este es el momento ideal. Tenemos una propuesta específica para vos, en cuotas, para que puedas arrancar sin pagar todo de una vez.
+            este es el momento ideal. Tenemos una propuesta específica para ti, en cuotas, para que puedas comenzar sin pagar todo de una vez.
           </p>
         </td></tr>
         <tr><td style="padding:26px 32px 8px;text-align:center;">
           <a href="${waLink}" target="_blank"
              style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;font-size:16px;font-weight:bold;padding:14px 32px;border-radius:10px;">
-            💬 Comunicate ya mismo por WhatsApp
+            💬 Comunícate ya mismo por WhatsApp
           </a>
         </td></tr>
         <tr><td style="padding:14px 32px 0;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">Enterate de la propuesta ahora mismo.</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">Entérate de la propuesta ahora mismo.</p>
         </td></tr>
         <tr><td style="padding:22px 32px 28px;text-align:center;border-top:1px solid #eef1f6;margin-top:16px;">
-          <p style="margin:14px 0 0;font-size:11px;color:#94a3b8;">Si no esperabas este email, podés ignorarlo.</p>
+          <p style="margin:14px 0 0;font-size:11px;color:#94a3b8;">Si no esperabas este email, puedes ignorarlo.</p>
         </td></tr>
       </table>
     </td></tr>

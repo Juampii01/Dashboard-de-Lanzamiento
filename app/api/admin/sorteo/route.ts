@@ -214,7 +214,7 @@ export async function POST(req: NextRequest) {
 
   let winnerIds: string[];
   if (WEIGHTED_RANKS.has(rank.key)) {
-    // Elevate/Prime: ponderado por puntos — recalculo los puntos FRESCOS acá
+    // Elevate/Prime: ponderado por puntos — recalculo los puntos FRESCOS aquí
     // (no confío en pesos que pudiera mandar el cliente).
     const { data: weightRows } = await auth.service.from("users").select("id, total_points").in("id", allowedIds);
     const pointsMap = new Map(

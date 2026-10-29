@@ -16,7 +16,7 @@ export function NuevoUsuarioClient() {
       <PageHeader
         eyebrow="Usuarios"
         title="Crear usuarios"
-        description="Creá usuarios uno por uno o por CSV y mandales el acceso por magic link."
+        description="Crea usuarios uno por uno o por CSV y mandales el acceso por magic link."
       />
 
       {/* Mode selector */}

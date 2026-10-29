@@ -78,8 +78,8 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
           : json.error === "not_open_yet" ? "La misión todavía no abrió."
           : json.error === "file_too_large" ? "La imagen supera los 5 MB."
           : json.error === "invalid_image" ? "Formato de imagen no válido."
-          : json.error === "empty" ? "Escribí una respuesta o subí una captura."
-          : "No pudimos enviar tu respuesta. Probá de nuevo."
+          : json.error === "empty" ? "Escribe una respuesta o sube una captura."
+          : "No pudimos enviar tu respuesta. Prueba de nuevo."
         );
         return;
       }
@@ -90,7 +90,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
         }));
       }
     } catch {
-      setError("No pudimos enviar tu respuesta. Probá de nuevo.");
+      setError("No pudimos enviar tu respuesta. Prueba de nuevo.");
     } finally {
       setBusy(false);
     }
@@ -112,7 +112,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
 
   function handleText() {
     const t = text.trim();
-    if (!t) { setError("Escribí una respuesta o pegá un link."); return; }
+    if (!t) { setError("Escribe una respuesta o pega un link."); return; }
     const kind = /^https?:\/\//i.test(t) ? "link" : "text";
     send({ text: t, kind });
   }
@@ -218,7 +218,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Pegá un link o escribí tu respuesta acá…"
+            placeholder="Pega un link o escribe tu respuesta aquí…"
             disabled={busy}
             style={{
               width: "100%", boxSizing: "border-box", resize: "vertical", minHeight: 52,
@@ -256,7 +256,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
             </button>
           </div>
           <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: 0 }}>
-            Respondé con un link, un texto o una captura (PNG/JPG, máx 5 MB) para ganar los puntos.
+            Responde con un link, un texto o una captura (PNG/JPG, máx 5 MB) para ganar los puntos.
           </p>
           {error && <p style={{ fontSize: 12.5, color: "var(--destructive)", margin: 0 }}>{error}</p>}
         </div>

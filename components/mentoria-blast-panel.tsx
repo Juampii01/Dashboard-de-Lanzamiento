@@ -35,7 +35,7 @@ export function MentoriaBlastPanel() {
     setBusy("test");
     try {
       const r = await callBlast({ test: true });
-      if (r.sent) toast.success("Enviado a tu email. Revisá la bandeja.");
+      if (r.sent) toast.success("Enviado a tu email. Revisa la bandeja.");
       else toast.error("No se pudo enviar: " + (r.errors?.[0] ?? "error"));
     } catch (e) { toast.error("Error: " + (e as Error).message); }
     setBusy(null);
@@ -65,7 +65,7 @@ export function MentoriaBlastPanel() {
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground leading-relaxed">
         Manda el email de la propuesta de &quot;Tu Primer Contrato&quot; (plan de pagos) con botón de WhatsApp.
-        Probá primero (&quot;test&quot;, te lo manda a vos) y después enviá a todos.
+        Prueba primero (&quot;test&quot;, te lo manda a ti) y después envía a todos.
       </p>
       <div className="rounded-xl border p-3 space-y-2" style={{ borderColor: "var(--border)" }}>
         <p className="text-sm font-semibold">

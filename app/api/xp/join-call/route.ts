@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   // Gate por TIEMPO (no por desbloqueo del día): la XP de la llamada se reclama
   // cuando el contador del día ya llegó a 0 (hora de la clase). El día sigue
   // bloqueado mientras dura la llamada — el equipo lo abre recién al terminar —,
-  // así que el guard de "día desbloqueado" no sirve acá. Esto evita además que
+  // así que el guard de "día desbloqueado" no sirve aquí. Esto evita además que
   // alguien reclame los puntos de un día antes de su clase.
   const toggle = await getAdminToggle(supabase, day);
   const classMs = Date.parse(dayUnlockIso(toggle?.scheduled_unlock_at, day));

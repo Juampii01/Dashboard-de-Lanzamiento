@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: 'rate_limited',
-          message: `Esperá ${rl.retry_after_seconds}s antes de volver a intentar`,
+          message: `Espera ${rl.retry_after_seconds}s antes de volver a intentar`,
           retry_after_seconds: rl.retry_after_seconds,
         },
         {
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: 'daily_limit_reached',
-          message: 'Llegaste al límite diario de generaciones con IA. Probá mañana.',
+          message: 'Llegaste al límite diario de generaciones con IA. Prueba mañana.',
         },
         { status: 429 }
       )
@@ -109,7 +109,7 @@ Sugiere el código NAICS primario más apropiado para que esta empresa pueda reg
   } catch (err) {
     console.error("Error en suggest-naics:", err);
     return NextResponse.json(
-      { error: "Error al generar sugerencia. Intentá de nuevo." },
+      { error: "Error al generar sugerencia. Intenta de nuevo." },
       { status: 500 }
     );
   }

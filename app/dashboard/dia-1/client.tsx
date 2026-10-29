@@ -683,7 +683,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   <Input id="business_category" value={form.business_category} onChange={setField("business_category")} placeholder="Ej: Cuidado personal e higiene (consumer goods)" />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="problem_solved">¿Qué problema resuelve tu empresa para sus clientes? *<FieldHelp text="Qué necesidad o dolor concreto resolvés. Ej: 'Damos acceso a productos de higiene de calidad a precio accesible para distribuidores y comercios.'" /></Label>
+                  <Label htmlFor="problem_solved">¿Qué problema resuelve tu empresa para sus clientes? *<FieldHelp text="Qué necesidad o dolor concreto resuelves. Ej: 'Damos acceso a productos de higiene de calidad a precio accesible para distribuidores y comercios.'" /></Label>
                   <Textarea id="problem_solved" value={form.problem_solved} onChange={setField("problem_solved")} placeholder="Ej: Proveemos productos de higiene confiables y a buen precio, con stock constante para distribuidores." rows={2} />
                 </div>
                 <div className="space-y-2">

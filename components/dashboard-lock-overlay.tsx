@@ -83,7 +83,7 @@ export function DashboardLockOverlay({ isAdmin = false }: { isAdmin?: boolean })
   if (!lock.is_locked) return null;
 
   const message =
-    lock.message ?? "La llamada en vivo está en curso. Volvé cuando termine.";
+    lock.message ?? "La llamada en vivo está en curso. Vuelve cuando termine.";
 
   return (
     <div

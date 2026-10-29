@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 // Panel admin: envío masivo del magic link de acceso (entran directo al
-// dashboard, sin contraseña). Probá primero con tu email, después a todos.
+// dashboard, sin contraseña). Prueba primero con tu email, después a todos.
 // El "Enviar a TODOS" llama al endpoint por tandas hasta terminar.
 export function MagicBlastPanel() {
   const [busy, setBusy] = useState<null | "email" | "all">(null);
@@ -26,12 +26,12 @@ export function MagicBlastPanel() {
 
   async function sendToEmail() {
     const e = email.trim();
-    if (!e) { toast.error("Escribí un email."); return; }
+    if (!e) { toast.error("Escribe un email."); return; }
     setBusy("email"); setResult(null); setProgress("");
     try {
       const r = await callBlast({ email: e });
       setResult({ sent: r.sent, failed: r.failed, errors: r.errors });
-      if (r.sent) toast.success(`Magic link enviado a ${e}. Revisá la bandeja.`);
+      if (r.sent) toast.success(`Magic link enviado a ${e}. Revisa la bandeja.`);
       else toast.error("No se pudo enviar: " + (r.errors?.[0] ?? "error"));
     } catch (err) { toast.error("Error: " + (err as Error).message); }
     setBusy(null);
@@ -61,7 +61,7 @@ export function MagicBlastPanel() {
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground leading-relaxed">
         Manda el <strong>magic link de acceso</strong>: el usuario hace clic y entra directo al dashboard, sin contraseña.
-        Probá primero poniendo un email (el tuyo o uno de prueba); cuando confirmes que llega y loguea, enviá a todos. Usa el flujo probado de Resend.
+        Prueba primero poniendo un email (el tuyo o uno de prueba); cuando confirmes que llega y loguea, envía a todos. Usa el flujo probado de Resend.
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <input

@@ -274,7 +274,7 @@ export function LaunchScheduleControl({ initialToggles }: { initialToggles: Admi
         unlock_at ? `${lbl}: el contador marca el ${new Date(unlock_at).toLocaleString()}` : `${lbl}: sin fecha (usa el valor por defecto).`
       );
     } catch {
-      toast.error("No se pudo guardar la fecha. Reintentá.");
+      toast.error("No se pudo guardar la fecha. Reintenta.");
     }
     setSavingDay(null);
   }

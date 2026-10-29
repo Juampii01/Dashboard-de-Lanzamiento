@@ -192,7 +192,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
           Respuestas pendientes {subs.length > 0 && <span style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>· {subs.length}</span>}
         </p>
         <p style={{ fontSize: 11.5, color: "var(--muted-foreground)" }}>
-          Aceptar = queda cumplida. Rechazar = resta los puntos y la persona puede reintentar. Ninguna de las dos borra la foto — queda en el Historial de abajo; ahí sí podés eliminarla si hace falta.
+          Aceptar = queda cumplida. Rechazar = resta los puntos y la persona puede reintentar. Ninguna de las dos borra la foto — queda en el Historial de abajo; ahí sí puedes eliminarla si hace falta.
         </p>
         {subs.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>No hay respuestas para revisar.</p>
@@ -241,7 +241,7 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
       </div>
 
       {/* Historial de misiones — nada se borra al cerrar/cambiar la misión;
-          acá quedan todas las respuestas ya revisadas para seguir chequeándolas. */}
+          aquí quedan todas las respuestas ya revisadas para seguir chequeándolas. */}
       <div className="space-y-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
         <button
           onClick={toggleHistory}

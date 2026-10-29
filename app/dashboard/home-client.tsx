@@ -102,13 +102,13 @@ function MentoriaBanner({ fullName }: { fullName: string }) {
         </h2>
 
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", maxWidth: "44ch", margin: 0 }}>
-          Este es el momento ideal. Tenemos una propuesta específicamente para vos, ya que venís directo desde el dashboard.
+          Este es el momento ideal. Tenemos una propuesta específicamente para ti, ya que vienes directo desde el dashboard.
         </p>
 
-        <WhatsAppButton onClick={handleWhatsApp}>Comunicate ya mismo por WhatsApp</WhatsAppButton>
+        <WhatsAppButton onClick={handleWhatsApp}>Comunícate ya mismo por WhatsApp</WhatsAppButton>
 
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0 }}>
-          Enterate de la propuesta ahora mismo.
+          Entérate de la propuesta ahora mismo.
         </p>
       </div>
     </div>
@@ -620,7 +620,7 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
         body: JSON.stringify({ content: replyContent.trim(), parent_id: parentId }),
       });
       if (res.status === 501) { toast.error("Las respuestas todavía no están activas."); return; }
-      if (res.status === 403) { toast.error("Solo podés responder tu propio comentario."); return; }
+      if (res.status === 403) { toast.error("Solo puedes responder tu propio comentario."); return; }
       if (!res.ok) throw new Error("error");
       setReplyContent("");
       setReplyingTo(null);
@@ -857,7 +857,7 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
                           <input
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
-                            placeholder="Escribí tu respuesta…"
+                            placeholder="Escribe tu respuesta…"
                             maxLength={500}
                             disabled={replySubmitting}
                             style={{
@@ -1217,7 +1217,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
           ¡Mira contratos gubernamentales ganados!
         </h2>
         <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
-          Contratos reales adjudicados a pequeñas empresas. Elige tu sector y míralos (usá las flechas si hay varios).
+          Contratos reales adjudicados a pequeñas empresas. Elige tu sector y míralos (usa las flechas si hay varios).
         </p>
       </div>
 

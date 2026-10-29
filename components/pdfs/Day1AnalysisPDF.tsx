@@ -196,7 +196,7 @@ export function Day1AnalysisPDF({
               {!hasProfile ? (
                 <View style={styles.insightBox}>
                   <Text style={[styles.insightText, { color: MUTED }]}>
-                    Completa tu perfil en el Día 1 para ver acá tu resumen estratégico.
+                    Completa tu perfil en el Día 1 para ver aquí tu resumen estratégico.
                   </Text>
                 </View>
               ) : null}
