@@ -124,6 +124,8 @@ interface Comment {
   parent_id: string | null;
   author_is_admin?: boolean;
   hidden?: boolean;
+  /** Comentario destacado de un lanzamiento anterior (solo lectura). */
+  previous?: boolean;
 }
 
 // Fecha + hora en el huso horario LOCAL de quien mira (por defecto de
@@ -635,7 +637,11 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
 
   // Agrupar: comentarios de primer nivel (más nuevo arriba, ya vienen así) y
   // sus respuestas (más vieja primero, orden de conversación natural).
-  const topLevel = comments.filter((c) => !c.parent_id);
+  // Los actuales primero; al final, los destacados del lanzamiento anterior.
+  const topLevel = [
+    ...comments.filter((c) => !c.parent_id && !c.previous),
+    ...comments.filter((c) => !c.parent_id && c.previous),
+  ];
   const repliesByParent = new Map<string, Comment[]>();
   for (const c of comments) {
     if (!c.parent_id) continue;
@@ -775,12 +781,23 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
               </p>
             </div>
           ) : (
-            topLevel.map((c) => {
-              const canReply = isAdmin || c.user_id === userId;
+            topLevel.map((c, idx) => {
+              const canReply = !c.previous && (isAdmin || c.user_id === userId);
               const replies = repliesByParent.get(c.id) ?? [];
               const isAnnouncement = c.author_is_admin;
+              const startsPrevious = !!c.previous && (idx === 0 || !topLevel[idx - 1].previous);
               return (
                 <div key={c.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  {startsPrevious && (
+                    <div style={{
+                      padding: "10px 16px", fontSize: "11px", fontWeight: 700,
+                      letterSpacing: "0.08em", textTransform: "uppercase",
+                      color: "var(--muted-foreground)", background: "var(--muted)",
+                      borderBottom: "1px solid var(--border)",
+                    }}>
+                      ⭐ Lo que dijeron en el lanzamiento anterior
+                    </div>
+                  )}
                   {/* Comentario original */}
                   <div
                     style={{

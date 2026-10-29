@@ -11,8 +11,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { REFERRAL_LEAD_XP } from "@/lib/referrals";
 
-/** Producto del lanzamiento actual. Cambiarlo en un lanzamiento nuevo separa las listas de compradores. */
-export const CURRENT_PRODUCT = "challenge";
+/**
+ * Producto del lanzamiento actual. Cambiarlo en cada lanzamiento nuevo separa
+ * las listas de compradores y permite que un participante anterior vuelva a
+ * comprar (claim_purchase aplica "una compra = una cuenta" por producto).
+ * Lanzamientos: "challenge" (hasta oct-2026), "challenge-2026-11".
+ */
+export const CURRENT_PRODUCT = "challenge-2026-11";
 
 export const PURCHASE_SOURCES = ["hotmart", "sem", "stripe", "ghl", "manual"] as const;
 export type PurchaseSource = (typeof PURCHASE_SOURCES)[number];

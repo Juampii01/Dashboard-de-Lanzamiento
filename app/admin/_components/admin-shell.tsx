@@ -16,6 +16,7 @@ import {
   Trophy,
   ShoppingBag,
   BookOpen,
+  MessageSquare,
   ArrowLeft,
   Menu,
   X,
@@ -53,6 +54,7 @@ const NAV: NavGroup[] = [
       { href: "/admin/contenido", label: "Contenido", icon: PlaySquare },
       { href: "/admin/misiones", label: "Misiones", icon: Target },
       { href: "/admin/comunicaciones", label: "Comunicaciones", icon: Mail },
+      { href: "/admin/comentarios", label: "Comentarios", icon: MessageSquare },
     ],
   },
   {

@@ -1,4 +1,5 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { autoClaimByAccountEmail } from "@/lib/access/purchases";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
@@ -188,6 +189,17 @@ export default async function DashboardLayout({
   // así que un admin cuyo access_expires_at ya pasó (ej. Santo) quedaba
   // bloqueado igual que un usuario común. Bug real, no cosmético.
   if (profile && !profile.is_admin && isExpired(profile.access_expires_at)) {
+    // Participante de un lanzamiento anterior que volvió a comprar: si hay una
+    // compra del lanzamiento actual con el email de su cuenta, se vincula aquí
+    // y entra directo (sin pasar por /registro ni por verificación manual).
+    if (!devMode && userEmail) {
+      const claim = await autoClaimByAccountEmail(
+        createServiceClient() as unknown as Parameters<typeof autoClaimByAccountEmail>[0],
+        authUserId,
+        userEmail,
+      ).catch(() => "no_purchase" as const);
+      if (claim === "claimed") redirect("/dashboard");
+    }
     redirect("/dashboard/expirado");
   }
 
