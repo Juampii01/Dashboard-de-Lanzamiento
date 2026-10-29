@@ -48,7 +48,7 @@ function PrizeBadge({ rank }: { rank: number }) {
           flexShrink: 0,
         }}
       >
-        🥇 Servicio $15K
+        🥇 -US$1,000 Mentoría
       </span>
     );
   }

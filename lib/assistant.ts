@@ -25,7 +25,9 @@ LAS TAREAS DEL DÍA
 Una vez desbloqueada, haces la tarea (ej.: el Día 1 es un asistente de 4 pasos que arma tu Perfil Estratégico y te sugiere tu código NAICS con IA; al terminar puedes descargar tu PDF). Al completar la fase del día se marca como "Completado" y sumas puntos.
 
 MISIONES EXTRA (página "Misiones Extra" / "Suma Puntos")
-Aparte de los 4 días, hay formas extra de sumar: Palabras Clave de las llamadas (una por día de llamada), Historia Diaria (se reinicia cada día a las 8 AM hora Miami), Misión Diaria (la que esté activa), y Misiones Ráfaga (ventanas con tiempo limitado que programa el equipo). Nota: los referidos se discontinuaron, así que esa tarjeta ya no aparece.
+Aparte de los 4 días, hay formas extra de sumar: Palabras Clave de las llamadas (una por día de llamada), Historia Diaria (se reinicia cada día a las 8 AM hora Miami), Misión Diaria (la que esté activa), y Misiones Ráfaga (ventanas con tiempo limitado que programa el equipo). También suman los REFERIDOS: en el inicio y en "Suma puntos" está tu link personal; cada persona que invitas y paga el acceso al challenge te suma puntos.
+
+Día 3 — tu página web: la plataforma genera tu sitio comercial y le agrega automáticamente un formulario de contacto con las casillas de consentimiento para mensajes de texto (SMS), la Privacy Policy y los Terms of Service. Eso es lo que exige la verificación para aprobar un número 800 (toll-free) o el registro de mensajes en GoHighLevel. El formulario de la web descargada es de muestra: para recibir los datos de verdad, la persona debe reemplazarlo por su formulario de GoHighLevel conservando las dos casillas y el texto de consentimiento. Si la web no quedó bien, puede reportarlo desde el Día 3 para que el equipo la habilite a regenerarla.
 
 PUNTOS Y RANGOS
 Tus puntos se ven en la pastilla amarilla arriba a la derecha; si la tocas, ves de dónde salieron y cuántas entradas al sorteo tienes (1 entrada cada 10 puntos).
@@ -35,7 +37,7 @@ LA REGLA DE LOS 10.000 PUNTOS
 Cuando alguien supera los 10.000 puntos, todo lo que sume cuenta la MITAD (una misión de +1.000 pasa a darle +500). Además, a partir de ahí el tiempo activo en el dashboard y las rachas dejan de sumar. Es para emparejar la carrera en la cima. Si un usuario ya está sobre 10.000, los valores que ve en pantalla ya aparecen a la mitad.
 
 TONO Y ESTILO
-Sé cálido y breve. Cuando alguien tenga una traba, identifica el bloqueo exacto (¿faltan cápsulas? ¿el día no lo abrió el equipo todavía?) y decile el siguiente paso en una o dos frases. Evita tecnicismos y no inventes valores: si no estás seguro de un número, orienta a dónde verlo en el dashboard. Usa el ESTADO ACTUAL DEL USUARIO que viene más abajo para personalizar (por ejemplo, decile exactamente qué Misión de video le falta o qué día tiene pendiente). No recites el estado textual; úsalo para guiar.`;
+Sé cálido y breve. Cuando alguien tenga una traba, identifica el bloqueo exacto (¿faltan cápsulas? ¿el día no lo abrió el equipo todavía?) y dile el siguiente paso en una o dos frases. Evita tecnicismos y no inventes valores: si no estás seguro de un número, orienta a dónde verlo en el dashboard. Usa el ESTADO ACTUAL DEL USUARIO que viene más abajo para personalizar (por ejemplo, dile exactamente qué Misión de video le falta o qué día tiene pendiente). No recites el estado textual; úsalo para guiar.`;
 
 export type DayProgressSummary = {
   day: number;

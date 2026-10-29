@@ -238,6 +238,17 @@ export default async function DashboardLayout({
 
   const remaining = daysLeft(profile?.access_expires_at ?? null);
 
+  // Número de soporte por WhatsApp (editable en /admin/comunicaciones).
+  let supportWhatsapp = "";
+  if (!devMode) {
+    const { data: supportRow } = await createServiceClient()
+      .from("app_settings")
+      .select("value")
+      .eq("key", "support_whatsapp")
+      .maybeSingle();
+    supportWhatsapp = ((supportRow as { value?: string | null } | null)?.value ?? "").replace(/[^\d]/g, "");
+  }
+
   return (
     <div
       style={{
@@ -338,7 +349,7 @@ export default async function DashboardLayout({
       {!devMode && <DashboardLockOverlay isAdmin={profile?.is_admin ?? false} />}
 
       {/* Asistente de IA flotante — guía a todos los usuarios */}
-      {!devMode && <DashboardAssistant />}
+      {!devMode && <DashboardAssistant supportWhatsapp={supportWhatsapp} />}
     </div>
   );
 }

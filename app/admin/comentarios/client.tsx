@@ -30,21 +30,28 @@ export function ComentariosClient() {
   const [archiving, setArchiving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/admin/comments");
-      if (res.status === 501) { setMissing(true); return; }
-      const data = await res.json();
-      setComments(data.comments ?? []);
-    } catch {
-      toast.error("No se pudieron cargar los comentarios.");
-    } finally {
-      setLoading(false);
-    }
+  const fetchComments = useCallback(async (): Promise<{ missing: boolean; comments: AdminComment[] }> => {
+    const res = await fetch("/api/admin/comments");
+    if (res.status === 501) return { missing: true, comments: [] };
+    const data = await res.json();
+    return { missing: false, comments: data.comments ?? [] };
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  const apply = useCallback((r: { missing: boolean; comments: AdminComment[] }) => {
+    setMissing(r.missing);
+    setComments(r.comments);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchComments()
+      .then(apply)
+      .catch(() => { toast.error("No se pudieron cargar los comentarios."); setLoading(false); });
+  }, [fetchComments, apply]);
+
+  async function load() {
+    try { apply(await fetchComments()); } catch { toast.error("No se pudieron cargar los comentarios."); }
+  }
 
   const counts = useMemo(() => ({
     actuales: comments.filter((c) => !c.archived_at).length,

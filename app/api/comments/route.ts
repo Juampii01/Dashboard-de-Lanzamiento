@@ -74,7 +74,7 @@ export async function GET() {
       .from("program_comments")
       .select("id, user_id, display_name, content, created_at, parent_id, hidden")
       .order("created_at", { ascending: false });
-    data = (retry.data ?? []).map((c) => ({ ...c, archived_at: null, featured: false })) as typeof data;
+    data = ((retry.data ?? []) as Array<Record<string, unknown>>).map((c) => ({ ...c, archived_at: null, featured: false })) as unknown as typeof data;
     error = retry.error;
   }
 

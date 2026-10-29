@@ -472,10 +472,10 @@ export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStud
               🏆 GovBidder Expert · 15,000+ pts
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
-              Servicio <strong style={{ color: "#FFFFFF" }}>Done For You</strong> — lo hacemos por ti
+              <strong style={{ color: "#FFFFFF" }}>Descuento en la Mentoría GovBidder</strong> — para empezar con acompañamiento
             </p>
           </div>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#00D67A", background: "rgba(0,214,122,0.1)", border: "1px solid rgba(0,214,122,0.3)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>$15,000 USD</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#00D67A", background: "rgba(0,214,122,0.1)", border: "1px solid rgba(0,214,122,0.3)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>-US$1,000</span>
         </div>
 
         {/* Legacy */}

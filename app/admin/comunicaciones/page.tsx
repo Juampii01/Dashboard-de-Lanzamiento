@@ -1,9 +1,9 @@
-import { Mail, BellRing, UserPlus, Megaphone } from "lucide-react";
+import { Mail, BellRing, UserPlus, Megaphone, LifeBuoy } from "lucide-react";
 import { MagicBlastPanel } from "@/components/magic-blast-panel";
 import { ReminderBlastPanel } from "@/components/reminder-blast-panel";
 import { MentoriaBlastPanel } from "@/components/mentoria-blast-panel";
 import { PageHeader, Panel } from "../_components/ui";
-import { RegistroLinkPanel } from "../_components/panels";
+import { RegistroLinkPanel, SupportWhatsappPanel } from "../_components/panels";
 
 export default function ComunicacionesPage() {
   return (
@@ -15,6 +15,14 @@ export default function ComunicacionesPage() {
       />
 
       <div className="space-y-6">
+        <Panel
+          icon={LifeBuoy}
+          title="Número de soporte"
+          description="WhatsApp al que los participantes pueden escribir desde el botón “Ayuda” cuando la guía no resuelve su duda."
+        >
+          <SupportWhatsappPanel />
+        </Panel>
+
         <Panel
           icon={Mail}
           title="Acceso por magic link"
