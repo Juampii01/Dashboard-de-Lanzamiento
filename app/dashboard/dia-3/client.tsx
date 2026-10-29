@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { buildWebDocument } from "@/lib/web-compliance";
 import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw, Gift, ChevronDown, MessageCircle, Send } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
 import { TaskCompleteModal } from "@/components/task-complete-modal";
@@ -111,20 +112,22 @@ export function Dia3Client({
     setLoadingStep(0);
   }
 
+  // Siempre se le agrega el formulario con consentimiento SMS, la Privacy Policy
+  // y los Terms of Service (ver lib/web-compliance.ts): sin eso el número 800
+  // no se aprueba. Aplica también a las webs generadas antes de este cambio.
   function buildFullHtml(): string {
     if (!webResult) return "";
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${profile?.company_name ?? "My Company"}</title>
-  <style>${webResult.css}</style>
-</head>
-<body>
-${webResult.html}
-</body>
-</html>`;
+    const p = (profile ?? {}) as Record<string, unknown>;
+    const str = (v: unknown) => (typeof v === "string" ? v : null);
+    return buildWebDocument(webResult.html, webResult.css, {
+      companyName: profile?.company_name ?? "My Company",
+      niche: str(p.niche),
+      phone: str(p.phone),
+      email: str(p.corporate_email),
+      address: str(p.address),
+      usState: str(p.us_state),
+      website: str(p.website),
+    });
   }
 
   // HTML para el iframe del PREVIEW: agrega un "guard" que evita el scroll

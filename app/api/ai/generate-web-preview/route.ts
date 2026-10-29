@@ -178,6 +178,8 @@ ESTRUCTURA (sitio completo, rico)
 8. FINAL CTA: banda con gradiente, titular fuerte, botón grande.
 9. FOOTER: nombre, tagline, links, datos de contacto (email/teléfono/ciudad placeholder), © año.
 
+IMPORTANTE — FORMULARIO Y PÁGINAS LEGALES: NO generes ningún formulario (<form>, inputs, checkboxes), ni Privacy Policy ni Terms of Service. El sistema agrega automáticamente, antes del footer, un formulario de contacto con consentimiento SMS (id="contact-form") y las secciones legales (id="privacy-policy" e id="terms-of-service"). Todos los botones de CTA y el link "Contact" de la nav deben apuntar a href="#contact-form". En el footer incluye links a href="#privacy-policy" y href="#terms-of-service".
+
 ═══════════════════════════════════════════
 SISTEMA DE DISEÑO
 ═══════════════════════════════════════════
@@ -240,7 +242,7 @@ Generá el sitio web COMERCIAL premium de esta empresa, para atraer clientes, us
   } catch (err) {
     console.error("Error en generate-web-preview:", err);
     return NextResponse.json(
-      { error: "Error al generar preview. Intentá de nuevo." },
+      { error: "Error al generar la vista previa. Intenta de nuevo." },
       { status: 500 }
     );
   }
