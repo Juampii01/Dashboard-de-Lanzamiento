@@ -233,7 +233,7 @@ export default async function SumaPuntosPage() {
             </p>
             <p style={{ fontSize: 13, color: "var(--muted-foreground)", margin: "5px 0 0" }}>
               {ctx.isAdmin
-                ? <>Esta misión ya cerró. Publicá una nueva desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.</>
+                ? <>Esta misión ya cerró. Publica una nueva desde <Link href="/admin" style={{ color: "var(--primary)", fontWeight: 700 }}>Panel Admin → Misiones Diarias</Link>.</>
                 : "Esta misión ya cerró. ¡Gracias por participar!"}
             </p>
           </div>

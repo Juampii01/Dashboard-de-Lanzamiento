@@ -2,18 +2,41 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Sparkles, X, Send, Bot } from "lucide-react";
+import { WhatsAppIcon } from "@/components/whatsapp-button";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 const SUGGESTIONS = [
   "¿Por qué mi tarea sigue bloqueada?",
+  "Mi página web no quedó bien, ¿qué hago?",
   "¿Cómo sumo más puntos?",
   "¿Cómo se desbloquean los días?",
   "¿Qué son los rangos y premios?",
 ];
 
-export function DashboardAssistant() {
+const HINT_KEY = "govbidder_assistant_hint_v1";
+
+/**
+ * Asistente flotante. `supportWhatsapp` (app_settings.support_whatsapp, editable
+ * en /admin/comunicaciones) agrega el acceso a soporte humano por WhatsApp.
+ */
+export function DashboardAssistant({ supportWhatsapp = "" }: { supportWhatsapp?: string }) {
   const [open, setOpen] = useState(false);
+  // Globo de presentación: se muestra hasta que la persona abre el asistente
+  // o lo cierra, para que sepa que puede resolver dudas al instante.
+  const [showHint, setShowHint] = useState(false);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(HINT_KEY)) {
+        const t = setTimeout(() => setShowHint(true), 2500);
+        return () => clearTimeout(t);
+      }
+    } catch { /* localStorage no disponible */ }
+  }, []);
+  function dismissHint() {
+    setShowHint(false);
+    try { localStorage.setItem(HINT_KEY, "1"); } catch { /* noop */ }
+  }
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,11 +67,11 @@ export function DashboardAssistant() {
       });
       const json = (await res.json().catch(() => ({}))) as { reply?: string; message?: string; error?: string };
       const reply = res.ok
-        ? json.reply ?? "Perdón, no pude responder. Probá de nuevo."
-        : json.message ?? "Hubo un error. Probá de nuevo en un momento.";
+        ? json.reply ?? "Perdón, no pude responder. Prueba de nuevo."
+        : json.message ?? "Hubo un error. Prueba de nuevo en un momento.";
       setMessages((m) => [...m, { role: "assistant", content: reply }]);
     } catch {
-      setMessages((m) => [...m, { role: "assistant", content: "No me pude conectar. Revisá tu conexión y probá de nuevo." }]);
+      setMessages((m) => [...m, { role: "assistant", content: "No me pude conectar. Revisa tu conexión y prueba de nuevo." }]);
     } finally {
       setLoading(false);
     }
@@ -56,12 +79,35 @@ export function DashboardAssistant() {
 
   return (
     <>
+      {/* Globo de presentación */}
+      {!open && showHint && (
+        <div
+          role="status"
+          style={{
+            position: "fixed", right: 20, bottom: 76, zIndex: 9000,
+            width: "min(280px, calc(100vw - 40px))",
+            background: "var(--card)", color: "var(--foreground)",
+            border: "1px solid var(--border)", borderRadius: 14,
+            padding: "12px 34px 12px 14px", fontSize: 13, lineHeight: 1.45,
+            boxShadow: "0 14px 40px -12px rgba(0,0,0,0.45)",
+          }}
+        >
+          <button
+            type="button" aria-label="Cerrar" onClick={dismissHint}
+            style={{ position: "absolute", top: 6, right: 6, background: "transparent", border: "none", cursor: "pointer", color: "var(--muted-foreground)", padding: 4, display: "inline-flex" }}
+          >
+            <X size={15} />
+          </button>
+          <strong>¿Tienes una duda?</strong> Pregúntale a la guía y te responde al instante, sin esperar a soporte.
+        </div>
+      )}
+
       {/* Botón flotante */}
       {!open && (
         <button
           type="button"
           aria-label="Abrir asistente de ayuda"
-          onClick={() => setOpen(true)}
+          onClick={() => { dismissHint(); setOpen(true); }}
           style={{
             position: "fixed",
             right: 20,
@@ -82,7 +128,7 @@ export function DashboardAssistant() {
             boxShadow: "0 10px 30px -8px rgba(0,0,0,0.45)",
           }}
         >
-          <Sparkles size={18} /> Ayuda
+          <Sparkles size={18} /> ¿Dudas? Pregúntale a la guía
         </button>
       )}
 
@@ -144,7 +190,7 @@ export function DashboardAssistant() {
           <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "14px", display: "flex", flexDirection: "column", gap: 10 }}>
             {/* Saludo */}
             <Bubble role="assistant">
-              ¡Hola! 👋 Soy tu asistente del GovBidder Challenge. Preguntame lo que no entiendas: por qué algo está bloqueado, cómo sumar puntos, cómo funcionan los días, lo que sea.
+              ¡Hola! 👋 Soy tu asistente del GovBidder Challenge. Pregúntame lo que no entiendas: por qué algo está bloqueado, cómo sumar puntos, cómo funcionan los días, lo que sea.
             </Bubble>
 
             {messages.length === 0 && (
@@ -187,6 +233,23 @@ export function DashboardAssistant() {
             )}
           </div>
 
+          {/* Soporte humano */}
+          {supportWhatsapp && (
+            <a
+              href={`https://wa.me/${supportWhatsapp}?text=${encodeURIComponent("Hola, necesito ayuda con el GovBidder Challenge.")}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                padding: "8px 12px", borderTop: "1px solid var(--border)",
+                fontSize: 12.5, fontWeight: 600, color: "var(--muted-foreground)",
+                textDecoration: "none", flexShrink: 0,
+              }}
+            >
+              <WhatsAppIcon size={15} /> ¿No se resolvió? Escríbele a soporte
+            </a>
+          )}
+
           {/* Input */}
           <div style={{ borderTop: "1px solid var(--border)", padding: 10, flexShrink: 0, display: "flex", gap: 8, alignItems: "flex-end" }}>
             <textarea
@@ -199,7 +262,7 @@ export function DashboardAssistant() {
                   send(input);
                 }
               }}
-              placeholder="Escribí tu pregunta…"
+              placeholder="Escribe tu pregunta…"
               rows={1}
               style={{
                 flex: 1,

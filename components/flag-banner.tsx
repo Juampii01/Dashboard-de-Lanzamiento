@@ -11,7 +11,7 @@ import Image from "next/image";
  * Mientras el asset real no exista en /public, el degradado navy de base actúa
  * como placeholder elegante (si la imagen 404ea, se ve la base, no un ícono roto).
  *
- * ► ASSET: dejá la imagen en /public con este nombre exacto: `flag-usa.jpg`
+ * ► ASSET: deja la imagen en /public con este nombre exacto: `flag-usa.jpg`
  *   (alta resolución, horizontal; el foco con estrellas/franjas debe quedar
  *   visible al recortar con object-fit: cover).
  */
@@ -29,7 +29,7 @@ export function FlagBanner({
   rounded = true,
   /** Posición del recorte de la bandera (mantener estrellas/franjas a la vista). */
   objectPosition = "center 38%",
-  /** LCP: poné priority en el banner above-the-fold (home/ranking). El resto lazy. */
+  /** LCP: pon priority en el banner above-the-fold (home/ranking). El resto lazy. */
   priority = false,
   contentStyle,
   className,

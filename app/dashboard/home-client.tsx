@@ -102,13 +102,13 @@ function MentoriaBanner({ fullName }: { fullName: string }) {
         </h2>
 
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)", maxWidth: "44ch", margin: 0 }}>
-          Este es el momento ideal. Tenemos una propuesta específicamente para vos, ya que venís directo desde el dashboard.
+          Este es el momento ideal. Tenemos una propuesta específicamente para ti, ya que vienes directo desde el dashboard.
         </p>
 
-        <WhatsAppButton onClick={handleWhatsApp}>Comunicate ya mismo por WhatsApp</WhatsAppButton>
+        <WhatsAppButton onClick={handleWhatsApp}>Comunícate ya mismo por WhatsApp</WhatsAppButton>
 
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", margin: 0 }}>
-          Enterate de la propuesta ahora mismo.
+          Entérate de la propuesta ahora mismo.
         </p>
       </div>
     </div>
@@ -124,6 +124,8 @@ interface Comment {
   parent_id: string | null;
   author_is_admin?: boolean;
   hidden?: boolean;
+  /** Comentario destacado de un lanzamiento anterior (solo lectura). */
+  previous?: boolean;
 }
 
 // Fecha + hora en el huso horario LOCAL de quien mira (por defecto de
@@ -620,7 +622,7 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
         body: JSON.stringify({ content: replyContent.trim(), parent_id: parentId }),
       });
       if (res.status === 501) { toast.error("Las respuestas todavía no están activas."); return; }
-      if (res.status === 403) { toast.error("Solo podés responder tu propio comentario."); return; }
+      if (res.status === 403) { toast.error("Solo puedes responder tu propio comentario."); return; }
       if (!res.ok) throw new Error("error");
       setReplyContent("");
       setReplyingTo(null);
@@ -635,7 +637,11 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
 
   // Agrupar: comentarios de primer nivel (más nuevo arriba, ya vienen así) y
   // sus respuestas (más vieja primero, orden de conversación natural).
-  const topLevel = comments.filter((c) => !c.parent_id);
+  // Los actuales primero; al final, los destacados del lanzamiento anterior.
+  const topLevel = [
+    ...comments.filter((c) => !c.parent_id && !c.previous),
+    ...comments.filter((c) => !c.parent_id && c.previous),
+  ];
   const repliesByParent = new Map<string, Comment[]>();
   for (const c of comments) {
     if (!c.parent_id) continue;
@@ -775,12 +781,23 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
               </p>
             </div>
           ) : (
-            topLevel.map((c) => {
-              const canReply = isAdmin || c.user_id === userId;
+            topLevel.map((c, idx) => {
+              const canReply = !c.previous && (isAdmin || c.user_id === userId);
               const replies = repliesByParent.get(c.id) ?? [];
               const isAnnouncement = c.author_is_admin;
+              const startsPrevious = !!c.previous && (idx === 0 || !topLevel[idx - 1].previous);
               return (
                 <div key={c.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  {startsPrevious && (
+                    <div style={{
+                      padding: "10px 16px", fontSize: "11px", fontWeight: 700,
+                      letterSpacing: "0.08em", textTransform: "uppercase",
+                      color: "var(--muted-foreground)", background: "var(--muted)",
+                      borderBottom: "1px solid var(--border)",
+                    }}>
+                      ⭐ Lo que dijeron en el lanzamiento anterior
+                    </div>
+                  )}
                   {/* Comentario original */}
                   <div
                     style={{
@@ -857,7 +874,7 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
                           <input
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
-                            placeholder="Escribí tu respuesta…"
+                            placeholder="Escribe tu respuesta…"
                             maxLength={500}
                             disabled={replySubmitting}
                             style={{
@@ -1217,7 +1234,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
           ¡Mira contratos gubernamentales ganados!
         </h2>
         <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
-          Contratos reales adjudicados a pequeñas empresas. Elige tu sector y míralos (usá las flechas si hay varios).
+          Contratos reales adjudicados a pequeñas empresas. Elige tu sector y míralos (usa las flechas si hay varios).
         </p>
       </div>
 

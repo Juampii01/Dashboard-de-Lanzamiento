@@ -433,10 +433,10 @@ export function CsvBulkImport() {
         />
         <div className="text-center">
           <p className="font-medium">
-            {isDragging ? "Soltá el archivo" : "Arrastrá tu CSV aquí"}
+            {isDragging ? "Suelta el archivo" : "Arrastra tu CSV aquí"}
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            o hacé clic para seleccionar
+            o haz clic para seleccionar
           </p>
           <p className="text-xs text-muted-foreground mt-2">
             Solo .csv · Máx 1 MB · Máx 200 filas

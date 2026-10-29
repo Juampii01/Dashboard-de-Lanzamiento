@@ -211,7 +211,7 @@ function TabAdmin() {
           <div>
             <p className="font-semibold text-sm mb-2">🔒 Dashboard Lock (Bloqueo en vivo)</p>
             <p className="text-sm text-muted-foreground mb-2">
-              Cuando hay una llamada en vivo, podés activar el Lock del dashboard. Todos los usuarios
+              Cuando hay una llamada en vivo, puedes activar el Lock del dashboard. Todos los usuarios
               verán una pantalla de espera con el mensaje que configures y un botón para unirse a la llamada.
             </p>
             <Table
@@ -232,7 +232,7 @@ function TabAdmin() {
           <div>
             <p className="font-semibold text-sm mb-2">🗓️ Toggles de Días (Apertura global)</p>
             <p className="text-sm text-muted-foreground mb-2">
-              Controlás cuándo se abre cada día del challenge para todos los usuarios.
+              Controlas cuándo se abre cada día del challenge para todos los usuarios.
             </p>
             <Table
               headers={["Día", "Tema", "Cuándo activar"]}
@@ -273,7 +273,7 @@ function TabAdmin() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="font-semibold text-sm mb-2">Usuario Individual</p>
-            <p className="text-sm text-muted-foreground mb-3">Completá el formulario con:</p>
+            <p className="text-sm text-muted-foreground mb-3">Completa el formulario con:</p>
             <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
               <li><strong>Email</strong> (obligatorio)</li>
               <li>Nombre completo</li>
@@ -300,14 +300,14 @@ function TabAdmin() {
           </div>
         </div>
         <InfoBox type="tip">
-          El magic link expira en 60 minutos. Si el usuario no lo usó, regeneralo desde
+          El magic link expira en 60 minutos. Si el usuario no lo usó, regenéralo desde
           Supabase Dashboard → Authentication → Users → enviar email de recuperación.
         </InfoBox>
       </Section>
 
       <Section title="Gestionar Contenido — /admin/contenido" icon="🎬">
         <p className="text-sm text-muted-foreground">
-          Desde esta página cargás los videos y creás las preguntas del quiz para cada día.
+          Desde esta página cargas los videos y creas las preguntas del quiz para cada día.
           Ver las secciones <strong>Videos y Cápsulas</strong> y <strong>Quiz</strong> para detalles completos.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -545,7 +545,7 @@ function TabVideos() {
           ]}
         />
         <InfoBox type="tip">
-          No hay un límite de videos por día. Podés agregar tantas cápsulas como quieras.
+          No hay un límite de videos por día. Puedes agregar tantas cápsulas como quieras.
           El orden de visualización se controla con el campo &quot;Orden&quot;.
         </InfoBox>
       </Section>
@@ -672,7 +672,7 @@ function TabQuiz() {
               📹 Video: &quot;Cómo registrarse en SAM.gov&quot;
             </p>
             <p className="text-sm">
-              <strong>Pregunta:</strong> ¿Qué documento necesitás para completar el registro en SAM.gov?
+              <strong>Pregunta:</strong> ¿Qué documento necesitas para completar el registro en SAM.gov?
             </p>
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-sm"><Badge color="gray">A</Badge> Pasaporte vigente</div>
@@ -754,7 +754,7 @@ function TabXP() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border rounded-lg p-4 text-center space-y-2">
             <p className="text-2xl font-bold">🥇 #1</p>
-            <p className="text-xs text-muted-foreground">Servicio Done For You — $15,000 USD</p>
+            <p className="text-xs text-muted-foreground">US$1,000 de descuento en la Mentoría</p>
           </div>
           <div className="border rounded-lg p-4 text-center space-y-2">
             <p className="text-2xl font-bold">🥈 #2</p>

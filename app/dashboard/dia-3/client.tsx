@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { buildWebDocument } from "@/lib/web-compliance";
 import { CheckCircle2, Copy, Download, ExternalLink, Globe, Loader2, ArrowRight, Monitor, Smartphone, Lock, Sparkles, RefreshCw, Gift, ChevronDown, MessageCircle, Send } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
 import { TaskCompleteModal } from "@/components/task-complete-modal";
@@ -111,20 +112,22 @@ export function Dia3Client({
     setLoadingStep(0);
   }
 
+  // Siempre se le agrega el formulario con consentimiento SMS, la Privacy Policy
+  // y los Terms of Service (ver lib/web-compliance.ts): sin eso el número 800
+  // no se aprueba. Aplica también a las webs generadas antes de este cambio.
   function buildFullHtml(): string {
     if (!webResult) return "";
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${profile?.company_name ?? "My Company"}</title>
-  <style>${webResult.css}</style>
-</head>
-<body>
-${webResult.html}
-</body>
-</html>`;
+    const p = (profile ?? {}) as Record<string, unknown>;
+    const str = (v: unknown) => (typeof v === "string" ? v : null);
+    return buildWebDocument(webResult.html, webResult.css, {
+      companyName: profile?.company_name ?? "My Company",
+      niche: str(p.niche),
+      phone: str(p.phone),
+      email: str(p.corporate_email),
+      address: str(p.address),
+      usState: str(p.us_state),
+      website: str(p.website),
+    });
   }
 
   // HTML para el iframe del PREVIEW: agrega un "guard" que evita el scroll
@@ -196,7 +199,7 @@ ${webResult.html}
       if (res.status === 403) {
         const err: { error?: string; message?: string } = await res.json().catch(() => ({}));
         if (err.error === "regen_not_allowed") {
-          toast.error(err.message ?? "Para regenerar tu web necesitás que el equipo te habilite.", { id: toastId, duration: 8000 });
+          toast.error(err.message ?? "Para regenerar tu web necesitas que el equipo te habilite.", { id: toastId, duration: 8000 });
           setReportOpen(true);
           return;
         }
@@ -425,7 +428,7 @@ ${webResult.html}
               </p>
             </div>
             <p className="text-xs text-muted-foreground" style={{ margin: "4px 0 0" }}>
-              Contanos qué pasó y el equipo te habilita para volver a generarla.
+              Cuéntanos qué pasó y el equipo te habilita para volver a generarla.
             </p>
 
             {reportSent && !reportOpen && (
@@ -448,7 +451,7 @@ ${webResult.html}
                   type="text"
                   value={reportMessage}
                   onChange={(e) => setReportMessage(e.target.value)}
-                  placeholder="Contanos qué salió mal…"
+                  placeholder="Cuéntanos qué salió mal…"
                   maxLength={500}
                   disabled={reportSubmitting}
                   className="flex-1 min-w-0 px-3 py-2 rounded-lg border text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
@@ -566,7 +569,7 @@ ${webResult.html}
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  ¿Algo no coincide? Edítalo en el Día 1 y vuelve. Acá no se cambia nada.
+                  ¿Algo no coincide? Edítalo en el Día 1 y vuelve. Aquí no se cambia nada.
                 </p>
               </div>
             ),

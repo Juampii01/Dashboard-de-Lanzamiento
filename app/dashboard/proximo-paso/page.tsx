@@ -83,7 +83,7 @@ export default async function ProximoPasoPage() {
         </h2>
 
         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.82)", maxWidth: "50ch", margin: 0, lineHeight: 1.55 }}>
-          Acá te vamos a mostrar cómo seguir <strong style={{ color: "#fff" }}>después del challenge</strong>: el
+          Aquí te vamos a mostrar cómo seguir <strong style={{ color: "#fff" }}>después del challenge</strong>: el
           camino para conseguir tu primer contrato con el Gobierno de USA.
         </p>
 

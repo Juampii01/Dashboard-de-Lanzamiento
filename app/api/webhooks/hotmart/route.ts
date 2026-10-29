@@ -66,11 +66,13 @@ export async function POST(request: Request) {
 
   const { data: account } = await db
     .from("users")
-    .select("id, full_name, access_status, hotmart_transaction_id")
+    .select("id, full_name, access_status, hotmart_transaction_id, access_expires_at")
     .eq("email", email)
     .maybeSingle();
-  const acc = account as { id: string; full_name: string | null; access_status: string | null; hotmart_transaction_id: string | null } | null;
-  if (acc && !acc.hotmart_transaction_id && acc.access_status === "pending") {
+  const acc = account as { id: string; full_name: string | null; access_status: string | null; hotmart_transaction_id: string | null; access_expires_at: string | null } | null;
+  // Cuenta de un lanzamiento anterior (acceso vencido) que vuelve a comprar.
+  const isReturning = !!acc?.hotmart_transaction_id && !!acc.access_expires_at && Date.parse(acc.access_expires_at) < Date.now();
+  if (acc && ((!acc.hotmart_transaction_id && acc.access_status === "pending") || isReturning)) {
     const r = await autoClaimByAccountEmail(db, acc.id, email);
     if (r === "claimed") await sendAccessActivatedEmail({ to: email, name: acc.full_name });
   }

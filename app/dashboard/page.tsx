@@ -5,6 +5,8 @@ import { HomeClient } from "./home-client";
 import { LaunchCountdown } from "@/components/launch-countdown";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { inicioUnlockIso } from "@/lib/launch";
+import { ReferralLinkCard } from "@/components/referral-link-card";
+import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/referrals";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -24,6 +26,7 @@ export default async function DashboardPage() {
   const recordings: (string | null)[] = [null, null, null, null];
   let tutorialVideoId = "2A6EB_cDk-A"; // default; el admin lo puede cambiar
   let userId = "";
+  let refLink: string | null = null;
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -52,6 +55,11 @@ export default async function DashboardPage() {
     initialPoints = (profile?.total_points as number | null) ?? 0;
     avatarUrl = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
     isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin === true;
+
+    // Link de referido: se muestra desde ANTES del lanzamiento para que la
+    // gente invite apenas compra (en el lanzamiento anterior se activó al final).
+    const refCode = await getOrCreateReferralCode(createServiceClient(), user.id).catch(() => null);
+    refLink = refCode ? referralLink(refCode) : null;
 
     // Grabaciones de las clases (1-4) que el admin configura. Cada botón abre su
     // link de YouTube; si un número no tiene link, su botón queda deshabilitado.
@@ -88,7 +96,15 @@ export default async function DashboardPage() {
   }
   const beforeLaunch = !devMode && !isAdmin && inicioLocked;
 
+  const referralCard = refLink ? (
+    <ReferralLinkCard link={refLink} xp={REFERRAL_LEAD_XP} over10k={initialPoints >= 10000} />
+  ) : null;
+
   return (
+    <div className="space-y-8">
+    {/* Antes del lanzamiento el contador tapa el inicio: el link de referido va
+        fuera de esa zona para que se pueda copiar desde el primer día. */}
+    {beforeLaunch && referralCard}
     <div className="space-y-8" style={{ position: "relative" }}>
       <HomeClient
         initialPoints={initialPoints}
@@ -105,10 +121,12 @@ export default async function DashboardPage() {
           targetIso={launchIso}
           day={0}
           title="El dashboard se habilita el día del lanzamiento"
-          subtitle="Todavía no arrancó el challenge. Mientras tanto puedes recorrerlo y ver todo lo que se viene; se abre el día del lanzamiento."
-          reachedSubtitle="Ya casi arranca. El dashboard se habilita apenas el equipo abra el challenge."
+          subtitle="Todavía no ha comenzado el challenge. Mientras tanto puedes recorrerlo y ver todo lo que se viene; se abre el día del lanzamiento."
+          reachedSubtitle="Ya casi comienza. El dashboard se habilita apenas el equipo abra el challenge."
         />
       )}
+      {!beforeLaunch && referralCard}
+    </div>
     </div>
   );
 }

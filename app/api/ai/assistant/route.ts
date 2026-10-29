@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "rate_limited",
-          message: `Esperá ${rl.retry_after_seconds}s y volvé a preguntar.`,
+          message: `Espera ${rl.retry_after_seconds}s y vuelve a preguntar.`,
           retry_after_seconds: rl.retry_after_seconds,
         },
         { status: 429, headers: { "Retry-After": String(rl.retry_after_seconds) } }
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     const daily = await checkRateLimit(user.id, "assistant-daily", 100, 86400);
     if (!daily.allowed) {
       return NextResponse.json(
-        { error: "daily_limit", message: "Llegaste al límite diario del asistente. Probá mañana." },
+        { error: "daily_limit", message: "Llegaste al límite diario del asistente. Prueba mañana." },
         { status: 429 }
       );
     }
@@ -82,15 +82,15 @@ export async function POST(request: Request) {
     const summary = await getUserProgressSummary(user.id);
     const system =
       ASSISTANT_SYSTEM_PROMPT +
-      "\n\nESTADO ACTUAL DE ESTE USUARIO (usalo para personalizar; no lo recites textual):\n" +
+      "\n\nESTADO ACTUAL DE ESTE USUARIO (úsalo para personalizar; no lo recites textual):\n" +
       summaryToPromptText(summary);
 
     const reply = await callClaudeChat(system, messages, 700);
     return NextResponse.json({
-      reply: reply.trim() || "Perdón, no pude responder eso. ¿Lo reformulás?",
+      reply: reply.trim() || "Perdón, no pude responder eso. ¿Lo reformulas?",
     });
   } catch (err) {
     console.error("[ai/assistant]", err);
-    return NextResponse.json({ error: "Error del asistente. Intentá de nuevo." }, { status: 500 });
+    return NextResponse.json({ error: "Error del asistente. Intenta de nuevo." }, { status: 500 });
   }
 }

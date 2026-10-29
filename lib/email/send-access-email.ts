@@ -2,7 +2,7 @@
  * Envío del email de acceso (magic link) vía la API de Resend.
  *
  * Por qué: admin.auth.admin.generateLink() GENERA el link pero NO envía email.
- * Acá lo enviamos explícitamente con el diseño de marca.
+ * Aquí lo enviamos explícitamente con el diseño de marca.
  *
  * Requiere la env var RESEND_API_KEY (en Vercel). Remitente: dominio verificado
  * send.govbidder.net → acceso@send.govbidder.net.
@@ -66,7 +66,7 @@ function buildHtml(magicLink: string, appUrl: string): string {
         </td></tr>
         <tr><td style="padding:14px 32px 0;text-align:center;">
           <p style="margin:0;font-size:15px;line-height:1.55;color:#475569;">
-            ¡Bienvenido! Tu cuenta está lista. Hacé clic en el botón para entrar al dashboard. No necesitás contraseña.
+            ¡Bienvenido! Tu cuenta está lista. Haz clic en el botón para entrar al dashboard. No necesitas contraseña.
           </p>
         </td></tr>
         <tr><td style="padding:26px 32px 8px;text-align:center;">
@@ -76,11 +76,11 @@ function buildHtml(magicLink: string, appUrl: string): string {
           </a>
         </td></tr>
         <tr><td style="padding:18px 32px 6px;text-align:center;">
-          <p style="margin:0;font-size:12px;color:#94a3b8;">Si el botón no funciona, copiá y pegá este enlace en tu navegador:</p>
+          <p style="margin:0;font-size:12px;color:#94a3b8;">Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
           <p style="margin:6px 0 0;font-size:12px;word-break:break-all;"><a href="${magicLink}" style="color:#152978;">${magicLink}</a></p>
         </td></tr>
         <tr><td style="padding:22px 32px 28px;text-align:center;border-top:1px solid #eef1f6;margin-top:16px;">
-          <p style="margin:14px 0 0;font-size:11px;color:#94a3b8;">Este enlace es de un solo uso y expira por seguridad. Si no esperabas este email, podés ignorarlo.</p>
+          <p style="margin:14px 0 0;font-size:11px;color:#94a3b8;">Este enlace es de un solo uso y expira por seguridad. Si no esperabas este email, puedes ignorarlo.</p>
         </td></tr>
       </table>
     </td></tr>

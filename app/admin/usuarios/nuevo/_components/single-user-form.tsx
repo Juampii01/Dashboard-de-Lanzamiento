@@ -121,7 +121,7 @@ export function SingleUserForm() {
                   pero <strong>el email no se envió</strong> (rate limit o SMTP sin configurar).
                 </p>
                 <p className="text-yellow-700 text-xs mt-2">
-                  Copiá el link de abajo y enviáselo manualmente por WhatsApp o email.
+                  Copia el link de abajo y envíaselo manualmente por WhatsApp o email.
                 </p>
               </>
             )}
@@ -157,7 +157,7 @@ export function SingleUserForm() {
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              ⚠️ Este link es de un solo uso y expira. Enviáselo al usuario sin compartirlo con nadie más.
+              ⚠️ Este link es de un solo uso y expira. Envíaselo al usuario sin compartirlo con nadie más.
             </p>
           </div>
         )}

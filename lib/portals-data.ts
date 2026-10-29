@@ -29,7 +29,7 @@ export const PORTALS: Portal[] = [
   { name: "GovBidder Connect", url: "https://www.govbidderconnect.com/", description: "Conecta con el ecosistema y la comunidad GovBidder.", category: "ecosistema" },
 
   // ── Gobierno Federal ──
-  { name: "SAM.gov", url: "https://sam.gov", description: "Registro federal obligatorio. Tu UEI y CAGE Code salen de acá.", category: "federal", prereq: "EIN / Tax ID + datos bancarios (ACH)" },
+  { name: "SAM.gov", url: "https://sam.gov", description: "Registro federal obligatorio. Tu UEI y CAGE Code salen de aquí.", category: "federal", prereq: "EIN / Tax ID + datos bancarios (ACH)" },
   { name: "GSA eBuy", url: "https://www.ebuy.gsa.gov", description: "RFQs de agencias buscando proveedores. Alto volumen de servicios.", category: "federal", prereq: "Registro en SAM.gov" },
   { name: "GSA Advantage", url: "https://gsaadvantage.gov", description: "Catálogo de compras pre-aprobadas del gobierno.", category: "federal" },
   { name: "SBA.gov", url: "https://sba.gov", description: "Certificaciones (8a, WOSB, HUBZone) y recursos para small business.", category: "federal" },

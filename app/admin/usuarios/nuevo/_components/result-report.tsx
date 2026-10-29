@@ -61,7 +61,7 @@ export function ResultReport({ results, onReset }: ResultReportProps) {
               {emailFailCount} email{emailFailCount > 1 ? "s" : ""} no se enviaron
             </p>
             <p className="text-yellow-800 mt-0.5">
-              Descargá el CSV — incluye la columna <span className="font-mono">magic_link</span> con el
+              Descarga el CSV — incluye la columna <span className="font-mono">magic_link</span> con el
               link de acceso de cada usuario para que puedas enviárselo manualmente.
             </p>
           </div>

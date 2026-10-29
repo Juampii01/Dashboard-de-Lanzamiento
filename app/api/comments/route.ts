@@ -65,8 +65,18 @@ export async function GET() {
 
   let { data, error } = await service
     .from("program_comments")
-    .select("id, user_id, display_name, content, created_at, parent_id, hidden")
+    .select("id, user_id, display_name, content, created_at, parent_id, hidden, archived_at, featured")
     .order("created_at", { ascending: false });
+
+  // Sin la migración de archivo (20261029000001) → sin archived_at/featured.
+  if (error && /(archived_at|featured)/i.test(error.message)) {
+    const retry = await service
+      .from("program_comments")
+      .select("id, user_id, display_name, content, created_at, parent_id, hidden")
+      .order("created_at", { ascending: false });
+    data = ((retry.data ?? []) as Array<Record<string, unknown>>).map((c) => ({ ...c, archived_at: null, featured: false })) as unknown as typeof data;
+    error = retry.error;
+  }
 
   // Columnas nuevas todavía no existen (falta correr alguna migración) →
   // reintenta sin ellas para no romper el listado.
@@ -88,7 +98,19 @@ export async function GET() {
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  const rows = (data ?? []) as Array<{ user_id: string; hidden?: boolean; [k: string]: unknown }>;
+  const allRows = (data ?? []) as Array<{
+    id: string; user_id: string; parent_id?: string | null; hidden?: boolean;
+    archived_at?: string | null; featured?: boolean; [k: string]: unknown;
+  }>;
+
+  // Comentarios de lanzamientos anteriores: solo se muestran los destacados
+  // (y sus respuestas), marcados como "previous" para pintarlos aparte.
+  const featuredArchived = new Set(
+    allRows.filter((r) => r.archived_at && r.featured && !r.parent_id).map((r) => r.id),
+  );
+  const rows = allRows
+    .filter((r) => !r.archived_at || featuredArchived.has(r.id) || (r.parent_id && featuredArchived.has(r.parent_id)))
+    .map((r) => ({ ...r, previous: !!r.archived_at }));
 
   // Marcar qué autores son admin (badge "Equipo") y si quien pregunta es admin.
   const userIds = [...new Set(rows.map((r) => r.user_id))];
@@ -154,6 +176,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "parent_not_found" }, { status: 404 });
     }
     const p = parent as { user_id: string };
+    const { data: parentArchived } = await service
+      .from("program_comments")
+      .select("archived_at")
+      .eq("id", parentId)
+      .maybeSingle();
+    if ((parentArchived as { archived_at?: string | null } | null)?.archived_at) {
+      return NextResponse.json({ error: "archived" }, { status: 409 });
+    }
     if (!isAdmin && p.user_id !== user.id) {
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }

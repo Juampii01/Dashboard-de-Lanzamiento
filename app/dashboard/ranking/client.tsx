@@ -32,7 +32,7 @@ const MAX_PER_RANK = 20;
 const RANK_ORDER = ["expert", "legacy", "prime", "elevate"] as const;
 
 // Link de pago de Hotmart para que un usuario gratuito desbloquee los premios.
-// Vacío = aún sin configurar (no se muestra el botón "Pagar"). Pegar el link acá.
+// Vacío = aún sin configurar (no se muestra el botón "Pagar"). Pegar el link aquí.
 const HOTMART_PAY_URL = "";
 
 // ─── PositionBadge — número de posición a la izquierda, bien legible ──────────
@@ -149,7 +149,7 @@ function MyRankCard({ points }: { points: number }) {
         }}>
           <span style={{ fontSize: 15, lineHeight: 1.2 }}>⚖️</span>
           <p style={{ fontSize: "12.5px", color: "#FFE9A6", margin: 0, lineHeight: 1.5 }}>
-            Pasaste los <strong style={{ color: "#FFD700" }}>10.000 puntos</strong>: a partir de acá <strong style={{ color: "#FFD700" }}>todo lo que sumes cuenta la mitad</strong> — misiones, keywords, referidos, videos, llamadas… <strong style={{ color: "#FFD700" }}>en todos lados</strong>. Y el <strong style={{ color: "#FFD700" }}>tiempo en el dashboard</strong> y las <strong style={{ color: "#FFD700" }}>rachas</strong> ya <strong style={{ color: "#FFD700" }}>no suman</strong>. Es para emparejar la carrera en la cima. 🦅
+            Pasaste los <strong style={{ color: "#FFD700" }}>10.000 puntos</strong>: a partir de aquí <strong style={{ color: "#FFD700" }}>todo lo que sumes cuenta la mitad</strong> — misiones, keywords, referidos, videos, llamadas… <strong style={{ color: "#FFD700" }}>en todos lados</strong>. Y el <strong style={{ color: "#FFD700" }}>tiempo en el dashboard</strong> y las <strong style={{ color: "#FFD700" }}>rachas</strong> ya <strong style={{ color: "#FFD700" }}>no suman</strong>. Es para emparejar la carrera en la cima. 🦅
           </p>
         </div>
       )}
@@ -298,10 +298,10 @@ const EARN_METHODS: { icon: string; title: string; points: string; variable?: bo
   { icon: "🔥", title: "Racha diaria", points: "+300", zero10k: true, detail: "Entra al dashboard días seguidos: desde el segundo día consecutivo sumas racha, una vez por día." },
   { icon: "🎬", title: "Misiones en video", points: "+100", detail: "Mira y completa una cápsula de video del día. Suma una vez por cápsula, con 5 minutos de espera entre una y otra." },
   { icon: "❓", title: "Quiz de la cápsula", points: "+100", detail: "Responde bien el quiz de una cápsula. Solo el primer acierto otorga puntos." },
-  { icon: "🎙️", title: "Cápsula de podcast", points: "+300", detail: "Escuchá y reclama una cápsula de tipo podcast. Suma una vez por cada una." },
+  { icon: "🎙️", title: "Cápsula de podcast", points: "+300", detail: "Escucha y reclama una cápsula de tipo podcast. Suma una vez por cada una." },
   { icon: "🚀", title: "Iniciar un día", points: "+250", detail: "Entra por primera vez a un día desbloqueado. Una sola vez por cada día (1 a 4)." },
   { icon: "🔴", title: "Unirte a la llamada en vivo", points: "+125", detail: "Cuando el contador del día llega a 0, entra con el botón “Unirse a la clase”. +125 por llamada · son 4 llamadas (hasta 500 pts).", detail10k: "Cuando el contador del día llega a 0, entra con el botón “Unirse a la clase”. +62 por llamada · son 4 llamadas (hasta 248 pts)." },
-  { icon: "🏁", title: "Completar un día", points: "+500", detail: "Terminá todas las misiones del día y marcá la fase como completada. Una sola vez por cada día." },
+  { icon: "🏁", title: "Completar un día", points: "+500", detail: "Termina todas las misiones del día y marca la fase como completada. Una sola vez por cada día." },
   { icon: "🔑", title: "Palabra clave del día", points: "+1.000", detail: "Escribe la palabra clave que se menciona en la clase (no importan mayúsculas ni acentos). Una vez por día." },
   { icon: "📸", title: "Historia diaria", points: "+500", detail: "Sube la captura de tu historia del día (imagen, máx. 8 MB). Una por día; se reinicia a las 8 AM hora Miami." },
   { icon: "✅", title: "Misión diaria", points: "+1.000", detail: "Completa la misión diaria activa (sube una captura, un link o un texto). Suma una vez por misión." },
@@ -472,10 +472,10 @@ export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStud
               🏆 GovBidder Expert · 15,000+ pts
             </p>
             <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
-              Servicio <strong style={{ color: "#FFFFFF" }}>Done For You</strong> — lo hacemos por ti
+              <strong style={{ color: "#FFFFFF" }}>Descuento en la Mentoría GovBidder</strong> — para empezar con acompañamiento
             </p>
           </div>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#00D67A", background: "rgba(0,214,122,0.1)", border: "1px solid rgba(0,214,122,0.3)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>$15,000 USD</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#00D67A", background: "rgba(0,214,122,0.1)", border: "1px solid rgba(0,214,122,0.3)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>-US$1,000</span>
         </div>
 
         {/* Legacy */}

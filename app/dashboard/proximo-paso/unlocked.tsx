@@ -155,7 +155,7 @@ export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
         </div>
 
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", margin: 0 }}>
-          Pagá directo y arrancamos, o escribinos por WhatsApp si preferís consultar antes.
+          Paga directo y comenzamos, o escríbenos por WhatsApp si prefieres consultar antes.
         </p>
       </div>
     </div>

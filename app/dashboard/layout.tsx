@@ -1,4 +1,5 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { autoClaimByAccountEmail } from "@/lib/access/purchases";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
@@ -93,7 +94,7 @@ async function getLayoutData(userId: string) {
 
   // Los 4 días son SIEMPRE navegables (clickeables). El bloqueo NO es de
   // navegación: es el overlay de cada día (contador + botón) que tapa el
-  // contenido hasta que el admin lo abre. Por eso is_unlocked = true acá.
+  // contenido hasta que el admin lo abre. Por eso is_unlocked = true aquí.
   const completedByDay = new Map(
     (progress ?? []).map((p) => [p.day_number, p.is_completed])
   );
@@ -188,6 +189,17 @@ export default async function DashboardLayout({
   // así que un admin cuyo access_expires_at ya pasó (ej. Santo) quedaba
   // bloqueado igual que un usuario común. Bug real, no cosmético.
   if (profile && !profile.is_admin && isExpired(profile.access_expires_at)) {
+    // Participante de un lanzamiento anterior que volvió a comprar: si hay una
+    // compra del lanzamiento actual con el email de su cuenta, se vincula aquí
+    // y entra directo (sin pasar por /registro ni por verificación manual).
+    if (!devMode && userEmail) {
+      const claim = await autoClaimByAccountEmail(
+        createServiceClient() as unknown as Parameters<typeof autoClaimByAccountEmail>[0],
+        authUserId,
+        userEmail,
+      ).catch(() => "no_purchase" as const);
+      if (claim === "claimed") redirect("/dashboard");
+    }
     redirect("/dashboard/expirado");
   }
 
@@ -225,6 +237,17 @@ export default async function DashboardLayout({
   // ─────────────────────────────────────────────────────────────────────────
 
   const remaining = daysLeft(profile?.access_expires_at ?? null);
+
+  // Número de soporte por WhatsApp (editable en /admin/comunicaciones).
+  let supportWhatsapp = "";
+  if (!devMode) {
+    const { data: supportRow } = await createServiceClient()
+      .from("app_settings")
+      .select("value")
+      .eq("key", "support_whatsapp")
+      .maybeSingle();
+    supportWhatsapp = ((supportRow as { value?: string | null } | null)?.value ?? "").replace(/[^\d]/g, "");
+  }
 
   return (
     <div
@@ -326,7 +349,7 @@ export default async function DashboardLayout({
       {!devMode && <DashboardLockOverlay isAdmin={profile?.is_admin ?? false} />}
 
       {/* Asistente de IA flotante — guía a todos los usuarios */}
-      {!devMode && <DashboardAssistant />}
+      {!devMode && <DashboardAssistant supportWhatsapp={supportWhatsapp} />}
     </div>
   );
 }

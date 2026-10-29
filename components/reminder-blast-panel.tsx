@@ -41,7 +41,7 @@ export function ReminderBlastPanel() {
     setBusy(`test-${segment}`);
     try {
       const r = await callBlast({ segment, test: true });
-      if (r.sent) toast.success("Enviado a tu email. Revisá la bandeja.");
+      if (r.sent) toast.success("Enviado a tu email. Revisa la bandeja.");
       else toast.error("No se pudo enviar: " + (r.errors?.[0] ?? "error"));
     } catch (e) { toast.error("Error: " + (e as Error).message); }
     setBusy(null);
@@ -71,7 +71,7 @@ export function ReminderBlastPanel() {
   return (
     <div className="space-y-5">
       <p className="text-xs text-muted-foreground leading-relaxed">
-        Manda un recordatorio con magic link a cada segmento. Probá primero con &quot;test&quot; (te lo manda a vos), y después enviá al segmento completo.
+        Manda un recordatorio con magic link a cada segmento. Prueba primero con &quot;test&quot; (te lo manda a ti), y después envía al segmento completo.
       </p>
       {(Object.keys(LABELS) as Segment[]).map((segment) => {
         const result = results[segment];

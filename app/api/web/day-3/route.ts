@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { buildWebDocument } from "@/lib/web-compliance";
 
 /**
  * GET /api/web/day-3
@@ -19,30 +20,30 @@ export async function GET() {
       .maybeSingle(),
     supabase
       .from("company_profiles")
-      .select("company_name")
+      .select("*")
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
 
   const p = preview as { generated_html?: string | null; generated_css?: string | null } | null;
   if (!p?.generated_html) {
-    return NextResponse.json({ error: "Todavía no generaste tu web en el Día 3." }, { status: 404 });
+    return NextResponse.json({ error: "Todavía no has generado tu web en el Día 3." }, { status: 404 });
   }
 
-  const companyName = (profile as { company_name?: string } | null)?.company_name ?? "My Company";
+  const cp = (profile ?? {}) as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === "string" ? v : null);
 
-  const fullHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${companyName}</title>
-  <style>${p.generated_css ?? ""}</style>
-</head>
-<body>
-${p.generated_html}
-</body>
-</html>`;
+  // Incluye formulario con consentimiento SMS + Privacy Policy + Terms of
+  // Service (requisito para aprobar el número 800). Ver lib/web-compliance.ts.
+  const fullHtml = buildWebDocument(p.generated_html, p.generated_css ?? "", {
+    companyName: str(cp.company_name) ?? "My Company",
+    niche: str(cp.niche),
+    phone: str(cp.phone),
+    email: str(cp.corporate_email),
+    address: str(cp.address),
+    usState: str(cp.us_state),
+    website: str(cp.website),
+  });
 
   return new NextResponse(fullHtml, {
     headers: {

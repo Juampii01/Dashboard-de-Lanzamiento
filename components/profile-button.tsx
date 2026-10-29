@@ -482,7 +482,7 @@ export function ProfileButton({
                   </div>
                   {nameStatus === "error" && (
                     <p style={{ fontSize: "11px", color: "#D7263D", marginTop: "5px" }}>
-                      Error al guardar — intentá de nuevo
+                      Error al guardar — intenta de nuevo
                     </p>
                   )}
                 </div>

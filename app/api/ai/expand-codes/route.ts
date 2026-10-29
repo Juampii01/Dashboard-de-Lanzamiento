@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: 'rate_limited',
-          message: `Esperá ${rl.retry_after_seconds}s antes de volver a intentar`,
+          message: `Espera ${rl.retry_after_seconds}s antes de volver a intentar`,
           retry_after_seconds: rl.retry_after_seconds,
         },
         {
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: 'daily_limit_reached',
-          message: 'Llegaste al límite diario de generaciones con IA. Probá mañana.',
+          message: 'Llegaste al límite diario de generaciones con IA. Prueba mañana.',
         },
         { status: 429 }
       )
@@ -89,7 +89,7 @@ Responde SIEMPRE en JSON con esta estructura exacta:
 }
 
 REGLAS:
-- NAICS: incluí el código primario + 2-3 relacionados (6 dígitos)
+- NAICS: incluye el código primario + 2-3 relacionados (6 dígitos)
 - PSC: 4-6 códigos de Product & Service Code usados por DoD y agencias federales (formato alfanumérico, ej: S201)
 - SIC: 2-3 códigos legacy de 4 dígitos que algunos sistemas todavía usan
 - UNSPSC: 2-3 códigos UN Standard Products & Services Code (formato XXXXXXXX, ej: 76111501)
@@ -98,7 +98,7 @@ REGLAS:
       `NAICS primario: ${primaryNaics}
 ${extraNaics.length ? `NAICS adicionales del usuario (incluilos y expandilos también): ${extraNaics.join(", ")}` : ""}
 ${niche ? `Nicho/servicio: ${niche}` : ""}
-${usState ? `Estado de operación: ${usState} — priorizá agencias y contratos activos en ese estado.` : ""}
+${usState ? `Estado de operación: ${usState} — prioriza agencias y contratos activos en ese estado.` : ""}
 Keywords del usuario: ${keywords.join(", ")}
 
 Genera el mapa completo de códigos relacionados y expande las keywords con terminología gubernamental.`
@@ -108,7 +108,7 @@ Genera el mapa completo de códigos relacionados y expande las keywords con term
   } catch (err) {
     console.error("Error en expand-codes:", err);
     return NextResponse.json(
-      { error: "Error al expandir códigos. Intentá de nuevo." },
+      { error: "Error al expandir códigos. Intenta de nuevo." },
       { status: 500 }
     );
   }

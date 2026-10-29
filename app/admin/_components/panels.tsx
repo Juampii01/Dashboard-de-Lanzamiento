@@ -274,7 +274,7 @@ export function LaunchScheduleControl({ initialToggles }: { initialToggles: Admi
         unlock_at ? `${lbl}: el contador marca el ${new Date(unlock_at).toLocaleString()}` : `${lbl}: sin fecha (usa el valor por defecto).`
       );
     } catch {
-      toast.error("No se pudo guardar la fecha. Reintentá.");
+      toast.error("No se pudo guardar la fecha. Reintenta.");
     }
     setSavingDay(null);
   }
@@ -542,6 +542,64 @@ export function TutorialAdminPanel() {
           <>Video actual: <span className="font-mono">{current}</span> · <a href={`https://youtu.be/${current}`} target="_blank" rel="noreferrer" className="font-semibold text-secondary dark:text-white">ver ↗</a></>
         ) : (
           "Sin video → el tutorial muestra “Próximamente”."
+        )}
+      </p>
+    </div>
+  );
+}
+
+// ─── Número de soporte ──────────────────────────────────────────────────────
+
+/** WhatsApp de soporte que se muestra en el asistente "Ayuda" del dashboard. */
+export function SupportWhatsappPanel() {
+  const [value, setValue] = useState("");
+  const [current, setCurrent] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d?.support_whatsapp === "string") { setCurrent(d.support_whatsapp); setValue(d.support_whatsapp); }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function save() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "support_whatsapp", value }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error();
+      setCurrent(d.value ?? "");
+      setValue(d.value ?? "");
+      toast.success(d.value ? "Número de soporte guardado." : "Soporte por WhatsApp desactivado.");
+    } catch { toast.error("Error al guardar el número."); }
+    setSaving(false);
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <input
+          type="tel"
+          placeholder="Ej: 13055551234 (con código de país, sin +)"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          disabled={saving}
+          className={inputClass}
+        />
+        <Button size="sm" onClick={save} disabled={saving}>{saving ? "…" : "Guardar"}</Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {current ? (
+          <>Número actual: <span className="font-mono">+{current}</span> · <a href={`https://wa.me/${current}`} target="_blank" rel="noreferrer" className="font-semibold text-secondary dark:text-white">probar ↗</a></>
+        ) : (
+          "Sin número → el asistente no muestra el acceso a soporte."
         )}
       </p>
     </div>
