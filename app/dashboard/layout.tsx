@@ -334,7 +334,7 @@ export default async function DashboardLayout({
 
           {/* Contenido principal — contenedor centrado y con aire */}
           <main className="gb-main" style={{ flex: 1, overflowY: "auto", background: "var(--background)", padding: "40px 24px 64px" }}>
-            <div style={{ maxWidth: "960px", margin: "0 auto", width: "100%" }}>
+            <div className="gb-content" style={{ maxWidth: "960px", margin: "0 auto", width: "100%" }}>
               {children}
             </div>
           </main>

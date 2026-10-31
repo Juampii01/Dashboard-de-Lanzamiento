@@ -661,6 +661,92 @@ export function PausePointsPanel() {
   );
 }
 
+// ─── Banner de la mentoría en el inicio ─────────────────────────────────────
+
+export function MentoriaBannerPanel() {
+  const { value, setValue, loading } = useSetting("mentoria_banner_enabled");
+  const [saving, setSaving] = useState(false);
+  const on = value === "true";
+
+  async function toggle(val: boolean) {
+    setSaving(true);
+    try {
+      await saveSetting("mentoria_banner_enabled", val ? "true" : "false");
+      setValue(val ? "true" : "false");
+      toast.success(val ? "Banner de la mentoría visible en el inicio." : "Banner de la mentoría oculto.");
+    } catch {
+      toast.error("No se pudo cambiar el banner.");
+    }
+    setSaving(false);
+  }
+
+  if (loading) return <p className="text-sm text-muted-foreground">Cargando…</p>;
+
+  return (
+    <ToggleRow
+      title={on ? "Banner visible" : "Banner oculto"}
+      description="Ventana “¿Todavía estás pensando en unirte a Tu Primer Contrato?” al entrar al inicio. Pensada para el último día del lanzamiento."
+      on={on}
+      onTone="success"
+      pill={<StatusPill tone={on ? "success" : "muted"}>{on ? "Visible" : "Oculto"}</StatusPill>}
+    >
+      <Switch checked={on} onCheckedChange={toggle} disabled={saving} />
+    </ToggleRow>
+  );
+}
+
+// ─── Historia diaria en Instagram ───────────────────────────────────────────
+
+/** Cuentas a etiquetar y texto de referencia para el texto que genera la guía. */
+export function StoryCopySettingsPanel() {
+  const handles = useSetting("instagram_handles");
+  const example = useSetting("story_copy_example");
+  const [h, setH] = useState<string | null>(null);
+  const [ex, setEx] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const hVal = h ?? handles.value ?? "";
+  const exVal = ex ?? example.value ?? "";
+
+  async function save() {
+    setSaving(true);
+    try {
+      await saveSetting("instagram_handles", hVal);
+      await saveSetting("story_copy_example", exVal);
+      toast.success("Guardado.");
+    } catch {
+      toast.error("No se pudo guardar.");
+    }
+    setSaving(false);
+  }
+
+  if (handles.loading || example.loading) return <p className="text-sm text-muted-foreground">Cargando…</p>;
+
+  return (
+    <div className="space-y-3">
+      <label className="block space-y-1">
+        <span className="text-xs font-semibold text-muted-foreground">Cuentas a etiquetar (separadas por espacio)</span>
+        <input className={inputClass} placeholder="@govbidder" value={hVal} onChange={(e) => setH(e.target.value)} disabled={saving} />
+      </label>
+      <label className="block space-y-1">
+        <span className="text-xs font-semibold text-muted-foreground">Texto de referencia (estilo que debe imitar la guía)</span>
+        <textarea
+          className={inputClass}
+          rows={4}
+          placeholder="Ej.: Día 2 del Tu Primer Contrato Challenge ✅ Hoy encontré los códigos de mi empresa para venderle al gobierno…"
+          value={exVal}
+          onChange={(e) => setEx(e.target.value)}
+          disabled={saving}
+        />
+      </label>
+      <div className="flex items-center gap-3">
+        <Button size="sm" onClick={save} disabled={saving}>{saving ? "…" : "Guardar"}</Button>
+        <p className="text-xs text-muted-foreground">Sin cuentas cargadas se etiqueta a @govbidder.</p>
+      </div>
+    </div>
+  );
+}
+
 // ─── Cierre total del acceso ────────────────────────────────────────────────
 
 export function AccessClosedPanel() {
@@ -712,10 +798,11 @@ export function AccessClosedPanel() {
 
 // ─── Grabaciones de las clases ──────────────────────────────────────────────
 
-interface RecordingRow { recording_number: number; youtube_url?: string | null; }
+interface RecordingRow { recording_number: number; youtube_url?: string | null; title?: string | null; }
 
 export function RecordingsAdminPanel() {
   const [inputs, setInputs] = useState<Record<number, string>>({});
+  const [titles, setTitles] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState<Record<number, boolean>>({});
   const [saving, setSaving] = useState<number | null>(null);
 
@@ -725,11 +812,14 @@ export function RecordingsAdminPanel() {
       .then((raw: unknown) => {
         const data: RecordingRow[] = Array.isArray(raw) ? raw : [];
         const init: Record<number, string> = {};
+        const tit: Record<number, string> = {};
         const done: Record<number, boolean> = {};
         data.forEach((r) => {
           if (r.youtube_url) { init[r.recording_number] = r.youtube_url; done[r.recording_number] = true; }
+          if (r.title) tit[r.recording_number] = r.title;
         });
         setInputs(init);
+        setTitles(tit);
         setSaved(done);
       })
       .catch(() => {});
@@ -737,12 +827,13 @@ export function RecordingsAdminPanel() {
 
   async function save(num: number) {
     const youtube_url = (inputs[num] ?? "").trim();
+    const title = (titles[num] ?? "").trim();
     setSaving(num);
     try {
       const res = await fetch("/api/admin/recordings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recording_number: num, youtube_url }),
+        body: JSON.stringify({ recording_number: num, youtube_url, title }),
       });
       if (!res.ok) throw new Error();
       setSaved((prev) => ({ ...prev, [num]: !!youtube_url }));
@@ -759,14 +850,24 @@ export function RecordingsAdminPanel() {
         {[1, 2, 3, 4].map((num) => (
           <div key={num} className="flex items-center gap-3 p-3">
             <span className="text-xs font-bold text-muted-foreground w-12 shrink-0">Día {num}</span>
-            <input
-              type="url"
-              placeholder="https://www.youtube.com/watch?v=..."
-              value={inputs[num] ?? ""}
-              onChange={(e) => setInputs((prev) => ({ ...prev, [num]: e.target.value }))}
-              disabled={saving === num}
-              className={inputClass}
-            />
+            <div className="flex flex-1 min-w-0 flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                placeholder="Nombre de la clase"
+                value={titles[num] ?? ""}
+                onChange={(e) => setTitles((prev) => ({ ...prev, [num]: e.target.value }))}
+                disabled={saving === num}
+                className={inputClass}
+              />
+              <input
+                type="url"
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={inputs[num] ?? ""}
+                onChange={(e) => setInputs((prev) => ({ ...prev, [num]: e.target.value }))}
+                disabled={saving === num}
+                className={inputClass}
+              />
+            </div>
             {saved[num] && <Check className="w-4 h-4 text-[var(--success)] shrink-0" aria-label="Guardada" />}
             <Button size="sm" onClick={() => save(num)} disabled={saving === num}>
               {saving === num ? "…" : "Guardar"}
@@ -774,7 +875,7 @@ export function RecordingsAdminPanel() {
           </div>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">Campo vacío + Guardar quita el botón de esa grabación.</p>
+      <p className="text-xs text-muted-foreground">Link vacío + Guardar deja esa grabación como “próximamente”. El nombre de la clase se muestra debajo de “Día N” en el inicio.</p>
     </div>
   );
 }
