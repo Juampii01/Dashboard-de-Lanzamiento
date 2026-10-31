@@ -894,3 +894,14 @@
   pointer-events: none;
 }
 .gb-preview-reveal { animation: preview-reveal var(--dur-slow) var(--ease-expo) both; }
+
+
+/* Inicio del dashboard a todo el ancho (pedido de Santo, 31/10). El resto de las
+   páginas mantiene los 960px. */
+.gb-content:has(.gb-home-wide) { max-width: 1280px !important; }
+@media (max-width: 900px) {
+  .gb-points-row { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 520px) {
+  .gb-recordings { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}

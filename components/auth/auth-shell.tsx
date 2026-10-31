@@ -30,7 +30,7 @@ function FlagBackdrop({ className = "" }: { className?: string }) {
 }
 
 export function AuthShell({
-  eyebrow = "GovBidder Challenge",
+  eyebrow = "Tu Primer Contrato Challenge",
   title,
   subtitle,
   children,

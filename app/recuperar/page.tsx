@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { RecoverForm } from "./form";
 
-export const metadata = { title: "Crea o recupera tu contraseña — GovBidder Challenge" };
+export const metadata = { title: "Crea o recupera tu contraseña — Tu Primer Contrato Challenge" };
 
 export default async function RecuperarPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const e = (await searchParams).email;

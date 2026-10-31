@@ -8,8 +8,8 @@
  *     y nunca tuvieron contraseña
  */
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const FROM = "GovBidder Challenge <acceso@send.govbidder.net>";
-const SUBJECT = "Crea tu contraseña del GovBidder Challenge";
+const FROM = "Tu Primer Contrato Challenge <acceso@send.govbidder.net>";
+const SUBJECT = "Crea tu contraseña del Challenge Tu Primer Contrato";
 const LOGO = "https://dboard.govbidder.net/halcon.png";
 
 export async function sendPasswordEmail(opts: { to: string; link: string }): Promise<{ ok: boolean; error?: string }> {
@@ -37,10 +37,10 @@ function buildHtml(link: string): string {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;">
         <tr><td style="height:4px;background:#E42D2C;line-height:4px;font-size:0;">&nbsp;</td></tr>
         <tr><td style="padding:32px 32px 8px;text-align:center;">
-          <img src="${LOGO}" alt="GovBidder Challenge" width="110" style="display:inline-block;height:auto;max-width:110px;" />
+          <img src="${LOGO}" alt="Tu Primer Contrato Challenge" width="110" style="display:inline-block;height:auto;max-width:110px;" />
         </td></tr>
         <tr><td style="padding:8px 32px 0;text-align:center;">
-          <p style="margin:0;font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#E42D2C;">GovBidder Challenge</p>
+          <p style="margin:0;font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#E42D2C;">Tu Primer Contrato Challenge</p>
           <h1 style="margin:10px 0 0;font-size:22px;color:#0d1a3d;">Crea tu contraseña</h1>
         </td></tr>
         <tr><td style="padding:14px 32px 0;text-align:center;">

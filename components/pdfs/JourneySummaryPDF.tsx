@@ -131,7 +131,7 @@ export function JourneySummaryPDF({
               <View>
                 <Text style={styles.companyName}>{companyName}</Text>
                 <Text style={styles.tagline}>
-                  GovBidder Challenge · {isFinal ? "Challenge completado" : "Resumen Días 1 a 3"}
+                  Tu Primer Contrato Challenge · {isFinal ? "Challenge completado" : "Resumen Días 1 a 3"}
                 </Text>
               </View>
             </View>

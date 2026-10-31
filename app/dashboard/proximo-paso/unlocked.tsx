@@ -25,7 +25,7 @@ export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
   function handleWhatsApp() {
     trackClick("whatsapp");
     const name = (fullName || "").trim();
-    const msg = `Hola, soy ${name}. Acabo de terminar el GovBidder Challenge y quiero saber más sobre la mentoría “Tu Primer Contrato”. ¿Cómo sigo?`;
+    const msg = `Hola, soy ${name}. Acabo de terminar el Challenge Tu Primer Contrato y quiero saber más sobre la mentoría “Tu Primer Contrato”. ¿Cómo sigo?`;
     const base = MENTORIA_WHATSAPP ? `https://wa.me/${MENTORIA_WHATSAPP}` : "https://wa.me/";
     window.open(`${base}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
   }
@@ -52,7 +52,7 @@ export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
       >
         <div style={{ background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 28px rgba(0,0,0,0.35)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/halcon.png" alt="GovBidder Challenge" style={{ height: 54, width: "auto", display: "block" }} />
+          <img src="/halcon.png" alt="Tu Primer Contrato Challenge" style={{ height: 54, width: "auto", display: "block" }} />
         </div>
 
         <p style={{
@@ -122,7 +122,7 @@ export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
         </div>
 
         <p style={{ fontSize: 15.5, fontWeight: 700, color: "#3DDC84", margin: "6px 0 0" }}>
-          12 meses caminando a tu lado, hasta tu primer contrato.
+          4 meses caminando a tu lado y guiándote a tu primer contrato.
         </p>
 
         <span style={{

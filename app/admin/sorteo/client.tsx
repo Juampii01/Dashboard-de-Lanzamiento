@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { RANKS } from "@/lib/ranks";
+import { RANKS, WINNERS_BY_RANK } from "@/lib/ranks";
 import { Loader2, Trophy, Sparkles, Check } from "lucide-react";
 
 interface EligibleUser {
@@ -22,12 +22,7 @@ interface Winner {
   claimed_at: string | null;
 }
 
-const TARGET_COUNT: Record<string, number> = {
-  elevate: 10,
-  prime: 1,
-  legacy: 1,
-  expert: 1,
-};
+const TARGET_COUNT: Record<string, number> = WINNERS_BY_RANK; // definido en lib/ranks.ts
 
 const CONFETTI_COLORS = ["#E42D2C", "#FFD700", "#16A65F", "#ffffff", "#152978"];
 

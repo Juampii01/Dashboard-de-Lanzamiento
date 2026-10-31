@@ -28,7 +28,7 @@ function diffParts(targetMs: number) {
  */
 export function LaunchCountdown({
   targetIso,
-  kicker = "GovBidder Challenge",
+  kicker = "Tu Primer Contrato Challenge",
   title,
   subtitle,
   reachedSubtitle,

@@ -26,13 +26,13 @@ export default function AccesoCerradoPage() {
         <div style={{ padding: "40px 32px" }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: "10px 16px", display: "inline-block", marginBottom: 22 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/halcon.png" alt="GovBidder Challenge" style={{ height: 44, width: "auto", display: "block" }} />
+            <img src="/halcon.png" alt="Tu Primer Contrato Challenge" style={{ height: 44, width: "auto", display: "block" }} />
           </div>
           <p style={{
             fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
             letterSpacing: "0.16em", textTransform: "uppercase", color: "#E42D2C", margin: "0 0 10px",
           }}>
-            GovBidder Challenge
+            Tu Primer Contrato Challenge
           </p>
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800, color: "#fff", margin: "0 0 12px" }}>
             El challenge ya finalizó

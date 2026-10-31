@@ -3,7 +3,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Notice } from "@/components/auth/fields";
 import { RegisterForm } from "@/components/auth/register-form";
 
-export const metadata = { title: "Regístrate gratis — GovBidder Challenge" };
+export const metadata = { title: "Regístrate gratis — Tu Primer Contrato Challenge" };
 
 export default function RegistroGratisPage() {
   return (

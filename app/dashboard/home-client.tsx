@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Send, MessageCircle, X, FileText, ChevronDown, Play } from "lucide-react";
 import { toast } from "sonner";
 import { FlagBanner } from "@/components/flag-banner";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
+import { ReferralLinkCard } from "@/components/referral-link-card";
+import { REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -16,6 +18,11 @@ interface HomeClientProps {
   devMode: boolean;
   avatarUrl?: string | null;
   recordings?: (string | null)[];
+  recordingTitles?: (string | null)[];
+  /** Ventana de la mentoría al entrar (apagada salvo que el admin la prenda). */
+  mentoriaBanner?: boolean;
+  /** Link de referido del usuario (null si no se pudo generar). */
+  refLink?: string | null;
   tutorialVideoId?: string;
   isAdmin?: boolean;
   userId?: string;
@@ -218,8 +225,6 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
         padding: "16px 20px",
         position: "relative",
         overflow: "hidden",
-        alignSelf: "flex-start",
-        maxWidth: "460px",
         width: "100%",
       }}
     >
@@ -343,92 +348,74 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
   );
 }
 
-// 4 botones de grabaciones (2x2) que van al lado de los puntos. Cada uno abre su
-// link de YouTube en pestaña nueva. Los links se configuran desde /admin.
-function RecordingsButtons({ urls }: { urls: (string | null)[] }) {
-  const openRec = (u: string | null) => {
-    if (u) window.open(u, "_blank", "noopener,noreferrer");
-  };
+// ID de YouTube desde una URL (watch?v=, youtu.be/, embed/, shorts/, live/).
+function youtubeId(url: string | null): string | null {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{6,})/);
+  return m ? m[1] : null;
+}
+
+// Las 4 grabaciones de las clases en una fila, al lado de los puntos. Cada una
+// muestra "Día N" arriba, la miniatura del video y el nombre de la clase abajo.
+// Abren YouTube en otra pestaña. Links y nombres se cargan en /admin/contenido.
+function RecordingsRow({ urls, titles }: { urls: (string | null)[]; titles: (string | null)[] }) {
   return (
-    <div
-      style={{
-        flex: "1 1 260px",
-        maxWidth: 420,
-        minWidth: 220,
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gridTemplateRows: "1fr 1fr",
-        gap: 10,
-      }}
-    >
+    <div className="gb-recordings" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, height: "100%" }}>
       {[0, 1, 2, 3].map((i) => {
         const u = urls[i] ?? null;
+        const id = youtubeId(u);
         const ready = !!u;
+        const title = (titles[i] ?? "").trim();
         return (
           <button
             key={i}
             type="button"
-            onClick={() => openRec(u)}
+            onClick={() => { if (u) window.open(u, "_blank", "noopener,noreferrer"); }}
             disabled={!ready}
-            title={ready ? "Abrir grabación en YouTube" : "Grabación próximamente"}
+            title={ready ? `Ver la grabación del Día ${i + 1}` : "Grabación próximamente"}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 9,
-              minHeight: 54,
-              padding: "0 12px",
-              borderRadius: 12,
-              // Cargada → look YouTube: borde y sombra rojos. Sin cargar → apagada (gris, punteada).
-              border: ready ? "1.5px solid rgba(255,0,0,0.6)" : "1.5px dashed var(--border)",
-              background: ready ? "color-mix(in srgb, #FF0000 9%, var(--card))" : "transparent",
-              color: ready ? "var(--foreground)" : "var(--muted-foreground)",
-              fontFamily: "var(--font-sans)",
-              fontSize: 13,
-              fontWeight: 700,
-              textAlign: "left",
-              cursor: ready ? "pointer" : "not-allowed",
-              opacity: ready ? 1 : 0.5,
-              boxShadow: ready ? "0 3px 12px -4px rgba(255,0,0,0.5)" : "none",
-              transition: "transform .12s, box-shadow .12s, border-color .12s",
+              display: "flex", flexDirection: "column", gap: 6, minWidth: 0, height: "100%",
+              padding: 8, borderRadius: 12, textAlign: "left", font: "inherit",
+              border: ready ? "1.5px solid rgba(255,0,0,0.45)" : "1.5px dashed var(--border)",
+              background: ready ? "color-mix(in srgb, #FF0000 6%, var(--card))" : "transparent",
+              color: "var(--foreground)", cursor: ready ? "pointer" : "not-allowed", opacity: ready ? 1 : 0.6,
+              transition: "transform .12s, box-shadow .12s",
             }}
-            onMouseEnter={(e) => {
-              if (!ready) return;
-              const el = e.currentTarget;
-              el.style.transform = "translateY(-1px)";
-              el.style.boxShadow = "0 6px 18px -4px rgba(255,0,0,0.65)";
-              el.style.borderColor = "#FF0000";
-            }}
-            onMouseLeave={(e) => {
-              if (!ready) return;
-              const el = e.currentTarget;
-              el.style.transform = "none";
-              el.style.boxShadow = "0 3px 12px -4px rgba(255,0,0,0.5)";
-              el.style.borderColor = "rgba(255,0,0,0.6)";
-            }}
+            onMouseEnter={(e) => { if (ready) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 20px -8px rgba(255,0,0,0.55)"; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}
           >
-            {/* Badge de play estilo YouTube (círculo rojo + triángulo blanco) */}
-            <span
-              style={{
-                flexShrink: 0,
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: ready ? "#FF0000" : "color-mix(in srgb, var(--muted-foreground) 28%, transparent)",
-                boxShadow: ready ? "0 0 10px rgba(255,0,0,0.6)" : "none",
-              }}
-            >
-              <Play size={13} style={{ color: "#fff", fill: "#fff", marginLeft: 1 }} />
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: ready ? "#FF3B3B" : "var(--muted-foreground)" }}>
+              Día {i + 1}
             </span>
-            <span style={{ display: "flex", flexDirection: "column", minWidth: 0, lineHeight: 1.15 }}>
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                Grabación día {i + 1}
-              </span>
-              {!ready && (
-                <span style={{ fontSize: 9.5, fontWeight: 600, opacity: 0.85 }}>próximamente</span>
+            <span style={{
+              position: "relative", flex: 1, minHeight: 64, borderRadius: 8, overflow: "hidden",
+              background: "linear-gradient(135deg, #0D1A3D 0%, #060D1A 100%)",
+            }}>
+              {id && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`https://i.ytimg.com/vi/${id}/mqdefault.jpg`}
+                  alt=""
+                  loading="lazy"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                />
               )}
+              <span style={{
+                position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+                width: 32, height: 32, borderRadius: "50%",
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                background: ready ? "#FF0000" : "rgba(255,255,255,0.18)",
+                boxShadow: ready ? "0 0 12px rgba(255,0,0,0.6)" : "none",
+              }}>
+                <Play size={14} style={{ color: "#fff", fill: "#fff", marginLeft: 2 }} />
+              </span>
+            </span>
+            <span style={{
+              fontSize: 12, fontWeight: 700, lineHeight: 1.25, color: ready ? "var(--foreground)" : "var(--muted-foreground)",
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+            }}>
+              {ready ? (title || "Grabación de la clase") : "Próximamente"}
             </span>
           </button>
         );
@@ -440,30 +427,41 @@ function RecordingsButtons({ urls }: { urls: (string | null)[] }) {
 function VideoTutorial({ videoId }: { videoId?: string }) {
   const id = videoId ?? TUTORIAL_YT_ID;
   const isPlaceholder = !id;
+  // Cerrado por defecto: deja más lugar al chat y a lo demás (pedido de Santo).
+  const [open, setOpen] = useState(false);
 
   return (
     <div>
-      <div style={{ marginBottom: "12px" }}>
-        <p style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "9px", fontWeight: 700,
-          color: "var(--muted-foreground)", textTransform: "uppercase",
-          letterSpacing: "0.14em", marginBottom: "4px",
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 14, textAlign: "left", font: "inherit",
+          background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14,
+          padding: "14px 18px", cursor: "pointer", color: "var(--foreground)",
+          marginBottom: open ? 12 : 0,
+        }}
+      >
+        <span style={{
+          width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+          display: "inline-flex", alignItems: "center", justifyContent: "center", background: "rgba(228,45,44,0.92)",
         }}>
-          🎬 Tutorial
-        </p>
-        <h2 style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "20px", fontWeight: 800,
-          color: "var(--foreground)", lineHeight: 1.2,
-        }}>
-          Cómo usar el dashboard
-        </h2>
-        <p style={{ fontSize: "13px", color: "var(--muted-foreground)", marginTop: "4px" }}>
-          Mira el tutorial completo antes de empezar los retos.
-        </p>
-      </div>
+          <Play size={17} style={{ color: "#fff", fill: "#fff", marginLeft: 2 }} />
+        </span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontFamily: "var(--font-display)", fontSize: 17, fontWeight: 800 }}>
+            Tutorial de la plataforma
+          </span>
+          <span style={{ display: "block", fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 2 }}>
+            {open ? "Toca para ocultar el video" : "Toca para ver cómo usar el dashboard en pocos minutos"}
+          </span>
+        </span>
+        <ChevronDown size={20} style={{ flexShrink: 0, color: "var(--muted-foreground)", transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }} />
+      </button>
 
+      {open && (
+      <>
       <div
         style={{
           borderRadius: "14px",
@@ -555,6 +553,8 @@ function VideoTutorial({ videoId }: { videoId?: string }) {
           />
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }
@@ -635,12 +635,13 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
     }
   }
 
-  // Agrupar: comentarios de primer nivel (más nuevo arriba, ya vienen así) y
-  // sus respuestas (más vieja primero, orden de conversación natural).
-  // Los actuales primero; al final, los destacados del lanzamiento anterior.
+  // Orden tipo chat: arriba los destacados del lanzamiento anterior y luego los
+  // actuales del más viejo al más nuevo (el más nuevo queda abajo, junto al
+  // campo para escribir). Las respuestas van debajo de su comentario.
+  const byOldest = (a: Comment, b: Comment) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   const topLevel = [
-    ...comments.filter((c) => !c.parent_id && !c.previous),
-    ...comments.filter((c) => !c.parent_id && c.previous),
+    ...comments.filter((c) => !c.parent_id && c.previous).sort(byOldest),
+    ...comments.filter((c) => !c.parent_id && !c.previous).sort(byOldest),
   ];
   const repliesByParent = new Map<string, Comment[]>();
   for (const c of comments) {
@@ -648,326 +649,284 @@ function CommentsSection({ over10k = false, isAdmin = false, userId }: { over10k
     if (!repliesByParent.has(c.parent_id)) repliesByParent.set(c.parent_id, []);
     repliesByParent.get(c.parent_id)!.push(c);
   }
-  for (const arr of repliesByParent.values()) {
-    arr.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-  }
+  for (const arr of repliesByParent.values()) arr.sort(byOldest);
+
+  return (
+    <CommentsChat
+      topLevel={topLevel}
+      repliesByParent={repliesByParent}
+      available={available}
+      isAdmin={isAdmin}
+      userId={userId}
+      over10k={over10k}
+      content={content}
+      setContent={setContent}
+      submitting={submitting}
+      onSubmit={handleSubmit}
+      replyingTo={replyingTo}
+      setReplyingTo={setReplyingTo}
+      replyContent={replyContent}
+      setReplyContent={setReplyContent}
+      replySubmitting={replySubmitting}
+      onReply={handleReplySubmit}
+    />
+  );
+}
+
+// Colores estables por persona (como en los grupos de WhatsApp).
+const NAME_COLORS = ["#2E86DE", "#10AC84", "#E67E22", "#8E44AD", "#C0392B", "#16A085", "#D35400", "#2C3E50"];
+function nameColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return NAME_COLORS[h % NAME_COLORS.length];
+}
+
+function ChatBubble({ c, mine, isAdmin, children }: { c: Comment; mine: boolean; isAdmin: boolean; children?: React.ReactNode }) {
+  const team = !!c.author_is_admin;
+  const bg = team
+    ? "color-mix(in srgb, var(--accent) 22%, var(--card))"
+    : mine
+      ? "color-mix(in srgb, #25D366 16%, var(--card))"
+      : "var(--card)";
+  return (
+    <div style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start" }}>
+      <div
+        style={{
+          maxWidth: "min(78%, 640px)", background: bg, borderRadius: 12,
+          borderTopLeftRadius: mine ? 12 : 3, borderTopRightRadius: mine ? 3 : 12,
+          padding: "7px 11px 6px", boxShadow: "0 1px 1px rgba(0,0,0,0.12)",
+          border: team ? "1px solid color-mix(in srgb, var(--accent) 55%, transparent)" : "1px solid var(--border)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: team ? "var(--foreground)" : nameColor(c.display_name) }}>
+            {mine ? "Tú" : c.display_name}
+          </span>
+          {team && (
+            <span style={{
+              fontSize: 9.5, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+              color: "var(--accent-foreground)", background: "var(--accent)", borderRadius: 999, padding: "1px 7px",
+            }}>Equipo GovBidder</span>
+          )}
+          {isAdmin && c.hidden && (
+            <span
+              title="Solo lo ve el autor y los admins (detectamos datos de contacto)"
+              style={{
+                fontSize: 9, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
+                color: "var(--destructive)", background: "color-mix(in srgb, var(--destructive) 14%, transparent)",
+                borderRadius: 999, padding: "1px 7px",
+              }}
+            >Oculto</span>
+          )}
+        </div>
+        <p style={{ fontSize: 14, color: "var(--foreground)", lineHeight: 1.45, margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+          {c.content}
+        </p>
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10, marginTop: 2 }}>
+          {children}
+          <span style={{ fontSize: 10.5, color: "var(--muted-foreground)" }}>{formatCommentDate(c.created_at)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CommentsChat(props: {
+  topLevel: Comment[];
+  repliesByParent: Map<string, Comment[]>;
+  available: boolean;
+  isAdmin: boolean;
+  userId: string;
+  over10k: boolean;
+  content: string;
+  setContent: (v: string) => void;
+  submitting: boolean;
+  onSubmit: (e: React.FormEvent) => void;
+  replyingTo: string | null;
+  setReplyingTo: (v: string | null) => void;
+  replyContent: string;
+  setReplyContent: (v: string) => void;
+  replySubmitting: boolean;
+  onReply: (parentId: string) => void;
+}) {
+  const {
+    topLevel, repliesByParent, available, isAdmin, userId, over10k, content, setContent, submitting, onSubmit,
+    replyingTo, setReplyingTo, replyContent, setReplyContent, replySubmitting, onReply,
+  } = props;
+
+  // El chat arranca abajo (lo más nuevo), como cualquier app de mensajes.
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const total = topLevel.length;
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight });
+  }, [total]);
 
   return (
     <div>
       <div style={{ marginBottom: "12px" }}>
         <p style={{
-          fontFamily: "var(--font-arcade)",
-          fontSize: "8px", fontWeight: 700,
-          color: "var(--muted-foreground)", textTransform: "uppercase",
-          letterSpacing: "0.14em", marginBottom: "4px",
+          fontFamily: "var(--font-arcade)", fontSize: "8px", fontWeight: 700,
+          color: "var(--muted-foreground)", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: "4px",
         }}>
           💬 Comunidad
         </p>
-        <h2 style={{
-          fontFamily: "var(--font-display)",
-          fontSize: "20px", fontWeight: 900,
-          color: "var(--foreground)",
-        }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 900, color: "var(--foreground)" }}>
           ¡Comenta qué te parece el programa aquí!
         </h2>
+        <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", marginTop: 4 }}>
+          Responde el equipo de GovBidder. Comparte tu experiencia, dudas y avances.
+        </p>
       </div>
 
-      <div
-        style={{
-          background: "var(--card)",
-          border: "1px solid var(--border)",
-          borderRadius: "14px",
-          overflow: "hidden",
-        }}
-      >
-        {/* Input form */}
-        {available && (
-          <form
-            onSubmit={handleSubmit}
-            style={{
-              padding: "16px",
-              borderBottom: "1px solid var(--border)",
-            }}
-          >
-            <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
-              <div style={{ flex: 1 }}>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: "6px",
-                  marginBottom: "6px",
-                }}>
-                  <MessageCircle style={{ width: "13px", height: "13px", color: "var(--muted-foreground)" }} />
-                  <span style={{ fontSize: "11px", color: "var(--muted-foreground)", fontWeight: 600 }}>
-                    Tu comentario
-                  </span>
-                  <span style={{
-                    fontSize: "10px", fontWeight: 800, whiteSpace: "nowrap",
-                    color: "var(--accent-foreground)", background: "var(--accent)",
-                    borderRadius: 999, padding: "1px 8px",
-                  }}>
-                    +{over10k ? 100 : 200} pts · primeras 3 veces
-                  </span>
-                </div>
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Escribe tu opinión, duda o experiencia con el programa..."
-                  maxLength={500}
-                  rows={2}
-                  style={{
-                    width: "100%",
-                    background: "var(--background)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "8px",
-                    color: "var(--foreground)",
-                    fontSize: "13px",
-                    padding: "8px 12px",
-                    resize: "none",
-                    outline: "none",
-                    fontFamily: "var(--font-sans)",
-                    boxSizing: "border-box",
-                  }}
-                  onFocus={(e) => { e.target.style.borderColor = "var(--primary)"; }}
-                  onBlur={(e) => { e.target.style.borderColor = "var(--border)"; }}
-                />
-                <p style={{ fontSize: "10px", color: "var(--muted-foreground)", marginTop: "3px", textAlign: "right" }}>
-                  {content.length}/500
-                </p>
-              </div>
-              <button
-                type="submit"
-                disabled={submitting || !content.trim()}
-                style={{
-                  display: "flex", alignItems: "center", gap: "6px",
-                  padding: "10px 16px",
-                  background: content.trim() ? "#D7263D" : "rgba(215,38,61,0.2)",
-                  border: "1px solid rgba(215,38,61,0.4)",
-                  borderRadius: "8px",
-                  color: content.trim() ? "#FFFFFF" : "var(--muted-foreground)",
-                  fontSize: "12px", fontWeight: 700,
-                  cursor: content.trim() ? "pointer" : "not-allowed",
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
-                  marginBottom: "20px",
-                }}
-              >
-                <Send style={{ width: "13px", height: "13px" }} />
-                {submitting ? "Enviando..." : "Publicar"}
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* Comments list */}
-        <div style={{ maxHeight: "320px", overflowY: "auto" }}>
+      <div style={{ border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden", background: "var(--card)" }}>
+        {/* Mensajes */}
+        <div
+          ref={listRef}
+          style={{
+            height: "min(520px, 62vh)", overflowY: "auto", padding: "16px 14px",
+            display: "flex", flexDirection: "column", gap: 8,
+            background: "color-mix(in srgb, var(--muted) 70%, var(--background))",
+          }}
+        >
           {!available ? (
-            <div style={{
-              padding: "32px 16px", textAlign: "center",
-              color: "var(--muted-foreground)", fontSize: "13px",
-            }}>
-              <MessageCircle style={{ width: "24px", height: "24px", margin: "0 auto 8px", opacity: 0.4 }} />
+            <div style={{ margin: "auto", textAlign: "center", color: "var(--muted-foreground)", fontSize: 13 }}>
+              <MessageCircle style={{ width: 24, height: 24, margin: "0 auto 8px", opacity: 0.4 }} />
               <p style={{ color: "var(--foreground)", fontWeight: 600 }}>Sección de comentarios próximamente</p>
-              <p style={{ fontSize: "11px", marginTop: "4px" }}>
-                Ejecuta la migración SQL para activarla.
-              </p>
             </div>
-          ) : comments.length === 0 ? (
-            <div style={{
-              padding: "32px 16px", textAlign: "center",
-              color: "var(--muted-foreground)", fontSize: "13px",
-            }}>
-              <p style={{ color: "var(--foreground)", fontWeight: 600 }}>Sé el primero en comentar 👆</p>
-              <p style={{ fontSize: "11px", marginTop: "4px", color: "var(--muted-foreground)" }}>
-                Tu opinión ayuda a mejorar el programa.
-              </p>
+          ) : topLevel.length === 0 ? (
+            <div style={{ margin: "auto", textAlign: "center", color: "var(--muted-foreground)", fontSize: 13 }}>
+              <p style={{ color: "var(--foreground)", fontWeight: 600 }}>Sé el primero en comentar 👇</p>
+              <p style={{ fontSize: 11, marginTop: 4 }}>Tu opinión ayuda a mejorar el programa.</p>
             </div>
           ) : (
             topLevel.map((c, idx) => {
               const canReply = !c.previous && (isAdmin || c.user_id === userId);
               const replies = repliesByParent.get(c.id) ?? [];
-              const isAnnouncement = c.author_is_admin;
               const startsPrevious = !!c.previous && (idx === 0 || !topLevel[idx - 1].previous);
+              const startsCurrent = !c.previous && idx > 0 && !!topLevel[idx - 1].previous;
               return (
-                <div key={c.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                  {startsPrevious && (
-                    <div style={{
-                      padding: "10px 16px", fontSize: "11px", fontWeight: 700,
-                      letterSpacing: "0.08em", textTransform: "uppercase",
-                      color: "var(--muted-foreground)", background: "var(--muted)",
-                      borderBottom: "1px solid var(--border)",
-                    }}>
-                      ⭐ Lo que dijeron en el lanzamiento anterior
+                <div key={c.id} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {(startsPrevious || startsCurrent) && (
+                    <div style={{ alignSelf: "center", margin: "6px 0" }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, color: "var(--muted-foreground)",
+                        background: "var(--card)", border: "1px solid var(--border)", borderRadius: 999, padding: "4px 12px",
+                      }}>
+                        {startsPrevious ? "⭐ Lo que dijeron en el lanzamiento anterior" : "Lanzamiento actual"}
+                      </span>
                     </div>
                   )}
-                  {/* Comentario original */}
-                  <div
-                    style={{
-                      padding: isAnnouncement ? "14px 16px" : "12px 16px",
-                      display: "flex", gap: "10px", alignItems: "flex-start",
-                      background: isAnnouncement ? "color-mix(in srgb, var(--accent) 10%, transparent)" : "transparent",
-                      borderLeft: isAnnouncement ? "3px solid var(--accent)" : "3px solid transparent",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: isAnnouncement ? "36px" : "28px", height: isAnnouncement ? "36px" : "28px",
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg, #143A6B 0%, #0A2540 100%)",
-                        border: isAnnouncement ? "2px solid var(--accent)" : "1px solid var(--border)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: isAnnouncement ? "13px" : "11px", fontWeight: 700, color: "#E5ECF7",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {c.display_name.slice(0, 1).toUpperCase()}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
-                        <span style={{ fontSize: isAnnouncement ? "13px" : "12px", fontWeight: 700, color: "var(--foreground)" }}>
-                          {c.display_name}
-                        </span>
-                        {isAnnouncement && (
-                          <span style={{
-                            fontSize: "10px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
-                            color: "var(--accent-foreground)", background: "var(--accent)",
-                            borderRadius: 999, padding: "2px 9px",
-                          }}>📢 Aviso del equipo</span>
-                        )}
-                        {isAdmin && c.hidden && (
-                          <span
-                            title="Solo lo ve el autor y los admins (detectamos datos de contacto)"
-                            style={{
-                              fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
-                              color: "var(--destructive)", background: "color-mix(in srgb, var(--destructive) 14%, transparent)",
-                              borderRadius: 999, padding: "1px 7px",
-                            }}
-                          >
-                            Oculto
-                          </span>
-                        )}
-                        <span style={{ fontSize: "10px", color: "var(--muted-foreground)" }}>
-                          {formatCommentDate(c.created_at)}
-                        </span>
-                      </div>
-                      <p style={{
-                        fontSize: isAnnouncement ? "14.5px" : "13px",
-                        fontWeight: isAnnouncement ? 600 : 400,
-                        color: "var(--foreground)", lineHeight: 1.55, margin: 0,
-                      }}>
-                        {c.content}
-                      </p>
-                      {canReply && (
-                        <button
-                          type="button"
-                          onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyContent(""); }}
-                          style={{
-                            marginTop: "6px", background: "transparent", border: "none", cursor: "pointer",
-                            fontSize: "11px", fontWeight: 700, color: "var(--primary)", padding: 0,
-                          }}
-                        >
-                          {replyingTo === c.id ? "Cancelar" : "Responder"}
-                        </button>
-                      )}
 
-                      {/* Caja de respuesta inline */}
-                      {replyingTo === c.id && (
-                        <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
-                          <input
-                            value={replyContent}
-                            onChange={(e) => setReplyContent(e.target.value)}
-                            placeholder="Escribe tu respuesta…"
-                            maxLength={500}
-                            disabled={replySubmitting}
-                            style={{
-                              flex: 1, minWidth: 0, padding: "8px 10px", borderRadius: "8px",
-                              border: "1px solid var(--border)", background: "var(--background)",
-                              color: "var(--foreground)", fontSize: "12.5px", outline: "none",
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleReplySubmit(c.id)}
-                            disabled={replySubmitting || !replyContent.trim()}
-                            style={{
-                              padding: "8px 14px", borderRadius: "8px", border: "none",
-                              background: replyContent.trim() ? "var(--primary)" : "color-mix(in srgb, var(--primary) 30%, transparent)",
-                              color: "var(--primary-foreground)", fontSize: "12px", fontWeight: 700,
-                              cursor: replyContent.trim() ? "pointer" : "not-allowed", whiteSpace: "nowrap",
-                            }}
-                          >
-                            {replySubmitting ? "..." : "Enviar"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Respuestas (admin o del propio autor) */}
-                  {replies.map((r) => (
-                    <div
-                      key={r.id}
-                      style={{
-                        padding: r.author_is_admin ? "10px 16px 12px 46px" : "8px 16px 12px 46px",
-                        display: "flex", gap: "8px", alignItems: "flex-start",
-                        background: r.author_is_admin ? "color-mix(in srgb, var(--accent) 8%, transparent)" : "transparent",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: r.author_is_admin ? "26px" : "22px", height: r.author_is_admin ? "26px" : "22px",
-                          borderRadius: "50%",
-                          background: r.author_is_admin ? "var(--accent)" : "var(--muted)",
-                          border: r.author_is_admin ? "2px solid var(--accent)" : "1px solid var(--border)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: r.author_is_admin ? "10.5px" : "9px", fontWeight: 700,
-                          color: r.author_is_admin ? "var(--accent-foreground)" : "var(--muted-foreground)",
-                          flexShrink: 0,
-                        }}
+                  <ChatBubble c={c} mine={c.user_id === userId} isAdmin={isAdmin}>
+                    {canReply && (
+                      <button
+                        type="button"
+                        onClick={() => { setReplyingTo(replyingTo === c.id ? null : c.id); setReplyContent(""); }}
+                        style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, color: "var(--primary)", padding: 0 }}
                       >
-                        {r.display_name.slice(0, 1).toUpperCase()}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px", flexWrap: "wrap" }}>
-                          <span style={{ fontSize: r.author_is_admin ? "12.5px" : "11.5px", fontWeight: 700, color: "var(--foreground)" }}>
-                            {r.display_name}
-                          </span>
-                          {r.author_is_admin && (
-                            <span style={{
-                              fontSize: "9.5px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
-                              color: "var(--accent-foreground)", background: "var(--accent)",
-                              borderRadius: 999, padding: "2px 8px",
-                            }}>📢 Equipo</span>
-                          )}
-                          {isAdmin && r.hidden && (
-                            <span
-                              title="Solo lo ve el autor y los admins (detectamos datos de contacto)"
-                              style={{
-                                fontSize: "9px", fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase",
-                                color: "var(--destructive)", background: "color-mix(in srgb, var(--destructive) 14%, transparent)",
-                                borderRadius: 999, padding: "1px 7px",
-                              }}
-                            >
-                              Oculto
-                            </span>
-                          )}
-                          <span style={{ fontSize: "9.5px", color: "var(--muted-foreground)" }}>
-                            {formatCommentDate(r.created_at)}
-                          </span>
-                        </div>
-                        <p style={{
-                          fontSize: r.author_is_admin ? "13.5px" : "12.5px",
-                          fontWeight: r.author_is_admin ? 600 : 400,
-                          color: "var(--foreground)", lineHeight: 1.5, margin: 0,
-                        }}>
-                          {r.content}
-                        </p>
-                      </div>
+                        {replyingTo === c.id ? "Cancelar" : "Responder"}
+                      </button>
+                    )}
+                  </ChatBubble>
+
+                  {replies.map((r) => (
+                    <div key={r.id} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{
+                        fontSize: 10.5, color: "var(--muted-foreground)",
+                        alignSelf: r.user_id === userId ? "flex-end" : "flex-start", padding: "0 6px",
+                      }}>
+                        ↪ respondiendo a {c.user_id === userId ? "ti" : c.display_name}
+                      </span>
+                      <ChatBubble c={r} mine={r.user_id === userId} isAdmin={isAdmin} />
                     </div>
                   ))}
+
+                  {replyingTo === c.id && (
+                    <div style={{ display: "flex", gap: 8, alignSelf: "stretch", padding: "2px 0 4px" }}>
+                      <input
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onReply(c.id); } }}
+                        placeholder={`Responder a ${c.display_name}…`}
+                        maxLength={500}
+                        disabled={replySubmitting}
+                        autoFocus
+                        style={{
+                          flex: 1, minWidth: 0, padding: "9px 14px", borderRadius: 999,
+                          border: "1px solid var(--border)", background: "var(--card)",
+                          color: "var(--foreground)", fontSize: 13, outline: "none",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => onReply(c.id)}
+                        disabled={replySubmitting || !replyContent.trim()}
+                        aria-label="Enviar respuesta"
+                        style={{
+                          width: 40, height: 40, borderRadius: "50%", border: "none", flexShrink: 0,
+                          background: replyContent.trim() ? "var(--primary)" : "color-mix(in srgb, var(--primary) 30%, transparent)",
+                          color: "var(--primary-foreground)", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          cursor: replyContent.trim() ? "pointer" : "not-allowed",
+                        }}
+                      >
+                        <Send style={{ width: 16, height: 16 }} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })
           )}
         </div>
+
+        {/* Campo para escribir, abajo como en un chat */}
+        {available && (
+          <form onSubmit={onSubmit} style={{ borderTop: "1px solid var(--border)", padding: "10px 12px", background: "var(--card)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, flexWrap: "wrap" }}>
+              <span style={{
+                fontSize: 10, fontWeight: 800, whiteSpace: "nowrap",
+                color: "var(--accent-foreground)", background: "var(--accent)", borderRadius: 999, padding: "1px 8px",
+              }}>
+                +{over10k ? 100 : 200} pts · tus primeros 3 comentarios
+              </span>
+              <span style={{ fontSize: 10.5, color: "var(--muted-foreground)", marginLeft: "auto" }}>{content.length}/500</span>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    (e.currentTarget.form as HTMLFormElement | null)?.requestSubmit();
+                  }
+                }}
+                placeholder="Escribe un mensaje…"
+                maxLength={500}
+                rows={1}
+                style={{
+                  flex: 1, minWidth: 0, background: "var(--background)", border: "1px solid var(--border)",
+                  borderRadius: 20, color: "var(--foreground)", fontSize: 14, padding: "10px 16px",
+                  resize: "none", outline: "none", fontFamily: "var(--font-sans)", lineHeight: 1.4, maxHeight: 120,
+                }}
+              />
+              <button
+                type="submit"
+                disabled={submitting || !content.trim()}
+                aria-label="Publicar comentario"
+                style={{
+                  width: 44, height: 44, borderRadius: "50%", border: "none", flexShrink: 0,
+                  background: content.trim() ? "#D7263D" : "rgba(215,38,61,0.25)",
+                  color: "#FFFFFF", display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  cursor: content.trim() ? "pointer" : "not-allowed",
+                }}
+              >
+                <Send style={{ width: 18, height: 18 }} />
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -1090,7 +1049,7 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
               {/* Logo */}
               <div style={{ flex: "1 1 0", display: "flex", justifyContent: "center" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/halcon.png" alt="GovBidder Challenge" style={{ height: "clamp(48px, 9vw, 78px)", width: "auto", objectFit: "contain" }} />
+                <img src="/halcon.png" alt="Tu Primer Contrato Challenge" style={{ height: "clamp(48px, 9vw, 78px)", width: "auto", objectFit: "contain" }} />
               </div>
 
               {/* QR */}
@@ -1241,7 +1200,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))",
           gap: "8px",
         }}
       >
@@ -1275,7 +1234,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
             <span style={{ fontSize: "22px", flexShrink: 0 }}>{niche.icon}</span>
             <div style={{ minWidth: 0 }}>
               <div style={{
-                fontSize: "12px", fontWeight: 700,
+                fontSize: "13.5px", fontWeight: 700,
                 color: "var(--foreground)", lineHeight: 1.2,
               }}>
                 {niche.label}
@@ -1336,52 +1295,58 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, tutorialVideoId, isAdmin = false, userId = "" }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, recordingTitles, mentoriaBanner = false, refLink = null, tutorialVideoId, isAdmin = false, userId = "" }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "36px" }}>
-      {/* 0. Hero banner con la bandera de marca (isla oscura) */}
+    // gb-home-wide: el inicio usa todo el ancho disponible (ver globals.css).
+    <div className="gb-home-wide" style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+      {/* 0. Banner de bienvenida a todo el ancho */}
       <FlagBanner minHeight={150} priority>
         <p style={{
           fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 700,
           textTransform: "uppercase", letterSpacing: "0.14em",
           color: "#FFD700", marginBottom: "8px",
         }}>
-          GovBidder Challenge
+          Tu Primer Contrato Challenge
         </p>
         <h1 style={{
-          fontFamily: "var(--font-display)", fontSize: "26px", fontWeight: 800,
+          fontFamily: "var(--font-display)", fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 800,
           lineHeight: 1.15, color: "#ffffff", margin: 0,
         }}>
           {firstName ? <>Hola, {firstName} 👋</> : <>Bienvenido</>}
         </h1>
-        <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.78)", marginTop: "6px", maxWidth: "46ch" }}>
+        <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.8)", marginTop: "6px", maxWidth: "60ch" }}>
           Tu empresa puede ganar contratos con el Gobierno de USA. Completa las fases del programa para avanzar.
         </p>
       </FlagBanner>
 
-      {/* Banner no bloqueante: propuesta de la mentoría "Tu Primer Contrato" */}
-      {!devMode && <MentoriaBanner fullName={fullName} />}
+      {/* Ventana de la mentoría: solo si el admin la prende (/admin/comunicaciones) */}
+      {!devMode && mentoriaBanner && <MentoriaBanner fullName={fullName} />}
 
-      {/* 1. Points card + botones de grabaciones (al lado, misma altura, compacto) */}
+      {/* 1. Puntos (mitad izquierda) + las 4 grabaciones en fila (mitad derecha).
+          Si se abre el desglose de puntos, las grabaciones crecen a la par. */}
       {!devMode && (
-        <div style={{ display: "flex", gap: "16px", alignItems: "stretch", flexWrap: "wrap" }}>
-          <div style={{ flex: "1 1 320px", maxWidth: 460, minWidth: 0, display: "flex" }}>
+        <div className="gb-points-row" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16, alignItems: "stretch" }}>
+          <div style={{ minWidth: 0, display: "flex" }}>
             <PointsCard initial={initialPoints} avatarUrl={avatarUrl} />
           </div>
-          <RecordingsButtons urls={recordings ?? [null, null, null, null]} />
+          <RecordingsRow urls={recordings ?? [null, null, null, null]} titles={recordingTitles ?? [null, null, null, null]} />
         </div>
       )}
 
-      {/* 2. Loom tutorial video */}
+      {/* 2. Link de referido, arriba para que se encuentre fácil */}
+      {!devMode && refLink && (
+        <ReferralLinkCard link={refLink} xp={REFERRAL_LEAD_XP} over10k={initialPoints >= 10000} />
+      )}
+
+      {/* 3. Tutorial de la plataforma (desplegable) */}
       <VideoTutorial videoId={tutorialVideoId} />
 
-      {/* 3. Comments */}
+      {/* 4. Chat de la comunidad */}
       {!devMode && <CommentsSection over10k={initialPoints >= 10000} isAdmin={isAdmin} userId={userId} />}
 
-      {/* 4. Contract models */}
+      {/* 5. Contratos gubernamentales ganados + certificado */}
       <ContractModels fullName={fullName} />
-
     </div>
   );
 }

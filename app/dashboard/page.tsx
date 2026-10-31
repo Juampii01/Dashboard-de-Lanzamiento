@@ -24,6 +24,8 @@ export default async function DashboardPage() {
   let avatarUrl: string | null = null;
   let isAdmin = false;
   const recordings: (string | null)[] = [null, null, null, null];
+  const recordingTitles: (string | null)[] = [null, null, null, null];
+  let mentoriaBanner = false;
   let tutorialVideoId = "2A6EB_cDk-A"; // default; el admin lo puede cambiar
   let userId = "";
   let refLink: string | null = null;
@@ -63,14 +65,31 @@ export default async function DashboardPage() {
 
     // Grabaciones de las clases (1-4) que el admin configura. Cada botón abre su
     // link de YouTube; si un número no tiene link, su botón queda deshabilitado.
-    const { data: recs } = await createServiceClient()
+    const recFirst = await createServiceClient()
       .from("class_recordings")
-      .select("recording_number, youtube_url");
-    for (const r of (recs ?? []) as { recording_number: number; youtube_url: string | null }[]) {
+      .select("recording_number, youtube_url, title");
+    let recs = recFirst.data;
+    if (recFirst.error) {
+      // Sin la migración del título (20261031000001) → solo links.
+      ({ data: recs } = await createServiceClient()
+        .from("class_recordings")
+        .select("recording_number, youtube_url"));
+    }
+    for (const r of (recs ?? []) as { recording_number: number; youtube_url: string | null; title?: string | null }[]) {
       if (r.recording_number >= 1 && r.recording_number <= 4) {
         recordings[r.recording_number - 1] = r.youtube_url ?? null;
+        recordingTitles[r.recording_number - 1] = r.title ?? null;
       }
     }
+
+    // Banner de la mentoría: apagado salvo que el admin lo prenda
+    // (/admin/comunicaciones). Pedido de Santo, 31/10.
+    const { data: mb } = await createServiceClient()
+      .from("app_settings")
+      .select("value")
+      .eq("key", "mentoria_banner_enabled")
+      .maybeSingle();
+    mentoriaBanner = (mb as { value?: string | null } | null)?.value === "true";
 
     // Video del tutorial (editable desde /admin). Si existe la fila, usamos su
     // valor (vacío = "coming soon"); si no existe la tabla/fila aún, queda el default.
@@ -112,6 +131,9 @@ export default async function DashboardPage() {
         devMode={devMode}
         avatarUrl={avatarUrl}
         recordings={recordings}
+        recordingTitles={recordingTitles}
+        mentoriaBanner={mentoriaBanner}
+        refLink={beforeLaunch ? null : refLink}
         tutorialVideoId={tutorialVideoId}
         isAdmin={isAdmin}
         userId={userId}
@@ -125,7 +147,6 @@ export default async function DashboardPage() {
           reachedSubtitle="Ya casi comienza. El dashboard se habilita apenas el equipo abra el challenge."
         />
       )}
-      {!beforeLaunch && referralCard}
     </div>
     </div>
   );

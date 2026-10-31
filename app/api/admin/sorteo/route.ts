@@ -1,6 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import { getRank, RANKS, type Rank } from "@/lib/ranks";
+import { getRank, RANKS, type Rank, WINNERS_BY_RANK } from "@/lib/ranks";
 
 /**
  * Sorteo de premios por rango. Elegibilidad (misma regla para los 4 rangos):
@@ -12,7 +12,7 @@ import { getRank, RANKS, type Rank } from "@/lib/ranks";
  * puntos = más probabilidad, ver weightedSampleWithoutReplacement); Legacy/
  * Expert sortean uniforme (todos con la misma chance).
  * Se excluyen SIEMPRE cuentas is_admin / is_student (equipo interno, nunca
- * compiten por premios reales), y quienes ya pagaron la mentoría de $2,997 por
+ * compiten por premios reales), y quienes ya pagaron la mentoría por
  * fuera del challenge (sorteo_mentorship_buyers) — de forma silenciosa, sin
  * marca visible en el panel. El admin puede además destildar a mano cualquier
  * otra cuenta rara (test/duplicada) antes de sortear, desde la UI.
@@ -30,7 +30,7 @@ import { getRank, RANKS, type Rank } from "@/lib/ranks";
  */
 
 const WEIGHTED_RANKS = new Set(["elevate", "prime"]); // ponderado por puntos
-const TARGET_COUNT: Record<string, number> = { elevate: 10, prime: 1, legacy: 1, expert: 1 };
+const TARGET_COUNT: Record<string, number> = WINNERS_BY_RANK; // definido en lib/ranks.ts
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -82,7 +82,7 @@ export async function GET() {
   }
   if (payersError) return NextResponse.json({ error: "internal" }, { status: 500 });
 
-  // Ya compraron la mentoría de $2,997 por fuera del challenge — se excluyen
+  // Ya compraron la mentoría por fuera del challenge — se excluyen
   // de TODO el sorteo (los 4 rangos), de forma silenciosa (sin marca visible
   // en el panel). Si la tabla no existe todavía, no excluye a nadie
   // (fail-open: es una exclusión extra, no la elegibilidad base).
@@ -109,7 +109,7 @@ export async function GET() {
     if (alreadyWon.has(u.id)) continue; // ya salió sorteado en este o algún rango (aunque no haya reclamado)
     if (!confirmedEmails(confirmedPayers).has((u.email || "").toLowerCase())) continue; // pago no confirmado
     if (!u.last_seen_at) continue; // pagó pero nunca ingresó — no participa
-    if (mentorshipEmails.has((u.email || "").toLowerCase())) continue; // ya tiene la mentoría de $2,997 — excluido de TODO el sorteo, sin marca visible
+    if (mentorshipEmails.has((u.email || "").toLowerCase())) continue; // ya tiene la mentoría — excluido de TODO el sorteo, sin marca visible
     const rank = getRank(u.total_points ?? 0);
     pools[rank.key].push({ id: u.id, full_name: u.full_name, email: u.email, total_points: u.total_points ?? 0 });
   }
