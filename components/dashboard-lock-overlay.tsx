@@ -147,7 +147,7 @@ export function DashboardLockOverlay({ isAdmin = false }: { isAdmin?: boolean })
         >
           <img
             src="/halcon.png"
-            alt="GovBidder Challenge"
+            alt="Tu Primer Contrato Challenge"
             style={{ height: "60px", width: "auto", display: "block" }}
           />
         </div>

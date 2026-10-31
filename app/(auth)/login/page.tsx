@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "./form";
 
-export const metadata = { title: "Iniciar sesión — GovBidder Challenge" };
+export const metadata = { title: "Iniciar sesión — Tu Primer Contrato Challenge" };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const linkExpired = (await searchParams).error === "auth";

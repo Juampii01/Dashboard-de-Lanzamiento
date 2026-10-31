@@ -38,11 +38,11 @@ const CERT_WHATSAPP = (process.env.NEXT_PUBLIC_CERT_WHATSAPP ?? "17329645246").r
 
 // 5 variantes de distinto tono — se elige una al azar al solicitar el certificado.
 const CERT_REQUEST_MESSAGES: ((name: string) => string)[] = [
-  (n) => `Hola, soy ${n}. Acabo de completar el GovBidder Challenge y paso por aquí para solicitar mi certificado. ¡Gracias!`,
-  (n) => `Hola equipo de GovBidder, soy ${n}. Ya terminé el GovBidder Challenge y quiero solicitar mi certificado de participación. ¡Gracias por el apoyo!`,
-  (n) => `¡Hola! Soy ${n}. Completé los 4 días del GovBidder Challenge y me encantaría recibir mi certificado. ¿Me ayudan?`,
-  (n) => `Hola, mi nombre es ${n}. He completado satisfactoriamente el GovBidder Challenge y quisiera solicitar la emisión de mi certificado de participación. Quedo atento. ¡Muchas gracias!`,
-  (n) => `Saludos, equipo de GovBidder. Soy ${n} y completé el GovBidder Challenge. Por este medio solicito mi certificado correspondiente. Muchas gracias por la oportunidad.`,
+  (n) => `Hola, soy ${n}. Acabo de completar el Challenge Tu Primer Contrato y paso por aquí para solicitar mi certificado. ¡Gracias!`,
+  (n) => `Hola equipo de GovBidder, soy ${n}. Ya terminé el Challenge Tu Primer Contrato y quiero solicitar mi certificado de participación. ¡Gracias por el apoyo!`,
+  (n) => `¡Hola! Soy ${n}. Completé los 4 días del Challenge Tu Primer Contrato y me encantaría recibir mi certificado. ¿Me ayudan?`,
+  (n) => `Hola, mi nombre es ${n}. He completado satisfactoriamente el Challenge Tu Primer Contrato y quisiera solicitar la emisión de mi certificado de participación. Quedo atento. ¡Muchas gracias!`,
+  (n) => `Saludos, equipo de GovBidder. Soy ${n} y completé el Challenge Tu Primer Contrato. Por este medio solicito mi certificado correspondiente. Muchas gracias por la oportunidad.`,
 ];
 
 interface Dia4ClientProps {
@@ -408,7 +408,7 @@ export function Dia4Client({
         <Card className="border-primary/30">
           <CardContent className="py-8 text-center space-y-4">
             <div className="text-4xl">🎉</div>
-            <h2 className="text-xl font-bold">¡Felicidades! Ya completaste el GovBidder Challenge</h2>
+            <h2 className="text-xl font-bold">¡Felicidades! Ya completaste el Challenge Tu Primer Contrato</h2>
             <p className="text-sm text-muted-foreground max-w-xl mx-auto">
               Ya tienes las bases para comenzar a buscar oportunidades gubernamentales.
             </p>
