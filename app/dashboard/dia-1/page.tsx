@@ -41,9 +41,8 @@ export default async function Dia1Page() {
     const devCompleted = cookieStore.get("dev_completed")?.value ?? "";
     const isDone = devCompleted.split(",").includes("1");
     return (
-      <div className="space-y-8">
-        <VideoCapsules day={1} over10k={false} />
-        <Dia1Client userId="dev" isCompleted={isDone} existingProfile={null} devMode />
+      <div className="space-y-8 gb-day-wide">
+        <Dia1Client userId="dev" isCompleted={isDone} existingProfile={null} devMode missions={<VideoCapsules day={1} over10k={false} />} />
       </div>
     );
   }
@@ -67,22 +66,22 @@ export default async function Dia1Page() {
   const preLocked = !isUnlocked;
 
   return (
-    <div className="space-y-8" style={{ position: "relative" }}>
+    <div className="space-y-6 gb-day-wide" style={{ position: "relative" }}>
       <div className="flex items-center justify-between">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm transition-colors"
+          className="inline-flex items-center gap-2 text-sm transition-colors whitespace-nowrap"
           style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-sans)" }}
         >
           ← Dashboard
         </Link>
         <AdminForceComplete day={1} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} />
       </div>
-      <VideoCapsules day={1} isAdmin={isAdmin} over10k={over10k} />
       <Dia1Client
         userId={user.id}
         isCompleted={progress?.is_completed ?? false}
         existingProfile={profile}
+        missions={<VideoCapsules day={1} isAdmin={isAdmin} over10k={over10k} />}
       />
       {preLocked && (
         <LaunchCountdown

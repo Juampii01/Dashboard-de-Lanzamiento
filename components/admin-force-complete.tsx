@@ -34,7 +34,7 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
             window.innerHeight / 2,
             window.innerWidth - 80,
             56,
-            `+${data.pointsAwarded} XP`
+            `+${data.pointsAwarded} pts`
           );
           window.dispatchEvent(new CustomEvent("xp-gained", {
             detail: { delta: data.pointsAwarded, total: data.total, source: "day" },
@@ -78,11 +78,11 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
   }
 
   const btnBase: React.CSSProperties = {
-    fontFamily: "var(--font-arcade)",
-    fontSize: "9px",
-    letterSpacing: "0.08em",
-    padding: "5px 10px",
-    borderRadius: "6px",
+    fontFamily: "var(--font-sans)",
+    fontSize: "12px",
+    fontWeight: 600,
+    padding: "6px 12px",
+    borderRadius: "8px",
     cursor: loading ? "not-allowed" : "pointer",
     opacity: loading ? 0.5 : 1,
     transition: "opacity 0.2s",
@@ -90,20 +90,23 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
+      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+        Admin
+      </span>
       {/* Realizar */}
       <button
         onClick={handleForceComplete}
         disabled={loading || done}
         style={{
           ...btnBase,
-          background: done ? "rgba(0,214,122,0.1)" : "rgba(215,38,61,0.15)",
-          borderColor: done ? "#00D67A" : "#D7263D",
-          color: done ? "#00D67A" : "#D7263D",
+          background: done ? "color-mix(in srgb, var(--success) 10%, transparent)" : "color-mix(in srgb, var(--destructive) 10%, transparent)",
+          borderColor: done ? "var(--success)" : "var(--destructive)",
+          color: done ? "var(--success)" : "var(--destructive)",
         }}
         title="Admin: forzar completado del día"
       >
-        {loading && !done ? "⏳ ..." : done ? `✓ DÍA ${day} COMPLETADO` : `⚡ REALIZAR DÍA ${day}`}
+        {loading && !done ? "⏳ ..." : done ? `✓ Día ${day} completado` : `Marcar Día ${day} como completo`}
       </button>
 
       {/* Descompletar — solo visible si está completado */}
@@ -113,13 +116,13 @@ export function AdminForceComplete({ day, isCompleted, isAdmin }: AdminForceComp
           disabled={loading}
           style={{
             ...btnBase,
-            background: "rgba(255,214,10,0.1)",
-            borderColor: "#FFD60A",
-            color: "#FFD60A",
+            background: "transparent",
+            borderColor: "var(--border)",
+            color: "var(--foreground)",
           }}
           title="Admin: descompletar este día"
         >
-          {loading ? "⏳ ..." : `↺ DESCOMPLETAR`}
+          {loading ? "⏳ ..." : `↺ Desmarcar`}
         </button>
       )}
     </div>

@@ -20,7 +20,7 @@ export default async function Dia4Page() {
     const isDone = devCompleted.split(",").includes("4");
     const isAdmin = true;
     return (
-      <div className="space-y-8">
+      <div className="space-y-8 gb-day-wide">
         <VideoCapsules day={4} isAdmin={isAdmin} over10k={false} />
         <Dia4Client userId="dev" isCompleted={isDone} existingStatement={null} existingSorteo={null} profile={null} expansion={null} fullName="Dev Preview" accessExpiresAt={null} devMode />
       </div>
@@ -57,7 +57,7 @@ export default async function Dia4Page() {
     ]);
 
   return (
-    <div className="space-y-8" style={{ position: "relative" }}>
+    <div className="space-y-8 gb-day-wide" style={{ position: "relative" }}>
       <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={4} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
       <VideoCapsules day={4} isAdmin={isAdmin} over10k={over10k} />
       <Dia4Client

@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { triggerFlash, triggerScreenShake } from "@/lib/wow-effects";
-import { CheckCircle2, Download, Loader2, ImagePlus, Trash2, ArrowRight, ListChecks, Plus, X, RefreshCw } from "lucide-react";
+import { CheckCircle2, Download, Loader2, ImagePlus, Trash2, ArrowRight, ListChecks, Plus, X, RefreshCw, Pencil, FileText, Gift } from "lucide-react";
 import { WizardModal } from "@/components/wizard-modal";
 import { TaskCompleteModal } from "@/components/task-complete-modal";
 import { FieldHelp } from "@/components/field-help";
@@ -40,9 +40,37 @@ interface Dia1ClientProps {
   isCompleted: boolean;
   existingProfile: CompanyProfile | null;
   devMode?: boolean;
+  /** Widget de misiones en video: se muestra debajo del título del día. */
+  missions?: React.ReactNode;
 }
 
-export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile, devMode }: Dia1ClientProps) {
+/** Título de cada bloque del día ("Paso 1 · Misiones en video"). */
+function StepHeading({ n, title, hint }: { n: number; title: string; hint?: string }) {
+  return (
+    <div className="flex items-baseline gap-2 flex-wrap">
+      <span
+        className="inline-flex items-center justify-center rounded-full text-xs font-bold"
+        style={{ width: 22, height: 22, background: "var(--primary)", color: "var(--primary-foreground)", flexShrink: 0 }}
+      >
+        {n}
+      </span>
+      <h2 className="text-base font-bold" style={{ color: "var(--foreground)" }}>{title}</h2>
+      {hint && <span className="text-sm" style={{ color: "var(--muted-foreground)" }}>{hint}</span>}
+    </div>
+  );
+}
+
+/** Fila "dato: valor" de la tarjeta resumen del perfil. */
+function SummaryItem({ label, value, wide }: { label: string; value: React.ReactNode; wide?: boolean }) {
+  return (
+    <div className={wide ? "sm:col-span-2" : undefined}>
+      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--muted-foreground)" }}>{label}</p>
+      <p className="text-sm mt-0.5 whitespace-pre-line" style={{ color: "var(--foreground)" }}>{value}</p>
+    </div>
+  );
+}
+
+export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile, devMode, missions }: Dia1ClientProps) {
   const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(initCompleted);
   const [saving, setSaving] = useState(false);
@@ -389,26 +417,34 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   return (
     <div className="space-y-6">
       {devMode && <DevTestBar day={1} isCompleted={isCompleted} />}
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Badge className="bg-blue-100 text-blue-700">Día 1</Badge>
-            {isCompleted && (
-              <Badge className="bg-green-100 text-green-700">
-                <CheckCircle2 className="w-3 h-3 mr-1" /> Completado
-              </Badge>
-            )}
-          </div>
-          <h1 className="text-2xl font-bold text-primary">
-            Oportunidad + Perfil Estratégico
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Completa el perfil de tu empresa para identificar tu oportunidad en
-            el mercado gubernamental.
-          </p>
+      {/* Encabezado del día */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <Badge className="bg-blue-100 text-blue-700">Día 1</Badge>
+          {isCompleted && (
+            <Badge className="bg-green-100 text-green-700">
+              <CheckCircle2 className="w-3 h-3 mr-1" /> Completado
+            </Badge>
+          )}
         </div>
+        <h1 className="text-2xl font-bold text-primary">
+          Oportunidad + Perfil Estratégico
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Mira las misiones en video y después completa el perfil de tu empresa para identificar tu oportunidad en
+          el mercado gubernamental.
+        </p>
       </div>
+
+      {missions && (
+        <section className="space-y-3">
+          <StepHeading n={1} title="Misiones en video" hint="Mira cada video y responde el quiz." />
+          {missions}
+        </section>
+      )}
+
+      <section className="space-y-3">
+        <StepHeading n={missions ? 2 : 1} title="Tu Perfil Estratégico" hint={isCompleted ? "Esto es lo que cargaste." : "4 pasos guiados."} />
 
       {/* ── Realizar tareas (launch) / Resultado ── */}
       {!isCompleted ? (
@@ -446,87 +482,112 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             </Card>
           )}
 
-          {/* Actualizar NAICS — solo disponible tras completar el Día 1 */}
+          {/* Resumen del perfil: lo que la persona cargó, con acceso directo a editarlo */}
           <Card>
-            <CardContent className="py-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="font-semibold">Tu código NAICS</p>
-                  <p className="text-sm text-muted-foreground">
-                    Actual: <span className="font-mono font-semibold text-foreground">{form.primary_naics || "—"}</span>
-                  </p>
+            <CardContent className="py-5 space-y-5">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  {logoUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={logoUrl} alt="" className="w-12 h-12 rounded-lg object-contain p-1" style={{ background: "#fff", border: "1px solid var(--border)" }} />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-bold text-lg truncate">{form.company_name || "Tu empresa"}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {[form.legal_structure, form.us_state, form.year_founded && `desde ${form.year_founded}`].filter(Boolean).join(" · ") || "Completa los datos de tu empresa"}
+                    </p>
+                  </div>
                 </div>
-                <Button variant="outline" size="sm" className="gap-2" onClick={() => { setNaicsEditValue(form.primary_naics); setNaicsEditOpen((v) => !v); }}>
-                  <RefreshCw className="w-4 h-4" /> Actualizar NAICS
+                <Button variant="outline" size="sm" onClick={() => setWizardOpen(true)} className="gap-2">
+                  <Pencil className="w-4 h-4" /> Editar mi perfil
                 </Button>
               </div>
-              {naicsEditOpen && (
-                <div className="flex gap-2 pt-1">
-                  <Input value={naicsEditValue} onChange={(e) => setNaicsEditValue(e.target.value)} placeholder="Ej: 561720" maxLength={6} />
-                  <Button onClick={handleUpdateNaics} disabled={savingNaics || !naicsEditValue.trim()}>
-                    {savingNaics ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <SummaryItem label="Qué ofreces" value={form.niche || "—"} wide />
+                <SummaryItem label="Problema que resuelves" value={form.problem_solved || "—"} wide />
+                {form.business_category && <SummaryItem label="Rubro" value={form.business_category} />}
+                <SummaryItem label="Certificaciones" value={certifications.length ? certifications.join(", ") : "Ninguna por ahora"} />
+                {keywords.length > 0 && (
+                  <SummaryItem
+                    label="Palabras clave"
+                    wide
+                    value={
+                      <span className="flex flex-wrap gap-1.5 mt-1">
+                        {keywords.map((kw) => <Badge key={kw} variant="secondary">{kw}</Badge>)}
+                      </span>
+                    }
+                  />
+                )}
+              </div>
+
+              {/* Código NAICS + actualizarlo */}
+              <div className="rounded-lg p-3 space-y-3" style={{ background: "var(--muted)" }}>
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tu código NAICS</p>
+                    <p className="font-mono text-xl font-bold" style={{ color: "var(--primary)" }}>{form.primary_naics || "—"}</p>
+                  </div>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => { setNaicsEditValue(form.primary_naics); setNaicsEditOpen((v) => !v); }}>
+                    <RefreshCw className="w-4 h-4" /> Cambiar NAICS
                   </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-accent/30 bg-accent/5">
-            <CardContent className="flex items-center justify-between py-5">
-              <div>
-                <p className="font-semibold">📄 Análisis Inicial — Día 1</p>
-                <p className="text-sm text-muted-foreground">
-                  Tu Perfil Estratégico + código NAICS en PDF.
-                </p>
-                {naicsChanged && (
-                  <p className="text-sm font-semibold mt-1" style={{ color: "var(--primary)" }}>
-                    ⚠️ Actualizaste tu NAICS — vuelve a descargar el PDF para reflejar el cambio.
-                  </p>
+                {naicsEditOpen && (
+                  <div className="flex gap-2">
+                    <Input value={naicsEditValue} onChange={(e) => setNaicsEditValue(e.target.value)} placeholder="Ej: 561720" maxLength={6} />
+                    <Button onClick={handleUpdateNaics} disabled={savingNaics || !naicsEditValue.trim()}>
+                      {savingNaics ? <Loader2 className="w-4 h-4 animate-spin" /> : "Guardar"}
+                    </Button>
+                  </div>
                 )}
               </div>
-              <Button
-                onClick={handleDownloadPdf}
-                disabled={downloadingPdf}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-              >
-                {downloadingPdf ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Descargar PDF
-                  </>
-                )}
-              </Button>
             </CardContent>
           </Card>
-
-          {/* 🎁 Regalo — Manual NAICS 2022 completo (mismo doc para todos) */}
-          <Card style={{ background: "color-mix(in srgb, var(--secondary) 6%, var(--card))", borderColor: "color-mix(in srgb, var(--secondary) 30%, transparent)" }}>
-            <CardContent className="flex items-center justify-between py-5 gap-4 flex-wrap">
-              <div>
-                <p className="font-semibold">🎁 Regalo — Manual NAICS 2022 completo</p>
-                <p className="text-sm text-muted-foreground">
-                  El catálogo oficial con todos los códigos NAICS (US Census Bureau). Tu referencia para encontrar todos los códigos de tu negocio.
-                </p>
-              </div>
-              <a
-                href="/codigos-naics-2022.pdf"
-                download="Manual-NAICS-2022.pdf"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition-opacity hover:opacity-90"
-                style={{ background: "var(--secondary)", color: "var(--secondary-foreground)" }}
-              >
-                <Download className="w-4 h-4" /> Descargar
-              </a>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-center">
-            <Button variant="outline" onClick={() => setWizardOpen(true)} className="gap-2">
-              <ListChecks className="w-4 h-4" /> Editar mi perfil
-            </Button>
-          </div>
         </>
+      )}
+      </section>
+
+      {/* Tus descargas: análisis personal + regalo, en un solo bloque */}
+      {isCompleted && (
+        <section className="space-y-3">
+          <StepHeading n={missions ? 3 : 2} title="Tus descargas" />
+          <Card>
+            <CardContent className="py-2 divide-y" style={{ borderColor: "var(--border)" }}>
+              <div className="flex items-center justify-between gap-4 py-3 flex-wrap">
+                <div className="flex items-start gap-3 min-w-0">
+                  <FileText className="w-5 h-5 mt-0.5 shrink-0" style={{ color: "var(--primary)" }} />
+                  <div>
+                    <p className="font-semibold">Tu Análisis Inicial (PDF)</p>
+                    <p className="text-sm text-muted-foreground">Tu Perfil Estratégico y tu código NAICS, listos para compartir.</p>
+                    {naicsChanged && (
+                      <p className="text-sm font-semibold mt-1" style={{ color: "var(--primary)" }}>
+                        Cambiaste tu NAICS: vuelve a descargar el PDF para que lo incluya.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <Button onClick={handleDownloadPdf} disabled={downloadingPdf} className="gap-2">
+                  {downloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  Descargar
+                </Button>
+              </div>
+              <div className="flex items-center justify-between gap-4 py-3 flex-wrap">
+                <div className="flex items-start gap-3 min-w-0">
+                  <Gift className="w-5 h-5 mt-0.5 shrink-0" style={{ color: "var(--secondary)" }} />
+                  <div>
+                    <p className="font-semibold">Regalo: Manual NAICS 2022 completo</p>
+                    <p className="text-sm text-muted-foreground">El catálogo oficial con todos los códigos NAICS (US Census Bureau), para encontrar todos los de tu negocio.</p>
+                  </div>
+                </div>
+                <Button asChild variant="outline" className="gap-2">
+                  <a href="/codigos-naics-2022.pdf" download="Manual-NAICS-2022.pdf">
+                    <Download className="w-4 h-4" /> Descargar
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       )}
 
       <TaskCompleteModal
@@ -675,23 +736,23 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
             content: (
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="niche">¿Qué producto o servicio ofrece tu empresa? *<FieldHelp text="Describe concretamente lo que ofreces. Ej: 'Mi empresa ofrece productos de personal care: pasta dental, cepillos, enjuague bucal e hilo dental.' Cuanto más específico, mejor identifica la IA tu código." /></Label>
-                  <Textarea id="niche" value={form.niche} onChange={setField("niche")} placeholder="Ej: Mi empresa ofrece productos de personal care: pasta dental, cepillos de dientes, enjuague bucal e hilo dental." rows={3} />
+                  <Label htmlFor="niche">¿Qué producto o servicio ofrece tu empresa y a quién? *<FieldHelp text="Cuéntalo con tus palabras, como se lo explicarías a un conocido: qué haces, para qué tipo de clientes y cómo trabajas. Cuanto más específico, mejor identifica la IA tu código." /></Label>
+                  <Textarea id="niche" value={form.niche} onChange={setField("niche")} placeholder="Ej: Hacemos limpieza comercial de oficinas y locales: pisos, vidrios y desinfección. Trabajamos de noche con equipos de 4 personas para edificios de oficinas y clínicas." rows={4} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="business_category">¿Cuál es tu rubro o nicho de mercado?<FieldHelp text="El sector/industria general en el que se mueve tu empresa. Ej: cuidado personal, construcción, servicios de limpieza, tecnología, alimentos." /></Label>
-                  <Input id="business_category" value={form.business_category} onChange={setField("business_category")} placeholder="Ej: Cuidado personal e higiene (consumer goods)" />
+                  <Label htmlFor="business_category">¿Cuál es tu rubro o nicho de mercado?<FieldHelp text="El sector o industria general en el que se mueve tu empresa. Ej: servicios de limpieza, construcción, HVAC, tecnología, alimentos." /></Label>
+                  <Textarea id="business_category" value={form.business_category} onChange={setField("business_category")} placeholder="Ej: Servicios de limpieza y mantenimiento de edificios" rows={2} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="problem_solved">¿Qué problema resuelve tu empresa para sus clientes? *<FieldHelp text="Qué necesidad o dolor concreto resuelves. Ej: 'Damos acceso a productos de higiene de calidad a precio accesible para distribuidores y comercios.'" /></Label>
-                  <Textarea id="problem_solved" value={form.problem_solved} onChange={setField("problem_solved")} placeholder="Ej: Proveemos productos de higiene confiables y a buen precio, con stock constante para distribuidores." rows={2} />
+                  <Label htmlFor="problem_solved">¿Qué problema resuelve tu empresa para sus clientes? *<FieldHelp text="Qué necesidad concreta resuelves. Ej: 'Mantenemos las oficinas limpias y desinfectadas sin interrumpir el horario de trabajo.'" /></Label>
+                  <Textarea id="problem_solved" value={form.problem_solved} onChange={setField("problem_solved")} placeholder="Ej: Mantenemos los espacios limpios y desinfectados fuera del horario laboral, con personal confiable y asegurado." rows={2} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="kw">Palabras clave (keywords)<FieldHelp text="Agrega términos que describan tu negocio (en inglés es ideal para el gobierno). Ayudan a la IA a identificar mejor tu código NAICS. Toca + para sumar cada una." /></Label>
                   <div className="flex gap-2">
                     <Input id="kw" value={keywordInput} onChange={(e) => setKeywordInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addKeyword())}
-                      placeholder="Ej: oral care, toothpaste, personal hygiene" />
+                      placeholder="Ej: janitorial services, commercial cleaning, floor care" />
                     <Button type="button" variant="outline" size="icon" onClick={addKeyword}><Plus className="w-4 h-4" /></Button>
                   </div>
                   {keywords.length > 0 && (
@@ -704,10 +765,6 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                       ))}
                     </div>
                   )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="current_offering">Cuéntanos con tus palabras qué le ofreces hoy a tus clientes<FieldHelp text="Explica libremente, como se lo contarías a un conocido, qué producto o servicio le das hoy a tus clientes actuales. Esto enriquece tu análisis." /></Label>
-                  <Textarea id="current_offering" value={form.current_offering} onChange={setField("current_offering")} placeholder="Ej: Hoy les vendo a farmacias y minimercados packs de productos de higiene bucal; entrego semanalmente y manejo precios mayoristas." rows={3} />
                 </div>
               </div>
             ),
@@ -744,7 +801,9 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
                   </div>
                 </div>
                 <div className="rounded-lg p-3 text-sm" style={{ background: "color-mix(in srgb, var(--success) 9%, transparent)", color: "var(--muted-foreground)" }}>
-                  Al tocar <strong style={{ color: "var(--foreground)" }}>“Generar mi Análisis”</strong> creamos tu perfil y tu código NAICS automáticamente.
+                  {isCompleted
+                    ? <>Al tocar <strong style={{ color: "var(--foreground)" }}>“Actualizar Perfil”</strong> guardamos tus cambios. Si borraste el código NAICS, la IA te sugiere uno nuevo.</>
+                    : <>Al tocar <strong style={{ color: "var(--foreground)" }}>“Generar mi Análisis”</strong> creamos tu perfil y tu código NAICS automáticamente.</>}
                 </div>
               </div>
             ),

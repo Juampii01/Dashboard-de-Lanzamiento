@@ -241,12 +241,12 @@ export function LaunchCountdown({
             }}
           >
             {joined ? (
-              <>✓ Entraste a la clase · +{callXp} XP</>
+              <>✓ Entraste a la clase · +{callXp} pts</>
             ) : (
               <>
                 <span style={{ fontSize: 17 }}>📹</span>
                 Unirse a la clase
-                <span style={{ background: "rgba(255,255,255,0.22)", borderRadius: 6, padding: "1px 7px", fontSize: 12, fontWeight: 800 }}>+{callXp} XP</span>
+                <span style={{ background: "rgba(255,255,255,0.22)", borderRadius: 6, padding: "1px 7px", fontSize: 12, fontWeight: 800 }}>+{callXp} pts</span>
                 <span style={{ fontSize: 13, opacity: 0.8 }}>↗</span>
               </>
             )}
