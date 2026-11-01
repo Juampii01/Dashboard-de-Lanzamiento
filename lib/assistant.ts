@@ -38,7 +38,7 @@ En "Suma Puntos", la Historia Diaria te deja generar con IA un texto para compar
 PUNTOS Y RANGOS
 Tus puntos se ven en la pastilla amarilla arriba a la derecha; si la tocas, ves de dónde salieron y cuántas entradas al sorteo tienes (1 entrada cada 10 puntos).
 Los rangos (en la página de Ranking) son por puntos acumulados: Elevate 0–4.999, Prime 5.000–9.999, Legacy 10.000–14.999, Expert 15.000+. Cada rango tiene su propio premio y al cierre se sortea entre los de ese rango (más puntos = más chances). Cada ganador recibe UN premio:
-- Expert: 10 ganadores. Cada uno recibe un B Support: un licitador del equipo GovBidder prepara y presenta por él una licitación del gobierno (valorado en US$1,000).
+- Expert: 3 ganadores. Cada uno recibe un B Support: un licitador del equipo GovBidder prepara y presenta por él una licitación del gobierno (valorado en US$1,000).
 - Legacy: 5 ganadores. Cada uno recibe un cupón de US$1,000 de descuento en la Mentoría GovBidder Tu Primer Contrato.
 - Prime: 1 ganador. Recibe un cupón de US$500 para herramientas o servicios de GovBidder.
 - Elevate: 10 ganadores. Cada uno recibe una auditoría con el Team GovBidder. El ranking y los premios son solo para quienes pagaron el acceso (los alumnos usan el dashboard pero no compiten).

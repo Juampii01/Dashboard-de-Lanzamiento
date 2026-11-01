@@ -218,6 +218,7 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
 
   return (
     <div
+      className="gb-elev"
       style={{
         background: "var(--score-bg)",
         border: "1px solid var(--score-border)",
@@ -360,7 +361,7 @@ function youtubeId(url: string | null): string | null {
 // Abren YouTube en otra pestaña. Links y nombres se cargan en /admin/contenido.
 function RecordingsRow({ urls, titles }: { urls: (string | null)[]; titles: (string | null)[] }) {
   return (
-    <div className="gb-recordings" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, height: "100%" }}>
+    <div className="gb-recordings" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, alignSelf: "start" }}>
       {[0, 1, 2, 3].map((i) => {
         const u = urls[i] ?? null;
         const id = youtubeId(u);
@@ -370,11 +371,12 @@ function RecordingsRow({ urls, titles }: { urls: (string | null)[]; titles: (str
           <button
             key={i}
             type="button"
+            className={ready ? "gb-rec-tile" : undefined}
             onClick={() => { if (u) window.open(u, "_blank", "noopener,noreferrer"); }}
             disabled={!ready}
             title={ready ? `Ver la grabación del Día ${i + 1}` : "Grabación próximamente"}
             style={{
-              display: "flex", flexDirection: "column", gap: 6, minWidth: 0, height: "100%",
+              display: "flex", flexDirection: "column", gap: 6, minWidth: 0,
               padding: 8, borderRadius: 12, textAlign: "left", font: "inherit",
               border: ready ? "1.5px solid rgba(255,0,0,0.45)" : "1.5px dashed var(--border)",
               background: ready ? "color-mix(in srgb, #FF0000 6%, var(--card))" : "transparent",
@@ -388,7 +390,8 @@ function RecordingsRow({ urls, titles }: { urls: (string | null)[]; titles: (str
               Día {i + 1}
             </span>
             <span style={{
-              position: "relative", flex: 1, minHeight: 64, borderRadius: 8, overflow: "hidden",
+              // Siempre 16:9 (el formato de las miniaturas de YouTube): no se deforma.
+              position: "relative", display: "block", width: "100%", aspectRatio: "16 / 9", borderRadius: 8, overflow: "hidden",
               background: "linear-gradient(135deg, #0D1A3D 0%, #060D1A 100%)",
             }}>
               {id && (
@@ -434,6 +437,7 @@ function VideoTutorial({ videoId }: { videoId?: string }) {
     <div>
       <button
         type="button"
+        className="gb-elev"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         style={{
@@ -686,16 +690,16 @@ function ChatBubble({ c, mine, isAdmin, children }: { c: Comment; mine: boolean;
   const bg = team
     ? "color-mix(in srgb, var(--accent) 22%, var(--card))"
     : mine
-      ? "color-mix(in srgb, #25D366 16%, var(--card))"
-      : "var(--card)";
+      ? "var(--chat-mine)"
+      : "var(--chat-other)";
   return (
     <div style={{ display: "flex", justifyContent: mine ? "flex-end" : "flex-start" }}>
       <div
         style={{
           maxWidth: "min(78%, 640px)", background: bg, borderRadius: 12,
           borderTopLeftRadius: mine ? 12 : 3, borderTopRightRadius: mine ? 3 : 12,
-          padding: "7px 11px 6px", boxShadow: "0 1px 1px rgba(0,0,0,0.12)",
-          border: team ? "1px solid color-mix(in srgb, var(--accent) 55%, transparent)" : "1px solid var(--border)",
+          padding: "7px 11px 6px", boxShadow: "0 1px 1.5px rgba(11, 20, 26, 0.16)",
+          border: team ? "1px solid color-mix(in srgb, var(--accent) 55%, transparent)" : "none",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 2 }}>
@@ -779,14 +783,15 @@ function CommentsChat(props: {
         </p>
       </div>
 
-      <div style={{ border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden", background: "var(--card)" }}>
+      <div className="gb-elev" style={{ border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden", background: "var(--card)" }}>
         {/* Mensajes */}
         <div
           ref={listRef}
+          className="gb-chat-list"
           style={{
             height: "min(520px, 62vh)", overflowY: "auto", padding: "16px 14px",
             display: "flex", flexDirection: "column", gap: 8,
-            background: "color-mix(in srgb, var(--muted) 70%, var(--background))",
+            background: "var(--chat-bg)",
           }}
         >
           {!available ? (
@@ -1324,9 +1329,9 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
       {!devMode && mentoriaBanner && <MentoriaBanner fullName={fullName} />}
 
       {/* 1. Puntos (mitad izquierda) + las 4 grabaciones en fila (mitad derecha).
-          Si se abre el desglose de puntos, las grabaciones crecen a la par. */}
+          Las miniaturas mantienen 16:9; al abrir el desglose de puntos no se estiran. */}
       {!devMode && (
-        <div className="gb-points-row" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16, alignItems: "stretch" }}>
+        <div className="gb-points-row" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
           <div style={{ minWidth: 0, display: "flex" }}>
             <PointsCard initial={initialPoints} avatarUrl={avatarUrl} />
           </div>
@@ -1336,7 +1341,9 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
 
       {/* 2. Link de referido, arriba para que se encuentre fácil */}
       {!devMode && refLink && (
-        <ReferralLinkCard link={refLink} xp={REFERRAL_LEAD_XP} over10k={initialPoints >= 10000} />
+        <div className="gb-elev" style={{ borderRadius: 14 }}>
+          <ReferralLinkCard link={refLink} xp={REFERRAL_LEAD_XP} over10k={initialPoints >= 10000} />
+        </div>
       )}
 
       {/* 3. Tutorial de la plataforma (desplegable) */}

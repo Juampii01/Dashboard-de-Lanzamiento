@@ -113,11 +113,15 @@
   --sidebar-ring:               #E42D2C;
 
   /* Card de puntos (scoreboard) — modo claro: superficie clara, número navy */
-  --score-bg:      #ffffff;
-  --score-border:  rgba(13, 26, 61, 0.12);
-  --score-num:     #0d1a3d;
-  --score-label:   #5A6B85;
-  --score-bracket: rgba(13, 26, 61, 0.14);
+  --score-bg:      linear-gradient(135deg, #EAF0FF 0%, #FFFFFF 55%, #FFF6CC 100%);
+  --score-border:  rgba(21, 41, 120, 0.22);
+  --score-num:     #152978;
+  --score-label:   #3D4F7A;
+  --score-bracket: rgba(21, 41, 120, 0.45);
+  /* Chat de la comunidad (inicio) */
+  --chat-bg:       #EFEAE2;
+  --chat-mine:     #D9FDD3;
+  --chat-other:    #FFFFFF;
 }
 
 .dark {
@@ -169,6 +173,9 @@
   --sidebar-ring:               #E42D2C;
 
   /* Card de puntos (scoreboard) — modo oscuro: gradiente navy + dorado (igual a hoy) */
+  --chat-bg:       color-mix(in srgb, #1a2a52 70%, #0d1a3d);
+  --chat-mine:     color-mix(in srgb, #25D366 16%, #122150);
+  --chat-other:    #122150;
   --score-bg:      linear-gradient(135deg, rgba(20,58,107,0.8) 0%, rgba(10,37,64,0.9) 100%);
   --score-border:  rgba(255,214,10,0.25);
   --score-num:     #FFD60A;
@@ -898,10 +905,18 @@
 
 /* Inicio del dashboard a todo el ancho (pedido de Santo, 31/10). El resto de las
    páginas mantiene los 960px. */
-.gb-content:has(.gb-home-wide) { max-width: 1280px !important; }
+.gb-content:has(.gb-home-wide) { max-width: none !important; }
 @media (max-width: 900px) {
   .gb-points-row { grid-template-columns: minmax(0, 1fr) !important; }
 }
 @media (max-width: 520px) {
   .gb-recordings { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
+
+/* Tema claro del inicio: más profundidad (antes era blanco sobre casi blanco). */
+html:not(.dark) .gb-home-wide { --border: rgba(13, 26, 61, 0.16); }
+html:not(.dark) .gb-home-wide .gb-elev {
+  box-shadow: 0 1px 2px rgba(13, 26, 61, 0.06), 0 10px 28px -14px rgba(13, 26, 61, 0.28);
+}
+html:not(.dark) .gb-home-wide .gb-rec-tile { background: #FFFFFF !important; box-shadow: 0 6px 18px -12px rgba(228, 45, 44, 0.55); }
+.gb-chat-list { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--foreground) 25%, transparent) transparent; }
