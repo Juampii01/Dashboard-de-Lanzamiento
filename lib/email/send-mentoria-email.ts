@@ -9,7 +9,7 @@
  */
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const FROM = "GovBidder Challenge <mentoria@send.govbidder.net>";
+const FROM = "Tu Primer Contrato Challenge <mentoria@send.govbidder.net>";
 const SUBJECT = "¿Todavía piensas unirte a Tu Primer Contrato?";
 
 const MENTORIA_WHATSAPP = (process.env.NEXT_PUBLIC_MENTORIA_WHATSAPP ?? "17329373088").replace(/\D/g, "");
@@ -69,7 +69,7 @@ function buildHtml(fullName: string, appUrl: string): string {
         <!-- Barra superior roja -->
         <tr><td style="height:4px;background:#E42D2C;line-height:4px;font-size:0;">&nbsp;</td></tr>
         <tr><td style="padding:32px 32px 8px;text-align:center;">
-          <img src="${logo}" alt="GovBidder Challenge" width="120" style="display:inline-block;height:auto;max-width:120px;" />
+          <img src="${logo}" alt="Tu Primer Contrato Challenge" width="120" style="display:inline-block;height:auto;max-width:120px;" />
         </td></tr>
         <tr><td style="padding:8px 32px 0;text-align:center;">
           <p style="margin:0;font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#E42D2C;">Programa · Tu Primer Contrato</p>

@@ -29,6 +29,94 @@ function miamiResetLocalLabel(hour = 8): string {
   }
 }
 
+/**
+ * Paso 1 de la Historia Diaria: la guía (IA) arma el texto para compartir el
+ * avance en Instagram etiquetando a GovBidder. La persona lo copia o lo comparte
+ * directo desde el teléfono, publica la historia y sube la captura (paso 2).
+ */
+function StoryCopyHelper() {
+  const [copy, setCopy] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+  // Solo se lee al tocar (en el cliente): evita setState dentro de un efecto.
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+  async function generate() {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/ai/story-copy", { method: "POST" });
+      const json = (await res.json().catch(() => ({}))) as { copy?: string; message?: string };
+      if (!res.ok || !json.copy) throw new Error(json.message || "No pudimos generar el texto. Intenta de nuevo.");
+      setCopy(json.copy);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No pudimos generar el texto. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function copyText() {
+    try {
+      await navigator.clipboard.writeText(copy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* portapapeles no disponible */ }
+  }
+
+  async function share() {
+    try { await navigator.share({ text: copy }); } catch { /* cancelado */ }
+  }
+
+  const btn: React.CSSProperties = {
+    border: "1px solid var(--border)", background: "var(--card)", color: "var(--foreground)",
+    borderRadius: 8, padding: "7px 12px", fontSize: 12.5, fontWeight: 700, cursor: "pointer",
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, background: "var(--muted)", borderRadius: 10, padding: 12 }}>
+      <p style={{ fontSize: 12.5, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+        1. Pídele a la guía el texto para tu historia
+      </p>
+      {copy ? (
+        <>
+          <textarea
+            value={copy}
+            onChange={(e) => setCopy(e.target.value)}
+            rows={4}
+            style={{
+              width: "100%", resize: "vertical", border: "1px solid var(--border)", borderRadius: 8,
+              background: "var(--background)", color: "var(--foreground)", fontSize: 13, padding: "8px 10px",
+              fontFamily: "var(--font-sans)", lineHeight: 1.45,
+            }}
+          />
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button type="button" onClick={copyText} style={btn}>{copied ? "✓ Copiado" : "Copiar texto"}</button>
+            {canShare && <button type="button" onClick={share} style={btn}>Compartir…</button>}
+            <button type="button" onClick={generate} disabled={loading} style={{ ...btn, opacity: loading ? 0.6 : 1 }}>
+              {loading ? "Generando…" : "Otro texto"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={generate}
+          disabled={loading}
+          style={{ ...btn, alignSelf: "flex-start", background: "var(--primary)", color: "var(--primary-foreground)", border: "none", opacity: loading ? 0.6 : 1 }}
+        >
+          {loading ? "Generando…" : "✨ Generar mi texto con la guía"}
+        </button>
+      )}
+      {error && <p style={{ fontSize: 12, color: "var(--primary)", margin: 0 }}>{error}</p>}
+      <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: 0 }}>
+        Publica la historia en Instagram con ese texto (deja las etiquetas) y después sube la captura aquí abajo.
+      </p>
+    </div>
+  );
+}
+
 export function StoryUpload({ alreadyDone, over10k = false }: { alreadyDone: boolean; over10k?: boolean }) {
   const pts = over10k ? "250" : "500"; // sobre 10k cuenta la mitad
   const fileRef = useRef<HTMLInputElement>(null);
@@ -146,7 +234,13 @@ export function StoryUpload({ alreadyDone, over10k = false }: { alreadyDone: boo
       </div>
 
       <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
-        Postea una historia en tus redes sobre el challenge y sube una captura de pantalla. Se reinicia cada día a las {resetLabel} (tu hora local).
+        Comparte tu avance del challenge en una historia de Instagram y sube la captura. Se reinicia cada día a las {resetLabel} (tu hora local).
+      </p>
+
+      <StoryCopyHelper />
+
+      <p style={{ fontSize: 12.5, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
+        2. Sube la captura de tu historia
       </p>
 
       {/* File picker zone */}

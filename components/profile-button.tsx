@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Camera, Check, Loader2, Mail, X } from "lucide-react";
+import { Camera, Check, Copy, Link2, Loader2, Mail, X } from "lucide-react";
 import { AvatarCropModal } from "@/components/avatar-upload";
 import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
 
@@ -70,12 +70,30 @@ export function ProfileButton({
   const [cropFile,   setCropFile]   = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Link de referido (se carga al abrir el perfil) ─────────────────────────
+  const [refLink, setRefLink] = useState<string | null>(null);
+  const [refCopied, setRefCopied] = useState(false);
+  const copyRef = async () => {
+    if (!refLink) return;
+    try {
+      await navigator.clipboard.writeText(refLink);
+      setRefCopied(true);
+      setTimeout(() => setRefCopied(false), 2000);
+    } catch { /* portapapeles no disponible */ }
+  };
+
   // When modal opens, reset edit-name to the current display name
   const openModal = useCallback(() => {
     setEditName(displayName);
     setNameStatus("idle");
     setOpen(true);
-  }, [displayName]);
+    if (!refLink) {
+      fetch("/api/referrals/my-link")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d: { link?: string } | null) => { if (d?.link) setRefLink(d.link); })
+        .catch(() => {});
+    }
+  }, [displayName, refLink]);
 
   // ── Avatar upload ─────────────────────────────────────────────────────────
   const handleAvatarUploaded = useCallback((url: string) => {
@@ -533,6 +551,40 @@ export function ProfileButton({
                     </span>
                   </div>
                 </div>
+
+                {/* Link de referido — también aquí para que se encuentre fácil */}
+                {refLink && (
+                  <div>
+                    <label style={{ display: "block", fontSize: "10px", fontWeight: 600, color: "#A0BCDE", letterSpacing: "0.08em", marginBottom: "6px" }}>
+                      TU LINK DE REFERIDO
+                    </label>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: "8px",
+                      background: "rgba(7,21,37,0.7)", border: "1px solid rgba(30,58,92,0.45)",
+                      borderRadius: "8px", padding: "6px 6px 6px 12px",
+                    }}>
+                      <Link2 style={{ width: "13px", height: "13px", color: "#5A7A96", flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0, fontSize: "12.5px", color: "#A0BCDE", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {refLink}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={copyRef}
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0,
+                          background: "#D7263D", color: "#fff", border: "none", borderRadius: 6,
+                          padding: "6px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                        }}
+                      >
+                        {refCopied ? <Check style={{ width: 13, height: 13 }} /> : <Copy style={{ width: 13, height: 13 }} />}
+                        {refCopied ? "Copiado" : "Copiar"}
+                      </button>
+                    </div>
+                    <p style={{ fontSize: "11px", color: "#5A7A96", marginTop: "5px" }}>
+                      Compártelo: sumas puntos por cada persona que invitas y paga el acceso.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

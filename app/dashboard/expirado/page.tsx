@@ -31,7 +31,7 @@ export default function ExpiradoPage() {
               <li>✅ Número 1-800 profesional</li>
               <li>✅ Tabulador de contratos y bid packets</li>
               <li>✅ Análisis de oportunidades activas en SAM.gov</li>
-              <li>✅ Acompañamiento hasta el primer contrato</li>
+              <li>✅ 4 meses de acompañamiento guiándote a tu primer contrato</li>
             </ul>
           </div>
 

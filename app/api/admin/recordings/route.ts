@@ -19,10 +19,18 @@ export async function GET() {
   const ctx = await getAdmin();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { data } = await ctx.service
+  const first = await ctx.service
     .from("class_recordings")
-    .select("recording_number, youtube_url, updated_at")
+    .select("recording_number, youtube_url, title, updated_at")
     .order("recording_number");
+  let data = first.data;
+  // Sin la migración 20261031000001 todavía no existe la columna title.
+  if (first.error) {
+    ({ data } = await ctx.service
+      .from("class_recordings")
+      .select("recording_number, youtube_url, updated_at")
+      .order("recording_number"));
+  }
 
   return NextResponse.json(data ?? []);
 }
@@ -31,21 +39,24 @@ export async function POST(req: NextRequest) {
   const ctx = await getAdmin();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const body = (await req.json()) as { recording_number?: number; youtube_url?: string };
+  const body = (await req.json()) as { recording_number?: number; youtube_url?: string; title?: string };
   const num = Number(body.recording_number);
   const url = String(body.youtube_url ?? "").trim();
+  const title = String(body.title ?? "").trim().slice(0, 120);
 
   if (!num || num < 1 || num > 4) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });
   }
 
   // url vacío = limpiar el botón (queda sin link).
-  const { error } = await ctx.service
+  const row = { recording_number: num, youtube_url: url || null, updated_at: new Date().toISOString() };
+  let { error } = await ctx.service
     .from("class_recordings")
-    .upsert(
-      { recording_number: num, youtube_url: url || null, updated_at: new Date().toISOString() },
-      { onConflict: "recording_number" }
-    );
+    .upsert({ ...row, title: title || null }, { onConflict: "recording_number" });
+  // Sin la columna title (migración pendiente) → guarda solo el link.
+  if (error && /title/i.test(error.message)) {
+    ({ error } = await ctx.service.from("class_recordings").upsert(row, { onConflict: "recording_number" }));
+  }
 
   if (error) {
     console.error("[admin/recordings] upsert error:", error);

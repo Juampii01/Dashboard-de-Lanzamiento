@@ -4,7 +4,7 @@
  * la persona entra con su email y su contraseña.
  */
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const FROM = "GovBidder Challenge <acceso@send.govbidder.net>";
+const FROM = "Tu Primer Contrato Challenge <acceso@send.govbidder.net>";
 const LOGIN_URL = "https://dboard.govbidder.net/login";
 const LOGO = "https://dboard.govbidder.net/halcon.png";
 
@@ -20,7 +20,7 @@ export async function sendAccessActivatedEmail(opts: { to: string; name?: string
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:16px;overflow:hidden;font-family:Arial,Helvetica,sans-serif;">
         <tr><td style="height:4px;background:#16A65F;line-height:4px;font-size:0;">&nbsp;</td></tr>
         <tr><td style="padding:32px 32px 8px;text-align:center;">
-          <img src="${LOGO}" alt="GovBidder Challenge" width="110" style="display:inline-block;height:auto;max-width:110px;" />
+          <img src="${LOGO}" alt="Tu Primer Contrato Challenge" width="110" style="display:inline-block;height:auto;max-width:110px;" />
         </td></tr>
         <tr><td style="padding:8px 32px 0;text-align:center;">
           <p style="margin:0;font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#16A65F;">Compra verificada</p>
@@ -48,7 +48,7 @@ export async function sendAccessActivatedEmail(opts: { to: string; name?: string
     const res = await fetch(RESEND_ENDPOINT, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: FROM, to: [opts.to], subject: "Tu acceso al GovBidder Challenge ya está activo", html }),
+      body: JSON.stringify({ from: FROM, to: [opts.to], subject: "Tu acceso al Challenge Tu Primer Contrato ya está activo", html }),
     });
     if (!res.ok) return { ok: false, error: `Resend ${res.status}` };
     return { ok: true };

@@ -164,7 +164,7 @@ export default async function SumaPuntosPage() {
 
       <div>
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "var(--primary)" }}>
-          GovBidder Challenge
+          Tu Primer Contrato Challenge
         </p>
         <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 800, color: "var(--foreground)", margin: "4px 0 0" }}>
           ⚡ Misiones Extra

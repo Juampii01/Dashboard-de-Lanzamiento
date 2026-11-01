@@ -1,9 +1,9 @@
-import { Mail, BellRing, UserPlus, Megaphone, LifeBuoy } from "lucide-react";
+import { Mail, BellRing, UserPlus, Megaphone, LifeBuoy, Camera, PanelTop } from "lucide-react";
 import { MagicBlastPanel } from "@/components/magic-blast-panel";
 import { ReminderBlastPanel } from "@/components/reminder-blast-panel";
 import { MentoriaBlastPanel } from "@/components/mentoria-blast-panel";
 import { PageHeader, Panel } from "../_components/ui";
-import { RegistroLinkPanel, SupportWhatsappPanel } from "../_components/panels";
+import { RegistroLinkPanel, SupportWhatsappPanel, MentoriaBannerPanel, StoryCopySettingsPanel } from "../_components/panels";
 
 export default function ComunicacionesPage() {
   return (
@@ -21,6 +21,22 @@ export default function ComunicacionesPage() {
           description="WhatsApp al que los participantes pueden escribir desde el botón “Ayuda” cuando la guía no resuelve su duda."
         >
           <SupportWhatsappPanel />
+        </Panel>
+
+        <Panel
+          icon={PanelTop}
+          title="Banner de la mentoría en el inicio"
+          description="Apagado por ahora (pedido de Santo, 31/10). Se puede prender el último día del lanzamiento."
+        >
+          <MentoriaBannerPanel />
+        </Panel>
+
+        <Panel
+          icon={Camera}
+          title="Historia diaria en Instagram"
+          description="La guía genera el texto para que cada participante comparta su avance. Aquí defines a quién etiquetar y un texto de referencia (el que arme Stefany)."
+        >
+          <StoryCopySettingsPanel />
         </Panel>
 
         <Panel

@@ -5,7 +5,7 @@ import { autoClaimByAccountEmail } from "@/lib/access/purchases";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { VerificationPanel } from "./panel";
 
-export const metadata = { title: "Estamos verificando tu compra — GovBidder Challenge" };
+export const metadata = { title: "Estamos verificando tu compra — Tu Primer Contrato Challenge" };
 export const dynamic = "force-dynamic";
 
 /**

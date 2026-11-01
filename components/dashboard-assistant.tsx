@@ -190,7 +190,7 @@ export function DashboardAssistant({ supportWhatsapp = "" }: { supportWhatsapp?:
           <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "14px", display: "flex", flexDirection: "column", gap: 10 }}>
             {/* Saludo */}
             <Bubble role="assistant">
-              ¡Hola! 👋 Soy tu asistente del GovBidder Challenge. Pregúntame lo que no entiendas: por qué algo está bloqueado, cómo sumar puntos, cómo funcionan los días, lo que sea.
+              ¡Hola! 👋 Soy tu asistente del Challenge Tu Primer Contrato. Pregúntame lo que no entiendas: por qué algo está bloqueado, cómo sumar puntos, cómo funcionan los días, lo que sea.
             </Bubble>
 
             {messages.length === 0 && (
@@ -236,7 +236,7 @@ export function DashboardAssistant({ supportWhatsapp = "" }: { supportWhatsapp?:
           {/* Soporte humano */}
           {supportWhatsapp && (
             <a
-              href={`https://wa.me/${supportWhatsapp}?text=${encodeURIComponent("Hola, necesito ayuda con el GovBidder Challenge.")}`}
+              href={`https://wa.me/${supportWhatsapp}?text=${encodeURIComponent("Hola, necesito ayuda con el Challenge Tu Primer Contrato.")}`}
               target="_blank"
               rel="noreferrer"
               style={{

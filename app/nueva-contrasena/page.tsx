@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { NewPasswordForm } from "./form";
 
-export const metadata = { title: "Nueva contraseña — GovBidder Challenge" };
+export const metadata = { title: "Nueva contraseña — Tu Primer Contrato Challenge" };
 export const dynamic = "force-dynamic";
 
 // Se llega desde el enlace del email de recuperación: /auth/confirm ya creó la sesión.

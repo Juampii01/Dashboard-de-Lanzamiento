@@ -431,7 +431,7 @@ export function CapabilityStatementPDF({
         <View style={styles.footer}>
           <Text style={styles.footerName}>{cd.companyName}</Text>
           <Text style={styles.footerContact}>
-            {[cd.contactName, cd.email, cd.phone].filter(Boolean).join("   |   ") || `GovBidder Challenge · ${generatedAt}`}
+            {[cd.contactName, cd.email, cd.phone].filter(Boolean).join("   |   ") || `Tu Primer Contrato Challenge · ${generatedAt}`}
           </Text>
         </View>
       </Page>

@@ -175,7 +175,7 @@ export function Day2CodeMapPDF({
               ) : null}
               <View>
                 <Text style={styles.companyName}>{companyName}</Text>
-                <Text style={styles.tagline}>GovBidder Challenge — Mapa de Códigos Día 2</Text>
+                <Text style={styles.tagline}>Tu Primer Contrato Challenge — Mapa de Códigos Día 2</Text>
               </View>
             </View>
             <Text style={styles.docTitle}>CODE MAP{"\n"}DAY 2</Text>

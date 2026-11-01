@@ -460,65 +460,42 @@ export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStud
             Premios del Challenge
           </span>
           <p style={{ fontSize: "12px", color: "#8DA2C4", marginTop: "3px" }}>
-            Cada premio se sortea entre los del rango al cierre. Sube para competir por uno más grande. 🎲
+            Los premios se sortean al cierre entre los participantes de cada rango. Sube de rango para competir por uno más grande. 🎲
           </p>
         </div>
 
-        {/* Expert */}
-        <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 16px", background: "rgba(0,214,122,0.06)", borderBottom: "1px solid rgba(0,214,122,0.12)" }}>
-          <span style={{ fontSize: "28px", flexShrink: 0 }}>🏆</span>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#00D67A", marginBottom: "2px" }}>
-              🏆 GovBidder Expert · 15,000+ pts
-            </p>
-            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
-              <strong style={{ color: "#FFFFFF" }}>Descuento en la Mentoría GovBidder</strong> — para empezar con acompañamiento
-            </p>
+        {/* Un renglón por rango, de mayor a menor. Datos en lib/ranks.ts. */}
+        {[...RANKS].reverse().map((r, i, arr) => (
+          <div
+            key={r.key}
+            style={{
+              display: "flex", alignItems: "center", gap: "14px", padding: "14px 16px",
+              background: `color-mix(in srgb, ${r.color} 6%, transparent)`,
+              borderBottom: i < arr.length - 1 ? `1px solid color-mix(in srgb, ${r.color} 14%, transparent)` : "none",
+            }}
+          >
+            <span style={{ fontSize: "28px", flexShrink: 0 }}>{r.emoji}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: r.color, marginBottom: "2px" }}>
+                {r.emoji} {r.name} · {r.max === Infinity ? `${r.min.toLocaleString("en-US")}+` : `${r.min.toLocaleString("en-US")}–${(r.max - 1).toLocaleString("en-US")}`} pts
+              </p>
+              <p style={{ fontSize: "13px", color: "#C8D6E8", lineHeight: 1.45 }}>{r.prizeDetail}</p>
+              <p style={{ fontSize: "11.5px", color: "#8DA2C4", marginTop: "3px" }}>
+                {r.winners > 1
+                  ? <>Elegimos <strong style={{ color: "#FFFFFF" }}>{r.winners} ganadores</strong> en este rango. Cada ganador recibe 1 premio.</>
+                  : <>Elegimos <strong style={{ color: "#FFFFFF" }}>1 ganador</strong> en este rango.</>}
+              </p>
+            </div>
+            <span style={{
+              fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: r.color,
+              background: `color-mix(in srgb, ${r.color} 9%, transparent)`,
+              border: `1px solid color-mix(in srgb, ${r.color} 28%, transparent)`,
+              borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap",
+            }}>
+              {r.winners} {r.winners === 1 ? "ganador" : "ganadores"}
+            </span>
           </div>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#00D67A", background: "rgba(0,214,122,0.1)", border: "1px solid rgba(0,214,122,0.3)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>-US$1,000</span>
-        </div>
-
-        {/* Legacy */}
-        <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 16px", background: "rgba(255,214,10,0.04)", borderBottom: "1px solid rgba(255,214,10,0.1)" }}>
-          <span style={{ fontSize: "28px", flexShrink: 0 }}>👑</span>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#FFD700", marginBottom: "2px" }}>
-              👑 GovBidder Legacy · 10,000–14,999 pts
-            </p>
-            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
-              Cupón de <strong style={{ color: "#FFFFFF" }}>$1,000 USD</strong> para productos GovBidder
-            </p>
-          </div>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#FFD700", background: "rgba(255,215,0,0.08)", border: "1px solid rgba(255,215,0,0.25)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>$1,000 USD</span>
-        </div>
-
-        {/* Prime */}
-        <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 16px", background: "rgba(192,192,192,0.04)", borderBottom: "1px solid rgba(192,192,192,0.1)" }}>
-          <span style={{ fontSize: "28px", flexShrink: 0 }}>⚡</span>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#C0C0C0", marginBottom: "2px" }}>
-              ⚡ GovBidder Prime · 5,000–9,999 pts
-            </p>
-            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
-              Consultoría 1:1 de 1 hora con <strong style={{ color: "#FFFFFF" }}>Santo</strong>
-            </p>
-          </div>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#C0C0C0", background: "rgba(192,192,192,0.08)", border: "1px solid rgba(192,192,192,0.25)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>1 hora 1:1</span>
-        </div>
-
-        {/* Elevate */}
-        <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 16px" }}>
-          <span style={{ fontSize: "28px", flexShrink: 0 }}>🔥</span>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: "#CD7F32", marginBottom: "2px" }}>
-              🔥 GovBidder Elevate · 0–4,999 pts
-            </p>
-            <p style={{ fontSize: "13px", color: "#C8D6E8" }}>
-              <strong style={{ color: "#FFFFFF" }}>10 auditorías</strong> con el Team GovBidder
-            </p>
-          </div>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: "#CD7F32", background: "rgba(205,127,50,0.08)", border: "1px solid rgba(205,127,50,0.25)", borderRadius: "5px", padding: "4px 10px", whiteSpace: "nowrap" }}>10 lugares</span>
-        </div>
+        ))}
       </div>
 
       {/* Tablas de líderes — 4 columnas, una por rango */}

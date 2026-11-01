@@ -9,12 +9,12 @@
  */
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const FROM = "GovBidder Challenge <recordatorio@send.govbidder.net>";
+const FROM = "Tu Primer Contrato Challenge <recordatorio@send.govbidder.net>";
 
 export type ReminderSegment = "never_accessed" | "day1_incomplete";
 
 const SUBJECTS: Record<ReminderSegment, string> = {
-  never_accessed: "Todavía no ingresaste al GovBidder Challenge",
+  never_accessed: "Todavía no ingresaste al Challenge Tu Primer Contrato",
   day1_incomplete: "Te falta completar el Día 1 del Challenge",
 };
 
@@ -55,13 +55,13 @@ export async function sendReminderEmail(opts: {
 
 const COPY: Record<ReminderSegment, { kicker: string; title: string; body: string; cta: string }> = {
   never_accessed: {
-    kicker: "GovBidder Challenge",
+    kicker: "Tu Primer Contrato Challenge",
     title: "Todavía no ingresaste al dashboard",
-    body: "Vimos que todavía no has entrado al GovBidder Challenge. Tu cuenta ya está lista — haz clic en el botón para entrar y comenzar.",
+    body: "Vimos que todavía no has entrado al Challenge Tu Primer Contrato. Tu cuenta ya está lista — haz clic en el botón para entrar y comenzar.",
     cta: "Entrar al dashboard →",
   },
   day1_incomplete: {
-    kicker: "GovBidder Challenge",
+    kicker: "Tu Primer Contrato Challenge",
     title: "Te falta completar el Día 1",
     body: "Vimos que ya entraste al dashboard, pero todavía no completaste el Día 1. Haz clic en el botón para entrar y terminarlo.",
     cta: "Completar el Día 1 →",
@@ -82,7 +82,7 @@ function buildHtml(segment: ReminderSegment, magicLink: string, appUrl: string):
         <!-- Barra superior roja -->
         <tr><td style="height:4px;background:#E42D2C;line-height:4px;font-size:0;">&nbsp;</td></tr>
         <tr><td style="padding:32px 32px 8px;text-align:center;">
-          <img src="${logo}" alt="GovBidder Challenge" width="120" style="display:inline-block;height:auto;max-width:120px;" />
+          <img src="${logo}" alt="Tu Primer Contrato Challenge" width="120" style="display:inline-block;height:auto;max-width:120px;" />
         </td></tr>
         <tr><td style="padding:8px 32px 0;text-align:center;">
           <p style="margin:0;font-size:11px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:#E42D2C;">${c.kicker}</p>

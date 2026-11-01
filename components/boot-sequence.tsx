@@ -58,7 +58,7 @@ export function BootSequence() {
         <div className="flex items-center gap-3 mb-8">
           <img
             src="/halcon.png"
-            alt="GovBidder Challenge"
+            alt="Tu Primer Contrato Challenge"
             style={{
               height: "40px",
               width: "auto",

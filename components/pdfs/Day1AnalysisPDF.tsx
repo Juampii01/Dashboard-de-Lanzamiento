@@ -153,7 +153,7 @@ export function Day1AnalysisPDF({
               {logoDataUri ? <Image src={logoDataUri} style={styles.logoBox} /> : null}
               <View>
                 <Text style={styles.companyName}>{companyName}</Text>
-                <Text style={styles.tagline}>GovBidder Challenge · Perfil Estratégico</Text>
+                <Text style={styles.tagline}>Tu Primer Contrato Challenge · Perfil Estratégico</Text>
               </View>
             </View>
             <View style={styles.docBadge}>

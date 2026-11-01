@@ -108,7 +108,7 @@ export function CertificatePDF({ fullName, completedAt }: CertificatePDFProps) {
             <Text style={styles.recipientName}>{fullName}</Text>
 
             <Text style={styles.description}>
-              Por haber completado exitosamente los 4 días del GovBidder Challenge,
+              Por haber completado exitosamente los 4 días del Challenge Tu Primer Contrato,
               demostrando dedicación y aprendiendo las bases del mercado de contratación
               gubernamental de los Estados Unidos de América.
             </Text>

@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader } from "../_components/ui";
+import { RANKS } from "@/lib/ranks";
 
 import { useState } from "react";
 
@@ -749,21 +750,16 @@ function TabXP() {
 
       <Section title="Sistema de Premios" icon="🏆">
         <p className="text-sm text-muted-foreground mb-3">
-          Los premios se otorgan a los mejores ranqueados al final del challenge.
+          Los premios se sortean al cierre entre los participantes de cada rango (más puntos = más chances).
+          Cada ganador recibe un premio. Los datos salen de <code>lib/ranks.ts</code>.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="border rounded-lg p-4 text-center space-y-2">
-            <p className="text-2xl font-bold">🥇 #1</p>
-            <p className="text-xs text-muted-foreground">US$1,000 de descuento en la Mentoría</p>
-          </div>
-          <div className="border rounded-lg p-4 text-center space-y-2">
-            <p className="text-2xl font-bold">🥈 #2</p>
-            <p className="text-xs text-muted-foreground">Consultoría 1:1 de 1 hora con Santo (roadmap para venderle al gobierno)</p>
-          </div>
-          <div className="border rounded-lg p-4 text-center space-y-2">
-            <p className="text-2xl font-bold">🏆 #3–12</p>
-            <p className="text-xs text-muted-foreground">Auditoría con el Team GovBidder (roadmap para venderle al gobierno)</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[...RANKS].reverse().map((r) => (
+            <div key={r.key} className="border rounded-lg p-4 space-y-1">
+              <p className="font-bold">{r.emoji} {r.short} · {r.winners} {r.winners === 1 ? "ganador" : "ganadores"}</p>
+              <p className="text-xs text-muted-foreground">{r.prizeDetail}</p>
+            </div>
+          ))}
         </div>
         <InfoBox type="tip">
           Para competir por los premios el usuario debe completar el Día 4. Una vez completado,
