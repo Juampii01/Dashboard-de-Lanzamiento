@@ -100,7 +100,7 @@ export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL, label = "Unirs
       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.filter = "none"; }}
     >
       {joined ? (
-        <>✓ Unido · +{POINTS} XP</>
+        <>✓ Unido · +{POINTS} pts</>
       ) : disabled ? (
         <>🔒 {label}</>
       ) : (
@@ -117,7 +117,7 @@ export function JoinCallButton({ day, callUrl = DEFAULT_CALL_URL, label = "Unirs
               color: "#fff",
             }}
           >
-            +{POINTS} XP
+            +{POINTS} pts
           </span>
           <ExternalLink style={{ width: 12, height: 12, opacity: 0.85 }} />
         </>

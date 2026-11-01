@@ -73,11 +73,11 @@ export function PointsHUD({
       if (pillRef.current) {
         const rect = pillRef.current.getBoundingClientRect();
         const label =
-          source === "time"   ? `+${delta} XP ⏱️`
-          : source === "avatar" ? `+${delta} XP 🕺`
-          : source === "start"  ? `+${delta} XP 🚀`
-          : source === "join"   ? `+${delta} XP 📞`
-          : `+${delta} XP`;
+          source === "time"   ? `+${delta} pts ⏱️`
+          : source === "avatar" ? `+${delta} pts 🕺`
+          : source === "start"  ? `+${delta} pts 🚀`
+          : source === "join"   ? `+${delta} pts 📞`
+          : `+${delta} pts`;
         flyPoints(
           rect.left + rect.width  / 2,
           rect.top  + rect.height / 2,

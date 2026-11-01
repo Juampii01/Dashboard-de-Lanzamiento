@@ -53,7 +53,7 @@ export function DevTestBar({ day, isCompleted }: DevTestBarProps) {
 
     // Flying XP label only when points were actually awarded
     if (xpRes?.ok && xpRes.pointsAwarded > 0) {
-      flyPoints(cx, cy, cx, 110, `+${xpRes.pointsAwarded} XP 🏆 DÍA ${day}`);
+      flyPoints(cx, cy, cx, 110, `+${xpRes.pointsAwarded} pts 🏆 DÍA ${day}`);
     }
 
     await new Promise((r) => setTimeout(r, 1200));

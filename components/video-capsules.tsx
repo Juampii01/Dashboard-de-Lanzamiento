@@ -272,7 +272,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
           const cx = rect.left + rect.width / 2;
           const cy = rect.top  + rect.height / 2;
           createParticleBurst(cx, cy, "cyan", 16);
-          flyPoints(cx, cy, cx, cy - 80, `+${data.points} XP 📺`);
+          flyPoints(cx, cy, cx, cy - 80, `+${data.points} pts 📺`);
         }
 
         await loadCapsules();
@@ -366,7 +366,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
           <div
             className="relative w-full rounded-2xl overflow-hidden"
             style={{
-              maxWidth: isVertical ? "360px" : "672px",
+              maxWidth: isVertical ? "420px" : "960px",
               background: "#0A2540",
               border: "2px solid rgba(0,212,255,0.3)",
             }}
@@ -453,7 +453,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
                   <div className="flex items-center justify-between">
                     <p className="text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
                       {videoUnlocked
-                        ? "Video visto — responde el quiz para ganar XP"
+                        ? "Video visto — responde el quiz para ganar puntos"
                         : "⏳ Mira el video completo para desbloquear"}
                     </p>
                     <button
@@ -471,7 +471,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
                         transition: "background 0.4s, box-shadow 0.4s, color 0.3s",
                       }}
                     >
-                      {marking ? "Guardando..." : `Responder quiz → +${over10k ? Math.floor(activeCap.points_reward / 2) : activeCap.points_reward} XP`}
+                      {marking ? "Guardando..." : `Responder quiz → +${over10k ? Math.floor(activeCap.points_reward / 2) : activeCap.points_reward} pts`}
                     </button>
                   </div>
 
@@ -538,7 +538,14 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
                 Misiones en video
               </p>
               <p className="text-[10px] mt-0.5" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
-                {completed}/{total} completadas · {capsules.filter(c => !c.completed).reduce((sum, c) => sum + (over10k ? Math.floor(c.points_reward / 2) : c.points_reward), 0)} XP disponibles
+                {(() => {
+                  const value = (c: Capsule) => (over10k ? Math.floor(c.points_reward / 2) : c.points_reward);
+                  const pending = capsules.filter((c) => !c.completed).reduce((sum, c) => sum + value(c), 0);
+                  const earned = capsules.filter((c) => c.completed).reduce((sum, c) => sum + value(c), 0);
+                  return pending > 0
+                    ? `${completed}/${total} completadas · ${pending.toLocaleString("es")} pts por ganar`
+                    : `${completed}/${total} completadas · ¡Ganaste ${earned.toLocaleString("es")} pts en este día!`;
+                })()}
               </p>
             </div>
           </div>
@@ -665,7 +672,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
                       className="text-[10px] shrink-0"
                       style={{ color: c.completed ? "var(--success)" : "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}
                     >
-                      +{over10k ? Math.floor(c.points_reward / 2) : c.points_reward} XP
+                      +{over10k ? Math.floor(c.points_reward / 2) : c.points_reward} pts
                     </span>
 
                     {/* Per-capsule action button */}

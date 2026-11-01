@@ -906,6 +906,9 @@
 /* Inicio del dashboard a todo el ancho (pedido de Santo, 31/10). El resto de las
    páginas mantiene los 960px. */
 .gb-content:has(.gb-home-wide) { max-width: none !important; }
+/* Páginas de los días: más anchas que el resto, sin llegar al ancho completo
+   (formularios y textos largos se leen mejor con un límite). */
+.gb-content:has(.gb-day-wide) { max-width: 1200px !important; }
 @media (max-width: 900px) {
   .gb-points-row { grid-template-columns: minmax(0, 1fr) !important; }
 }

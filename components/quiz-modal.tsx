@@ -94,7 +94,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
         }));
         const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
         createParticleBurst(cx, cy, "gold", 16);
-        flyPoints(cx, cy, cx, cy - 90, `+${data.points} XP 🎙`);
+        flyPoints(cx, cy, cx, cy - 90, `+${data.points} pts 🎙`);
       }
     } catch { /* non-critical — link already opened */ } finally {
       setPodcastState("done");
@@ -198,7 +198,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
           const cx = window.innerWidth / 2;
           const cy = window.innerHeight / 2;
           createParticleBurst(cx, cy, "gold", 18);
-          flyPoints(cx, cy, cx, cy - 100, `+${data.xp_awarded} XP 🎯`);
+          flyPoints(cx, cy, cx, cy - 100, `+${data.xp_awarded} pts 🎯`);
         }
         setTimeout(advance, 2200);
 
@@ -359,14 +359,14 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                     textShadow: "0 0 24px rgba(255,214,10,0.55)",
                   }}
                 >
-                  +{totalXpRef.current} XP por las respuestas
+                  +{totalXpRef.current} pts por las respuestas
                 </p>
               ) : correctXpRef.current > 0 ? (
                 <p
                   className="text-base font-bold"
                   style={{ color: "#00D67A", fontFamily: "var(--font-arcade)" }}
                 >
-                  ✓ Ya ganaste +{correctXpRef.current} XP en estas preguntas
+                  ✓ Ya ganaste +{correctXpRef.current} pts en estas preguntas
                 </p>
               ) : null}
 
@@ -415,10 +415,10 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                         }}
                       >
                         {podcastState === "done"
-                          ? `✓ Podcast abierto · +${over10k ? 150 : 300} XP`
+                          ? `✓ Podcast abierto · +${over10k ? 150 : 300} pts`
                           : podcastState === "claiming"
                           ? "..."
-                          : `🎙 Ver podcast → +${over10k ? 150 : 300} XP ↗`}
+                          : `🎙 Ver podcast → +${over10k ? 150 : 300} pts ↗`}
                       </button>
                       {/* Cerrar solo aparece después de abrir el podcast */}
                       {podcastState === "done" && (
@@ -620,7 +620,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                     textShadow: "0 0 20px rgba(255,214,10,0.5)",
                   }}
                 >
-                  +{xpThisQ} XP
+                  +{xpThisQ} pts
                 </p>
               )}
 
@@ -630,7 +630,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
                   className="text-[10px] text-center"
                   style={{ color: "#647FA8", fontFamily: "var(--font-mono)" }}
                 >
-                  +{over10k ? Math.floor(currentQ.xp_reward / 2) : currentQ.xp_reward} XP por responder correctamente · Sin límite de intentos
+                  +{over10k ? Math.floor(currentQ.xp_reward / 2) : currentQ.xp_reward} pts por responder correctamente · Sin límite de intentos
                 </p>
               )}
 
@@ -655,7 +655,7 @@ export function QuizModal({ capsuleId, isOpen, onClose, podcastUrl, podcastCapsu
               {phase === "wrong" && (
                 <div className="space-y-2">
                   <p className="text-center text-xs" style={{ color: "#8DA2C4", fontFamily: "var(--font-mono)" }}>
-                    Sin XP esta vez — la respuesta correcta está marcada en verde
+                    Sin puntos esta vez — la respuesta correcta está marcada en verde
                   </p>
                   <button
                     onClick={handleWrongNext}
