@@ -380,7 +380,12 @@ function HowToEarnPoints({ over10k = false }: { over10k?: boolean }) {
   );
 }
 
-export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStudent?: boolean; studentPoints?: number }) {
+export function RankingClient({
+  isStudent = false,
+  studentPoints = 0,
+  myPoints = 0,
+  isAdmin = false,
+}: { isStudent?: boolean; studentPoints?: number; myPoints?: number; isAdmin?: boolean }) {
   const [board, setBoard]     = useState<FullData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -435,7 +440,12 @@ export function RankingClient({ isStudent = false, studentPoints = 0 }: { isStud
         </p>
 
         {/* Tu rango — fusionado dentro del banner, sobre la bandera */}
-        {!loading && (isStudent ? <StudentNote points={studentPoints} /> : <MyRankCard points={me?.total_points ?? 0} />)}
+        {!loading && (isStudent ? <StudentNote points={studentPoints} /> : <MyRankCard points={me?.total_points ?? myPoints} />)}
+        {!loading && isAdmin && (
+          <p style={{ fontSize: "11.5px", color: "rgba(255,255,255,0.7)", marginTop: 10 }}>
+            👁️ Eres admin: ves tu rango con tus puntos reales, pero no figuras en el ranking ni compites por premios.
+          </p>
+        )}
       </FlagBanner>
       <div style={{ height: "24px" }} />
 

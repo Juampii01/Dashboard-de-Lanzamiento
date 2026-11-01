@@ -41,7 +41,7 @@ export const RANKS: Rank[] = [
   },
   {
     key: "expert", name: "GovBidder Expert", short: "Expert", min: 15000, max: Infinity,
-    color: "#00D67A", emoji: "🏆", winners: 10,
+    color: "#00D67A", emoji: "🏆", winners: 3,
     prize: "B Support: licitamos por ti (US$1,000)",
     prizeDetail: "B Support: un licitador del equipo GovBidder prepara y presenta por ti una licitación del gobierno. Valorado en US$1,000.",
   },
