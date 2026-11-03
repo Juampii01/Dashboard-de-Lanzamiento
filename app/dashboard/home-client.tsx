@@ -13,6 +13,8 @@ import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface HomeClientProps {
+  /** "ondemand" oculta lo que es solo del en vivo (chat de la comunidad). */
+  program?: "live" | "ondemand";
   initialPoints: number;
   fullName: string;
   devMode: boolean;
@@ -1300,7 +1302,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, recordingTitles, mentoriaBanner = false, refLink = null, tutorialVideoId, isAdmin = false, userId = "" }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, recordingTitles, mentoriaBanner = false, refLink = null, tutorialVideoId, isAdmin = false, userId = "", program = "live" }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     // gb-home-wide: el inicio usa todo el ancho disponible (ver globals.css).
@@ -1312,7 +1314,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
           textTransform: "uppercase", letterSpacing: "0.14em",
           color: "#FFD700", marginBottom: "8px",
         }}>
-          Tu Primer Contrato Challenge
+          {program === "ondemand" ? "Tu Primer Contrato Challenge · On Demand" : "Tu Primer Contrato Challenge"}
         </p>
         <h1 style={{
           fontFamily: "var(--font-display)", fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 800,
@@ -1349,8 +1351,9 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
       {/* 3. Tutorial de la plataforma (desplegable) */}
       <VideoTutorial videoId={tutorialVideoId} />
 
-      {/* 4. Chat de la comunidad */}
-      {!devMode && <CommentsSection over10k={initialPoints >= 10000} isAdmin={isAdmin} userId={userId} />}
+      {/* 4. Chat de la comunidad — solo en vivo: la tabla es compartida y los de
+          on demand escribirían en el chat del lanzamiento. */}
+      {!devMode && program === "live" && <CommentsSection over10k={initialPoints >= 10000} isAdmin={isAdmin} userId={userId} />}
 
       {/* 5. Contratos gubernamentales ganados + certificado */}
       <ContractModels fullName={fullName} />

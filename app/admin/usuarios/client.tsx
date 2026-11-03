@@ -58,6 +58,7 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
   const [q, setQ] = useState("");
   const [seg, setSeg] = useState<SegFilter>("paid");
   const [prog, setProg] = useState<ProgFilter>("any");
+  const [programFilter, setProgramFilter] = useState<"all" | "live" | "ondemand">("all");
   const [sort, setSort] = useState<SortKey>("points");
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -89,6 +90,7 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
     const needle = q.trim().toLowerCase();
     const list = users.filter((u) => {
       if (seg !== "all" && segmentOf(u) !== seg) return false;
+      if (programFilter !== "all" && (u.program ?? "live") !== programFilter) return false;
       if (needle && !(`${u.full_name ?? ""} ${u.email}`.toLowerCase().includes(needle))) return false;
       if (prog === "never") return !u.last_seen_at;
       if (prog === "stuck") return !!u.last_seen_at && lastCompleted(u.id) === 0;
@@ -102,7 +104,7 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
     });
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users, q, seg, prog, sort, progressByUser]);
+  }, [users, q, seg, prog, programFilter, sort, progressByUser]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pages - 1);
@@ -176,6 +178,11 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
             className={cn(inputClass, "pl-9 h-10")}
           />
         </div>
+        <select value={programFilter} onChange={(e) => resetPage(setProgramFilter)(e.target.value as "all" | "live" | "ondemand")} className={cn(inputClass, "h-10 sm:w-44")} aria-label="Programa">
+          <option value="all">Todos los programas</option>
+          <option value="live">En vivo</option>
+          <option value="ondemand">On Demand</option>
+        </select>
         <select value={prog} onChange={(e) => resetPage(setProg)(e.target.value as ProgFilter)} className={cn(inputClass, "h-10 sm:w-64")}>
           {PROG_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>

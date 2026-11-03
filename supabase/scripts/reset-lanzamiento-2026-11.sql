@@ -15,7 +15,8 @@
 --   4. NO toca comentarios: se archivan desde /admin/comentarios después de
 --      que el equipo marque los destacados.
 --
--- Requisitos: haber aplicado las migraciones 20261029000001 y 20261029000002.
+-- Requisitos: haber aplicado las migraciones 20261029000001, 20261029000002 y
+-- 20261103000001 (programa on demand: el reset NO toca a esas cuentas).
 -- Todo corre en una transacción: si algo falla, no se aplica nada.
 --
 -- Para revertir: los datos originales quedan en archive_2026_10.<tabla>.
@@ -48,8 +49,10 @@ BEGIN
 END $$;
 
 -- 2) Limpiar datos del lanzamiento anterior (solo participantes, no admins) --
+-- Solo cuentas del en vivo: el progreso de on demand (versión grabada) NO se
+-- toca. Si la migración 20261103000001 todavía no corrió, aplicarla antes.
 CREATE TEMP TABLE _participants ON COMMIT DROP AS
-  SELECT id FROM public.users WHERE NOT COALESCE(is_admin, false);
+  SELECT id FROM public.users WHERE NOT COALESCE(is_admin, false) AND program = 'live';
 
 DO $$
 DECLARE

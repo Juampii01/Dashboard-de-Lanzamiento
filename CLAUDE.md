@@ -196,6 +196,22 @@ Reglas:
 - Contraseña olvidada o participantes viejos sin contraseña: `/recuperar` → email por Resend → `/auth/confirm` → `/nueva-contrasena`.
 - Registro gratuito (no compite por premios): `/registro/gratis`.
 
+## Programas: en vivo y On Demand
+
+Una sola plataforma, una base y un repo, con dos programas que no se mezclan (migración `20261103000001`):
+
+| Programa | Dominio | Producto (`purchases.product`) | Acceso |
+|----------|---------|-------------------------------|--------|
+| `live` | `dboard.govbidder.net` | `challenge-2026-11` (`LIVE_PRODUCT`) | Vence con `launch_access_expires_at` |
+| `ondemand` | `ondemand.govbidder.net` | `challenge-ondemand` | Indefinido |
+
+- El acceso lo decide `users.program`, no el dominio. El dominio solo decide qué producto se reclama al registrarse y a qué dominio apuntan los emails (`lib/program.ts`, `lib/program-server.ts`).
+- `claim_purchase()` pasa la cuenta a `ondemand` al reclamar una compra on demand.
+- Si una cuenta entra por el dominio del otro programa, el layout la redirige (solo entre dominios oficiales; en previews y localhost no). Para probar on demand en local: `http://ondemand.localhost:3000`.
+- On demand: los días se abren al completar el anterior (`isDayOpenFor`, `complete-day`), sin ranking, sorteo, Misiones Extra, chat de la comunidad, referidos, bloqueo por llamada ni contador de lanzamiento. No suma puntos por heartbeat, avatar ni llamadas.
+- Ranking, sorteo, envíos masivos, cierre del acceso y el script de reset solo afectan a `program = 'live'`.
+- Webhook de GoHighLevel: `POST /api/webhooks/ghl?product=ondemand|live` con header `x-webhook-secret` (`GHL_WEBHOOK_SECRET`). Por ahora solo guarda el payload en `webhook_logs`.
+
 ## Panel admin (`/admin`)
 
 Organizado por secciones con sidebar fija (`app/admin/_components/admin-shell.tsx`):

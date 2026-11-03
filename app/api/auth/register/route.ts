@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServiceClient } from "@/lib/supabase/server";
-import { autoClaimByAccountEmail, getLaunchExpiry, markPending, normalizeEmail } from "@/lib/access/purchases";
+import { autoClaimByAccountEmail, getLaunchExpiry, markPending, normalizeEmail, productsFor } from "@/lib/access/purchases";
+import { programFromHost } from "@/lib/program";
 
 /**
  * POST /api/auth/register  (público)
@@ -81,8 +82,13 @@ export async function POST(req: NextRequest) {
   }
   const userId = created.user.id;
 
+  // Programa según el dominio por el que se registra (dboard → en vivo,
+  // ondemand → versión grabada). Si reclama una compra del otro producto,
+  // claim_purchase() lo corrige.
+  const program = mode === "free" ? "live" : programFromHost(req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
+
   // El trigger handle_new_user ya creó la fila en public.users y day_progress.
-  const profile: Record<string, unknown> = { full_name, phone };
+  const profile: Record<string, unknown> = { full_name, phone, program };
   if (mode === "free") {
     Object.assign(profile, {
       is_student: true, // gratuito: suma puntos, no compite por premios
@@ -103,7 +109,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, status: "active" });
   }
 
-  const result = await autoClaimByAccountEmail(db, userId, email);
+  const result = await autoClaimByAccountEmail(db, userId, email, productsFor(program));
   if (result === "claimed") return NextResponse.json({ ok: true, status: "active" });
 
   await markPending(db, userId);

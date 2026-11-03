@@ -70,7 +70,8 @@ export async function GET() {
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const [{ data: users, error: usersError }, { data: confirmedPayers, error: payersError }, { data: winnersData, error: winnersError }, { data: mentorshipBuyers, error: mentorshipError }] = await Promise.all([
-    auth.service.from("users").select("id, full_name, email, total_points, is_admin, is_student, last_seen_at"),
+    // El sorteo es solo del en vivo: los de on demand no participan.
+    auth.service.from("users").select("id, full_name, email, total_points, is_admin, is_student, last_seen_at").eq("program", "live"),
     auth.service.from("sorteo_confirmed_payers").select("email"),
     auth.service.from("sorteo_winners").select("id, rank_key, user_id, drawn_at, status, claimed_at"),
     auth.service.from("sorteo_mentorship_buyers").select("email"),
@@ -203,6 +204,13 @@ export async function POST(req: NextRequest) {
   const remaining = target - (claimedRows?.length ?? 0);
   if (remaining <= 0) {
     return NextResponse.json({ error: "already_complete" }, { status: 400 });
+  }
+
+  // Por si el cliente manda ids de cuentas on demand: solo el en vivo sortea.
+  if (allowedIds.length > 0) {
+    const { data: liveRows } = await auth.service.from("users").select("id").in("id", allowedIds).eq("program", "live");
+    const live = new Set(((liveRows ?? []) as Array<{ id: string }>).map((r) => r.id));
+    for (let i = allowedIds.length - 1; i >= 0; i--) if (!live.has(allowedIds[i])) allowedIds.splice(i, 1);
   }
 
   if (allowedIds.length === 0) {

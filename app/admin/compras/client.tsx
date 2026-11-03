@@ -46,6 +46,7 @@ interface Account {
   email: string;
   full_name: string | null;
   phone: string | null;
+  program?: "live" | "ondemand" | null;
   access_status: "pending" | "rejected";
   purchase_email_claim: string | null;
   verification_note: string | null;
@@ -55,6 +56,10 @@ interface Account {
 
 type Tab = "pending" | "purchases" | "rejected";
 
+/** Productos que dan acceso (ver lib/program.ts). */
+type Product = "challenge-2026-11" | "challenge-ondemand";
+const PRODUCT_LABEL: Record<Product, string> = { "challenge-2026-11": "En vivo · noviembre", "challenge-ondemand": "On Demand (grabado)" };
+
 export function ComprasClient() {
   const [loading, setLoading] = useState(true);
   const [missing, setMissing] = useState(false);
@@ -62,9 +67,10 @@ export function ComprasClient() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [expiry, setExpiry] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("pending");
+  const [product, setProduct] = useState<Product>("challenge-2026-11");
 
   const load = useCallback(() => {
-    return fetch("/api/admin/purchases", { cache: "no-store" })
+    return fetch(`/api/admin/purchases?product=${encodeURIComponent(product)}`, { cache: "no-store" })
       .then(async (res) => {
         const d = await res.json();
         if (res.status === 501) { setMissing(true); return; }
@@ -75,7 +81,7 @@ export function ComprasClient() {
       })
       .catch(() => toast.error("No se pudieron cargar las compras."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [product]);
 
   useEffect(() => {
     load();
@@ -101,6 +107,23 @@ export function ComprasClient() {
 
   return (
     <div className="space-y-6">
+      {/* Producto: el en vivo y la versión grabada tienen listas de compradores separadas */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mr-1">Producto</span>
+        {(Object.keys(PRODUCT_LABEL) as Product[]).map((k) => (
+          <button
+            key={k}
+            onClick={() => { setLoading(true); setProduct(k); }}
+            className={cn(
+              "rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors",
+              product === k ? "border-secondary bg-secondary text-white" : "border-border bg-card text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {PRODUCT_LABEL[k]}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Compras cargadas" value={purchases.length} />
         <Stat label="Con cuenta" value={claimed} tone="success" hint={purchases.length ? `${Math.round((claimed / purchases.length) * 100)}% ya se registró` : undefined} />
@@ -109,7 +132,7 @@ export function ComprasClient() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <ImportPanel onDone={load} />
+        <ImportPanel onDone={load} product={product} />
         <ExpiryPanel value={expiry} onSaved={setExpiry} />
       </div>
 
@@ -167,7 +190,7 @@ async function act(body: Record<string, unknown>): Promise<Record<string, unknow
 
 // ─── Importar ───────────────────────────────────────────────────────────────
 
-function ImportPanel({ onDone }: { onDone: () => void }) {
+function ImportPanel({ onDone, product }: { onDone: () => void; product: Product }) {
   const [text, setText] = useState("");
   const [source, setSource] = useState<Source>("stripe");
   const [busy, setBusy] = useState(false);
@@ -182,7 +205,7 @@ function ImportPanel({ onDone }: { onDone: () => void }) {
   async function submit() {
     if (!parsed.rows.length) return;
     setBusy(true);
-    const d = await act({ action: "import", source, rows: parsed.rows });
+    const d = await act({ action: "import", source, rows: parsed.rows, product });
     setBusy(false);
     if (!d) return;
     const linked = (d.linked as string[]) ?? [];
@@ -262,7 +285,7 @@ function ExpiryPanel({ value, onSaved }: { value: string | null; onSaved: (v: st
   }
 
   return (
-    <Panel icon={CalendarClock} title="Fin del acceso" description="Se aplica a cada cuenta cuando queda vinculada a una compra (y a los registros gratuitos). No cambia cuentas ya activas.">
+    <Panel icon={CalendarClock} title="Fin del acceso" description="Solo para el en vivo: se aplica a cada cuenta cuando queda vinculada a una compra (y a los registros gratuitos). No cambia cuentas ya activas. On Demand no vence.">
       <div className="space-y-2">
         <input type="datetime-local" value={input} onChange={(e) => setInput(e.target.value)} className={inputClass} />
         <div className="flex items-center justify-between gap-2">
@@ -355,6 +378,7 @@ function AccountCard({ account: a, purchases, onChange, rejected }: { account: A
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-bold text-foreground">{a.full_name || "—"}</p>
             <StatusPill tone={rejected ? "muted" : "gold"}>{rejected ? "Rechazada" : "Por verificar"}</StatusPill>
+            {a.program === "ondemand" && <StatusPill tone="muted">On Demand</StatusPill>}
           </div>
           <div className="mt-2 space-y-1 text-sm">
             <p className="flex items-center gap-2 text-muted-foreground"><Mail className="w-3.5 h-3.5" /> <span className="text-foreground break-all">{a.email}</span> <span className="text-xs">(cuenta)</span></p>
@@ -397,7 +421,7 @@ function AccountCard({ account: a, purchases, onChange, rejected }: { account: A
             {q.trim().length >= 3 && !results.length && <p className="text-xs text-muted-foreground px-1">Ninguna compra libre coincide.</p>}
           </div>
           <div className="flex flex-wrap gap-2 pt-1">
-            <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run("grant", { action: "grant_manual", user_id: a.id }, "Acceso dado a mano. Le avisamos por email.")} className="gap-1.5">
+            <Button size="sm" variant="outline" disabled={!!busy} onClick={() => run("grant", { action: "grant_manual", user_id: a.id, product: a.program === "ondemand" ? "challenge-ondemand" : "challenge-2026-11" }, "Acceso dado a mano. Le avisamos por email.")} className="gap-1.5">
               {busy === "grant" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />} Dar acceso sin compra en la lista
             </Button>
             {rejected ? (

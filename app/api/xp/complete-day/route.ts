@@ -1,8 +1,27 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { isDayUnlocked } from "@/lib/supabase/day-access";
+import { getUserProgram } from "@/lib/program-server";
 
 const POINTS_PER_DAY = 500;
+
+/**
+ * On demand: completar un día abre el siguiente (en el en vivo los abre el
+ * admin). Idempotente: solo toca is_unlocked del día siguiente.
+ */
+async function unlockNextDayIfOndemand(
+  service: ReturnType<typeof createServiceClient>,
+  userId: string,
+  day: number,
+) {
+  if (day >= 4) return;
+  if ((await getUserProgram(userId)) !== "ondemand") return;
+  // Cast: los tipos generados de Supabase están desactualizados (ver tsc).
+  const { error } = await (service.from("day_progress") as unknown as {
+    upsert: (v: Record<string, unknown>, o: { onConflict: string }) => Promise<{ error: { message: string } | null }>;
+  }).upsert({ user_id: userId, day_number: day + 1, is_unlocked: true }, { onConflict: "user_id,day_number" });
+  if (error) console.error("[complete-day] unlock next day:", error.message);
+}
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -56,6 +75,7 @@ export async function POST(req: NextRequest) {
 
     if (existing?.is_completed) {
       // Legitimately already completed — return current XP total
+      await unlockNextDayIfOndemand(service, user.id, day);
       const { data: u } = await service
         .from("users")
         .select("total_points")
@@ -82,6 +102,8 @@ export async function POST(req: NextRequest) {
     );
     // Fall through to award XP below
   }
+
+  await unlockNextDayIfOndemand(service, user.id, day);
 
   // A3 fix: atomic increment — no read-then-write race on total_points
   const { data: newTotal, error: pointsError } = await service.rpc("add_points", {

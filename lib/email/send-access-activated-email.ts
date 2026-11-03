@@ -3,12 +3,15 @@
  * verificación y el equipo vinculó a una compra. No lleva link mágico:
  * la persona entra con su email y su contraseña.
  */
+import { baseUrlForProgram, type Program } from "@/lib/program";
+
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const FROM = "Tu Primer Contrato Challenge <acceso@send.govbidder.net>";
-const LOGIN_URL = "https://dboard.govbidder.net/login";
 const LOGO = "https://dboard.govbidder.net/halcon.png";
 
-export async function sendAccessActivatedEmail(opts: { to: string; name?: string | null }): Promise<{ ok: boolean; error?: string }> {
+export async function sendAccessActivatedEmail(opts: { to: string; name?: string | null; program?: Program }): Promise<{ ok: boolean; error?: string }> {
+  // El botón lleva al login del dominio del programa (en vivo u on demand).
+  const LOGIN_URL = `${baseUrlForProgram(opts.program ?? "live")}/login`;
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY no configurada" };
   const hello = opts.name?.trim() ? `¡Hola, ${escapeHtml(opts.name.trim().split(" ")[0])}!` : "¡Hola!";

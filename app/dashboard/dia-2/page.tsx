@@ -6,6 +6,9 @@ import { Dia2Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
+import { OndemandDayLock } from "@/components/ondemand-day-lock";
+import { getUserProgram } from "@/lib/program-server";
+import { isDayOpenFor } from "@/lib/supabase/day-access";
 import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
 
@@ -45,7 +48,14 @@ export default async function Dia2Page() {
   // Desbloqueo 100% MANUAL (el admin abre el día tras la clase). El contador
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético.
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 2);
-  const isUnlocked = isAdmin || toggle?.is_globally_unlocked === true;
+  // En vivo lo abre el admin; en on demand se abre al completar el día anterior.
+  const program = await getUserProgram(user.id);
+  const isUnlocked = isDayOpenFor({
+    program,
+    isAdmin,
+    globallyUnlocked: toggle?.is_globally_unlocked,
+    userUnlocked: (progress as { is_unlocked?: boolean } | null)?.is_unlocked,
+  });
   const preLocked = !isUnlocked;
 
   const { data: expansion } = await supabase.from("naics_expansions").select("*").eq("user_id", user.id).maybeSingle();
@@ -62,7 +72,10 @@ export default async function Dia2Page() {
       companyNiche={profile?.niche ?? ""}
       usState={(profile as { us_state?: string | null } | null)?.us_state ?? ""}
     />
-      {preLocked && (
+      {preLocked && program === "ondemand" && (
+        <OndemandDayLock day={2} title="Día 2 — Mapa de Códigos" />
+      )}
+      {preLocked && program === "live" && (
         <LaunchCountdown
           targetIso={targetIso}
           day={2}
