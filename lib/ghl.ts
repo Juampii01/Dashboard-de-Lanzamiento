@@ -68,10 +68,12 @@ export function parseGhlPurchase(body: unknown): GhlPurchase | { error: string }
   const email = str(findKey(body, EMAIL_KEYS, (v) => typeof v === "string" && EMAIL_RE.test(v.trim()))).toLowerCase();
   if (!email) return { error: "no se encontró un email válido en el payload" };
 
-  const full = str(findKey(body, ["full_name", "fullName", "name", "contact_name"], (v) => typeof v === "string" && !!v.trim()));
-  const first = str(findKey(body, ["first_name", "firstName"], (v) => typeof v === "string"));
-  const last = str(findKey(body, ["last_name", "lastName"], (v) => typeof v === "string"));
-  const fullName = (full || `${first} ${last}`.trim()) || null;
+  const nonEmpty = (v: unknown) => typeof v === "string" && !!v.trim();
+  const full = str(findKey(body, ["full_name", "fullName", "contact_name"], nonEmpty));
+  const first = str(findKey(body, ["first_name", "firstName"], nonEmpty));
+  const last = str(findKey(body, ["last_name", "lastName"], nonEmpty));
+  // "name" a secas va al final: en los objetos de la orden suele ser el nombre del producto.
+  const fullName = (full || `${first} ${last}`.trim() || str(findKey(body, ["name"], nonEmpty))) || null;
 
   const externalRef = str(findKey(body, REF_KEYS, (v) => (typeof v === "string" && !!v.trim()) || typeof v === "number")) || null;
   const status = str(findKey(body, STATUS_KEYS, (v) => typeof v === "string")).toLowerCase() || null;

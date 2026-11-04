@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { callClaudeChat, sanitizeInput, type ChatMessage } from "@/lib/claude";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, checkOndemandAiCap } from "@/lib/rate-limit";
 import {
   ASSISTANT_SYSTEM_PROMPT,
   getUserProgressSummary,
@@ -27,6 +27,15 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // On Demand: tope cada 30 días (el acceso es indefinido).
+  const odCap = await checkOndemandAiCap(user.id, "assistant");
+  if (!odCap.allowed) {
+    return NextResponse.json(
+      { error: "ondemand_limit", message: "Llegaste al límite de uso de la IA de este mes. Escríbenos si necesitas más.", retry_after_seconds: odCap.retry_after_seconds },
+      { status: 429 }
+    );
+  }
 
   // Rate limit (admins bypasean). Límite propio del asistente, separado del
   // ai-global-daily de los generadores para no bloquearlos entre sí.

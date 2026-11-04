@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { callClaude, sanitizeInput } from "@/lib/claude";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, checkOndemandAiCap } from "@/lib/rate-limit";
 import { getUserProgressSummary } from "@/lib/assistant";
 
 /**
@@ -20,6 +20,15 @@ export async function POST() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  // On Demand: tope cada 30 días (el acceso es indefinido).
+  const odCap = await checkOndemandAiCap(user.id, "tools");
+  if (!odCap.allowed) {
+    return NextResponse.json(
+      { error: "ondemand_limit", message: "Llegaste al límite de uso de la IA de este mes. Escríbenos si necesitas más.", retry_after_seconds: odCap.retry_after_seconds },
+      { status: 429 }
+    );
+  }
 
   const rl = await checkRateLimit(user.id, "story-copy", 5, 300);
   if (!rl.allowed) {
