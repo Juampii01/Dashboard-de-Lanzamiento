@@ -3,17 +3,24 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import {
+  ACCESS_PRODUCTS,
   CURRENT_PRODUCT,
   PURCHASE_SOURCES,
+  isAccessProduct,
   claimPurchase,
   normalizeEmail,
 } from "@/lib/access/purchases";
 import { sendAccessActivatedEmail } from "@/lib/email/send-access-activated-email";
+import { isProgram, programForProduct } from "@/lib/program";
 
 /**
  * /api/admin/purchases  (solo admins)
  *
- * GET  → compras del lanzamiento actual + cuentas en verificación
+ * GET  → compras de un producto (?product=, por defecto el lanzamiento en vivo
+ *        actual; "challenge-ondemand" para la versión grabada) + cuentas en
+ *        verificación
+ *
+ * import y grant_manual aceptan { product } (mismo default).
  * POST → { action, ... }
  *   import       { rows: [{ email, full_name?, source?, external_ref? }] }
  *                Carga compras (no duplica). Después vincula solas las cuentas
@@ -39,21 +46,23 @@ async function requireAdmin(): Promise<{ adminId: string; db: Db } | null> {
   return { adminId: user.id, db };
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const ctx = await requireAdmin();
   if (!ctx) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { db } = ctx;
+  const qp = req.nextUrl.searchParams.get("product");
+  const product = isAccessProduct(qp) ? qp : CURRENT_PRODUCT;
 
   const [purchasesRes, pendingRes, settingRes] = await Promise.all([
     db
       .from("purchases")
       .select("id, email, full_name, source, external_ref, notes, claimed_by, claimed_at, created_at")
-      .eq("product", CURRENT_PRODUCT)
+      .eq("product", product)
       .order("created_at", { ascending: false })
       .limit(5000),
     db
       .from("users")
-      .select("id, email, full_name, phone, access_status, purchase_email_claim, verification_note, verification_requested_at, created_at")
+      .select("id, email, full_name, phone, program, access_status, purchase_email_claim, verification_note, verification_requested_at, created_at")
       .in("access_status", ["pending", "rejected"])
       .order("created_at", { ascending: true }),
     db.from("app_settings").select("value").eq("key", "launch_access_expires_at").maybeSingle(),
@@ -81,6 +90,8 @@ export async function GET() {
     purchases: purchases.map((p) => ({ ...p, owner: p.claimed_by ? owners[p.claimed_by] ?? null : null })),
     accounts: pendingRes.data ?? [],
     access_expires_at: (settingRes.data as { value?: string | null } | null)?.value ?? null,
+    product,
+    products: ACCESS_PRODUCTS,
   });
 }
 
@@ -92,9 +103,9 @@ const rowSchema = z.object({
 });
 
 const bodySchema = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("import"), rows: z.array(z.unknown()).min(1).max(5000), source: z.enum(PURCHASE_SOURCES).optional() }),
+  z.object({ action: z.literal("import"), rows: z.array(z.unknown()).min(1).max(5000), source: z.enum(PURCHASE_SOURCES).optional(), product: z.enum(ACCESS_PRODUCTS).optional() }),
   z.object({ action: z.literal("link"), user_id: z.string().uuid(), purchase_id: z.string().uuid() }),
-  z.object({ action: z.literal("grant_manual"), user_id: z.string().uuid(), note: z.string().max(300).optional() }),
+  z.object({ action: z.literal("grant_manual"), user_id: z.string().uuid(), note: z.string().max(300).optional(), product: z.enum(ACCESS_PRODUCTS).optional() }),
   z.object({ action: z.literal("reject"), user_id: z.string().uuid() }),
   z.object({ action: z.literal("reopen"), user_id: z.string().uuid() }),
   z.object({ action: z.literal("unlink"), purchase_id: z.string().uuid() }),
@@ -113,6 +124,7 @@ export async function POST(req: NextRequest) {
 
   switch (body.action) {
     case "import": {
+      const product = body.product ?? CURRENT_PRODUCT;
       const valid: Array<Record<string, unknown>> = [];
       const invalid: string[] = [];
       const seen = new Set<string>();
@@ -130,7 +142,7 @@ export async function POST(req: NextRequest) {
           full_name: r.data.full_name || null,
           source: r.data.source ?? body.source ?? "manual",
           external_ref: r.data.external_ref || null,
-          product: CURRENT_PRODUCT,
+          product,
           created_by: adminId,
         });
       }
@@ -139,7 +151,7 @@ export async function POST(req: NextRequest) {
       const emails = valid.map((v) => v.email as string);
       const existing = new Set<string>();
       for (let i = 0; i < emails.length; i += 300) {
-        const { data } = await db.from("purchases").select("email").eq("product", CURRENT_PRODUCT).in("email", emails.slice(i, i + 300));
+        const { data } = await db.from("purchases").select("email").eq("product", product).in("email", emails.slice(i, i + 300));
         for (const r of (data ?? []) as Array<{ email: string }>) existing.add(r.email);
       }
       const toInsert = valid.filter((v) => !existing.has(v.email as string));
@@ -162,11 +174,11 @@ export async function POST(req: NextRequest) {
           .is("hotmart_transaction_id", null);
         for (const a of (accounts ?? []) as Array<{ id: string; email: string; full_name: string | null; access_status: string | null; is_admin: boolean; is_student: boolean }>) {
           if (a.is_admin || a.is_student || a.access_status !== "pending") continue;
-          const { data: p } = await db.from("purchases").select("id").eq("product", CURRENT_PRODUCT).eq("email", a.email).is("claimed_by", null).maybeSingle();
+          const { data: p } = await db.from("purchases").select("id").eq("product", product).eq("email", a.email).is("claimed_by", null).maybeSingle();
           if (!p) continue;
           if (await claimPurchase(db, a.id, (p as { id: string }).id, adminId)) {
             linked.push(a.email);
-            await sendAccessActivatedEmail({ to: a.email, name: a.full_name });
+            await sendAccessActivatedEmail({ to: a.email, name: a.full_name, program: programForProduct(product) });
           }
         }
       }
@@ -188,17 +200,18 @@ export async function POST(req: NextRequest) {
     }
 
     case "grant_manual": {
+      const product = body.product ?? CURRENT_PRODUCT;
       const { data: u } = await db.from("users").select("email, full_name").eq("id", body.user_id).maybeSingle();
       const acc = u as { email: string; full_name: string | null } | null;
       if (!acc) return NextResponse.json({ error: "not_found" }, { status: 404 });
       // Compra manual a nombre del email de la cuenta. Si ya hay una compra con
       // ese email, se usa esa (no se duplica).
       const email = normalizeEmail(acc.email);
-      let { data: p } = await db.from("purchases").select("id").eq("product", CURRENT_PRODUCT).eq("email", email).maybeSingle();
+      let { data: p } = await db.from("purchases").select("id").eq("product", product).eq("email", email).maybeSingle();
       if (!p) {
         const ins = await db
           .from("purchases")
-          .insert({ email, full_name: acc.full_name, source: "manual", product: CURRENT_PRODUCT, notes: body.note || "Acceso dado a mano desde el admin", created_by: adminId })
+          .insert({ email, full_name: acc.full_name, source: "manual", product, notes: body.note || "Acceso dado a mano desde el admin", created_by: adminId })
           .select("id")
           .single();
         if (ins.error) return NextResponse.json({ error: "internal", detail: ins.error.message }, { status: 500 });
@@ -258,10 +271,11 @@ export async function POST(req: NextRequest) {
 }
 
 async function notify(db: Db, userId: string) {
-  const { data } = await db.from("users").select("email, full_name").eq("id", userId).maybeSingle();
-  const u = data as { email: string; full_name: string | null } | null;
+  // claim_purchase ya dejó users.program según el producto reclamado.
+  const { data } = await db.from("users").select("email, full_name, program").eq("id", userId).maybeSingle();
+  const u = data as { email: string; full_name: string | null; program: string | null } | null;
   if (u) {
-    const r = await sendAccessActivatedEmail({ to: u.email, name: u.full_name });
+    const r = await sendAccessActivatedEmail({ to: u.email, name: u.full_name, program: isProgram(u.program) ? u.program : "live" });
     if (!r.ok) console.warn("[admin/purchases] aviso no enviado:", r.error);
   }
 }

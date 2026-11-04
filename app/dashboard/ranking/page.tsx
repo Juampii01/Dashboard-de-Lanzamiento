@@ -1,10 +1,14 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { RankingClient } from "./client";
+import { redirectOndemandToHome } from "@/lib/program-server";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
 
 export default async function RankingPage() {
+  // El ranking es solo del en vivo.
+  if (!DEV_MODE) await redirectOndemandToHome();
+
   let isStudent = false;
   let studentPoints = 0;
   let isAdmin = false;

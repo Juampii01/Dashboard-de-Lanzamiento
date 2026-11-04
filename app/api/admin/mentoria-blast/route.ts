@@ -20,7 +20,8 @@ async function getAllRecipients(admin: ReturnType<typeof createServiceClient>): 
   const { data: users } = await admin
     .from("users")
     .select("email, full_name")
-    .eq("is_admin", false);
+    .eq("is_admin", false)
+    .eq("program", "live"); // la propuesta de mentoría masiva es del en vivo
   return ((users ?? []) as { email: string | null; full_name: string | null }[])
     .filter((u): u is { email: string; full_name: string | null } => !!u.email)
     .sort((a, b) => a.email.localeCompare(b.email));

@@ -6,7 +6,12 @@ import { useRef, useState, useEffect } from "react";
 
 interface DayTabsProps {
   progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }>;
+  /** On demand: sin Ranking ni Misiones Extra (son del en vivo). */
+  program?: "live" | "ondemand";
 }
+
+/** Tabs que no existen en on demand. */
+const LIVE_ONLY_HREFS = new Set(["/dashboard/ranking", "/dashboard/suma-puntos"]);
 
 const TABS = [
   { day: 0, label: "Inicio",    sub: null,                    href: "/dashboard" },
@@ -19,7 +24,8 @@ const TABS = [
   { day: 6, label: "Tu próximo paso", sub: "Después del challenge", href: "/dashboard/proximo-paso" },
 ];
 
-export function DayTabs({ progressMap }: DayTabsProps) {
+export function DayTabs({ progressMap, program = "live" }: DayTabsProps) {
+  const tabs = program === "ondemand" ? TABS.filter((t) => !LIVE_ONLY_HREFS.has(t.href)) : TABS;
   const pathname = usePathname();
   const router   = useRouter();
   const tabRef   = useRef<HTMLDivElement>(null);
@@ -62,7 +68,7 @@ export function DayTabs({ progressMap }: DayTabsProps) {
         scrollbarWidth: "none",
       }}
     >
-      {TABS.map(({ day, label, sub, href }) => {
+      {tabs.map(({ day, label, sub, href }) => {
         const isHome      = day === 0;
         const isRanking   = day === 5;
         const isNextStep  = day === 6;

@@ -4,6 +4,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { buildMagicLinkUrl } from "@/lib/auth/magic-link";
 import { sendPasswordEmail } from "@/lib/email/send-password-email";
 import { normalizeEmail } from "@/lib/access/purchases";
+import { baseUrlForProgram, isProgram, programFromHost } from "@/lib/program";
 
 /**
  * POST /api/auth/recover  (público)
@@ -32,11 +33,17 @@ export async function POST(req: NextRequest) {
   if (rateLimited(ip) || rateLimited(email)) return NextResponse.json({ error: "rate_limited" }, { status: 429 });
 
   const db = createServiceClient();
+  // El link vuelve al dominio del programa de la cuenta (en vivo u on demand).
+  // Si la cuenta no existe todavía, se usa el dominio por el que entró.
+  const { data: acc } = await db.from("users").select("program").ilike("email", email).maybeSingle();
+  const accProgram = (acc as { program?: string } | null)?.program;
+  const program = isProgram(accProgram) ? accProgram : programFromHost(req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
   const { data, error } = await db.auth.admin.generateLink({ type: "recovery", email });
   if (!error) {
     const link = buildMagicLinkUrl(
       (data as { properties?: { hashed_token?: string; verification_type?: string } } | null)?.properties,
-      "/nueva-contrasena"
+      "/nueva-contrasena",
+      baseUrlForProgram(program)
     );
     if (link) {
       const sent = await sendPasswordEmail({ to: email, link });

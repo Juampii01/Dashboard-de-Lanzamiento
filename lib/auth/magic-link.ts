@@ -16,12 +16,18 @@
  */
 const APP_BASE = "https://dboard.govbidder.net";
 
+/**
+ * `base` permite apuntar al dominio de on demand (baseUrlForProgram). La
+ * sesión queda en el dominio del link, así que tiene que ser el del programa
+ * de la persona.
+ */
 export function buildMagicLinkUrl(
   props: { hashed_token?: string; verification_type?: string } | null | undefined,
-  next = "/dashboard"
+  next = "/dashboard",
+  base: string = APP_BASE
 ): string | null {
   const token = props?.hashed_token;
   if (!token) return null;
   const type = props?.verification_type || "magiclink";
-  return `${APP_BASE}/auth/confirm?token_hash=${encodeURIComponent(token)}&type=${encodeURIComponent(type)}&next=${encodeURIComponent(next)}`;
+  return `${base.replace(/\/$/, "")}/auth/confirm?token_hash=${encodeURIComponent(token)}&type=${encodeURIComponent(type)}&next=${encodeURIComponent(next)}`;
 }

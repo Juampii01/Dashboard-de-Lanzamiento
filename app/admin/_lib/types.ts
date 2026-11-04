@@ -15,6 +15,8 @@ export interface AdminUser {
   last_seen_at: string | null;
   is_admin?: boolean;
   is_student?: boolean;
+  /** Programa: en vivo u on demand (versión grabada). */
+  program?: "live" | "ondemand";
   /** 'pending' | 'rejected' = se registró sin compra que coincida (ver /admin/compras). */
   access_status?: "pending" | "rejected" | null;
 }

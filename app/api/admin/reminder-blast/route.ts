@@ -23,7 +23,8 @@ async function getSegmentEmails(admin: ReturnType<typeof createServiceClient>, s
   const { data: users } = await admin
     .from("users")
     .select("id, email, last_seen_at")
-    .eq("is_admin", false);
+    .eq("is_admin", false)
+    .eq("program", "live"); // los recordatorios son del en vivo
 
   const rows = (users ?? []) as { id: string; email: string | null; last_seen_at: string | null }[];
 

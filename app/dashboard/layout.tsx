@@ -1,5 +1,7 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { autoClaimByAccountEmail } from "@/lib/access/purchases";
+import { autoClaimByAccountEmail, productsFor } from "@/lib/access/purchases";
+import { getUserProgram, isCanonicalHost, requestHost } from "@/lib/program-server";
+import { baseUrlForProgram, programFromHost, type Program } from "@/lib/program";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ProgressBar } from "@/components/progress-bar";
@@ -127,6 +129,7 @@ export default async function DashboardLayout({
   let userEmail = "";
   let authUserId = "";
   let streak = 0;
+  let program: Program = "live";
   let progressMapFromLayout: Record<number, { is_unlocked: boolean; is_completed: boolean }> = {};
 
   if (devMode) {
@@ -159,6 +162,16 @@ export default async function DashboardLayout({
     completedDays = layoutData.completedDays;
     progressMapFromLayout = layoutData.progressMap;
     streak = layoutData.streak ?? 0;
+    program = await getUserProgram(user.id);
+
+    // Cada programa vive en su dominio (en vivo: dboard, on demand: ondemand).
+    // Si la persona entra por el otro, se la manda al suyo. Solo entre los
+    // dominios oficiales: en previews y localhost se prueba cualquiera.
+    // Los admins ven los dos.
+    const host = await requestHost();
+    if (!profile?.is_admin && isCanonicalHost(host) && programFromHost(host) !== program) {
+      redirect(`${baseUrlForProgram(program)}/dashboard`);
+    }
 
     // Admins see all days unlocked
     if (profile?.is_admin) {
@@ -174,7 +187,8 @@ export default async function DashboardLayout({
   // Cierre total de acceso (app_settings.access_closed = "true"): el admin
   // apagó el challenge para todos menos para sí mismo. Chequea ANTES que
   // expirado/paywall para que ningún caso se cuele.
-  if (!devMode && profile && !profile.is_admin) {
+  // Solo para el en vivo: el cierre del lanzamiento no corta a on demand.
+  if (!devMode && profile && !profile.is_admin && program === "live") {
     const { data: closedSetting } = await createServiceClient()
       .from("app_settings")
       .select("value")
@@ -197,6 +211,7 @@ export default async function DashboardLayout({
         createServiceClient() as unknown as Parameters<typeof autoClaimByAccountEmail>[0],
         authUserId,
         userEmail,
+        productsFor(program),
       ).catch(() => "no_purchase" as const);
       if (claim === "claimed") redirect("/dashboard");
     }
@@ -261,7 +276,9 @@ export default async function DashboardLayout({
     >
       {/* Invisible global effects */}
       <UnlockEventListener />
-      {!devMode && <XpEngine />}
+      {/* On demand: sin heartbeat ni click en el avatar (puntos por dejar la
+          pestaña abierta). Los premios on demand son por umbral de puntos. */}
+      {!devMode && program === "live" && <XpEngine />}
 
       {/* ── SIDEBAR — columna izquierda, altura completa ── */}
       <SidebarNav
@@ -279,6 +296,7 @@ export default async function DashboardLayout({
           progressMap={progressMapFromLayout}
           completedDays={completedDays}
           devMode={devMode}
+          program={program}
         />
 
         {/* ── Columna derecha: barras + tabs + contenido ── */}
@@ -330,7 +348,7 @@ export default async function DashboardLayout({
           )}
 
           {/* Tabs */}
-          <DayTabs progressMap={progressMapFromLayout} />
+          <DayTabs progressMap={progressMapFromLayout} program={program} />
 
           {/* Contenido principal — contenedor centrado y con aire */}
           <main className="gb-main" style={{ flex: 1, overflowY: "auto", background: "var(--background)", padding: "40px 24px 64px" }}>
@@ -344,9 +362,11 @@ export default async function DashboardLayout({
       {!devMode && (
         <OnboardingTutorial
           hasSeenOnboarding={profile?.has_seen_onboarding ?? false}
+          program={program}
         />
       )}
-      {!devMode && <DashboardLockOverlay isAdmin={profile?.is_admin ?? false} />}
+      {/* Bloqueo por llamada en vivo: no aplica a on demand */}
+      {!devMode && program === "live" && <DashboardLockOverlay isAdmin={profile?.is_admin ?? false} />}
 
       {/* Asistente de IA flotante — guía a todos los usuarios */}
       {!devMode && <DashboardAssistant supportWhatsapp={supportWhatsapp} />}

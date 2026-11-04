@@ -10,14 +10,24 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { REFERRAL_LEAD_XP } from "@/lib/referrals";
+import { LIVE_PRODUCT, ONDEMAND_PRODUCT } from "@/lib/program";
 
 /**
  * Producto del lanzamiento actual. Cambiarlo en cada lanzamiento nuevo separa
  * las listas de compradores y permite que un participante anterior vuelva a
  * comprar (claim_purchase aplica "una compra = una cuenta" por producto).
  * Lanzamientos: "challenge" (hasta oct-2026), "challenge-2026-11".
+ * Se define en lib/program.ts (LIVE_PRODUCT).
  */
-export const CURRENT_PRODUCT = "challenge-2026-11";
+export const CURRENT_PRODUCT = LIVE_PRODUCT;
+
+/** Productos que dan acceso a la plataforma hoy (en vivo y on demand). */
+export const ACCESS_PRODUCTS = [LIVE_PRODUCT, ONDEMAND_PRODUCT] as const;
+export type AccessProduct = (typeof ACCESS_PRODUCTS)[number];
+
+export function isAccessProduct(v: unknown): v is AccessProduct {
+  return (ACCESS_PRODUCTS as readonly string[]).includes(v as string);
+}
 
 export const PURCHASE_SOURCES = ["hotmart", "sem", "stripe", "ghl", "manual"] as const;
 export type PurchaseSource = (typeof PURCHASE_SOURCES)[number];
@@ -47,7 +57,10 @@ export async function claimPurchase(
   purchaseId: string,
   verifiedBy: string | null = null
 ): Promise<boolean> {
-  const expires = await getLaunchExpiry(db);
+  // On demand: acceso indefinido. En vivo: fin del acceso del lanzamiento.
+  const { data: pr } = await db.from("purchases").select("product").eq("id", purchaseId).maybeSingle();
+  const product = (pr as { product?: string } | null)?.product;
+  const expires = product === ONDEMAND_PRODUCT ? null : await getLaunchExpiry(db);
   const { data, error } = await db.rpc("claim_purchase", {
     p_user_id: userId,
     p_purchase_id: purchaseId,
@@ -65,7 +78,13 @@ export async function claimPurchase(
   return false;
 }
 
-export type AutoClaimResult = "claimed" | "no_purchase" | "purchase_taken";
+/**
+ * claimed        → se vinculó una compra nueva ahora
+ * already_mine   → la compra con ese email ya era de esta cuenta (no hay nada nuevo)
+ * no_purchase    → no hay compra con ese email
+ * purchase_taken → la compra existe pero es de otra cuenta
+ */
+export type AutoClaimResult = "claimed" | "already_mine" | "no_purchase" | "purchase_taken";
 
 /**
  * Intenta dar acceso automático buscando una compra con el MISMO email de la
@@ -73,19 +92,45 @@ export type AutoClaimResult = "claimed" | "no_purchase" | "purchase_taken";
  * el equipo a mano (si no, cualquiera podría tomar la compra de otra persona
  * escribiendo su email).
  */
-export async function autoClaimByAccountEmail(db: Db, userId: string, accountEmail: string): Promise<AutoClaimResult> {
-  const email = normalizeEmail(accountEmail);
+export async function autoClaimByAccountEmail(
+  db: Db,
+  userId: string,
+  accountEmail: string,
+  products: readonly string[] = ACCESS_PRODUCTS,
+): Promise<AutoClaimResult> {
+  // Prueba los productos en orden (el primero es el del dominio por el que
+  // entró la persona). Así, si alguien que compró la grabación se registra por
+  // el dominio del en vivo, igual entra (y su cuenta pasa a on demand).
+  // "already_mine" (la compra ya era de esta cuenta) NO corta la búsqueda: una
+  // cuenta del en vivo vencida que compró la grabación tiene que poder
+  // reclamarla. Y no cuenta como "claimed": si no, el layout redirige a
+  // /dashboard en loop a una cuenta vencida que no compró nada nuevo.
+  let result: AutoClaimResult = "no_purchase";
+  for (const product of products) {
+    const r = await claimOne(db, userId, normalizeEmail(accountEmail), product);
+    if (r === "claimed") return r;
+    if (r === "purchase_taken" || (r === "already_mine" && result === "no_purchase")) result = r;
+  }
+  return result;
+}
+
+async function claimOne(db: Db, userId: string, email: string, product: string): Promise<AutoClaimResult> {
   const { data } = await db
     .from("purchases")
     .select("id, claimed_by")
-    .eq("product", CURRENT_PRODUCT)
+    .eq("product", product)
     .eq("email", email)
     .maybeSingle();
   const p = data as { id: string; claimed_by: string | null } | null;
   if (!p) return "no_purchase";
   if (p.claimed_by && p.claimed_by !== userId) return "purchase_taken";
-  if (p.claimed_by === userId) return "claimed";
+  if (p.claimed_by === userId) return "already_mine";
   return (await claimPurchase(db, userId, p.id)) ? "claimed" : "purchase_taken";
+}
+
+/** Productos a probar, con el del programa indicado primero. */
+export function productsFor(program: "live" | "ondemand"): readonly string[] {
+  return program === "ondemand" ? [ONDEMAND_PRODUCT, LIVE_PRODUCT] : [LIVE_PRODUCT, ONDEMAND_PRODUCT];
 }
 
 /** Deja la cuenta en verificación manual. */

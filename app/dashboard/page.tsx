@@ -7,6 +7,8 @@ import { getAdminToggle } from "@/lib/supabase/helpers";
 import { inicioUnlockIso } from "@/lib/launch";
 import { ReferralLinkCard } from "@/components/referral-link-card";
 import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/referrals";
+import { getUserProgram } from "@/lib/program-server";
+import type { Program } from "@/lib/program";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -29,6 +31,7 @@ export default async function DashboardPage() {
   let tutorialVideoId = "2A6EB_cDk-A"; // default; el admin lo puede cambiar
   let userId = "";
   let refLink: string | null = null;
+  let program: Program = "live";
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -57,11 +60,15 @@ export default async function DashboardPage() {
     initialPoints = (profile?.total_points as number | null) ?? 0;
     avatarUrl = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
     isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin === true;
+    program = await getUserProgram(user.id);
 
     // Link de referido: se muestra desde ANTES del lanzamiento para que la
     // gente invite apenas compra (en el lanzamiento anterior se activó al final).
-    const refCode = await getOrCreateReferralCode(createServiceClient(), user.id).catch(() => null);
-    refLink = refCode ? referralLink(refCode) : null;
+    // On demand: sin referidos (el link lleva a la compra del en vivo).
+    if (program === "live") {
+      const refCode = await getOrCreateReferralCode(createServiceClient(), user.id).catch(() => null);
+      refLink = refCode ? referralLink(refCode) : null;
+    }
 
     // Grabaciones de las clases (1-4) que el admin configura. Cada botón abre su
     // link de YouTube; si un número no tiene link, su botón queda deshabilitado.
@@ -107,7 +114,8 @@ export default async function DashboardPage() {
   // desde el panel). La fecha del contador es solo cosmética (29/06 00:00 Miami).
   let launchIso = inicioUnlockIso(null);
   let inicioLocked = false;
-  if (!devMode) {
+  // On demand no tiene fecha de lanzamiento: el Inicio está siempre abierto.
+  if (!devMode && program === "live") {
     const inicioToggle = await getAdminToggle(createServiceClient(), 0);
     launchIso = inicioUnlockIso(inicioToggle?.scheduled_unlock_at);
     // Solo bloquea si existe la fila de Inicio y NO está abierta (tolera ausencia).
@@ -137,6 +145,7 @@ export default async function DashboardPage() {
         tutorialVideoId={tutorialVideoId}
         isAdmin={isAdmin}
         userId={userId}
+        program={program}
       />
       {beforeLaunch && (
         <LaunchCountdown

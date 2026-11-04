@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { getUserProgram } from "@/lib/program-server";
 
 const POINTS = 125; // +125 por llamada en vivo · 4 llamadas = 500 pts
 
@@ -17,6 +18,12 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  // On demand no suma puntos por esto (heartbeat / avatar / llamada en vivo):
+  // sus premios son por umbral y se ganarían dejando la pestaña abierta.
+  if ((await getUserProgram(user.id)) === "ondemand") {
+    return NextResponse.json({ awarded: false, ok: false, skipped: "ondemand" });
+  }
 
   let callId = "";
   try {

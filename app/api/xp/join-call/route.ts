@@ -2,6 +2,7 @@ import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { dayUnlockIso, JOIN_LEAD_MS } from "@/lib/launch";
+import { getUserProgram } from "@/lib/program-server";
 
 const POINTS = 125; // unificado con la llamada en vivo
 
@@ -11,6 +12,12 @@ export async function POST(req: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  // On demand no suma puntos por esto (heartbeat / avatar / llamada en vivo):
+  // sus premios son por umbral y se ganarían dejando la pestaña abierta.
+  if ((await getUserProgram(user.id)) === "ondemand") {
+    return NextResponse.json({ awarded: false, ok: false, skipped: "ondemand" });
+  }
 
   const { day } = (await req.json()) as { day?: number };
   if (!day || day < 1 || day > 4) {

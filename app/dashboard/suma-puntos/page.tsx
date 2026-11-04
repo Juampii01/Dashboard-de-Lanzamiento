@@ -8,6 +8,7 @@ import { RafagaSection } from "@/components/rafaga-section";
 import type { RafagaMission } from "@/components/rafaga-section";
 import { getDailyMissionCloseState } from "@/lib/daily-mission";
 import Link from "next/link";
+import { redirectOndemandToHome } from "@/lib/program-server";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -150,6 +151,9 @@ async function getContext(): Promise<PageCtx> {
 }
 
 export default async function SumaPuntosPage() {
+  // Misiones Extra (misión diaria, ráfagas, keywords en vivo) es solo del en vivo.
+  if (!DEV_MODE) await redirectOndemandToHome();
+
   const ctx = await getContext();
 
   return (

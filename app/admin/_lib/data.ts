@@ -54,6 +54,17 @@ export async function getUsersAndProgress() {
     for (const u of users) u.access_status = map.get(u.id) ?? null;
   }
 
+  // Cuentas on demand. Tolerante: si la migración 20261103000001 no corrió,
+  // todas quedan como en vivo.
+  const { data: odRows, error: odErr } = await supabase
+    .from("users")
+    .select("id")
+    .eq("program", "ondemand");
+  if (!odErr) {
+    const od = new Set((odRows as { id: string }[]).map((r) => r.id));
+    for (const u of users) u.program = od.has(u.id) ? "ondemand" : "live";
+  }
+
   return { users, allProgress, sorteos: (sorteos ?? []) as Sorteo[] };
 }
 

@@ -6,6 +6,9 @@ import { Dia4Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
+import { OndemandDayLock } from "@/components/ondemand-day-lock";
+import { getUserProgram } from "@/lib/program-server";
+import { isDayOpenFor } from "@/lib/supabase/day-access";
 import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
 
@@ -46,7 +49,14 @@ export default async function Dia4Page() {
   // Desbloqueo 100% MANUAL (el admin abre el día tras la clase). El contador
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético.
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 4);
-  const isUnlocked = isAdmin || toggle?.is_globally_unlocked === true;
+  // En vivo lo abre el admin; en on demand se abre al completar el día anterior.
+  const program = await getUserProgram(user.id);
+  const isUnlocked = isDayOpenFor({
+    program,
+    isAdmin,
+    globallyUnlocked: toggle?.is_globally_unlocked,
+    userUnlocked: (progress as { is_unlocked?: boolean } | null)?.is_unlocked,
+  });
   const preLocked = !isUnlocked;
 
   const [{ data: capabilityStatement }, { data: sorteoSubmission }, { data: userProfile }] =
@@ -70,7 +80,10 @@ export default async function Dia4Page() {
       fullName={userProfile?.full_name ?? user.email ?? ""}
       accessExpiresAt={userProfile?.access_expires_at ?? null}
     />
-      {preLocked && (
+      {preLocked && program === "ondemand" && (
+        <OndemandDayLock day={4} title="Día 4 — Capability Statement" />
+      )}
+      {preLocked && program === "live" && (
         <LaunchCountdown
           targetIso={targetIso}
           day={4}

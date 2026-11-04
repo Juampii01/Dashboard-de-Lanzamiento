@@ -31,6 +31,8 @@ interface SidebarNavProps {
   progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }>;
   completedDays: number;
   devMode: boolean;
+  /** On demand: sin Ranking ni Misiones Extra (son del en vivo). */
+  program?: "live" | "ondemand";
 }
 
 const DAY_META: Record<number, { label: string; href: string }> = {
@@ -234,7 +236,10 @@ function SectionHeader({
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
+export function SidebarNav({ profile, email, progressMap, program = "live" }: SidebarNavProps) {
+  const exploreItems = program === "ondemand"
+    ? EXPLORE_ITEMS.filter((i) => i.href !== "/dashboard/ranking" && i.href !== "/dashboard/suma-puntos")
+    : EXPLORE_ITEMS;
   const day1Done = progressMap[1]?.is_completed ?? false;
   const day2Done = progressMap[2]?.is_completed ?? false;
   const day3Done = progressMap[3]?.is_completed ?? false;
@@ -457,7 +462,7 @@ export function SidebarNav({ profile, email, progressMap }: SidebarNavProps) {
           <div className="sb-acc" style={{ gridTemplateRows: collapsed || exploreOpen ? "1fr" : "0fr" }}>
             <div className="sb-acc-inner">
               <div style={{ display: "flex", flexDirection: "column", gap: 2, padding: collapsed ? "4px 6px" : "2px 6px" }}>
-                {EXPLORE_ITEMS.map((item) => {
+                {exploreItems.map((item) => {
                   const active = item.href === "/dashboard"
                     ? pathname === "/dashboard"
                     : (pathname === item.href || pathname.startsWith(item.href + "/"));

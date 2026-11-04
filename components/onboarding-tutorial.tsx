@@ -64,6 +64,23 @@ const STEPS: Step[] = [
   },
 ];
 
+/**
+ * On demand: mismos pasos, sin "4 días" ni sorteo. Los días se abren al
+ * completar el anterior y los premios son por puntos (sin rifa).
+ */
+const ONDEMAND_STEPS: Step[] = STEPS.map((st, i) => {
+  if (i === 0) return {
+    ...st,
+    body: "Soy Santo, tu guía en esta misión. Vas a construir tu presencia en el mercado gubernamental a tu ritmo, día por día. Cada acción suma puntos — y con los puntos ganas herramientas de GovBidder.",
+  };
+  if (i === 3) return {
+    ...st,
+    title: "Tus puntos 🏆",
+    body: "Cada clase, video y tarea suma puntos. Al llegar a ciertos puntos ganas premios en herramientas de GovBidder — no es un sorteo: todos los que llegan, ganan.",
+  };
+  return st;
+});
+
 const SANTO_EMOJIS: Record<NonNullable<Step["santoMood"]>, string> = {
   wave:   "🙋",
   point:  "👉",
@@ -78,7 +95,8 @@ interface SpotlightRect {
 const LS_KEY      = "govbidder_tour_v1";       // "1" = completado
 const LS_STEP_KEY = "govbidder_tour_step_v1";  // N = step actual en curso
 
-export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: boolean }) {
+export function OnboardingTutorial({ hasSeenOnboarding, program = "live" }: { hasSeenOnboarding: boolean; program?: "live" | "ondemand" }) {
+  const steps = program === "ondemand" ? ONDEMAND_STEPS : STEPS;
   const [step, setStep]           = useState(0);
   const [visible, setVisible]     = useState(false);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
@@ -93,7 +111,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
 
     const savedStep = localStorage.getItem(LS_STEP_KEY);
     const initialStep = savedStep ? parseInt(savedStep, 10) : 0;
-    if (!isNaN(initialStep) && initialStep >= 0 && initialStep < STEPS.length) {
+    if (!isNaN(initialStep) && initialStep >= 0 && initialStep < steps.length) {
       setStep(initialStep);
     }
 
@@ -121,7 +139,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
   // Usa retry para elementos que cargan async (ej: VideoCapsules fetches data)
   useEffect(() => {
     if (!visible) return;
-    const current = STEPS[step];
+    const current = steps[step];
     if (!current.targetId) { setSpotlight(null); return; }
 
     const applySpotlight = (el: Element) => {
@@ -176,10 +194,10 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
     setAnimating(true);
     setTimeout(() => setAnimating(false), 300);
 
-    const current = STEPS[step];
+    const current = steps[step];
     const nextStep = step + 1;
 
-    if (nextStep >= STEPS.length) {
+    if (nextStep >= steps.length) {
       complete("/dashboard");
       return;
     }
@@ -196,7 +214,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
   }, [step, animating, complete]);
 
   const prev = useCallback(() => {
-    const current = STEPS[step];
+    const current = steps[step];
     const prevStep = step - 1;
 
     if (current.backTo) {
@@ -212,8 +230,8 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
 
   if (!visible) return null;
 
-  const current = STEPS[step];
-  const isLast  = step === STEPS.length - 1;
+  const current = steps[step];
+  const isLast  = step === steps.length - 1;
   const isFirst = step === 0;
 
   // Posicionamiento inteligente de la card
@@ -273,7 +291,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
         >
           {/* Dots de progreso */}
           <div className="flex justify-center gap-1.5 pt-4">
-            {STEPS.map((_, i) => (
+            {steps.map((_, i) => (
               <div
                 key={i}
                 className="rounded-full transition-all duration-300"
@@ -357,7 +375,7 @@ export function OnboardingTutorial({ hasSeenOnboarding }: { hasSeenOnboarding: b
           </div>
 
           <p className="text-center pb-3 text-[9px]" style={{ color: "#1E3A5C", fontFamily: "var(--font-mono)" }}>
-            PASO {step + 1} / {STEPS.length}
+            PASO {step + 1} / {steps.length}
           </p>
         </div>
       </div>

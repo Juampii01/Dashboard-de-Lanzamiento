@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { getUserProgram } from "@/lib/program-server";
 
 /**
  * POST /api/xp/heartbeat
@@ -20,6 +21,12 @@ export async function POST() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ awarded: false }, { status: 401 });
+
+  // On demand no suma puntos por esto (heartbeat / avatar / llamada en vivo):
+  // sus premios son por umbral y se ganarían dejando la pestaña abierta.
+  if ((await getUserProgram(user.id)) === "ondemand") {
+    return NextResponse.json({ awarded: false, ok: false, skipped: "ondemand" });
+  }
 
   const { data, error } = await supabase.rpc("award_heartbeat_xp", {
     p_user_id: user.id,

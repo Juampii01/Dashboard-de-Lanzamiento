@@ -5,6 +5,8 @@ import { Dia1Client } from "./client";
 import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
+import { getUserProgram } from "@/lib/program-server";
+import { isDayOpenFor } from "@/lib/supabase/day-access";
 import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
 import Link from "next/link";
@@ -62,7 +64,14 @@ export default async function Dia1Page() {
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético; el día se VE
   // completo detrás, con el contador como overlay encima (no interactuable).
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 1);
-  const isUnlocked = isAdmin || toggle?.is_globally_unlocked === true;
+  // En vivo lo abre el admin; en on demand se abre al completar el día anterior.
+  const program = await getUserProgram(user.id);
+  const isUnlocked = isDayOpenFor({
+    program,
+    isAdmin,
+    globallyUnlocked: toggle?.is_globally_unlocked,
+    userUnlocked: (progress as { is_unlocked?: boolean } | null)?.is_unlocked,
+  });
   const preLocked = !isUnlocked;
 
   return (
@@ -83,7 +92,8 @@ export default async function Dia1Page() {
         existingProfile={profile}
         missions={<VideoCapsules day={1} isAdmin={isAdmin} over10k={over10k} />}
       />
-      {preLocked && (
+      {/* En on demand el Día 1 lo abre la compra (claim_purchase): sin overlay. */}
+      {preLocked && program === "live" && (
         <LaunchCountdown
           targetIso={targetIso}
           day={1}

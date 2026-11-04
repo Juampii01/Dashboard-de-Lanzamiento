@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { baseUrlForProgram, programFromHost } from "@/lib/program";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  return NextResponse.redirect(
-    new URL("/login", process.env.NEXT_PUBLIC_APP_URL ?? "https://dboard.govbidder.net"),
-    { status: 302 }
-  );
+  // Vuelve al login del mismo dominio (en vivo u on demand).
+  const program = programFromHost(req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
+  return NextResponse.redirect(new URL("/login", baseUrlForProgram(program)), { status: 302 });
 }
