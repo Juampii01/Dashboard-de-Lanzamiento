@@ -64,7 +64,15 @@ BEGIN
   UPDATE users
      SET hotmart_transaction_id = 'PUR-' || p_purchase_id::text,
          access_starts_at       = COALESCE(access_starts_at, now()),
-         access_expires_at      = p_expires_at,
+         -- On demand no vence: si la cuenta tiene (o reclama) una compra on
+         -- demand, el fin de acceso del en vivo no la corta.
+         access_expires_at      = CASE
+                                    WHEN v_product = 'challenge-ondemand' THEN NULL
+                                    WHEN EXISTS (SELECT 1 FROM purchases
+                                                  WHERE claimed_by = p_user_id
+                                                    AND product = 'challenge-ondemand') THEN NULL
+                                    ELSE p_expires_at
+                                  END,
          access_status          = NULL,
          verified_by            = p_verified_by,
          verified_at            = CASE WHEN p_verified_by IS NULL THEN verified_at ELSE now() END,
