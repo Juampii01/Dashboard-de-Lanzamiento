@@ -53,3 +53,16 @@ export async function redirectOndemandToHome(): Promise<void> {
   if (!user) return;
   if ((await getUserProgram(user.id)) === "ondemand") redirect("/dashboard");
 }
+
+/**
+ * Para páginas que solo existen en on demand (misiones fijas, premios): si la
+ * persona es del en vivo, vuelve al Inicio. Los admins pasan (para revisar).
+ */
+export async function redirectLiveToHome(): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  const { data } = await createServiceClient().from("users").select("is_admin").eq("id", user.id).maybeSingle();
+  if ((data as { is_admin?: boolean } | null)?.is_admin) return;
+  if ((await getUserProgram(user.id)) !== "ondemand") redirect("/dashboard");
+}

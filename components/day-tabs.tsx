@@ -13,6 +13,12 @@ interface DayTabsProps {
 /** Tabs que no existen en on demand. */
 const LIVE_ONLY_HREFS = new Set(["/dashboard/ranking", "/dashboard/suma-puntos"]);
 
+/** Tabs propias de on demand (misiones fijas y premios por puntos). */
+const ONDEMAND_TABS = [
+  { day: 8, label: "Misiones", sub: "Suma puntos", href: "/dashboard/misiones" },
+  { day: 9, label: "Premios",  sub: "Canjea tus puntos", href: "/dashboard/premios" },
+];
+
 const TABS = [
   { day: 0, label: "Inicio",    sub: null,                    href: "/dashboard" },
   { day: 1, label: "Día 1",     sub: "Perfil Estratégico",    href: "/dashboard/dia-1" },
@@ -25,7 +31,13 @@ const TABS = [
 ];
 
 export function DayTabs({ progressMap, program = "live" }: DayTabsProps) {
-  const tabs = program === "ondemand" ? TABS.filter((t) => !LIVE_ONLY_HREFS.has(t.href)) : TABS;
+  const tabs = program === "ondemand"
+    ? (() => {
+        const base = TABS.filter((t) => !LIVE_ONLY_HREFS.has(t.href));
+        const next = base.findIndex((t) => t.href === "/dashboard/proximo-paso");
+        return [...base.slice(0, next), ...ONDEMAND_TABS, ...base.slice(next)];
+      })()
+    : TABS;
   const pathname = usePathname();
   const router   = useRouter();
   const tabRef   = useRef<HTMLDivElement>(null);
@@ -78,7 +90,7 @@ export function DayTabs({ progressMap, program = "live" }: DayTabsProps) {
           ? pathname === "/dashboard"
           : pathname === href || pathname.startsWith(href + "/");
         const isCompleted = prog?.is_completed ?? false;
-        const isUnlocked  = isHome || isRanking || isNextStep || isSumaPuntos ? true : (prog?.is_unlocked ?? false);
+        const isUnlocked  = isHome || isRanking || isNextStep || isSumaPuntos || day > 7 ? true : (prog?.is_unlocked ?? false);
         const isLocked    = !isUnlocked;
 
         return (

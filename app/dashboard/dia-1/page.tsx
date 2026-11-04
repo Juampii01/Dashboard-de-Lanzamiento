@@ -6,6 +6,8 @@ import { VideoCapsules } from "@/components/video-capsules";
 import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
 import { getUserProgram } from "@/lib/program-server";
+import { getRecordings, youtubeId } from "@/lib/recordings";
+import { OndemandRecording } from "@/components/ondemand-recording";
 import { isDayOpenFor } from "@/lib/supabase/day-access";
 import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
@@ -74,6 +76,11 @@ export default async function Dia1Page() {
   });
   const preLocked = !isUnlocked;
 
+  // On demand: la clase grabada del día va embebida arriba del contenido.
+  const dayRec = program === "ondemand" ? (await getRecordings("ondemand"))[1] : undefined;
+  const dayVideoId = youtubeId(dayRec?.url);
+  const dayVideoTitle = dayRec?.title ?? null;
+
   return (
     <div className="space-y-6 gb-day-wide" style={{ position: "relative" }}>
       <div className="flex items-center justify-between">
@@ -86,6 +93,9 @@ export default async function Dia1Page() {
         </Link>
         <AdminForceComplete day={1} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} />
       </div>
+      {program === "ondemand" && (
+        <OndemandRecording videoId={dayVideoId} title={dayVideoTitle || "Día 1 — Perfil Estratégico"} kicker="Clase grabada · Día 1" />
+      )}
       <Dia1Client
         userId={user.id}
         isCompleted={progress?.is_completed ?? false}

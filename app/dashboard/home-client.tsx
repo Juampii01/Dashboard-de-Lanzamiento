@@ -9,12 +9,16 @@ import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
 import { ReferralLinkCard } from "@/components/referral-link-card";
 import { REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
+import { OndemandRecording } from "@/components/ondemand-recording";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface HomeClientProps {
   /** "ondemand" oculta lo que es solo del en vivo (chat de la comunidad). */
   program?: "live" | "ondemand";
+  /** On demand: video introductorio (recording_number 0). */
+  introVideoId?: string | null;
+  introTitle?: string | null;
   initialPoints: number;
   fullName: string;
   devMode: boolean;
@@ -1302,7 +1306,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, recordingTitles, mentoriaBanner = false, refLink = null, tutorialVideoId, isAdmin = false, userId = "", program = "live" }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, recordingTitles, mentoriaBanner = false, refLink = null, tutorialVideoId, isAdmin = false, userId = "", program = "live", introVideoId = null, introTitle = null }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     // gb-home-wide: el inicio usa todo el ancho disponible (ver globals.css).
@@ -1326,6 +1330,12 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
           Tu empresa puede ganar contratos con el Gobierno de USA. Completa las fases del programa para avanzar.
         </p>
       </FlagBanner>
+
+      {/* On demand: video introductorio (cómo funciona la versión grabada,
+          misiones y premios). Solo si el admin cargó el link. */}
+      {!devMode && program === "ondemand" && introVideoId && (
+        <OndemandRecording videoId={introVideoId} title={introTitle || "Empieza aquí: cómo funciona tu challenge"} kicker="Video introductorio" />
+      )}
 
       {/* Ventana de la mentoría: solo si el admin la prende (/admin/comunicaciones) */}
       {!devMode && mentoriaBanner && <MentoriaBanner fullName={fullName} />}

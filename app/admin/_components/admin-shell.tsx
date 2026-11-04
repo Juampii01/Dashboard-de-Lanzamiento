@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   BookOpen,
   MessageSquare,
+  Clapperboard,
   ArrowLeft,
   Menu,
   X,
@@ -55,6 +56,12 @@ const NAV: NavGroup[] = [
       { href: "/admin/misiones", label: "Misiones", icon: Target },
       { href: "/admin/comunicaciones", label: "Comunicaciones", icon: Mail },
       { href: "/admin/comentarios", label: "Comentarios", icon: MessageSquare },
+    ],
+  },
+  {
+    label: "On Demand",
+    items: [
+      { href: "/admin/on-demand", label: "Versión grabada", icon: Clapperboard },
     ],
   },
   {

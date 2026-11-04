@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import {
   Shield, LogOut, Menu, X, ChevronLeft, ChevronDown,
   CheckCircle2, Lock, FileText, CalendarDays, FolderDown, Pencil,
-  Home, Zap, Trophy, Rocket, Compass,
+  Home, Zap, Trophy, Rocket, Compass, Target, Gift,
 } from "lucide-react";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 import { ResetDashboardButton } from "@/components/reset-dashboard-button";
@@ -237,8 +237,14 @@ function SectionHeader({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export function SidebarNav({ profile, email, progressMap, program = "live" }: SidebarNavProps) {
+  // On demand: sin Ranking ni Misiones Extra; en su lugar, misiones fijas y premios.
   const exploreItems = program === "ondemand"
-    ? EXPLORE_ITEMS.filter((i) => i.href !== "/dashboard/ranking" && i.href !== "/dashboard/suma-puntos")
+    ? [
+        EXPLORE_ITEMS[0],
+        { icon: <Target size={15} />, label: "Misiones", href: "/dashboard/misiones" },
+        { icon: <Gift size={15} />,   label: "Premios",  href: "/dashboard/premios" },
+        ...EXPLORE_ITEMS.slice(1).filter((i) => i.href !== "/dashboard/ranking" && i.href !== "/dashboard/suma-puntos"),
+      ]
     : EXPLORE_ITEMS;
   const day1Done = progressMap[1]?.is_completed ?? false;
   const day2Done = progressMap[2]?.is_completed ?? false;
