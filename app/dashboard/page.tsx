@@ -8,6 +8,7 @@ import { inicioUnlockIso } from "@/lib/launch";
 import { ReferralLinkCard } from "@/components/referral-link-card";
 import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { getUserProgram } from "@/lib/program-server";
+import { getRecordings, youtubeId } from "@/lib/recordings";
 import type { Program } from "@/lib/program";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -32,6 +33,8 @@ export default async function DashboardPage() {
   let userId = "";
   let refLink: string | null = null;
   let program: Program = "live";
+  let introVideoId: string | null = null;
+  let introTitle: string | null = null;
 
   if (devMode) {
     // Dev mode — use cookie-based completed days, no real auth
@@ -70,24 +73,16 @@ export default async function DashboardPage() {
       refLink = refCode ? referralLink(refCode) : null;
     }
 
-    // Grabaciones de las clases (1-4) que el admin configura. Cada botón abre su
-    // link de YouTube; si un número no tiene link, su botón queda deshabilitado.
-    const recFirst = await createServiceClient()
-      .from("class_recordings")
-      .select("recording_number, youtube_url, title");
-    let recs = recFirst.data;
-    if (recFirst.error) {
-      // Sin la migración del título (20261031000001) → solo links.
-      ({ data: recs } = await createServiceClient()
-        .from("class_recordings")
-        .select("recording_number, youtube_url"));
+    // Grabaciones de las clases (1-4) del programa de la persona. Cada botón abre
+    // su link de YouTube; si un número no tiene link, su botón queda
+    // deshabilitado. En on demand, el 0 es el video introductorio.
+    const recs = await getRecordings(program);
+    for (let n = 1; n <= 4; n++) {
+      recordings[n - 1] = recs[n]?.url ?? null;
+      recordingTitles[n - 1] = recs[n]?.title ?? null;
     }
-    for (const r of (recs ?? []) as { recording_number: number; youtube_url: string | null; title?: string | null }[]) {
-      if (r.recording_number >= 1 && r.recording_number <= 4) {
-        recordings[r.recording_number - 1] = r.youtube_url ?? null;
-        recordingTitles[r.recording_number - 1] = r.title ?? null;
-      }
-    }
+    introVideoId = program === "ondemand" ? youtubeId(recs[0]?.url) : null;
+    introTitle = recs[0]?.title ?? null;
 
     // Banner de la mentoría: apagado salvo que el admin lo prenda
     // (/admin/comunicaciones). Pedido de Santo, 31/10.
@@ -146,6 +141,8 @@ export default async function DashboardPage() {
         isAdmin={isAdmin}
         userId={userId}
         program={program}
+        introVideoId={introVideoId}
+        introTitle={introTitle}
       />
       {beforeLaunch && (
         <LaunchCountdown

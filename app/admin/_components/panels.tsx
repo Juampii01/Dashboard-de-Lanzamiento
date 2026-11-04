@@ -801,13 +801,16 @@ export function AccessClosedPanel() {
 interface RecordingRow { recording_number: number; youtube_url?: string | null; title?: string | null; }
 
 export function RecordingsAdminPanel() {
+  // En vivo y on demand tienen grabaciones separadas (on demand: clases
+  // recortadas o grabadas para la versión grabada + video introductorio).
+  const [program, setProgram] = useState<"live" | "ondemand">("live");
   const [inputs, setInputs] = useState<Record<number, string>>({});
   const [titles, setTitles] = useState<Record<number, string>>({});
   const [saved, setSaved] = useState<Record<number, boolean>>({});
   const [saving, setSaving] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/recordings")
+    fetch(`/api/admin/recordings?program=${program}`)
       .then((r) => r.json())
       .then((raw: unknown) => {
         const data: RecordingRow[] = Array.isArray(raw) ? raw : [];
@@ -823,7 +826,7 @@ export function RecordingsAdminPanel() {
         setSaved(done);
       })
       .catch(() => {});
-  }, []);
+  }, [program]);
 
   async function save(num: number) {
     const youtube_url = (inputs[num] ?? "").trim();
@@ -833,23 +836,37 @@ export function RecordingsAdminPanel() {
       const res = await fetch("/api/admin/recordings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recording_number: num, youtube_url, title }),
+        body: JSON.stringify({ recording_number: num, youtube_url, title, program }),
       });
       if (!res.ok) throw new Error();
       setSaved((prev) => ({ ...prev, [num]: !!youtube_url }));
-      toast.success(youtube_url ? `Grabación ${num} guardada.` : `Grabación ${num} limpiada.`);
+      const label = num === 0 ? "Video introductorio" : `Grabación ${num}`;
+      toast.success(youtube_url ? `${label} guardada.` : `${label} limpiada.`);
     } catch {
       toast.error("Error al guardar la grabación.");
     }
     setSaving(null);
   }
 
+  const nums = program === "ondemand" ? [0, 1, 2, 3, 4] : [1, 2, 3, 4];
   return (
     <div className="space-y-2">
+      <div className="flex flex-wrap gap-1.5">
+        {(["live", "ondemand"] as const).map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => { setInputs({}); setTitles({}); setSaved({}); setProgram(p); }}
+            className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${program === p ? "border-secondary bg-secondary text-white" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+          >
+            {p === "live" ? "En vivo" : "On Demand"}
+          </button>
+        ))}
+      </div>
       <div className="divide-y divide-border rounded-xl border border-border">
-        {[1, 2, 3, 4].map((num) => (
-          <div key={num} className="flex items-center gap-3 p-3">
-            <span className="text-xs font-bold text-muted-foreground w-12 shrink-0">Día {num}</span>
+        {nums.map((num) => (
+          <div key={`${program}-${num}`} className="flex items-center gap-3 p-3">
+            <span className="text-xs font-bold text-muted-foreground w-12 shrink-0">{num === 0 ? "Intro" : `Día ${num}`}</span>
             <div className="flex flex-1 min-w-0 flex-col gap-2 sm:flex-row">
               <input
                 type="text"
@@ -875,7 +892,12 @@ export function RecordingsAdminPanel() {
           </div>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">Link vacío + Guardar deja esa grabación como “próximamente”. El nombre de la clase se muestra debajo de “Día N” en el inicio.</p>
+      <p className="text-xs text-muted-foreground">
+        Link vacío + Guardar deja esa grabación como “próximamente”.{" "}
+        {program === "live"
+          ? "El nombre de la clase se muestra debajo de “Día N” en el inicio."
+          : "On Demand: cada clase se ve embebida arriba de su día; el video introductorio va en el inicio."}
+      </p>
     </div>
   );
 }

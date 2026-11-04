@@ -73,6 +73,14 @@ BEGIN
   END LOOP;
 END $$;
 
+-- Volver a crear los 4 días bloqueados (lo mismo que hace handle_new_user al
+-- registrarse). Sin estas filas, claim_purchase() no puede abrir el Día 1 a
+-- quien vuelve a comprar, y las páginas de los días leen progreso vacío.
+INSERT INTO public.day_progress (user_id, day_number, is_unlocked, is_completed)
+SELECT p.id, d, false, false
+  FROM _participants p CROSS JOIN generate_series(1, 4) AS d
+ON CONFLICT (user_id, day_number) DO NOTHING;
+
 -- Referidos y sorteos del lanzamiento anterior (tablas globales).
 DELETE FROM public.referral_leads;
 DO $$
@@ -96,10 +104,11 @@ UPDATE public.users
        streak_day            = NULL
  WHERE id IN (SELECT id FROM _participants);
 
--- Revisión antes de confirmar: debería dar 0 en todo.
+-- Revisión antes de confirmar: debería dar 0 en todo (los días quedan creados y bloqueados).
 SELECT
   (SELECT count(*) FROM public.users WHERE id IN (SELECT id FROM _participants) AND total_points > 0) AS con_puntos,
-  (SELECT count(*) FROM public.day_progress WHERE user_id IN (SELECT id FROM _participants))         AS progreso,
+  (SELECT count(*) FROM public.day_progress WHERE user_id IN (SELECT id FROM _participants)
+                                                   AND (is_completed OR is_unlocked))              AS progreso,
   (SELECT count(*) FROM public.referral_leads)                                                     AS referidos;
 
 -- Si los números de arriba están bien:

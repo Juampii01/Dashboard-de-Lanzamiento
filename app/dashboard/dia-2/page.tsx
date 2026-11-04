@@ -8,6 +8,8 @@ import { AdminForceComplete } from "@/components/admin-force-complete";
 import { LaunchCountdown } from "@/components/launch-countdown";
 import { OndemandDayLock } from "@/components/ondemand-day-lock";
 import { getUserProgram } from "@/lib/program-server";
+import { getRecordings, youtubeId } from "@/lib/recordings";
+import { OndemandRecording } from "@/components/ondemand-recording";
 import { isDayOpenFor } from "@/lib/supabase/day-access";
 import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
@@ -58,11 +60,19 @@ export default async function Dia2Page() {
   });
   const preLocked = !isUnlocked;
 
+  // On demand: la clase grabada del día va embebida arriba del contenido.
+  const dayRec = program === "ondemand" ? (await getRecordings("ondemand"))[2] : undefined;
+  const dayVideoId = youtubeId(dayRec?.url);
+  const dayVideoTitle = dayRec?.title ?? null;
+
   const { data: expansion } = await supabase.from("naics_expansions").select("*").eq("user_id", user.id).maybeSingle();
 
   return (
     <div className="space-y-8 gb-day-wide" style={{ position: "relative" }}>
       <div className="flex items-center justify-between"><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm transition-colors" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-sans)" }}>← Dashboard</Link><AdminForceComplete day={2} isCompleted={progress?.is_completed ?? false} isAdmin={isAdmin} /></div>
+      {program === "ondemand" && (
+        <OndemandRecording videoId={dayVideoId} title={dayVideoTitle || "Día 2 — Mapa de Códigos"} kicker="Clase grabada · Día 2" />
+      )}
       <VideoCapsules day={2} isAdmin={isAdmin} over10k={over10k} />
       <Dia2Client
       userId={user.id}
