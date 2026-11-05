@@ -7,7 +7,7 @@ import { baseUrlForProgram, type Program } from "@/lib/program";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const FROM = "Tu Primer Contrato Challenge <acceso@send.govbidder.net>";
-const LOGO = "https://dboard.govbidder.net/halcon.png";
+const LOGO = "https://dboard.govbidder.net/tpc-logo.png";
 
 export async function sendAccessActivatedEmail(opts: { to: string; name?: string | null; program?: Program }): Promise<{ ok: boolean; error?: string }> {
   // El botón lleva al login del dominio del programa (en vivo u on demand).

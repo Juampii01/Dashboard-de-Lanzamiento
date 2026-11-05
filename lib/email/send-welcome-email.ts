@@ -7,7 +7,7 @@ import { baseUrlForProgram, type Program } from "@/lib/program";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const FROM = "Tu Primer Contrato Challenge <acceso@send.govbidder.net>";
-const LOGO = "https://dboard.govbidder.net/halcon.png";
+const LOGO = "https://dboard.govbidder.net/tpc-logo.png";
 
 export async function sendWelcomeEmail(opts: {
   to: string;

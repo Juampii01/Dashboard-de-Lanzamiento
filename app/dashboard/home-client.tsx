@@ -97,7 +97,7 @@ function MentoriaBanner({ fullName }: { fullName: string }) {
 
         <div style={{ background: "#fff", borderRadius: 14, padding: "8px 14px", boxShadow: "0 6px 22px rgba(0,0,0,0.3)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/halcon.png" alt="" style={{ height: 48, width: "auto", display: "block" }} />
+          <img src="/tpc-logo.png" alt="" style={{ height: 48, width: "auto", display: "block" }} />
         </div>
 
         <p style={{
@@ -515,7 +515,7 @@ function VideoTutorial({ videoId }: { videoId?: string }) {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/halcon.png"
+                src="/tpc-logo.png"
                 alt="GovBidder"
                 style={{ height: "38px", width: "auto", objectFit: "contain", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.75))" }}
               />
@@ -1060,7 +1060,7 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
               {/* Logo */}
               <div style={{ flex: "1 1 0", display: "flex", justifyContent: "center" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/halcon.png" alt="Tu Primer Contrato Challenge" style={{ height: "clamp(48px, 9vw, 78px)", width: "auto", objectFit: "contain" }} />
+                <img src="/tpc-logo.png" alt="Tu Primer Contrato Challenge" style={{ height: "clamp(48px, 9vw, 78px)", width: "auto", objectFit: "contain" }} />
               </div>
 
               {/* QR */}

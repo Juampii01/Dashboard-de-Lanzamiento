@@ -29,11 +29,6 @@ const bebasNeue = Bebas_Neue({
 export const metadata: Metadata = {
   title: "GovBidder",
   description: "Aprende a venderle al gobierno federal en 4 días.",
-  icons: {
-    icon: "/halcon.png",
-    apple: "/halcon.png",
-    shortcut: "/halcon.png",
-  },
 };
 
 export default function RootLayout({

@@ -48,7 +48,7 @@ export async function sendAccessEmail(opts: {
 
 /** Template HTML de marca (navy + botón rojo + logo), table-based para clientes de email. */
 function buildHtml(magicLink: string, appUrl: string): string {
-  const logo = `${appUrl}/halcon.png`;
+  const logo = `${appUrl}/tpc-logo.png`;
   return `<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
 <body style="margin:0;padding:0;background:#0d1a3d;">

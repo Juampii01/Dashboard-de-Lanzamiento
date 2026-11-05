@@ -70,7 +70,7 @@ const COPY: Record<ReminderSegment, { kicker: string; title: string; body: strin
 
 /** Template HTML de marca (navy + botón rojo + logo), table-based para clientes de email. */
 function buildHtml(segment: ReminderSegment, magicLink: string, appUrl: string): string {
-  const logo = `${appUrl}/halcon.png`;
+  const logo = `${appUrl}/tpc-logo.png`;
   const c = COPY[segment];
   const loginUrl = `${appUrl}/login`;
   return `<!DOCTYPE html>

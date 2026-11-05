@@ -32,7 +32,7 @@ export default async function ReferidoPage({
       >
         <div style={{ background: "#fff", borderRadius: 16, padding: "10px 16px", boxShadow: "0 8px 28px rgba(0,0,0,0.35)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/halcon.png" alt="Tu Primer Contrato Challenge" style={{ height: 54, width: "auto", display: "block" }} />
+          <img src="/tpc-logo.png" alt="Tu Primer Contrato Challenge" style={{ height: 54, width: "auto", display: "block" }} />
         </div>
 
         <p style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "#FFD700" }}>
