@@ -26,6 +26,11 @@ import { sendAccessActivatedEmail } from "@/lib/email/send-access-activated-emai
  * `product` en la URL: "ondemand" (versión grabada) o "live" (ticket del en
  * vivo actual). El mismo endpoint sirve para los dos.
  *
+ * `welcome=0` en la URL: no envía el email de bienvenida a quien todavía no
+ * tiene cuenta (para workflows de GHL que ya mandan su propio email con el
+ * link de registro). El aviso de "acceso activo" a cuentas en verificación se
+ * envía igual.
+ *
  * Respuestas: 200 cuando el webhook quedó guardado (aunque no se pudiera leer
  * la compra: queda el error en webhook_logs para revisarlo a mano), 500 solo si
  * no se pudo guardar nada (GHL reintenta).
@@ -59,6 +64,7 @@ export async function POST(req: NextRequest) {
 
   const productKey = (req.nextUrl.searchParams.get("product") ?? "").toLowerCase();
   const product = PRODUCTS[productKey] ?? null;
+  const sendWelcome = req.nextUrl.searchParams.get("welcome") !== "0";
 
   const raw = await req.text();
   let body: unknown = null;
@@ -147,9 +153,12 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
   const acc = account as { id: string; full_name: string | null; is_admin: boolean | null } | null;
 
-  type Action = "welcome_sent" | "access_activated" | "already_active" | "purchase_taken" | "admin_account" | "email_failed";
+  type Action = "welcome_sent" | "purchase_recorded" | "access_activated" | "already_active" | "purchase_taken" | "admin_account" | "email_failed";
   let action: Action;
-  if (!acc) {
+  if (!acc && !sendWelcome) {
+    // Sin cuenta, y el workflow de GHL ya manda su propio email de bienvenida.
+    action = "purchase_recorded";
+  } else if (!acc) {
     // Sin cuenta: email con el link de registro del programa.
     const sent = await sendWelcomeEmail({ to: parsed.email, name: parsed.fullName, program });
     action = sent.ok ? "welcome_sent" : "email_failed";
