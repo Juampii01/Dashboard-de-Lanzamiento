@@ -33,7 +33,7 @@ export function OndemandDayLock({ day, title }: { day: number; title: string }) 
       >
         <div style={{ background: "#fff", borderRadius: 14, padding: "8px 14px", boxShadow: "0 6px 22px rgba(0,0,0,0.3)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/halcon.png" alt="" style={{ height: 52, width: "auto", display: "block" }} />
+          <img src="/tpc-logo.png" alt="" style={{ height: 52, width: "auto", display: "block" }} />
         </div>
 
         <p style={{

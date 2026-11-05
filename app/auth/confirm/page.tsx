@@ -94,7 +94,7 @@ export default function ConfirmPage() {
         }}
       >
         <img
-          src="/halcon.png"
+          src="/tpc-logo.png"
           alt="Tu Primer Contrato Challenge"
           style={{ height: "110px", width: "auto", display: "block" }}
         />

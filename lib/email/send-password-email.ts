@@ -10,7 +10,7 @@
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const FROM = "Tu Primer Contrato Challenge <acceso@send.govbidder.net>";
 const SUBJECT = "Crea tu contraseña del Challenge Tu Primer Contrato";
-const LOGO = "https://dboard.govbidder.net/halcon.png";
+const LOGO = "https://dboard.govbidder.net/tpc-logo.png";
 
 export async function sendPasswordEmail(opts: { to: string; link: string }): Promise<{ ok: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;

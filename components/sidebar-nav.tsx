@@ -343,7 +343,7 @@ export function SidebarNav({ profile, email, progressMap, program = "live" }: Si
               boxShadow: "0 1px 4px rgba(13,26,61,0.18)",
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/halcon.png" alt="GovBidder" style={{ height: 28, width: "auto", display: "block" }} />
+              <img src="/tpc-logo.png" alt="GovBidder" style={{ height: 28, width: "auto", display: "block" }} />
             </span>
             {!collapsed && (
               <span style={{ minWidth: 0 }}>

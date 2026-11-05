@@ -57,7 +57,7 @@ export async function sendMentoriaEmail(opts: {
 
 /** Template HTML de marca (navy + botón verde WhatsApp + logo), table-based para clientes de email. */
 function buildHtml(fullName: string, appUrl: string): string {
-  const logo = `${appUrl}/halcon.png`;
+  const logo = `${appUrl}/tpc-logo.png`;
   const waLink = buildWhatsAppLink(fullName);
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return `<!DOCTYPE html>

@@ -57,7 +57,7 @@ export function BootSequence() {
         {/* Logo row */}
         <div className="flex items-center gap-3 mb-8">
           <img
-            src="/halcon.png"
+            src="/tpc-logo.png"
             alt="Tu Primer Contrato Challenge"
             style={{
               height: "40px",
