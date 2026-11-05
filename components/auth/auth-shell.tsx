@@ -50,7 +50,7 @@ export function AuthShell({
 
         <div className="relative flex items-center gap-3">
           <span className="grid place-items-center rounded-xl bg-white p-1.5 shadow-lg shadow-black/30">
-            <Image src="/tpc-logo.png" alt="" width={38} height={38} />
+            <Image src="/tpc-aguila.png" alt="" width={38} height={38} />
           </span>
           <div className="leading-tight">
             <p className="text-white font-extrabold tracking-tight text-[17px]">GovBidder</p>
@@ -116,7 +116,7 @@ export function AuthShell({
           <div className="relative flex h-full flex-col justify-between px-5 pb-12 pt-5">
             <div className="flex items-center gap-2.5">
               <span className="grid place-items-center rounded-lg bg-white p-1">
-                <Image src="/tpc-logo.png" alt="" width={30} height={30} />
+                <Image src="/tpc-aguila.png" alt="" width={30} height={30} />
               </span>
               <p className="text-white font-extrabold tracking-tight">GovBidder</p>
             </div>
