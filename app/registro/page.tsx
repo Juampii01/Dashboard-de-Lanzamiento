@@ -29,8 +29,9 @@ export default async function RegistroPage() {
     >
       <div className="space-y-5">
         <Notice tone="gold">
-          <strong>Importante:</strong> regístrate con el <strong>mismo email con el que compraste</strong>. Así tu acceso se
-          activa al instante. Cada compra da acceso a una sola cuenta.
+          <strong>Para evitar demoras, regístrate con el mismo email con el que realizaste el pago.</strong> Así tu acceso
+          se activa al instante. Si usas otro email, tu cuenta quedará en verificación hasta que nuestro equipo la revise.
+          Cada compra da acceso a una sola cuenta.
         </Notice>
         <RegisterForm mode="buyer" />
       </div>
