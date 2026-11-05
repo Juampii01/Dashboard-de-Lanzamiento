@@ -83,7 +83,7 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
   return (
     <div className="flex h-full flex-col">
       <Link href="/admin" onClick={onNavigate} className="flex items-center gap-3 px-5 pt-6 pb-7">
-        <Image src="/tpc-logo.png" alt="" width={34} height={34} className="rounded-lg" />
+        <Image src="/tpc-aguila.png" alt="" width={34} height={34} className="rounded-lg" />
         <div className="leading-tight">
           <p className="font-extrabold text-[15px] text-white tracking-tight">GovBidder</p>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Panel admin</p>
@@ -159,7 +159,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Top bar (mobile) */}
       <div className="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 bg-[#0d1a3d] px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <Image src="/tpc-logo.png" alt="" width={28} height={28} className="rounded-md" />
+          <Image src="/tpc-aguila.png" alt="" width={28} height={28} className="rounded-md" />
           <p className="text-sm font-bold text-white">{current?.label ?? "Panel admin"}</p>
         </div>
         <button
