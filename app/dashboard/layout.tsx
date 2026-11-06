@@ -14,6 +14,9 @@ import { SidebarNav } from "@/components/sidebar-nav";
 import { DayTabs } from "@/components/day-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { DashboardAssistant } from "@/components/dashboard-assistant";
+import { LaunchCountdown } from "@/components/launch-countdown";
+import { getAdminToggle } from "@/lib/supabase/helpers";
+import { inicioUnlockIso } from "@/lib/launch";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -250,6 +253,41 @@ export default async function DashboardLayout({
     }
   }
   // ─────────────────────────────────────────────────────────────────────────
+
+  // ── Antes del lanzamiento: solo la pantalla de "empezamos tal día" ──────
+  // Mientras el Inicio (día 0) esté cerrado, un participante del en vivo no
+  // puede recorrer la plataforma: no se muestra el menú, las pestañas ni
+  // ninguna página (aunque escriba la URL a mano). El contador consulta el
+  // estado cada 15 s y recarga cuando el equipo abre el Inicio en /admin/en-vivo.
+  // Los admins entran siempre; on demand no tiene lanzamiento.
+  if (!devMode && profile && !profile.is_admin && program === "live") {
+    const inicioToggle = await getAdminToggle(createServiceClient(), 0);
+    if (inicioToggle && inicioToggle.is_globally_unlocked !== true) {
+      return (
+        <div style={{ minHeight: "100vh", position: "relative", background: "var(--background)" }}>
+          <form action="/api/auth/signout" method="POST" style={{ position: "absolute", top: 16, right: 16, zIndex: 60 }}>
+            <button
+              type="submit"
+              style={{
+                fontSize: 13, fontWeight: 700, color: "var(--muted-foreground)",
+                background: "var(--card)", border: "1px solid var(--border)",
+                borderRadius: 999, padding: "7px 14px", cursor: "pointer",
+              }}
+            >
+              Cerrar sesión
+            </button>
+          </form>
+          <LaunchCountdown
+            targetIso={inicioUnlockIso(inicioToggle.scheduled_unlock_at)}
+            day={0}
+            title="El challenge comienza pronto"
+            subtitle={`Tu acceso está confirmado${profile.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}. La plataforma se abre el día del lanzamiento; esta pantalla se actualiza sola.`}
+            reachedSubtitle="Ya casi comienza. La plataforma se abre apenas el equipo inicie el challenge."
+          />
+        </div>
+      );
+    }
+  }
 
   const remaining = daysLeft(profile?.access_expires_at ?? null);
 

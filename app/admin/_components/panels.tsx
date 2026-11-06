@@ -901,3 +901,56 @@ export function RecordingsAdminPanel() {
     </div>
   );
 }
+
+// ─── Visibilidad de las misiones ────────────────────────────────────────────
+
+/**
+ * Interruptor global: muestra u oculta la misión diaria y las ráfagas en
+ * Misiones Extra. Apagado, el equipo las sigue viendo y editando aquí.
+ */
+export function MissionsVisibilityPanel() {
+  const [visible, setVisible] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((d) => setVisible(d?.missions_visible !== "false"))
+      .catch(() => setVisible(true));
+  }, []);
+
+  async function save(next: boolean) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "missions_visible", value: next ? "true" : "false" }),
+      });
+      if (!res.ok) throw new Error();
+      setVisible(next);
+      toast.success(next ? "Misiones visibles para los participantes." : "Misiones ocultas: solo el equipo las ve.");
+    } catch {
+      toast.error("No se pudo cambiar la visibilidad.");
+    }
+    setSaving(false);
+  }
+
+  if (visible === null) return <p className="text-sm text-muted-foreground">Cargando…</p>;
+
+  return (
+    <ToggleRow
+      title="Mostrar misiones a los participantes"
+      description={
+        visible
+          ? "Los participantes ven la misión diaria y las ráfagas en Misiones Extra (según el horario de cada una)."
+          : "Ocultas. Aquí puedes verlas y editarlas; los participantes no las ven ni pueden responderlas."
+      }
+      on={visible}
+      onTone="success"
+      pill={<StatusPill tone={visible ? "success" : "muted"}>{visible ? "Visibles" : "Ocultas"}</StatusPill>}
+    >
+      <Switch checked={visible} disabled={saving} onCheckedChange={save} />
+    </ToggleRow>
+  );
+}
