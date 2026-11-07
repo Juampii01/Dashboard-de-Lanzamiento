@@ -49,8 +49,12 @@ export function DailyMissionUser({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "error");
       award(data);
-    } catch {
-      setError("No pudimos enviar tu respuesta. Prueba de nuevo.");
+    } catch (e) {
+      setError(
+        e instanceof Error && e.message === "missions_hidden"
+          ? "Las misiones todavía no están habilitadas."
+          : "No pudimos enviar tu respuesta. Prueba de nuevo."
+      );
     } finally {
       setBusy(false);
     }

@@ -1,8 +1,9 @@
-import { Camera, Zap, Globe } from "lucide-react";
+import { Camera, Zap, Globe, Eye } from "lucide-react";
 import { DailyMissionAdmin } from "@/components/daily-mission-admin";
 import { RafagaAdminPanel } from "@/components/rafaga-admin-panel";
 import { WebReportsAdminPanel } from "@/components/web-reports-admin-panel";
 import { PageHeader, Panel } from "../_components/ui";
+import { MissionsVisibilityPanel } from "../_components/panels";
 
 export default function AdminMisionesPage() {
   return (
@@ -14,6 +15,14 @@ export default function AdminMisionesPage() {
       />
 
       <div className="space-y-6">
+        <Panel
+          icon={Eye}
+          title="Visibilidad"
+          description="Prepara y revisa las misiones con el interruptor apagado; enciéndelo cuando quieras que los participantes las vean."
+        >
+          <MissionsVisibilityPanel />
+        </Panel>
+
         <Panel
           icon={Camera}
           title="Misión diaria"

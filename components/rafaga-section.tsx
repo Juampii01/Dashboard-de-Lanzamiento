@@ -75,6 +75,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
       if (!res.ok || !json.ok) {
         setError(
           json.error === "expired" ? "La ventana de esta misión ya cerró."
+          : json.error === "missions_hidden" ? "Las misiones todavía no están habilitadas."
           : json.error === "not_open_yet" ? "La misión todavía no abrió."
           : json.error === "file_too_large" ? "La imagen supera los 5 MB."
           : json.error === "invalid_image" ? "Formato de imagen no válido."

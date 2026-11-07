@@ -9,6 +9,7 @@ import type { RafagaMission } from "@/components/rafaga-section";
 import { getDailyMissionCloseState } from "@/lib/daily-mission";
 import Link from "next/link";
 import { redirectOndemandToHome } from "@/lib/program-server";
+import { areMissionsVisible } from "@/lib/missions-visibility";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -51,6 +52,8 @@ interface PageCtx {
   storyDoneToday: boolean;
   rafagas: RafagaMission[];
   rafagaClaimedIds: string[];
+  /** El admin ocultó las misiones (los admins las siguen viendo). */
+  missionsHidden: boolean;
 }
 
 async function getContext(): Promise<PageCtx> {
@@ -68,6 +71,7 @@ async function getContext(): Promise<PageCtx> {
       storyDoneToday: false,
       rafagas: [],
       rafagaClaimedIds: [],
+      missionsHidden: false,
     };
   }
 
@@ -77,7 +81,7 @@ async function getContext(): Promise<PageCtx> {
     return {
       isAdmin: false, over10k: false, refLink: null, mission: null, missionExpired: false, missionDone: false,
       keywordDays: emptyKeywordDays, storyDoneToday: false,
-      rafagas: [], rafagaClaimedIds: [],
+      rafagas: [], rafagaClaimedIds: [], missionsHidden: false,
     };
   }
 
@@ -93,6 +97,7 @@ async function getContext(): Promise<PageCtx> {
     storyRow,
     rafagaRows,
     rafagaSubsRows,
+    missionsVisible,
   ] = await Promise.all([
     service.from("users").select("is_admin, total_points").eq("id", user.id).maybeSingle(),
     getOrCreateReferralCode(service, user.id),
@@ -100,18 +105,22 @@ async function getContext(): Promise<PageCtx> {
     service.from("call_keywords").select("day_number").order("day_number"),
     service.from("keyword_submissions").select("day_number").eq("user_id", user.id),
     service.from("story_submissions").select("id").eq("user_id", user.id).eq("submission_date", getMiamiStoryDate()).maybeSingle(),
+    // Ráfagas activas; se filtran abajo por fin de ventana (no por inicio, así
+    // una ventana larga que empezó hace más de una semana sigue apareciendo).
     service.from("rafaga_missions")
       .select("*")
       .eq("is_active", true)
-      .gte("starts_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
       .order("starts_at", { ascending: false }),
     service.from("rafaga_submissions").select("rafaga_id").eq("user_id", user.id),
+    areMissionsVisible(service),
   ]);
 
   const isAdmin = (userRow.data as { is_admin?: boolean } | null)?.is_admin ?? false;
   const over10k = ((userRow.data as { total_points?: number } | null)?.total_points ?? 0) >= 10000;
   const refLink = refCode ? referralLink(refCode) : null;
-  const mission = (missionRow.data as Mission | null) ?? null;
+  // Misiones ocultas desde el admin: el participante no ve misión diaria ni ráfagas.
+  const missionsHidden = !missionsVisible && !isAdmin;
+  const mission = missionsHidden ? null : ((missionRow.data as Mission | null) ?? null);
 
   // Sin misión activa: "La misión caducó" si la última se cerró como
   // "expired" (Cerrar), o "Próximamente" si se cerró como "removed" (Volver a
@@ -144,10 +153,16 @@ async function getContext(): Promise<PageCtx> {
   }));
 
   const storyDoneToday = !!(storyRow.data);
-  const rafagas = (rafagaRows.data ?? []) as RafagaMission[];
+  // Se muestran las que no terminaron o terminaron hace menos de 7 días.
+  const shownSince = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const rafagas = missionsHidden
+    ? []
+    : ((rafagaRows.data ?? []) as RafagaMission[]).filter(
+        (r) => Date.parse(r.starts_at) + r.duration_minutes * 60 * 1000 >= shownSince
+      );
   const rafagaClaimedIds = ((rafagaSubsRows.data ?? []) as { rafaga_id: string }[]).map((r) => r.rafaga_id);
 
-  return { isAdmin, over10k, refLink, mission, missionExpired, missionDone, keywordDays, storyDoneToday, rafagas, rafagaClaimedIds };
+  return { isAdmin, over10k, refLink, mission, missionExpired, missionDone, keywordDays, storyDoneToday, rafagas, rafagaClaimedIds, missionsHidden };
 }
 
 export default async function SumaPuntosPage() {
@@ -219,7 +234,17 @@ export default async function SumaPuntosPage() {
         <StoryUpload alreadyDone={ctx.storyDoneToday} over10k={ctx.over10k} />
       </section>
 
+      {ctx.missionsHidden && (
+        <div style={{ padding: "18px 20px", background: "var(--muted)", border: "1px dashed var(--border)", borderRadius: 12, textAlign: "center" }}>
+          <p style={{ fontSize: 15, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>🔒 Las misiones se habilitan pronto</p>
+          <p style={{ fontSize: 13, color: "var(--muted-foreground)", margin: "5px 0 0" }}>
+            La misión diaria y las ráfagas aparecerán aquí cuando el equipo las active.
+          </p>
+        </div>
+      )}
+
       {/* 4. Misiones Diarias */}
+      {!ctx.missionsHidden && (<>
       <section className="space-y-3">
         <SectionHeader emoji="🎯" title="Misión Diaria" subtitle={ctx.mission ? `+${(ctx.over10k ? Math.floor(ctx.mission.points_reward / 2) : ctx.mission.points_reward).toLocaleString()} pts · una por misión` : "Una por misión"} />
         {ctx.mission ? (
@@ -262,6 +287,7 @@ export default async function SumaPuntosPage() {
         <SectionHeader emoji="⚡" title="Misiones Ráfaga" subtitle={ctx.over10k ? "+500 pts · ventanas de 2 horas programadas por el admin" : "+1,000 pts · ventanas de 2 horas programadas por el admin"} />
         <RafagaSection rafagas={ctx.rafagas} claimedIds={ctx.rafagaClaimedIds} over10k={ctx.over10k} />
       </section>
+      </>)}
     </div>
   );
 }

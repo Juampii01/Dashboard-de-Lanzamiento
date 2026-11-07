@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { areMissionsVisible } from "@/lib/missions-visibility";
 
 /**
  * POST /api/missions/submit
@@ -33,6 +34,14 @@ export async function POST(req: Request) {
   }
 
   const service = createServiceClient();
+
+  // Misiones ocultas desde el admin: solo los admins pueden responder (para probar).
+  if (!(await areMissionsVisible(service))) {
+    const { data: me } = await service.from("users").select("is_admin").eq("id", user.id).maybeSingle();
+    if (!(me as { is_admin?: boolean } | null)?.is_admin) {
+      return NextResponse.json({ error: "missions_hidden" }, { status: 409 });
+    }
+  }
 
   // 1. Misión activa.
   const { data: mission } = await service
