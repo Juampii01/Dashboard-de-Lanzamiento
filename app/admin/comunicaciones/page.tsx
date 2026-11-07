@@ -1,6 +1,7 @@
 import { Mail, BellRing, UserPlus, Megaphone, LifeBuoy, Camera, PanelTop } from "lucide-react";
 import { MagicBlastPanel } from "@/components/magic-blast-panel";
 import { ReminderBlastPanel } from "@/components/reminder-blast-panel";
+import { RegistrationReminderPanel } from "@/components/registration-reminder-panel";
 import { MentoriaBlastPanel } from "@/components/mentoria-blast-panel";
 import { PageHeader, Panel } from "../_components/ui";
 import { RegistroLinkPanel, SupportWhatsappPanel, MentoriaBannerPanel, StoryCopySettingsPanel } from "../_components/panels";
@@ -15,6 +16,15 @@ export default function ComunicacionesPage() {
       />
 
       <div className="space-y-6">
+        <Panel
+          icon={UserPlus}
+          tone="gold"
+          title="Compraron y no se registraron"
+          description="Recordatorio con el link de registro para quienes pagaron y todavía no crearon su cuenta."
+        >
+          <RegistrationReminderPanel />
+        </Panel>
+
         <Panel
           icon={LifeBuoy}
           title="Número de soporte"

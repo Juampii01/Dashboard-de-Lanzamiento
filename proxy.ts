@@ -10,7 +10,8 @@ export async function proxy(request: NextRequest) {
 
   // Redirigir el dominio viejo al nuevo, conservando path + query.
   // (No tocamos otros *.vercel.app para no romper deployments de preview.)
-  if (host === LEGACY_HOST) {
+  // Los cron de Vercel pueden llegar por el dominio de Vercel: no se redirigen.
+  if (host === LEGACY_HOST && !request.nextUrl.pathname.startsWith("/api/cron/")) {
     const url = request.nextUrl.clone();
     url.protocol = "https:";
     url.host = CANONICAL_HOST;

@@ -13,6 +13,8 @@ export async function sendWelcomeEmail(opts: {
   to: string;
   name?: string | null;
   program: Program;
+  /** Recordatorio para quien pagó y todavía no creó su cuenta. */
+  reminder?: boolean;
 }): Promise<{ ok: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { ok: false, error: "RESEND_API_KEY no configurada" };
@@ -20,13 +22,26 @@ export async function sendWelcomeEmail(opts: {
   const ondemand = opts.program === "ondemand";
   const registerUrl = `${baseUrlForProgram(opts.program)}/registro`;
   const hello = opts.name?.trim() ? `¡Hola, ${escapeHtml(opts.name.trim().split(" ")[0])}!` : "¡Hola!";
-  const what = ondemand
-    ? "Gracias por comprar la versión grabada del Tu Primer Contrato Challenge. Ya puedes empezar: las clases de los 4 días y la plataforma te esperan."
-    : "Gracias por tu compra del Tu Primer Contrato Challenge. Crea tu cuenta ahora para tener todo listo el día del lanzamiento.";
-  const eyebrow = ondemand ? "On Demand · Compra confirmada" : "Compra confirmada";
-  const subject = ondemand
-    ? "Crea tu cuenta y empieza el Tu Primer Contrato Challenge"
-    : "Crea tu cuenta del Tu Primer Contrato Challenge";
+  const reminder = opts.reminder === true;
+  const what = reminder
+    ? ondemand
+      ? "Tu compra de la versión grabada del Tu Primer Contrato Challenge está confirmada, pero todavía no creaste tu cuenta. Créala ahora y empieza cuando quieras."
+      : Date.now() < Date.parse("2026-11-18T00:00:00Z")
+        ? "Tu lugar en el Tu Primer Contrato Challenge está confirmado, pero todavía no creaste tu cuenta. Créala ahora: te toma un minuto y el martes 17 de noviembre a las 7:00 PM (hora de Miami) ya estarás adentro."
+        : "Tu lugar en el Tu Primer Contrato Challenge está confirmado, pero todavía no creaste tu cuenta y el challenge ya empezó. Créala ahora y ponte al día con las clases."
+    : ondemand
+      ? "Gracias por comprar la versión grabada del Tu Primer Contrato Challenge. Ya puedes empezar: las clases de los 4 días y la plataforma te esperan."
+      : "Gracias por tu compra del Tu Primer Contrato Challenge. Crea tu cuenta ahora para tener todo listo el día del lanzamiento.";
+  const eyebrow = reminder
+    ? "Falta un paso"
+    : ondemand
+      ? "On Demand · Compra confirmada"
+      : "Compra confirmada";
+  const subject = reminder
+    ? "Todavía no creaste tu cuenta del Tu Primer Contrato Challenge"
+    : ondemand
+      ? "Crea tu cuenta y empieza el Tu Primer Contrato Challenge"
+      : "Crea tu cuenta del Tu Primer Contrato Challenge";
 
   const html = `<!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
@@ -47,7 +62,7 @@ export async function sendWelcomeEmail(opts: {
         </td></tr>
         <tr><td style="padding:18px 32px 0;">
           <p style="margin:0;padding:12px 14px;border-radius:10px;background:#FFF8E1;font-size:13.5px;line-height:1.5;color:#7a5b00;">
-            <strong>Importante:</strong> regístrate con este mismo email (<strong>${escapeHtml(opts.to)}</strong>). Así tu acceso se activa al instante.
+            <strong>Importante:</strong> para evitar demoras, regístrate con este mismo email (<strong>${escapeHtml(opts.to)}</strong>), el que usaste para pagar. Así tu acceso se activa al instante.
           </p>
         </td></tr>
         <tr><td style="padding:24px 32px 8px;text-align:center;">
