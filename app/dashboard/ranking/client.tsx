@@ -266,14 +266,14 @@ function RankColumn({ rankKey, all, loading, showPrizes }: { rankKey: string; al
 
 // ─── StudentNote (perfil alumno) ─────────────────────────────────────────────
 // Reemplaza a "Tu rango" para los alumnos: suman puntos pero no compiten.
-function StudentNote({ points }: { points: number }) {
+function StudentNote(_props: { points: number }) {
   return (
     <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.16)" }}>
       <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, letterSpacing: "0.14em", textTransform: "uppercase", color: "#FFD700" }}>
         🎁 Acceso gratuito
       </p>
       <p style={{ fontSize: "13.5px", color: "rgba(255,255,255,0.85)", marginTop: 6, maxWidth: "54ch", lineHeight: 1.5 }}>
-        Sumas puntos y usas todo el dashboard, pero <strong style={{ color: "#fff" }}>no compites por el ranking ni los premios</strong>. Tus puntos: <strong style={{ color: "#fff" }}>{points.toLocaleString("es")}</strong>.
+        Usas todo el dashboard, pero <strong style={{ color: "#fff" }}>no sumas puntos ni compites por el ranking ni los premios</strong>.
       </p>
 
       {/* Upsell: pagar el acceso para competir por los premios (con los puntos ya sumados) */}
@@ -283,7 +283,7 @@ function StudentNote({ points }: { points: number }) {
             ¿Quieres competir por los premios?
           </p>
           <p style={{ fontSize: "12.5px", color: "rgba(255,255,255,0.82)", margin: "0 0 11px", lineHeight: 1.5 }}>
-            Ya tienes <strong style={{ color: "#FFD700" }}>{points.toLocaleString("es")} pts</strong> acumulados. Paga el acceso al challenge y empiezas a competir por los premios <strong style={{ color: "#fff" }}>con esos mismos puntos</strong>.
+            Paga el acceso al challenge y empiezas a <strong style={{ color: "#fff" }}>sumar puntos y competir por los premios</strong>.
           </p>
           <a
             href={HOTMART_PAY_URL}

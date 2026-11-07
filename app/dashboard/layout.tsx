@@ -325,7 +325,7 @@ export default async function DashboardLayout({
       <UnlockEventListener />
       {/* On demand: sin heartbeat ni click en el avatar (puntos por dejar la
           pestaña abierta). Los premios on demand son por umbral de puntos. */}
-      {!devMode && program === "live" && !isViewer && <XpEngine />}
+      {!devMode && program === "live" && !isViewer && !(profile as { is_student?: boolean } | null)?.is_student && <XpEngine />}
       {isViewer && <ViewerFetchGuard />}
 
       {/* ── SIDEBAR — columna izquierda, altura completa ── */}
