@@ -11,6 +11,7 @@ import { getUserProgram } from "@/lib/program-server";
 import { getRecordings, youtubeId } from "@/lib/recordings";
 import type { Program } from "@/lib/program";
 import { getActor } from "@/lib/viewer";
+import { getPointsCap } from "@/lib/points-cap";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -145,6 +146,7 @@ export default async function DashboardPage() {
         program={program}
         introVideoId={introVideoId}
         introTitle={introTitle}
+        pointsCap={!devMode && program === "live" ? await getPointsCap() : null}
       />
       {beforeLaunch && (
         <LaunchCountdown

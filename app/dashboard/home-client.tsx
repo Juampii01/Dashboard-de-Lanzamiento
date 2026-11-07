@@ -32,6 +32,7 @@ interface HomeClientProps {
   tutorialVideoId?: string;
   isAdmin?: boolean;
   userId?: string;
+  pointsCap?: number | null;
 }
 
 // Número de WhatsApp de la mentoría "Tu Primer Contrato" (mismo que en
@@ -180,7 +181,7 @@ const CONTRACT_NICHES: ContractNiche[] = [
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: string | null }) {
+function PointsCard({ initial, avatarUrl, pointsCap = null }: { initial: number; avatarUrl?: string | null; pointsCap?: number | null }) {
   const [points, setPoints] = useState(initial);
 
   // Avatar: misma fuente de verdad que el sidebar / barra de progreso.
@@ -304,6 +305,19 @@ function PointsCard({ initial, avatarUrl }: { initial: number; avatarUrl?: strin
           }}>
             {open ? "Ocultar el desglose de puntos" : "Toca para ver de dónde salieron tus puntos"}
           </div>
+          {pointsCap !== null && (
+            <div style={{
+              display: "inline-block", marginTop: "6px",
+              fontSize: "10.5px", fontWeight: 700, lineHeight: 1.4,
+              color: points >= pointsCap ? "#FFD60A" : "var(--muted-foreground)",
+              border: `1px solid ${points >= pointsCap ? "#FFD60A" : "var(--border)"}`,
+              borderRadius: "8px", padding: "3px 8px",
+            }}>
+              {points >= pointsCap
+                ? `🔒 Llegaste al límite de ${pointsCap.toLocaleString("es")} pts. Vuelves a sumar cuando empiece el challenge.`
+                : `Límite antes del challenge: ${pointsCap.toLocaleString("es")} pts`}
+            </div>
+          )}
         </div>
 
         <ChevronDown
@@ -1306,7 +1320,7 @@ function ContractModels({ fullName }: { fullName?: string }) {
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, recordingTitles, mentoriaBanner = false, refLink = null, tutorialVideoId, isAdmin = false, userId = "", program = "live", introVideoId = null, introTitle = null }: HomeClientProps) {
+export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, recordings, recordingTitles, mentoriaBanner = false, refLink = null, tutorialVideoId, isAdmin = false, userId = "", program = "live", introVideoId = null, introTitle = null, pointsCap = null }: HomeClientProps) {
   const firstName = (fullName || "").trim().split(/\s+/)[0] || "";
   return (
     // gb-home-wide: el inicio usa todo el ancho disponible (ver globals.css).
@@ -1345,7 +1359,7 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
       {!devMode && (
         <div className="gb-points-row" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
           <div style={{ minWidth: 0, display: "flex" }}>
-            <PointsCard initial={initialPoints} avatarUrl={avatarUrl} />
+            <PointsCard initial={initialPoints} avatarUrl={avatarUrl} pointsCap={isAdmin ? null : pointsCap} />
           </div>
           <RecordingsRow urls={recordings ?? [null, null, null, null]} titles={recordingTitles ?? [null, null, null, null]} />
         </div>
