@@ -195,6 +195,7 @@ Reglas:
 - Fin del acceso del lanzamiento: `app_settings.launch_access_expires_at` (editable en `/admin/compras`).
 - Contraseña olvidada o participantes viejos sin contraseña: `/recuperar` → email por Resend → `/auth/confirm` → `/nueva-contrasena`.
 - Registro gratuito (no compite por premios): `/registro/gratis`.
+- Recordatorio de registro a quien pagó y no tiene cuenta (`lib/access/registration-reminders.ts`): manual desde `/admin/comunicaciones` y automático por Vercel Cron (`/api/cron/registration-reminder`, 15:00 UTC, `CRON_SECRET`). Máximo 3 por compra, 48 h entre envíos, primero a las 20 h de la compra. Se apaga con `app_settings.registration_reminders_auto = 'false'`. Contadores en `purchases.registration_reminders_sent` / `last_registration_reminder_at`.
 
 ## Programas: en vivo y On Demand
 
