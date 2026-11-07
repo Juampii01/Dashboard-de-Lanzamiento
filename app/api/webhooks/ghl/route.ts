@@ -31,6 +31,12 @@ import { sendAccessActivatedEmail } from "@/lib/email/send-access-activated-emai
  * link de registro). El aviso de "acceso activo" a cuentas en verificación se
  * envía igual.
  *
+ * `seat=1` en la URL: compra de un SEGUNDO PARTICIPANTE (seat_requests). La
+ * compra se crea a nombre del socio que cargó el participante en su perfil,
+ * aunque el pago llegue con el email de quien pagó. Se busca la solicitud por
+ * `seat_<id>` en el payload (client_reference_id), por el email del socio o por
+ * el email de quien pagó, en ese orden. Siempre se manda el email de registro.
+ *
  * Respuestas: 200 cuando el webhook quedó guardado (aunque no se pudiera leer
  * la compra: queda el error en webhook_logs para revisarlo a mano), 500 solo si
  * no se pudo guardar nada (GHL reintenta).
@@ -65,6 +71,7 @@ export async function POST(req: NextRequest) {
   const productKey = (req.nextUrl.searchParams.get("product") ?? "").toLowerCase();
   const product = PRODUCTS[productKey] ?? null;
   const sendWelcome = req.nextUrl.searchParams.get("welcome") !== "0";
+  const isSeat = req.nextUrl.searchParams.get("seat") === "1";
 
   const raw = await req.text();
   let body: unknown = null;
@@ -115,6 +122,51 @@ export async function POST(req: NextRequest) {
     return finish(
       { processed: false, email: parsed.email, error: `estado de pago no confirmado: "${parsed.status}"` },
       { logged: true, processed: false, reason: "not_paid" },
+    );
+  }
+
+  // Segundo participante: la compra es para el socio, no para quien pagó.
+  if (isSeat) {
+    const seat = await resolveSeatRequest(db, product, raw, parsed.email);
+    if (!seat) {
+      return finish(
+        { processed: false, email: parsed.email, error: "segundo participante: no se encontró la solicitud (revisar a mano)" },
+        { logged: true, processed: false, reason: "seat_not_found" },
+      );
+    }
+    const { error: seatErr } = await db.from("purchases").upsert(
+      {
+        email: seat.partner_email,
+        full_name: seat.partner_name,
+        source: "ghl",
+        external_ref: parsed.externalRef,
+        product,
+        notes: `Segundo participante (pagó ${parsed.email})`,
+      },
+      { onConflict: "product,email", ignoreDuplicates: true },
+    );
+    if (seatErr && seatErr.code !== "23505") {
+      return finish({ processed: false, email: seat.partner_email, error: `purchases: ${seatErr.message}` }, { logged: true, processed: false, reason: "db_error" });
+    }
+    const { data: sp } = await db.from("purchases").select("id").eq("product", product).eq("email", seat.partner_email).maybeSingle();
+    const seatPurchaseId = (sp as { id: string } | null)?.id ?? null;
+    await db.from("seat_requests").update({ paid_at: new Date().toISOString(), purchase_id: seatPurchaseId }).eq("id", seat.id);
+
+    const seatProgram = programForProduct(product);
+    const { data: partnerAcc } = await db.from("users").select("id, full_name").ilike("email", seat.partner_email).maybeSingle();
+    const pa = partnerAcc as { id: string; full_name: string | null } | null;
+    let seatAction: string;
+    if (pa) {
+      const r = await autoClaimByAccountEmail(db, pa.id, seat.partner_email, [product]);
+      if (r === "claimed") await sendAccessActivatedEmail({ to: seat.partner_email, name: pa.full_name ?? seat.partner_name, program: seatProgram });
+      seatAction = r === "claimed" ? "seat_access_activated" : `seat_${r}`;
+    } else {
+      const sent = await sendWelcomeEmail({ to: seat.partner_email, name: seat.partner_name, program: seatProgram });
+      seatAction = sent.ok ? "seat_welcome_sent" : "seat_email_failed";
+    }
+    return finish(
+      { processed: true, email: seat.partner_email, purchase_id: seatPurchaseId, error: seatAction === "seat_email_failed" ? "compra del socio registrada, pero no se pudo enviar el email" : null },
+      { logged: true, processed: true, action: seatAction },
     );
   }
 
@@ -191,4 +243,37 @@ export async function POST(req: NextRequest) {
     },
     { logged: true, processed: true, action },
   );
+}
+
+type SeatRequest = { id: string; partner_name: string; partner_email: string };
+
+/** Solicitud de segundo participante pendiente de pago que corresponde a este webhook. */
+async function resolveSeatRequest(db: Db, product: string, raw: string, payerEmail: string): Promise<SeatRequest | null> {
+  const base = () =>
+    db
+      .from("seat_requests")
+      .select("id, partner_name, partner_email, host_id")
+      .eq("product", product)
+      .is("paid_at", null)
+      .is("canceled_at", null)
+      .order("created_at", { ascending: true });
+
+  // 1. client_reference_id = seat_<id> (si GHL lo incluye en el payload).
+  const ref = raw.match(/seat_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i)?.[1];
+  if (ref) {
+    const { data } = await base().eq("id", ref).limit(1);
+    if (data?.length) return data[0] as SeatRequest;
+  }
+  // 2. Pagó con el email del socio (viene precargado en el link).
+  {
+    const { data } = await base().ilike("partner_email", payerEmail).limit(1);
+    if (data?.length) return data[0] as SeatRequest;
+  }
+  // 3. Pagó con su propio email: la solicitud más vieja de ese participante.
+  const { data: host } = await db.from("users").select("id").ilike("email", payerEmail).maybeSingle();
+  if (host) {
+    const { data } = await base().eq("host_id", (host as { id: string }).id).limit(1);
+    if (data?.length) return data[0] as SeatRequest;
+  }
+  return null;
 }
