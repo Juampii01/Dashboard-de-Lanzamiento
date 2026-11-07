@@ -208,6 +208,14 @@ Cada participante con acceso puede invitar hasta 2 personas desde su perfil (`co
 - No se monta XpEngine, tutorial ni asistente; no cuenta en métricas del admin, envíos masivos ni sorteo.
 - Quitar una invitación aceptada borra la cuenta del viewer.
 
+## Segundo participante (pago)
+
+Un participante le compra el acceso a un socio desde su perfil (`components/seat-purchase.tsx` → `/api/seats`, tabla `seat_requests`).
+
+1. Carga nombre y email del socio → se crea la solicitud y se lo manda al link de Stripe (`app_settings.seat_payment_url`, con `prefilled_email` = socio y `client_reference_id` = `seat_<id>`). El precio que se muestra sale de `app_settings.seat_price_label`. Sin link cargado, el sector no aparece.
+2. El workflow de GHL del producto llama a `/api/webhooks/ghl?product=live&seat=1`. La compra se crea **a nombre del socio** (busca la solicitud por `seat_<id>`, por el email del socio o por el email de quien pagó) y se le manda el email de registro.
+3. El socio se registra con su email y es un participante normal (ranking, puntos, sorteo).
+
 ## Programas: en vivo y On Demand
 
 Una sola plataforma, una base y un repo, con dos programas que no se mezclan (migración `20261103000001`):
