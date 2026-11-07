@@ -6,6 +6,7 @@ import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-s
 import { fetchCapabilityImages } from "@/lib/unsplash";
 import { fetchLogoDataUri } from "@/lib/logo";
 import { createElement } from "react";
+import { getActor } from "@/lib/viewer";
 
 export async function GET() {
   const supabase = await createClient();
@@ -13,9 +14,9 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [{ data: profile }, { data: statement }, { data: userRow }] = await Promise.all([
-    supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
-    supabase.from("capability_statements").select("*").eq("user_id", user.id).single(),
-    supabase.from("users").select("full_name").eq("id", user.id).single(),
+    supabase.from("company_profiles").select("*").eq("user_id", (await getActor(user.id)).userId).single(),
+    supabase.from("capability_statements").select("*").eq("user_id", (await getActor(user.id)).userId).single(),
+    supabase.from("users").select("full_name").eq("id", (await getActor(user.id)).userId).single(),
   ]);
 
   if (!statement) {
@@ -67,7 +68,7 @@ export async function GET() {
 
   // Guardar ruta en storage_path si no existe
   if (!statement.pdf_storage_path) {
-    const path = `${user.id}/capability-statement.pdf`;
+    const path = `${(await getActor(user.id)).userId}/capability-statement.pdf`;
     await supabase.storage.from("deliverables").upload(path, buffer, {
       contentType: "application/pdf",
       upsert: true,
@@ -75,7 +76,7 @@ export async function GET() {
     await supabase
       .from("capability_statements")
       .update({ pdf_storage_path: path })
-      .eq("user_id", user.id);
+      .eq("user_id", (await getActor(user.id)).userId);
   }
 
   return new NextResponse(buffer, {

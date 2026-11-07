@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { CertificatePDF } from "@/components/pdfs/CertificatePDF";
 import { createElement } from "react";
+import { getActor } from "@/lib/viewer";
 
 export async function GET() {
   const supabase = await createClient();
@@ -13,7 +14,7 @@ export async function GET() {
   const { data: day4 } = await supabase
     .from("day_progress")
     .select("is_completed")
-    .eq("user_id", user.id)
+    .eq("user_id", (await getActor(user.id)).userId)
     .eq("day_number", 4)
     .maybeSingle();
 
@@ -27,7 +28,7 @@ export async function GET() {
   const { data: profile } = await supabase
     .from("users")
     .select("full_name")
-    .eq("id", user.id)
+    .eq("id", (await getActor(user.id)).userId)
     .single();
 
   const completedAt = new Date().toLocaleDateString("es-US", {

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getActor } from "@/lib/viewer";
 
 export async function GET(req: NextRequest) {
   const day = Number(req.nextUrl.searchParams.get("day") ?? "0");
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     const { data: completions } = await supabase
       .from("video_capsule_completions")
       .select("capsule_id, completed_at")
-      .eq("user_id", user.id)
+      .eq("user_id", (await getActor(user.id)).userId)
       .in("capsule_id", capsuleIds)
       .order("completed_at", { ascending: false });
 

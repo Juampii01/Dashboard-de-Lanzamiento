@@ -21,6 +21,7 @@ async function getAllRecipients(admin: ReturnType<typeof createServiceClient>): 
     .from("users")
     .select("email, full_name")
     .eq("is_admin", false)
+    .is("viewer_of", null)
     .eq("program", "live"); // la propuesta de mentoría masiva es del en vivo
   return ((users ?? []) as { email: string | null; full_name: string | null }[])
     .filter((u): u is { email: string; full_name: string | null } => !!u.email)

@@ -23,7 +23,8 @@ export async function GET() {
     .from("users")
     .select("id", { count: "exact", head: true })
     .gte("last_seen_at", since)
-    .eq("is_admin", false);
+    .eq("is_admin", false)
+    .is("viewer_of", null);
 
   return NextResponse.json({ online: count ?? 0 });
 }

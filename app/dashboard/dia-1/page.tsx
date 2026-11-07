@@ -12,6 +12,7 @@ import { isDayOpenFor } from "@/lib/supabase/day-access";
 import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
 import Link from "next/link";
+import { getActor } from "@/lib/viewer";
 
 async function getDia1Data(userId: string) {
   const supabase = await createClient();
@@ -54,11 +55,12 @@ export default async function Dia1Page() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const actor = await getActor(user.id);
 
-  const { progress, profile, toggle } = await getDia1Data(user.id);
+  const { progress, profile, toggle } = await getDia1Data(actor.userId);
 
   const { data: userProfile } = await createServiceClient()
-    .from("users").select("is_admin, total_points").eq("id", user.id).maybeSingle();
+    .from("users").select("is_admin, total_points").eq("id", actor.userId).maybeSingle();
   const isAdmin = userProfile?.is_admin ?? false;
   const over10k = (userProfile?.total_points ?? 0) >= 10000;
 
@@ -67,7 +69,7 @@ export default async function Dia1Page() {
   // completo detrás, con el contador como overlay encima (no interactuable).
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 1);
   // En vivo lo abre el admin; en on demand se abre al completar el día anterior.
-  const program = await getUserProgram(user.id);
+  const program = await getUserProgram(actor.userId);
   const isUnlocked = isDayOpenFor({
     program,
     isAdmin,
@@ -97,7 +99,7 @@ export default async function Dia1Page() {
         <OndemandRecording videoId={dayVideoId} title={dayVideoTitle || "Día 1 — Perfil Estratégico"} kicker="Clase grabada · Día 1" />
       )}
       <Dia1Client
-        userId={user.id}
+        userId={actor.userId}
         isCompleted={progress?.is_completed ?? false}
         existingProfile={profile}
         missions={<VideoCapsules day={1} isAdmin={isAdmin} over10k={over10k} />}

@@ -4,6 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { Day1AnalysisPDF } from "@/components/pdfs/Day1AnalysisPDF";
 import { createElement } from "react";
 import { fetchLogoDataUri } from "@/lib/logo";
+import { getActor } from "@/lib/viewer";
 
 export async function GET() {
   const supabase = await createClient();
@@ -13,7 +14,7 @@ export async function GET() {
   const { data: profile } = await supabase
     .from("company_profiles")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", (await getActor(user.id)).userId)
     .single();
 
   if (!profile) {

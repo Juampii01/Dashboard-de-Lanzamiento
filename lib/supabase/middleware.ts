@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "./types";
+import { isViewerJwt, VIEWER_ALLOWED_WRITES, VIEWER_READ_ONLY_MESSAGE } from "@/lib/viewer-shared";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -70,6 +71,19 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Proteger /dashboard y rutas de día — redirigir a login si no hay sesión
+  // Viewers (solo lectura): ninguna escritura llega a la API ni al admin.
+  if (user && isViewerJwt(user)) {
+    const isWrite = !["GET", "HEAD", "OPTIONS"].includes(request.method);
+    if (pathname.startsWith("/api/") && isWrite && !VIEWER_ALLOWED_WRITES.includes(pathname)) {
+      const res = NextResponse.json({ error: "viewer_read_only", message: VIEWER_READ_ONLY_MESSAGE }, { status: 403 });
+      supabaseResponse.cookies.getAll().forEach((c) => res.cookies.set(c));
+      return res;
+    }
+    if (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) {
+      return redirectWithCookies(new URL("/dashboard", request.url));
+    }
+  }
+
   if (!user && pathname.startsWith("/dashboard")) {
     return redirectWithCookies(new URL("/login", request.url));
   }

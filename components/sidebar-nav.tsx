@@ -33,6 +33,8 @@ interface SidebarNavProps {
   devMode: boolean;
   /** On demand: sin Ranking ni Misiones Extra (son del en vivo). */
   program?: "live" | "ondemand";
+  /** Cuenta de solo lectura (viewer). */
+  isViewer?: boolean;
 }
 
 const DAY_META: Record<number, { label: string; href: string }> = {
@@ -236,7 +238,7 @@ function SectionHeader({
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export function SidebarNav({ profile, email, progressMap, program = "live" }: SidebarNavProps) {
+export function SidebarNav({ profile, email, progressMap, program = "live", isViewer = false }: SidebarNavProps) {
   // On demand: sin Ranking ni Misiones Extra; en su lugar, misiones fijas y premios.
   const exploreItems = program === "ondemand"
     ? [
@@ -378,7 +380,7 @@ export function SidebarNav({ profile, email, progressMap, program = "live" }: Si
           borderBottom: "1px solid var(--sidebar-border)", flexShrink: 0,
         }}>
           {collapsed ? (
-            <ProfileButton fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} compact size={40} />
+            <ProfileButton viewer={isViewer} fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} compact size={40} />
           ) : (
             <>
               <div
@@ -389,7 +391,7 @@ export function SidebarNav({ profile, email, progressMap, program = "live" }: Si
                   borderRadius: 10, padding: "7px 9px", cursor: "pointer",
                 }}
               >
-                <ProfileButton fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} compact size={32} />
+                <ProfileButton viewer={isViewer} fullName={profile.full_name} email={email} avatarUrl={profile.avatar_url ?? null} compact size={32} />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{
                     display: "block", fontSize: 13, fontWeight: 700, color: "var(--sidebar-foreground)",
