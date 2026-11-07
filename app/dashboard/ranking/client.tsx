@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { FlagBanner } from "@/components/flag-banner";
-import { getRank, rankProgress, RANKS } from "@/lib/ranks";
+import { getRank, rankProgress, RANKS, PRIZES_VISIBLE } from "@/lib/ranks";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -99,7 +99,7 @@ function LeaderRow({
 // ─── MyRankCard ──────────────────────────────────────────────────────────────
 // Bloque "Tu rango" — se renderiza DENTRO del FlagBanner (sobre la bandera),
 // separado del título por un divisor. Sin caja propia: el banner da el fondo.
-function MyRankCard({ points }: { points: number }) {
+function MyRankCard({ points, showPrizes }: { points: number; showPrizes: boolean }) {
   const { rank, next, pointsToNext, pct } = rankProgress(points);
   return (
     <div style={{
@@ -117,9 +117,11 @@ function MyRankCard({ points }: { points: number }) {
           <p style={{ fontSize: "13px", color: "#C8D6E8", marginTop: 2 }}>
             {points.toLocaleString()} pts
           </p>
-          <p style={{ fontSize: "12.5px", color: "#C8D6E8", marginTop: 6 }}>
-            🎁 Participando por: <strong style={{ color: rank.color }}>{rank.prize}</strong>
-          </p>
+          {showPrizes && (
+            <p style={{ fontSize: "12.5px", color: "#C8D6E8", marginTop: 6 }}>
+              🎁 Participando por: <strong style={{ color: rank.color }}>{rank.prize}</strong>
+            </p>
+          )}
         </div>
         {next && (
           <div style={{ textAlign: "right" }}>
@@ -135,8 +137,8 @@ function MyRankCard({ points }: { points: number }) {
         </div>
         <p style={{ fontSize: "11.5px", color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
           {next
-            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para subir a <strong style={{ color: next.color }}>{next.name}</strong> y competir por <strong style={{ color: next.color }}>{next.prize}</strong>.</>
-            : <>¡Estás en <strong style={{ color: rank.color }}>{rank.name}</strong>, el rango máximo! 🎉 Compites por el premio mayor.</>}
+            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para subir a <strong style={{ color: next.color }}>{next.name}</strong>{showPrizes && <> y competir por <strong style={{ color: next.color }}>{next.prize}</strong></>}.</>
+            : <>¡Estás en <strong style={{ color: rank.color }}>{rank.name}</strong>, el rango máximo! 🎉{showPrizes && " Compites por el premio mayor."}</>}
         </p>
       </div>
 
@@ -157,7 +159,7 @@ function MyRankCard({ points }: { points: number }) {
 }
 
 // ─── RankColumn — una tabla por rango (top 20 + fila propia si está más abajo) ─
-function RankColumn({ rankKey, all, loading }: { rankKey: string; all: FullEntry[]; loading: boolean }) {
+function RankColumn({ rankKey, all, loading, showPrizes }: { rankKey: string; all: FullEntry[]; loading: boolean; showPrizes: boolean }) {
   const rankDef = RANKS.find((r) => r.key === rankKey);
   if (!rankDef) return null;
 
@@ -196,9 +198,11 @@ function RankColumn({ rankKey, all, loading }: { rankKey: string; all: FullEntry
         <p style={{ fontSize: 11, color: "#9FB4D4", margin: "7px 0 0", lineHeight: 1.3, fontWeight: 600 }}>
           {rankDef.min.toLocaleString()}{rankDef.max === Infinity ? "+" : `–${(rankDef.max - 1).toLocaleString()}`} pts
         </p>
-        <p style={{ fontSize: 11, color: rankDef.color, margin: "3px 0 0", lineHeight: 1.35, opacity: 0.95 }}>
-          🎁 {rankDef.prize}
-        </p>
+        {showPrizes && (
+          <p style={{ fontSize: 11, color: rankDef.color, margin: "3px 0 0", lineHeight: 1.35, opacity: 0.95 }}>
+            🎁 {rankDef.prize}
+          </p>
+        )}
       </div>
 
       {/* Rows */}
@@ -385,6 +389,8 @@ export function RankingClient({
   myPoints = 0,
   isAdmin = false,
 }: { isStudent?: boolean; studentPoints?: number; myPoints?: number; isAdmin?: boolean }) {
+  // Premios ocultos para los participantes (los admins los ven igual).
+  const showPrizes = PRIZES_VISIBLE || isAdmin;
   const [board, setBoard]     = useState<FullData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -416,7 +422,7 @@ export function RankingClient({
           color: "#FFD700", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "8px",
         }}>
-          🏆 Rangos y Premios
+          {showPrizes ? "🏆 Rangos y Premios" : "🏆 Rangos"}
         </p>
         <h1 style={{
           fontFamily: "var(--font-display)",
@@ -424,10 +430,12 @@ export function RankingClient({
           color: "#ffffff", lineHeight: 1.15,
           marginBottom: "6px",
         }}>
-          Sube de rango, gana premios
+          {showPrizes ? "Sube de rango, gana premios" : "Sube de rango"}
         </h1>
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.78)", maxWidth: "52ch" }}>
-          Acumula puntos y sube de rango. <strong style={{ color: "#fff" }}>Cada rango compite por su propio premio</strong> — se <strong style={{ color: "#fff" }}>sortea</strong> al cierre del challenge.
+          {showPrizes
+            ? <>Acumula puntos y sube de rango. <strong style={{ color: "#fff" }}>Cada rango compite por su propio premio</strong> — se <strong style={{ color: "#fff" }}>sortea</strong> al cierre del challenge.</>
+            : <>Acumula puntos y sube de rango. Los premios de cada rango se anuncian pronto.</>}
         </p>
 
         <p style={{
@@ -439,7 +447,7 @@ export function RankingClient({
         </p>
 
         {/* Tu rango — fusionado dentro del banner, sobre la bandera */}
-        {!loading && (isStudent ? <StudentNote points={studentPoints} /> : <MyRankCard points={me?.total_points ?? myPoints} />)}
+        {!loading && (isStudent ? <StudentNote points={studentPoints} /> : <MyRankCard points={me?.total_points ?? myPoints} showPrizes={showPrizes} />)}
         {!loading && isAdmin && (
           <p style={{ fontSize: "11.5px", color: "rgba(255,255,255,0.7)", marginTop: 10 }}>
             👁️ Eres admin: ves tu rango con tus puntos reales, pero no figuras en el ranking ni compites por premios.
@@ -451,7 +459,8 @@ export function RankingClient({
       {/* Cómo sumar puntos — guía completa de todas las formas de ganar */}
       <HowToEarnPoints over10k={(me?.total_points ?? 0) >= 10000} />
 
-      {/* Prize tiers */}
+      {/* Prize tiers (ocultos para participantes mientras PRIZES_VISIBLE = false) */}
+      {showPrizes && (
       <div style={{
         background: "rgba(10,37,64,0.8)",
         border: "1px solid #1E3A5C",
@@ -501,6 +510,7 @@ export function RankingClient({
           </div>
         ))}
       </div>
+      )}
 
       {/* Tablas de líderes — 4 columnas, una por rango */}
       <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, color: "#8DA2C4", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "14px" }}>
@@ -514,7 +524,7 @@ export function RankingClient({
         alignItems: "start",
       }}>
         {RANK_ORDER.map((key) => (
-          <RankColumn key={key} rankKey={key} all={all} loading={loading} />
+          <RankColumn key={key} rankKey={key} all={all} loading={loading} showPrizes={showPrizes} />
         ))}
       </div>
 
@@ -522,7 +532,7 @@ export function RankingClient({
       {!loading && (
         <p style={{ textAlign: "center", fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8", marginTop: 16 }}>
           {total > 0 ? `${total} participante${total !== 1 ? "s" : ""} · ` : ""}
-          Al cierre del challenge los premios se sortean — más rango, más chances
+          {showPrizes ? "Al cierre del challenge los premios se sortean — más rango, más chances" : "Más puntos, más rango"}
         </p>
       )}
     </div>

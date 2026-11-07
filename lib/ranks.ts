@@ -83,3 +83,10 @@ export function rankProgress(points: number): RankProgress {
     pct: Math.min(100, Math.round((into / span) * 100)),
   };
 }
+
+/**
+ * Premios visibles para los participantes. En false, el Ranking muestra los
+ * rangos pero no qué se gana (los admins los ven siempre). El asistente
+ * (lib/assistant.ts) tampoco los menciona.
+ */
+export const PRIZES_VISIBLE = false;

@@ -11,7 +11,7 @@ const SUGGESTIONS = [
   "Mi página web no quedó bien, ¿qué hago?",
   "¿Cómo sumo más puntos?",
   "¿Cómo se desbloquean los días?",
-  "¿Qué son los rangos y premios?",
+  "¿Cómo funcionan los rangos?",
 ];
 
 const HINT_KEY = "govbidder_assistant_hint_v1";
