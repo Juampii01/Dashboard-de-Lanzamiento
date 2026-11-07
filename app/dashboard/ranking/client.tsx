@@ -96,6 +96,22 @@ function LeaderRow({
   );
 }
 
+// ─── Premio tapado ───────────────────────────────────────────────────────────
+// Mientras PRIZES_VISIBLE = false, el premio se muestra borroso con texto de
+// relleno (el real no llega al navegador, así no se puede leer en el código).
+function CoveredPrize({ size = 12.5, text = "Premio sorpresa del rango" }: { size?: number; text?: string }) {
+  return (
+    <span
+      aria-label="Premio oculto: se revela pronto"
+      title="Se revela pronto"
+      style={{ display: "inline-flex", alignItems: "center", gap: 5, verticalAlign: "middle" }}
+    >
+      <span aria-hidden style={{ filter: "blur(5px)", userSelect: "none", fontSize: size, fontWeight: 700 }}>{text}</span>
+      <span aria-hidden style={{ fontSize: size }}>🔒</span>
+    </span>
+  );
+}
+
 // ─── MyRankCard ──────────────────────────────────────────────────────────────
 // Bloque "Tu rango" — se renderiza DENTRO del FlagBanner (sobre la bandera),
 // separado del título por un divisor. Sin caja propia: el banner da el fondo.
@@ -117,11 +133,10 @@ function MyRankCard({ points, showPrizes }: { points: number; showPrizes: boolea
           <p style={{ fontSize: "13px", color: "#C8D6E8", marginTop: 2 }}>
             {points.toLocaleString()} pts
           </p>
-          {showPrizes && (
-            <p style={{ fontSize: "12.5px", color: "#C8D6E8", marginTop: 6 }}>
-              🎁 Participando por: <strong style={{ color: rank.color }}>{rank.prize}</strong>
-            </p>
-          )}
+          <p style={{ fontSize: "12.5px", color: "#C8D6E8", marginTop: 6 }}>
+            🎁 Participando por:{" "}
+            {showPrizes ? <strong style={{ color: rank.color }}>{rank.prize}</strong> : <span style={{ color: rank.color }}><CoveredPrize /></span>}
+          </p>
         </div>
         {next && (
           <div style={{ textAlign: "right" }}>
@@ -137,8 +152,8 @@ function MyRankCard({ points, showPrizes }: { points: number; showPrizes: boolea
         </div>
         <p style={{ fontSize: "11.5px", color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
           {next
-            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para subir a <strong style={{ color: next.color }}>{next.name}</strong>{showPrizes && <> y competir por <strong style={{ color: next.color }}>{next.prize}</strong></>}.</>
-            : <>¡Estás en <strong style={{ color: rank.color }}>{rank.name}</strong>, el rango máximo! 🎉{showPrizes && " Compites por el premio mayor."}</>}
+            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para subir a <strong style={{ color: next.color }}>{next.name}</strong>{showPrizes ? <> y competir por <strong style={{ color: next.color }}>{next.prize}</strong></> : <> y competir por un premio más grande</>}.</>
+            : <>¡Estás en <strong style={{ color: rank.color }}>{rank.name}</strong>, el rango máximo! 🎉 Compites por el premio mayor.</>}
         </p>
       </div>
 
@@ -198,11 +213,9 @@ function RankColumn({ rankKey, all, loading, showPrizes }: { rankKey: string; al
         <p style={{ fontSize: 11, color: "#9FB4D4", margin: "7px 0 0", lineHeight: 1.3, fontWeight: 600 }}>
           {rankDef.min.toLocaleString()}{rankDef.max === Infinity ? "+" : `–${(rankDef.max - 1).toLocaleString()}`} pts
         </p>
-        {showPrizes && (
-          <p style={{ fontSize: 11, color: rankDef.color, margin: "3px 0 0", lineHeight: 1.35, opacity: 0.95 }}>
-            🎁 {rankDef.prize}
-          </p>
-        )}
+        <p style={{ fontSize: 11, color: rankDef.color, margin: "3px 0 0", lineHeight: 1.35, opacity: 0.95 }}>
+          🎁 {showPrizes ? rankDef.prize : <CoveredPrize size={11} text="Premio sorpresa" />}
+        </p>
       </div>
 
       {/* Rows */}
@@ -422,7 +435,7 @@ export function RankingClient({
           color: "#FFD700", textTransform: "uppercase",
           letterSpacing: "0.14em", marginBottom: "8px",
         }}>
-          {showPrizes ? "🏆 Rangos y Premios" : "🏆 Rangos"}
+          🏆 Rangos y Premios
         </p>
         <h1 style={{
           fontFamily: "var(--font-display)",
@@ -430,12 +443,12 @@ export function RankingClient({
           color: "#ffffff", lineHeight: 1.15,
           marginBottom: "6px",
         }}>
-          {showPrizes ? "Sube de rango, gana premios" : "Sube de rango"}
+          Sube de rango, gana premios
         </h1>
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.78)", maxWidth: "52ch" }}>
           {showPrizes
             ? <>Acumula puntos y sube de rango. <strong style={{ color: "#fff" }}>Cada rango compite por su propio premio</strong> — se <strong style={{ color: "#fff" }}>sortea</strong> al cierre del challenge.</>
-            : <>Acumula puntos y sube de rango. Los premios de cada rango se anuncian pronto.</>}
+            : <>Acumula puntos y sube de rango. <strong style={{ color: "#fff" }}>Cada rango compite por su propio premio</strong> — los premios se revelan muy pronto. 🔒</>}
         </p>
 
         <p style={{
@@ -459,8 +472,7 @@ export function RankingClient({
       {/* Cómo sumar puntos — guía completa de todas las formas de ganar */}
       <HowToEarnPoints over10k={(me?.total_points ?? 0) >= 10000} />
 
-      {/* Prize tiers (ocultos para participantes mientras PRIZES_VISIBLE = false) */}
-      {showPrizes && (
+      {/* Prize tiers (tapados para participantes mientras PRIZES_VISIBLE = false) */}
       <div style={{
         background: "rgba(10,37,64,0.8)",
         border: "1px solid #1E3A5C",
@@ -492,7 +504,9 @@ export function RankingClient({
               <p style={{ fontFamily: "var(--font-sans)", fontSize: "14px", fontWeight: 700, color: r.color, marginBottom: "2px" }}>
                 {r.emoji} {r.name} · {r.max === Infinity ? `${r.min.toLocaleString("en-US")}+` : `${r.min.toLocaleString("en-US")}–${(r.max - 1).toLocaleString("en-US")}`} pts
               </p>
-              <p style={{ fontSize: "13px", color: "#C8D6E8", lineHeight: 1.45 }}>{r.prizeDetail}</p>
+              <p style={{ fontSize: "13px", color: "#C8D6E8", lineHeight: 1.45 }}>
+                {showPrizes ? r.prizeDetail : <CoveredPrize size={13} text="Un premio especial para este rango, se revela pronto" />}
+              </p>
               <p style={{ fontSize: "11.5px", color: "#8DA2C4", marginTop: "3px" }}>
                 {r.winners > 1
                   ? <>Elegimos <strong style={{ color: "#FFFFFF" }}>{r.winners} ganadores</strong> en este rango. Cada ganador recibe 1 premio.</>
@@ -509,8 +523,15 @@ export function RankingClient({
             </span>
           </div>
         ))}
+        {!showPrizes && (
+          <div style={{
+            padding: "12px 16px", textAlign: "center", fontSize: "12.5px", fontWeight: 700,
+            color: "#FFD60A", background: "rgba(255,214,10,0.08)", borderTop: "1px solid rgba(255,214,10,0.25)",
+          }}>
+            🔒 Los premios se revelan muy pronto. Mientras tanto, suma puntos para llegar al rango más alto.
+          </div>
+        )}
       </div>
-      )}
 
       {/* Tablas de líderes — 4 columnas, una por rango */}
       <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", fontWeight: 800, color: "#8DA2C4", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: "14px" }}>
@@ -532,7 +553,7 @@ export function RankingClient({
       {!loading && (
         <p style={{ textAlign: "center", fontFamily: "var(--font-mono)", fontSize: "9px", color: "#647FA8", marginTop: 16 }}>
           {total > 0 ? `${total} participante${total !== 1 ? "s" : ""} · ` : ""}
-          {showPrizes ? "Al cierre del challenge los premios se sortean — más rango, más chances" : "Más puntos, más rango"}
+          Al cierre del challenge los premios se sortean — más rango, más chances
         </p>
       )}
     </div>
