@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getActor } from "@/lib/viewer";
 
 const SAM_SEARCH = "https://api.sam.gov/opportunities/v2/search";
 
@@ -42,7 +43,7 @@ export async function GET() {
       const { data: profile } = await supabase
         .from("company_profiles")
         .select("primary_naics")
-        .eq("user_id", auth.user.id)
+        .eq("user_id", (await getActor(auth.user.id)).userId)
         .maybeSingle();
 
       if (profile?.primary_naics) naicsCodes.push(profile.primary_naics);
@@ -50,7 +51,7 @@ export async function GET() {
       const { data: expansion } = await supabase
         .from("naics_expansions")
         .select("related_codes")
-        .eq("user_id", auth.user.id)
+        .eq("user_id", (await getActor(auth.user.id)).userId)
         .maybeSingle();
 
       if (Array.isArray(expansion?.related_codes)) {

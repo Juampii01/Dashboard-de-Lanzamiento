@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { ViewerInvites } from "@/components/viewer-invites";
 import { Camera, Check, Copy, Link2, Loader2, Mail, X } from "lucide-react";
 import { AvatarCropModal } from "@/components/avatar-upload";
 import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
@@ -22,6 +23,7 @@ export function ProfileButton({
   avatarUrl,
   compact = false,
   size = 28,
+  viewer = false,
 }: {
   fullName: string;
   email: string;
@@ -30,6 +32,8 @@ export function ProfileButton({
   compact?: boolean;
   /** Avatar diameter in px */
   size?: number;
+  /** Cuenta de solo lectura: el perfil se muestra sin edición ni invitaciones. */
+  viewer?: boolean;
 }) {
   // ── Avatar: fuente de verdad única (compartida con la barra de progreso) ──
   const { photoUrl } = useUserAvatar(avatarUrl);
@@ -126,7 +130,7 @@ export function ProfileButton({
   }, [editName, displayName, nameSaving]);
 
   const initial  = (displayName ?? "U")[0]?.toUpperCase() ?? "U";
-  const canSave  = editName.trim().length >= 2 && editName.trim() !== displayName;
+  const canSave = !viewer && (editName.trim().length >= 2 && editName.trim() !== displayName);
 
   const saveBtnBg =
     nameStatus === "saved" ? "#00D67A" :
@@ -309,7 +313,7 @@ export function ProfileButton({
               >
                 <div
                   style={{ position: "relative", cursor: "pointer" }}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => { if (!viewer) fileInputRef.current?.click(); }}
                   title="Cambiar avatar"
                 >
                   {/* Glow ring */}
@@ -387,7 +391,7 @@ export function ProfileButton({
               </div>
 
               {/* ── Delete avatar button (only shown when avatar exists) ── */}
-              {photoUrl && (
+              {photoUrl && !viewer && (
                 <div style={{ display: "flex", justifyContent: "center", marginBottom: "4px", marginTop: "-12px" }}>
                   <button
                     onClick={handleDeleteAvatar}
@@ -553,7 +557,7 @@ export function ProfileButton({
                 </div>
 
                 {/* Link de referido — también aquí para que se encuentre fácil */}
-                {refLink && (
+                {refLink && !viewer && (
                   <div>
                     <label style={{ display: "block", fontSize: "10px", fontWeight: 600, color: "#A0BCDE", letterSpacing: "0.08em", marginBottom: "6px" }}>
                       TU LINK DE REFERIDO
@@ -584,6 +588,14 @@ export function ProfileButton({
                       Compártelo: sumas puntos por cada persona que invitas y paga el acceso.
                     </p>
                   </div>
+                )}
+
+                {viewer ? (
+                  <p style={{ fontSize: "12px", color: "#A0BCDE", lineHeight: 1.5, margin: 0 }}>
+                    Estás en modo visualización: puedes ver la cuenta de quien te invitó, pero no hacer cambios.
+                  </p>
+                ) : (
+                  <ViewerInvites />
                 )}
               </div>
             </div>

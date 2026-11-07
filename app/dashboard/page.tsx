@@ -10,6 +10,7 @@ import { getOrCreateReferralCode, referralLink, REFERRAL_LEAD_XP } from "@/lib/r
 import { getUserProgram } from "@/lib/program-server";
 import { getRecordings, youtubeId } from "@/lib/recordings";
 import type { Program } from "@/lib/program";
+import { getActor } from "@/lib/viewer";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 function isSupabaseConfigured() {
@@ -51,25 +52,26 @@ export default async function DashboardPage() {
       // Network unreachable
     }
     if (!user) redirect("/login");
-    userId = user.id;
+    const actor = await getActor(user.id);
+    userId = actor.userId;
 
     const { data: profile } = await createServiceClient()
       .from("users")
       .select("full_name, total_points, avatar_url, is_admin")
-      .eq("id", user.id)
+      .eq("id", actor.userId)
       .maybeSingle();
 
     fullName = profile?.full_name ?? "Usuario";
     initialPoints = (profile?.total_points as number | null) ?? 0;
     avatarUrl = (profile as { avatar_url?: string | null })?.avatar_url ?? null;
     isAdmin = (profile as { is_admin?: boolean } | null)?.is_admin === true;
-    program = await getUserProgram(user.id);
+    program = await getUserProgram(actor.userId);
 
     // Link de referido: se muestra desde ANTES del lanzamiento para que la
     // gente invite apenas compra (en el lanzamiento anterior se activó al final).
     // On demand: sin referidos (el link lleva a la compra del en vivo).
     if (program === "live") {
-      const refCode = await getOrCreateReferralCode(createServiceClient(), user.id).catch(() => null);
+      const refCode = await getOrCreateReferralCode(createServiceClient(), actor.userId).catch(() => null);
       refLink = refCode ? referralLink(refCode) : null;
     }
 

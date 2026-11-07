@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { ProximoPasoUnlocked } from "./unlocked";
+import { getActor } from "@/lib/viewer";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -17,11 +18,12 @@ export default async function ProximoPasoPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/login");
+    const actor = await getActor(user.id);
 
     const service = createServiceClient();
     const [{ data: progress }, { data: profile }, { data: toggle }] = await Promise.all([
-      service.from("day_progress").select("day_number, is_completed").eq("user_id", user.id),
-      service.from("users").select("full_name, is_admin").eq("id", user.id).maybeSingle(),
+      service.from("day_progress").select("day_number, is_completed").eq("user_id", actor.userId),
+      service.from("users").select("full_name, is_admin").eq("id", actor.userId).maybeSingle(),
       service.from("admin_toggles").select("is_globally_unlocked").eq("day_number", 5).maybeSingle(),
     ]);
 

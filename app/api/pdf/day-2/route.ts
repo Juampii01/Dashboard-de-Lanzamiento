@@ -4,6 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { Day2CodeMapPDF } from "@/components/pdfs/Day2CodeMapPDF";
 import { createElement } from "react";
 import { fetchLogoDataUri } from "@/lib/logo";
+import { getActor } from "@/lib/viewer";
 
 export async function GET() {
   const supabase = await createClient();
@@ -11,8 +12,8 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [{ data: profile }, { data: expansion }] = await Promise.all([
-    supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
-    supabase.from("naics_expansions").select("*").eq("user_id", user.id).single(),
+    supabase.from("company_profiles").select("*").eq("user_id", (await getActor(user.id)).userId).single(),
+    supabase.from("naics_expansions").select("*").eq("user_id", (await getActor(user.id)).userId).single(),
   ]);
 
   if (!expansion) {

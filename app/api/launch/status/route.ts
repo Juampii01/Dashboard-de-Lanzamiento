@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getActor } from "@/lib/viewer";
 
 /**
  * GET /api/launch/status?day=N
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
   const { data: profile } = await service
     .from("users")
     .select("is_admin")
-    .eq("id", user.id)
+    .eq("id", (await getActor(user.id)).userId)
     .maybeSingle();
   if ((profile as { is_admin?: boolean } | null)?.is_admin) {
     return NextResponse.json({ unlocked: true });

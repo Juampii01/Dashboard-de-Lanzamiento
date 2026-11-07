@@ -71,7 +71,7 @@ export async function GET() {
 
   const [{ data: users, error: usersError }, { data: confirmedPayers, error: payersError }, { data: winnersData, error: winnersError }, { data: mentorshipBuyers, error: mentorshipError }] = await Promise.all([
     // El sorteo es solo del en vivo: los de on demand no participan.
-    auth.service.from("users").select("id, full_name, email, total_points, is_admin, is_student, last_seen_at").eq("program", "live"),
+    auth.service.from("users").select("id, full_name, email, total_points, is_admin, is_student, last_seen_at").eq("program", "live").is("viewer_of", null),
     auth.service.from("sorteo_confirmed_payers").select("email"),
     auth.service.from("sorteo_winners").select("id, rank_key, user_id, drawn_at, status, claimed_at"),
     auth.service.from("sorteo_mentorship_buyers").select("email"),

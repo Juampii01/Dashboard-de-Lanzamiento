@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       .from("users")
       .select("email")
       .eq("is_admin", false)
+      .is("viewer_of", null)
       .eq("program", "live") // los envíos masivos son del en vivo
       .order("email");
     const allEmails = ((users ?? []) as { email: string | null }[])

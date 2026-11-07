@@ -13,6 +13,7 @@ import { OndemandRecording } from "@/components/ondemand-recording";
 import { isDayOpenFor } from "@/lib/supabase/day-access";
 import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
+import { getActor } from "@/lib/viewer";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -35,14 +36,15 @@ export default async function Dia3Page() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const actor = await getActor(user.id);
 
   const [toggle, { data: progress }, { data: profile }, { data: expansion }, { data: adminUser }] =
     await Promise.all([
       getAdminToggle(supabase, 3),
-      supabase.from("day_progress").select("is_unlocked, is_completed").eq("user_id", user.id).eq("day_number", 3).single(),
-      supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
-      supabase.from("naics_expansions").select("keywords_expanded").eq("user_id", user.id).single(),
-      supabase.from("users").select("is_admin, total_points").eq("id", user.id).single(),
+      supabase.from("day_progress").select("is_unlocked, is_completed").eq("user_id", actor.userId).eq("day_number", 3).single(),
+      supabase.from("company_profiles").select("*").eq("user_id", actor.userId).single(),
+      supabase.from("naics_expansions").select("keywords_expanded").eq("user_id", actor.userId).single(),
+      supabase.from("users").select("is_admin, total_points").eq("id", actor.userId).single(),
     ]);
 
   const isAdmin = adminUser?.is_admin === true;
@@ -52,7 +54,7 @@ export default async function Dia3Page() {
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético.
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 3);
   // En vivo lo abre el admin; en on demand se abre al completar el día anterior.
-  const program = await getUserProgram(user.id);
+  const program = await getUserProgram(actor.userId);
   const isUnlocked = isDayOpenFor({
     program,
     isAdmin,
@@ -66,7 +68,7 @@ export default async function Dia3Page() {
   const dayVideoId = youtubeId(dayRec?.url);
   const dayVideoTitle = dayRec?.title ?? null;
 
-  const { data: webPreview } = await supabase.from("web_previews").select("*").eq("user_id", user.id).maybeSingle();
+  const { data: webPreview } = await supabase.from("web_previews").select("*").eq("user_id", actor.userId).maybeSingle();
 
   return (
     <div className="space-y-8 gb-day-wide" style={{ position: "relative" }}>
@@ -76,7 +78,7 @@ export default async function Dia3Page() {
       )}
       <VideoCapsules day={3} isAdmin={isAdmin} over10k={over10k} />
       <Dia3Client
-      userId={user.id}
+      userId={actor.userId}
       isCompleted={progress?.is_completed ?? false}
       existingPreview={webPreview}
       profile={profile}

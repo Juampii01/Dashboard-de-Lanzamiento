@@ -30,6 +30,7 @@ export async function getUsersAndProgress() {
       supabase
         .from("users")
         .select("id, email, full_name, total_points, access_expires_at, last_seen_at, is_admin, is_student")
+        .is("viewer_of", null) // los viewers (solo lectura) no son participantes
         .order("created_at", { ascending: false })
         .range(from, to)
     ),

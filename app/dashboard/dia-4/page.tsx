@@ -13,6 +13,7 @@ import { OndemandRecording } from "@/components/ondemand-recording";
 import { isDayOpenFor } from "@/lib/supabase/day-access";
 import { CLASS_LINKS } from "@/lib/class-links";
 import { dayUnlockIso } from "@/lib/launch";
+import { getActor } from "@/lib/viewer";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -35,14 +36,15 @@ export default async function Dia4Page() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+  const actor = await getActor(user.id);
 
   const [toggle, { data: progress }, { data: profile }, { data: expansion }, { data: adminUser }] =
     await Promise.all([
       getAdminToggle(supabase, 4),
-      supabase.from("day_progress").select("is_unlocked, is_completed").eq("user_id", user.id).eq("day_number", 4).single(),
-      supabase.from("company_profiles").select("*").eq("user_id", user.id).single(),
-      supabase.from("naics_expansions").select("*").eq("user_id", user.id).single(),
-      supabase.from("users").select("is_admin, total_points").eq("id", user.id).single(),
+      supabase.from("day_progress").select("is_unlocked, is_completed").eq("user_id", actor.userId).eq("day_number", 4).single(),
+      supabase.from("company_profiles").select("*").eq("user_id", actor.userId).single(),
+      supabase.from("naics_expansions").select("*").eq("user_id", actor.userId).single(),
+      supabase.from("users").select("is_admin, total_points").eq("id", actor.userId).single(),
     ]);
 
   const isAdmin = adminUser?.is_admin === true;
@@ -52,7 +54,7 @@ export default async function Dia4Page() {
   // apunta a la hora de la clase (7pm Miami) y es solo cosmético.
   const targetIso = dayUnlockIso(toggle?.scheduled_unlock_at, 4);
   // En vivo lo abre el admin; en on demand se abre al completar el día anterior.
-  const program = await getUserProgram(user.id);
+  const program = await getUserProgram(actor.userId);
   const isUnlocked = isDayOpenFor({
     program,
     isAdmin,
@@ -68,9 +70,9 @@ export default async function Dia4Page() {
 
   const [{ data: capabilityStatement }, { data: sorteoSubmission }, { data: userProfile }] =
     await Promise.all([
-      supabase.from("capability_statements").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("sorteo_submissions").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("users").select("full_name, access_expires_at").eq("id", user.id).maybeSingle(),
+      supabase.from("capability_statements").select("*").eq("user_id", actor.userId).maybeSingle(),
+      supabase.from("sorteo_submissions").select("*").eq("user_id", actor.userId).maybeSingle(),
+      supabase.from("users").select("full_name, access_expires_at").eq("id", actor.userId).maybeSingle(),
     ]);
 
   return (
@@ -81,7 +83,7 @@ export default async function Dia4Page() {
       )}
       <VideoCapsules day={4} isAdmin={isAdmin} over10k={over10k} />
       <Dia4Client
-      userId={user.id}
+      userId={actor.userId}
       isCompleted={progress?.is_completed ?? false}
       existingStatement={capabilityStatement}
       existingSorteo={sorteoSubmission}

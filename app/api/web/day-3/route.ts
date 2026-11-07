@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { buildWebDocument } from "@/lib/web-compliance";
+import { getActor } from "@/lib/viewer";
 
 /**
  * GET /api/web/day-3
@@ -16,12 +17,12 @@ export async function GET() {
     supabase
       .from("web_previews")
       .select("generated_html, generated_css")
-      .eq("user_id", user.id)
+      .eq("user_id", (await getActor(user.id)).userId)
       .maybeSingle(),
     supabase
       .from("company_profiles")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("user_id", (await getActor(user.id)).userId)
       .maybeSingle(),
   ]);
 

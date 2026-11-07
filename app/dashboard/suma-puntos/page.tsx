@@ -10,6 +10,7 @@ import { getDailyMissionCloseState } from "@/lib/daily-mission";
 import Link from "next/link";
 import { redirectOndemandToHome } from "@/lib/program-server";
 import { areMissionsVisible } from "@/lib/missions-visibility";
+import { getActor } from "@/lib/viewer";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -84,6 +85,8 @@ async function getContext(): Promise<PageCtx> {
       rafagas: [], rafagaClaimedIds: [], missionsHidden: false,
     };
   }
+  const actor = await getActor(user.id);
+
 
   const service = createServiceClient();
 
@@ -99,19 +102,19 @@ async function getContext(): Promise<PageCtx> {
     rafagaSubsRows,
     missionsVisible,
   ] = await Promise.all([
-    service.from("users").select("is_admin, total_points").eq("id", user.id).maybeSingle(),
-    getOrCreateReferralCode(service, user.id),
+    service.from("users").select("is_admin, total_points").eq("id", actor.userId).maybeSingle(),
+    getOrCreateReferralCode(service, actor.userId),
     service.from("daily_missions").select("id, title, description, points_reward").eq("is_active", true).maybeSingle(),
     service.from("call_keywords").select("day_number").order("day_number"),
-    service.from("keyword_submissions").select("day_number").eq("user_id", user.id),
-    service.from("story_submissions").select("id").eq("user_id", user.id).eq("submission_date", getMiamiStoryDate()).maybeSingle(),
+    service.from("keyword_submissions").select("day_number").eq("user_id", actor.userId),
+    service.from("story_submissions").select("id").eq("user_id", actor.userId).eq("submission_date", getMiamiStoryDate()).maybeSingle(),
     // Ráfagas activas; se filtran abajo por fin de ventana (no por inicio, así
     // una ventana larga que empezó hace más de una semana sigue apareciendo).
     service.from("rafaga_missions")
       .select("*")
       .eq("is_active", true)
       .order("starts_at", { ascending: false }),
-    service.from("rafaga_submissions").select("rafaga_id").eq("user_id", user.id),
+    service.from("rafaga_submissions").select("rafaga_id").eq("user_id", actor.userId),
     areMissionsVisible(service),
   ]);
 
@@ -134,7 +137,7 @@ async function getContext(): Promise<PageCtx> {
     const { data: sub } = await service
       .from("mission_submissions")
       .select("status")
-      .eq("user_id", user.id)
+      .eq("user_id", actor.userId)
       .eq("mission_id", mission.id)
       .maybeSingle();
     missionDone = (sub as { status?: string } | null)?.status === "approved";

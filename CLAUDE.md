@@ -197,6 +197,17 @@ Reglas:
 - Registro gratuito (no compite por premios): `/registro/gratis`.
 - Recordatorio de registro a quien pagó y no tiene cuenta (`lib/access/registration-reminders.ts`): manual desde `/admin/comunicaciones` y automático por Vercel Cron (`/api/cron/registration-reminder`, 15:00 UTC, `CRON_SECRET`). Máximo 3 por compra, 48 h entre envíos, primero a las 20 h de la compra. Se apaga con `app_settings.registration_reminders_auto = 'false'`. Contadores en `purchases.registration_reminders_sent` / `last_registration_reminder_at`.
 
+## Viewers (cuentas de solo lectura)
+
+Cada participante con acceso puede invitar hasta 2 personas desde su perfil (`components/viewer-invites.tsx` → `/api/viewers`). La invitación llega por email con un link a `/registro/invitado?token=…` (`/api/auth/register-viewer`).
+
+- La cuenta queda con `users.viewer_of = <anfitrión>` y `app_metadata.viewer_of` en el JWT.
+- **Lecturas**: toda página y ruta GET usa `getActor(user.id).userId` (`lib/viewer.ts`), que es el anfitrión si la cuenta es viewer. Si agregas una página o ruta GET nueva que lee datos del usuario, usa `getActor`, no `user.id`.
+- **Escrituras**: el middleware (`lib/supabase/middleware.ts`) devuelve 403 `viewer_read_only` a cualquier POST/PUT/PATCH/DELETE a `/api/*` de un viewer (salvo `/api/auth/signout`) y lo saca de `/admin`. RLS solo le da SELECT sobre las filas del anfitrión (políticas `<tabla>: viewer select`).
+- RPCs: `effective_uid()` = anfitrión o el propio. `get_leaderboard()` y `get_points_breakdown()` lo usan; el ranking excluye `viewer_of IS NOT NULL`.
+- No se monta XpEngine, tutorial ni asistente; no cuenta en métricas del admin, envíos masivos ni sorteo.
+- Quitar una invitación aceptada borra la cuenta del viewer.
+
 ## Programas: en vivo y On Demand
 
 Una sola plataforma, una base y un repo, con dos programas que no se mezclan (migración `20261103000001`):

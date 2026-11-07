@@ -14,6 +14,9 @@ import { SidebarNav } from "@/components/sidebar-nav";
 import { DayTabs } from "@/components/day-tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { DashboardAssistant } from "@/components/dashboard-assistant";
+import { getActor } from "@/lib/viewer";
+import { ViewerBanner } from "@/components/viewer-banner";
+import { ViewerFetchGuard } from "@/components/viewer-fetch-guard";
 import { LaunchCountdown } from "@/components/launch-countdown";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { inicioUnlockIso } from "@/lib/launch";
@@ -47,7 +50,7 @@ const SAFE_EMPTY_PROFILE = {
   hotmart_transaction_id: null as string | null,
 };
 
-async function getLayoutData(userId: string) {
+async function getLayoutData(userId: string, readOnly = false) {
   // Use service client so RLS never blocks reading the user's own profile/progress
   const supabase = createServiceClient();
 
@@ -66,7 +69,7 @@ async function getLayoutData(userId: string) {
   // Registrar "ingreso al dashboard": marca last_seen_at la primera vez y luego
   // como máximo cada 10 min (evita un write por navegación). Query separada y
   // tolerante: si la columna last_seen_at aún no existe, no rompe el dashboard.
-  if (user) {
+  if (user && !readOnly) {
     const { data: seenRow, error: seenErr } = await supabase
       .from("users")
       .select("last_seen_at")
@@ -84,7 +87,7 @@ async function getLayoutData(userId: string) {
   // Racha diaria (+300 desde el día 2). Idempotente por fecha. Tolerante si la
   // RPC/columnas aún no existen.
   let streak = 0;
-  if (user) {
+  if (user && !readOnly) {
     try {
       const { data: streakRes, error: streakErr } = await supabase.rpc("claim_daily_streak", { p_user_id: userId });
       if (!streakErr && streakRes) {
@@ -131,6 +134,8 @@ export default async function DashboardLayout({
   let completedDays = 0;
   let userEmail = "";
   let authUserId = "";
+  let isViewer = false;
+  let viewerHostName: string | null = null;
   let streak = 0;
   let program: Program = "live";
   let progressMapFromLayout: Record<number, { is_unlocked: boolean; is_completed: boolean }> = {};
@@ -156,16 +161,20 @@ export default async function DashboardLayout({
     if (!user) redirect("/login");
 
     userEmail = user.email ?? "";
-    authUserId = user.id;
+    // Viewer (solo lectura): se muestran los datos de quien lo invitó.
+    const actor = await getActor(user.id);
+    isViewer = actor.isViewer;
+    viewerHostName = actor.hostName;
+    authUserId = actor.userId;
 
-    const layoutData = await getLayoutData(user.id);
+    const layoutData = await getLayoutData(actor.userId, actor.isViewer);
     // Use SAFE_EMPTY_PROFILE (not DEV_PROFILE) so that users without a DB row
     // never accidentally get is_admin: true
     profile = layoutData.user ?? SAFE_EMPTY_PROFILE;
     completedDays = layoutData.completedDays;
     progressMapFromLayout = layoutData.progressMap;
     streak = layoutData.streak ?? 0;
-    program = await getUserProgram(user.id);
+    program = await getUserProgram(actor.userId);
 
     // Cada programa vive en su dominio (en vivo: dboard, on demand: ondemand).
     // Si la persona entra por el otro, se la manda al suyo. Solo entre los
@@ -209,7 +218,7 @@ export default async function DashboardLayout({
     // Participante de un lanzamiento anterior que volvió a comprar: si hay una
     // compra del lanzamiento actual con el email de su cuenta, se vincula aquí
     // y entra directo (sin pasar por /registro ni por verificación manual).
-    if (!devMode && userEmail) {
+    if (!devMode && userEmail && !isViewer) {
       const claim = await autoClaimByAccountEmail(
         createServiceClient() as unknown as Parameters<typeof autoClaimByAccountEmail>[0],
         authUserId,
@@ -316,7 +325,8 @@ export default async function DashboardLayout({
       <UnlockEventListener />
       {/* On demand: sin heartbeat ni click en el avatar (puntos por dejar la
           pestaña abierta). Los premios on demand son por umbral de puntos. */}
-      {!devMode && program === "live" && <XpEngine />}
+      {!devMode && program === "live" && !isViewer && <XpEngine />}
+      {isViewer && <ViewerFetchGuard />}
 
       {/* ── SIDEBAR — columna izquierda, altura completa ── */}
       <SidebarNav
@@ -335,6 +345,7 @@ export default async function DashboardLayout({
           completedDays={completedDays}
           devMode={devMode}
           program={program}
+          isViewer={isViewer}
         />
 
         {/* ── Columna derecha: barras + tabs + contenido ── */}
@@ -378,6 +389,8 @@ export default async function DashboardLayout({
             <ThemeToggle />
           </div>
 
+          {isViewer && <ViewerBanner hostName={viewerHostName} />}
+
           {/* Expiry banner */}
           {remaining <= 3 && remaining > 0 && (
             <div style={{ padding: "6px 20px", textAlign: "center", fontSize: "13px", fontWeight: 600, background: "#A11D2E", color: "#FFFFFF", flexShrink: 0 }}>
@@ -397,7 +410,7 @@ export default async function DashboardLayout({
         </div>
 
       {/* Onboarding tutorial */}
-      {!devMode && (
+      {!devMode && !isViewer && (
         <OnboardingTutorial
           hasSeenOnboarding={profile?.has_seen_onboarding ?? false}
           program={program}
@@ -407,7 +420,7 @@ export default async function DashboardLayout({
       {!devMode && program === "live" && <DashboardLockOverlay isAdmin={profile?.is_admin ?? false} />}
 
       {/* Asistente de IA flotante — guía a todos los usuarios */}
-      {!devMode && <DashboardAssistant supportWhatsapp={supportWhatsapp} />}
+      {!devMode && !isViewer && <DashboardAssistant supportWhatsapp={supportWhatsapp} />}
     </div>
   );
 }
