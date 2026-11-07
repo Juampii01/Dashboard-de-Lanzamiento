@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { FlagBanner } from "@/components/flag-banner";
-import { GiftCard } from "@/components/gift-card";
 import { getRank, rankProgress, RANKS } from "@/lib/ranks";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -448,11 +447,6 @@ export function RankingClient({
         )}
       </FlagBanner>
       <div style={{ height: "24px" }} />
-
-      {/* Regalo: 1 mes gratis de GovBidder Connect al completar el challenge */}
-      <div style={{ marginBottom: "28px" }}>
-        <GiftCard />
-      </div>
 
       {/* Cómo sumar puntos — guía completa de todas las formas de ganar */}
       <HowToEarnPoints over10k={(me?.total_points ?? 0) >= 10000} />
