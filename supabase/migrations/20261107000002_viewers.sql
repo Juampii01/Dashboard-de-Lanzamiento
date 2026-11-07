@@ -131,3 +131,6 @@ RETURNS json LANGUAGE sql STABLE SECURITY DEFINER SET search_path TO 'public' AS
     'total', (SELECT COUNT(*)::int FROM all_ranked)
   );
 $function$;
+
+-- Las invitaciones solo se leen/escriben desde el servidor (service role).
+REVOKE ALL ON public.viewer_invites FROM anon, authenticated;
