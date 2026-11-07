@@ -135,7 +135,7 @@ function MyRankCard({ points, showPrizes }: { points: number; showPrizes: boolea
           </p>
           <p style={{ fontSize: "12.5px", color: "#C8D6E8", marginTop: 6 }}>
             🎁 Participando por:{" "}
-            {showPrizes ? <strong style={{ color: rank.color }}>{rank.prize}</strong> : <span style={{ color: rank.color }}><CoveredPrize /></span>}
+            {showPrizes || rank.revealed ? <strong style={{ color: rank.color }}>{rank.prize}</strong> : <span style={{ color: rank.color }}><CoveredPrize /></span>}
           </p>
         </div>
         {next && (
@@ -152,7 +152,7 @@ function MyRankCard({ points, showPrizes }: { points: number; showPrizes: boolea
         </div>
         <p style={{ fontSize: "11.5px", color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
           {next
-            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para subir a <strong style={{ color: next.color }}>{next.name}</strong>{showPrizes ? <> y competir por <strong style={{ color: next.color }}>{next.prize}</strong></> : <> y competir por un premio más grande</>}.</>
+            ? <>Te faltan <strong style={{ color: "#fff" }}>{pointsToNext.toLocaleString()} pts</strong> para subir a <strong style={{ color: next.color }}>{next.name}</strong>{showPrizes || next.revealed ? <> y competir por <strong style={{ color: next.color }}>{next.prize}</strong></> : <> y competir por un premio más grande</>}.</>
             : <>¡Estás en <strong style={{ color: rank.color }}>{rank.name}</strong>, el rango máximo! 🎉 Compites por el premio mayor.</>}
         </p>
       </div>
@@ -214,7 +214,7 @@ function RankColumn({ rankKey, all, loading, showPrizes }: { rankKey: string; al
           {rankDef.min.toLocaleString()}{rankDef.max === Infinity ? "+" : `–${(rankDef.max - 1).toLocaleString()}`} pts
         </p>
         <p style={{ fontSize: 11, color: rankDef.color, margin: "3px 0 0", lineHeight: 1.35, opacity: 0.95 }}>
-          🎁 {showPrizes ? rankDef.prize : <CoveredPrize size={11} text="Premio sorpresa" />}
+          🎁 {showPrizes || rankDef.revealed ? rankDef.prize : <CoveredPrize size={11} text="Premio sorpresa" />}
         </p>
       </div>
 
@@ -505,14 +505,17 @@ export function RankingClient({
                 {r.emoji} {r.name} · {r.max === Infinity ? `${r.min.toLocaleString("en-US")}+` : `${r.min.toLocaleString("en-US")}–${(r.max - 1).toLocaleString("en-US")}`} pts
               </p>
               <p style={{ fontSize: "13px", color: "#C8D6E8", lineHeight: 1.45 }}>
-                {showPrizes ? r.prizeDetail : <CoveredPrize size={13} text="Un premio especial para este rango, se revela pronto" />}
+                {showPrizes || r.revealed ? r.prizeDetail : <CoveredPrize size={13} text="Un premio especial para este rango, se revela pronto" />}
               </p>
+              {showPrizes && (
               <p style={{ fontSize: "11.5px", color: "#8DA2C4", marginTop: "3px" }}>
                 {r.winners > 1
                   ? <>Elegimos <strong style={{ color: "#FFFFFF" }}>{r.winners} ganadores</strong> en este rango. Cada ganador recibe 1 premio.</>
                   : <>Elegimos <strong style={{ color: "#FFFFFF" }}>1 ganador</strong> en este rango.</>}
               </p>
+              )}
             </div>
+            {showPrizes && (
             <span style={{
               fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: 800, color: r.color,
               background: `color-mix(in srgb, ${r.color} 9%, transparent)`,
@@ -521,6 +524,7 @@ export function RankingClient({
             }}>
               {r.winners} {r.winners === 1 ? "ganador" : "ganadores"}
             </span>
+            )}
           </div>
         ))}
         {!showPrizes && (
@@ -528,7 +532,7 @@ export function RankingClient({
             padding: "12px 16px", textAlign: "center", fontSize: "12.5px", fontWeight: 700,
             color: "#FFD60A", background: "rgba(255,214,10,0.08)", borderTop: "1px solid rgba(255,214,10,0.25)",
           }}>
-            🔒 Los premios se revelan muy pronto. Mientras tanto, suma puntos para llegar al rango más alto.
+            🔒 El resto de los premios se revela muy pronto. Mientras tanto, suma puntos para llegar al rango más alto.
           </div>
         )}
       </div>

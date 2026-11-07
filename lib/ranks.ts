@@ -16,6 +16,8 @@ export interface Rank {
   prizeDetail: string;
   /** Cuántos ganadores se sortean en el rango (lo usa también el admin del sorteo). */
   winners: number;
+  /** Se muestra aunque PRIZES_VISIBLE sea false (el resto queda tapado). */
+  revealed?: boolean;
 }
 
 // Premios del lanzamiento de noviembre 2026 (llamada con Santo del 31/10).
@@ -41,9 +43,9 @@ export const RANKS: Rank[] = [
   },
   {
     key: "expert", name: "GovBidder Expert", short: "Expert", min: 15000, max: Infinity,
-    color: "#00D67A", emoji: "🏆", winners: 3,
-    prize: "B Support: licitamos por ti (US$1,000)",
-    prizeDetail: "B Support: un licitador del equipo GovBidder prepara y presenta por ti una licitación del gobierno. Valorado en US$1,000.",
+    color: "#00D67A", emoji: "🏆", winners: 3, revealed: true,
+    prize: "La Mentoría Tu Primer Contrato",
+    prizeDetail: "La Mentoría GovBidder Tu Primer Contrato: acompañamiento del equipo de Santo para ganar tu primer contrato con el gobierno.",
   },
 ];
 
