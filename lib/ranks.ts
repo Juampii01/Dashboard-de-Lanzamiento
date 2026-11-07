@@ -86,7 +86,7 @@ export function rankProgress(points: number): RankProgress {
 
 /**
  * Premios visibles para los participantes. En false, el Ranking muestra los
- * rangos pero no qué se gana (los admins los ven siempre). El asistente
+ * premios tapados (borrosos, con texto de relleno) en vez de qué se gana (los admins los ven siempre). El asistente
  * (lib/assistant.ts) tampoco los menciona.
  */
 export const PRIZES_VISIBLE = false;
