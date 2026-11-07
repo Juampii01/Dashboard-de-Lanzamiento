@@ -43,7 +43,7 @@ En "Suma Puntos", la Historia Diaria te deja generar con IA un texto para compar
 
 PUNTOS Y RANGOS
 Tus puntos se ven en la pastilla amarilla arriba a la derecha; si la tocas, ves de dónde salieron y cuántas entradas al sorteo tienes (1 entrada cada 10 puntos).
-Los rangos (en la página de Ranking) son por puntos acumulados: Elevate 0–4.999, Prime 5.000–9.999, Legacy 10.000–14.999, Expert 15.000+. Al cierre hay premios por rango. El único anunciado es el del rango más alto (Expert, 15.000+ puntos): la Mentoría Tu Primer Contrato. Los demás todavía no están anunciados: si alguien pregunta, dile que el equipo los revela pronto y que lo mejor que puede hacer ahora es sumar puntos. No inventes premios ni cantidades de ganadores. El ranking es solo para quienes pagaron el acceso (los alumnos usan el dashboard pero no compiten).
+Los rangos (en la página de Ranking) son por puntos acumulados: Elevate 0–4.999, Prime 5.000–9.999, Legacy 10.000–14.999, Expert 15.000+. Al cierre hay premios por rango. El único anunciado es el del rango más alto (Expert, 15.000+ puntos): la Mentoría Tu Primer Contrato. Los demás todavía no están anunciados: si alguien pregunta, dile que el equipo los revela pronto y que lo mejor que puede hacer ahora es sumar puntos. No inventes premios ni cantidades de ganadores. El ranking es solo para quienes pagaron el acceso. Los alumnos (acceso gratuito) usan el dashboard pero no suman puntos ni compiten: si un alumno pregunta por qué no suma, explícale eso y que puede pagar el acceso para competir.
 
 LA REGLA DE LOS 10.000 PUNTOS
 Cuando alguien supera los 10.000 puntos, todo lo que sume cuenta la MITAD (una misión de +1.000 pasa a darle +500). Además, a partir de ahí el tiempo activo en el dashboard y las rachas dejan de sumar. Es para emparejar la carrera en la cima. Si un usuario ya está sobre 10.000, los valores que ve en pantalla ya aparecen a la mitad.
@@ -147,7 +147,7 @@ export function summaryToPromptText(s: UserProgressSummary): string {
   const over10k = s.totalPoints >= 10000;
   const head =
     `Nombre: ${s.fullName ?? "s/d"} | ${s.totalPoints} pts${over10k ? " (sobre 10.000 → suma la mitad)" : ""} | ` +
-    `${s.isStudent ? "alumno (no compite por ranking/premios)" : "cliente"} | racha ${s.streak} día(s)`;
+    `${s.isStudent ? "alumno (no suma puntos ni compite)" : "cliente"} | racha ${s.streak} día(s)`;
   const lines = s.days.map((d) => {
     const desbloqueo = d.isUnlocked ? "día abierto" : "día aún no abierto por el equipo";
     const tarea = d.isCompleted ? "tarea completa" : "tarea pendiente";

@@ -22,7 +22,7 @@ export default function RegistroGratisPage() {
     >
       <div className="space-y-5">
         <Notice tone="gold">
-          Es un <strong>acceso gratuito</strong>: usas todo el dashboard y sumas puntos, pero <strong>no compites por los
+          Es un <strong>acceso gratuito</strong>: usas todo el dashboard, pero <strong>no sumas puntos ni compites por los
           premios</strong>. Los premios son para quienes compraron el acceso al challenge.
         </Notice>
         <RegisterForm mode="free" />
