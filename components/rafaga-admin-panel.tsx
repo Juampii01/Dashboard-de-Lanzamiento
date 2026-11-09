@@ -15,6 +15,7 @@ interface RafagaRow {
   image_url: string | null;
   link_buttons?: { label: string; url: string }[] | null;
   is_active: boolean;
+  is_visible?: boolean;
   created_at: string;
 }
 
@@ -266,6 +267,23 @@ export function RafagaAdminPanel() {
     setCreating(false);
   }
 
+  async function setVisible(id: string, visible: boolean) {
+    setDeactivating(id);
+    try {
+      const res = await fetch("/api/admin/rafaga", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, is_visible: visible }),
+      });
+      if (!res.ok) throw new Error();
+      setMissions((prev) => prev.map((m) => (m.id === id ? { ...m, is_visible: visible } : m)));
+      toast.success(visible ? "Ahora los participantes la ven." : "Oculta para los participantes.");
+    } catch {
+      toast.error("No se pudo cambiar la visibilidad.");
+    }
+    setDeactivating(null);
+  }
+
   async function deactivate(id: string) {
     setDeactivating(id);
     try {
@@ -502,6 +520,9 @@ export function RafagaAdminPanel() {
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{m.title}</p>
+                  {m.is_active && m.is_visible === false && (
+                    <p className="text-[11px] font-bold" style={{ color: "#E07A5F" }}>👁️ Oculta para los participantes</p>
+                  )}
                   <p className="text-[11px] text-muted-foreground">
                     {new Date(m.starts_at).toLocaleString("es-US", { dateStyle: "short", timeStyle: "short" })} ·{" "}
                     {m.duration_minutes} min · +{m.points_reward.toLocaleString("es")} pts
@@ -510,6 +531,17 @@ export function RafagaAdminPanel() {
                 <span className="text-[10px] font-bold shrink-0" style={{ color: statusColor }}>
                   {statusLabel}
                 </span>
+                {m.is_active && status !== "expired" && (
+                  <Button
+                    size="sm"
+                    disabled={deactivating === m.id}
+                    onClick={() => setVisible(m.id, m.is_visible === false)}
+                    className="text-xs shrink-0"
+                    variant={m.is_visible === false ? "default" : "outline"}
+                  >
+                    {m.is_visible === false ? "Mostrar" : "Ocultar"}
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"

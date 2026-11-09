@@ -175,6 +175,21 @@ export async function PUT(req: NextRequest) {
   return NextResponse.json({ ok: true, id, imageSaved, linksSaved });
 }
 
+// PATCH { id, is_visible } → muestra u oculta la misión para los participantes.
+export async function PATCH(req: NextRequest) {
+  const ctx = await getAdmin();
+  if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const body = await req.json().catch(() => ({})) as { id?: string; is_visible?: boolean };
+  const id = String(body.id ?? "").trim();
+  if (!id || typeof body.is_visible !== "boolean") return NextResponse.json({ error: "bad_request" }, { status: 400 });
+  const { error } = await ctx.service.from("rafaga_missions").update({ is_visible: body.is_visible }).eq("id", id);
+  if (error) {
+    console.error("[admin/rafaga] visibility error:", error);
+    return NextResponse.json({ error: "internal" }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true });
+}
+
 export async function DELETE(req: NextRequest) {
   const ctx = await getAdmin();
   if (!ctx) return NextResponse.json({ error: "unauthorized" }, { status: 401 });

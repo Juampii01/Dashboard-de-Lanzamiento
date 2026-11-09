@@ -49,11 +49,11 @@ export async function POST(req: NextRequest) {
 
   const { data: rafaga } = await service
     .from("rafaga_missions")
-    .select("id, points_reward, starts_at, duration_minutes, is_active")
+    .select("id, points_reward, starts_at, duration_minutes, is_active, is_visible")
     .eq("id", rafaga_id)
     .maybeSingle();
 
-  if (!rafaga || !(rafaga as { is_active: boolean }).is_active) {
+  if (!rafaga || !(rafaga as { is_active: boolean }).is_active || (rafaga as { is_visible?: boolean }).is_visible === false) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
   const r = rafaga as { id: string; points_reward: number; starts_at: string; duration_minutes: number; is_active: boolean };
