@@ -399,7 +399,7 @@ export default async function DashboardLayout({
           )}
 
           {/* Tabs */}
-          <DayTabs progressMap={progressMapFromLayout} program={program} />
+          <DayTabs progressMap={progressMapFromLayout} program={program} isViewer={isViewer} />
 
           {/* Contenido principal — contenedor centrado y con aire */}
           <main className="gb-main" style={{ flex: 1, overflowY: "auto", background: "var(--background)", padding: "40px 24px 64px" }}>

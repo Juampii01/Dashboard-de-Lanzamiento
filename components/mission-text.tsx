@@ -50,9 +50,9 @@ export function MissionText({ text, fontSize = 14.5 }: { text: string; fontSize?
           const isLabel = lines[0].endsWith(":");
           return (
             <p key={i} style={{
-              fontSize, lineHeight: 1.55, margin: 0,
-              color: isLabel ? "var(--foreground)" : "var(--muted-foreground)",
-              fontWeight: isLabel ? 700 : 400,
+              fontSize, lineHeight: 1.6, margin: 0,
+              color: "var(--foreground)",
+              fontWeight: isLabel ? 700 : 500,
             }}>
               {linkify(lines[0])}
             </p>
@@ -62,7 +62,7 @@ export function MissionText({ text, fontSize = 14.5 }: { text: string; fontSize?
         return (
           <ul key={i} style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
             {lines.map((line, j) => (
-              <li key={j} style={{ display: "flex", gap: 8, fontSize, color: "var(--muted-foreground)", lineHeight: 1.45 }}>
+              <li key={j} style={{ display: "flex", gap: 8, fontSize, color: "var(--foreground)", fontWeight: 500, lineHeight: 1.5 }}>
                 <span style={{ color: "var(--primary)", flexShrink: 0, fontWeight: 800 }}>›</span>
                 <span>{linkify(line)}</span>
               </li>

@@ -13,6 +13,8 @@ export interface RafagaMission {
   points_reward: number;
   image_url?: string | null;
   link_buttons?: { label: string; url: string }[] | null;
+  /** false = oculta para participantes (solo la ve el admin). */
+  is_visible?: boolean;
 }
 
 function getStatus(mission: RafagaMission): "upcoming" | "active" | "expired" {
@@ -137,17 +139,24 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
       background: "var(--card)",
       border: `1px solid ${borderColor}`,
       borderRadius: 12,
-      padding: "18px",
+      padding: "22px",
       display: "flex",
       flexDirection: "column",
-      gap: 10,
+      gap: 14,
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-        <p style={{ fontWeight: 700, color: "var(--foreground)", fontSize: 14, margin: 0 }}>
-          {mission.title}
-        </p>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontWeight: 800, color: "var(--foreground)", fontSize: 19, lineHeight: 1.3, margin: 0 }}>
+            {mission.title}
+          </p>
+          {mission.is_visible === false && (
+            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--destructive)", margin: "4px 0 0" }}>
+              👁️ Oculta para los participantes (solo la ves tú). Muéstrala desde el panel admin → Misiones.
+            </p>
+          )}
+        </div>
         <span style={{
-          fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 800,
+          fontFamily: "var(--font-mono)", fontSize: 12, fontWeight: 800,
           color: badgeColor, background: badgeBg,
           border: `1px solid ${badgeBorder}`,
           borderRadius: 999, padding: "2px 10px",
@@ -160,12 +169,12 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
         <img
           src={mission.image_url}
           alt=""
-          style={{ width: "auto", height: "auto", maxWidth: "100%", maxHeight: 200, display: "block", margin: "0 auto", borderRadius: 8 }}
+          style={{ width: "100%", height: "auto", display: "block", borderRadius: 10 }}
         />
       )}
 
       {mission.description && (
-        <MissionText text={mission.description} fontSize={12.5} />
+        <MissionText text={mission.description} fontSize={17} />
       )}
 
       {Array.isArray(mission.link_buttons) && mission.link_buttons.length > 0 && (
@@ -178,9 +187,9 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
               rel="noreferrer"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                padding: "9px 15px", borderRadius: 8,
+                padding: "12px 18px", borderRadius: 10,
                 background: "var(--primary)", color: "var(--primary-foreground)",
-                fontSize: 13, fontWeight: 700, textDecoration: "none",
+                fontSize: 16, fontWeight: 800, textDecoration: "none",
               }}
             >
               🔗 {b.label} <span style={{ opacity: 0.8 }}>↗</span>
@@ -191,17 +200,17 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         {status === "upcoming" && countdown && (
-          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
+          <p style={{ fontSize: 15, color: "var(--muted-foreground)", margin: 0 }}>
             Abre en: <strong style={{ color: "var(--foreground)" }}>{countdown}</strong>
           </p>
         )}
         {status === "active" && !claimed && countdown && (
-          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
+          <p style={{ fontSize: 15, color: "var(--muted-foreground)", margin: 0 }}>
             Cierra en: <strong style={{ color: "var(--foreground)" }}>{countdown}</strong>
           </p>
         )}
         {status === "expired" && (
-          <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Esta misión ya cerró.</p>
+          <p style={{ fontSize: 15, color: "var(--muted-foreground)", margin: 0 }}>Esta misión ya cerró.</p>
         )}
         {status === "active" && claimed && (
           <span style={{
