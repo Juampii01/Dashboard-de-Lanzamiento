@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ViewerInvites } from "@/components/viewer-invites";
-import { SeatPurchase } from "@/components/seat-purchase";
 import { Camera, Check, Copy, Link2, Loader2, Mail, X } from "lucide-react";
 import { AvatarCropModal } from "@/components/avatar-upload";
 import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
@@ -596,10 +595,7 @@ export function ProfileButton({
                     Estás en modo visualización: puedes ver la cuenta de quien te invitó, pero no hacer cambios.
                   </p>
                 ) : (
-                  <>
-                    <ViewerInvites />
-                    <SeatPurchase />
-                  </>
+                  <ViewerInvites />
                 )}
               </div>
             </div>

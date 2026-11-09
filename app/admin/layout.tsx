@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminShell } from "./_components/admin-shell";
 
@@ -20,5 +20,11 @@ export default async function AdminLayout({
 
   if (!profile?.is_admin) redirect("/dashboard");
 
-  return <AdminShell>{children}</AdminShell>;
+  // Aviso en el menú: cotizaciones de perfil adicional esperando respuesta.
+  const { count: seatPending } = await createServiceClient()
+    .from("seat_requests")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "requested");
+
+  return <AdminShell badges={{ "/admin/perfiles-adicionales": seatPending ?? 0 }}>{children}</AdminShell>;
 }

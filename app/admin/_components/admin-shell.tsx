@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Clapperboard,
   ArrowLeft,
+  UserPlus,
   Menu,
   X,
   type LucideIcon,
@@ -46,6 +47,7 @@ const NAV: NavGroup[] = [
       { href: "/admin", label: "Inicio", icon: LayoutDashboard },
       { href: "/admin/usuarios", label: "Usuarios", icon: Users },
       { href: "/admin/compras", label: "Compras y accesos", icon: ShoppingBag },
+      { href: "/admin/perfiles-adicionales", label: "Perfiles adicionales", icon: UserPlus },
     ],
   },
   {
@@ -79,7 +81,7 @@ function isActive(pathname: string, item: NavItem) {
   return match(item.href) || (item.also ?? []).some(match);
 }
 
-function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function SidebarContent({ pathname, onNavigate, badges = {} }: { pathname: string; onNavigate?: () => void; badges?: Record<string, number> }) {
   return (
     <div className="flex h-full flex-col">
       <Link href="/admin" onClick={onNavigate} className="flex items-center gap-3 px-5 pt-6 pb-7">
@@ -112,6 +114,11 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
                       {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full bg-primary" />}
                       <Icon className={cn("w-[17px] h-[17px]", active ? "text-white" : "text-white/50")} strokeWidth={2.2} />
                       {item.label}
+                      {(badges[item.href] ?? 0) > 0 && (
+                        <span className="ml-auto min-w-[20px] rounded-full bg-primary px-1.5 py-0.5 text-center text-[11px] font-bold leading-none text-white">
+                          {badges[item.href]}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 );
@@ -143,7 +150,7 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
   );
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({ children, badges = {} }: { children: React.ReactNode; badges?: Record<string, number> }) {
   const pathname = usePathname() ?? "/admin";
   const [open, setOpen] = useState(false);
 
@@ -153,7 +160,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Sidebar fija (desktop) */}
       <aside className="hidden lg:block fixed inset-y-0 left-0 w-[248px] bg-[#0d1a3d] z-30">
-        <SidebarContent pathname={pathname} />
+        <SidebarContent pathname={pathname} badges={badges} />
       </aside>
 
       {/* Top bar (mobile) */}
@@ -161,6 +168,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2.5">
           <Image src="/tpc-aguila.png" alt="" width={28} height={28} className="rounded-md" />
           <p className="text-sm font-bold text-white">{current?.label ?? "Panel admin"}</p>
+          {Object.values(badges).some((n) => n > 0) && <span className="h-2 w-2 rounded-full bg-primary" aria-label="Hay pendientes" />}
         </div>
         <button
           onClick={() => setOpen(true)}
@@ -183,7 +191,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             >
               <X className="w-4 h-4" />
             </button>
-            <SidebarContent pathname={pathname} onNavigate={() => setOpen(false)} />
+            <SidebarContent pathname={pathname} badges={badges} onNavigate={() => setOpen(false)} />
           </aside>
         </div>
       )}

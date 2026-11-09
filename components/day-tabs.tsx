@@ -8,6 +8,8 @@ interface DayTabsProps {
   progressMap: Record<number, { is_unlocked: boolean; is_completed: boolean }>;
   /** On demand: sin Ranking ni Misiones Extra (son del en vivo). */
   program?: "live" | "ondemand";
+  /** Viewers (solo lectura): no ven "Perfil adicional". */
+  isViewer?: boolean;
 }
 
 /** Tabs que no existen en on demand. */
@@ -27,17 +29,19 @@ const TABS = [
   { day: 4, label: "Día 4",     sub: "Cap. Statement",        href: "/dashboard/dia-4" },
   { day: 7, label: "Misiones Extra", sub: "Gana más puntos",       href: "/dashboard/suma-puntos" },
   { day: 5, label: "Ranking",   sub: "Rangos y Premios"    ,  href: "/dashboard/ranking" },
+  { day: 10, label: "Perfil adicional", sub: "Solicita cotización", href: "/dashboard/perfil-adicional" },
   { day: 6, label: "Tu próximo paso", sub: "Después del challenge", href: "/dashboard/proximo-paso" },
 ];
 
-export function DayTabs({ progressMap, program = "live" }: DayTabsProps) {
-  const tabs = program === "ondemand"
+export function DayTabs({ progressMap, program = "live", isViewer = false }: DayTabsProps) {
+  const allTabs = program === "ondemand"
     ? (() => {
         const base = TABS.filter((t) => !LIVE_ONLY_HREFS.has(t.href));
         const next = base.findIndex((t) => t.href === "/dashboard/proximo-paso");
         return [...base.slice(0, next), ...ONDEMAND_TABS, ...base.slice(next)];
       })()
     : TABS;
+  const tabs = isViewer ? allTabs.filter((t) => t.href !== "/dashboard/perfil-adicional") : allTabs;
   const pathname = usePathname();
   const router   = useRouter();
   const tabRef   = useRef<HTMLDivElement>(null);
@@ -151,6 +155,8 @@ export function DayTabs({ progressMap, program = "live" }: DayTabsProps) {
                 <span style={{ fontSize: "12px" }}>🚀</span>
               ) : isSumaPuntos ? (
                 <span style={{ fontSize: "12px" }}>⚡</span>
+              ) : day === 10 ? (
+                <span style={{ fontSize: "12px" }}>➕</span>
               ) : (
                 <span
                   style={{

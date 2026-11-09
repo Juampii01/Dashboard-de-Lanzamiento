@@ -208,13 +208,17 @@ Cada participante con acceso puede invitar hasta 2 personas desde su perfil (`co
 - No se monta XpEngine, tutorial ni asistente; no cuenta en métricas del admin, envíos masivos ni sorteo.
 - Quitar una invitación aceptada borra la cuenta del viewer.
 
-## Segundo participante (pago)
+## Perfil adicional (por cotización)
 
-Un participante le compra el acceso a un socio desde su perfil (`components/seat-purchase.tsx` → `/api/seats`, tabla `seat_requests`).
+Un participante puede pedir sumar otra empresa o persona desde la pestaña **"Perfil adicional"** (`/dashboard/perfil-adicional`, entre Ranking y Tu próximo paso). Nadie ve un precio hasta que el equipo responde. Tabla `seat_requests` (migraciones `20261107000003` y `20261109000001`).
 
-1. Carga nombre y email del socio → se crea la solicitud y se lo manda al link de Stripe (`app_settings.seat_payment_url`, con `prefilled_email` = socio y `client_reference_id` = `seat_<id>`). El precio que se muestra sale de `app_settings.seat_price_label`. Sin link cargado, el sector no aparece.
-2. El workflow de GHL del producto llama a `/api/webhooks/ghl?product=live&seat=1`. La compra se crea **a nombre del socio** (busca la solicitud por `seat_<id>`, por el email del socio o por el email de quien pagó) y se le manda el email de registro.
-3. El socio se registra con su email y es un participante normal (ranking, puntos, sorteo).
+1. El participante carga nombre, email, empresa y mensaje → `POST /api/seats` → `status = 'requested'`.
+2. El equipo la ve en `/admin/perfiles-adicionales` (el menú muestra un contador de pendientes) y la aprueba con **precio y link de pago propios de esa solicitud** (`/api/admin/seats`, action `approve`) → `status = 'approved'` y email al participante (`lib/email/send-seat-quote-email.ts`). También puede rechazarla.
+3. El participante ve el precio y el botón "Pagar perfil adicional" (el link lleva `client_reference_id = seat_<id>`).
+4. Pago: el webhook de GHL `?product=live&seat=1` (solo busca solicitudes `approved`) o el botón "Marcar pagado" del admin llaman a `fulfillSeatRequest()` (`lib/seats.ts`): crea la compra a nombre de la persona adicional y le manda el email de registro → `status = 'paid'`.
+5. La persona adicional se registra con ese email y es un participante normal.
+
+`app_settings.seat_payment_url` solo es el link que aparece precargado al aprobar. Los viewers no ven la pestaña.
 
 ## Programas: en vivo y On Demand
 

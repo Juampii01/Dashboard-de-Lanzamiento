@@ -7,6 +7,7 @@ import { autoClaimByAccountEmail } from "@/lib/access/purchases";
 import { isPaidStatus, parseGhlPurchase } from "@/lib/ghl";
 import { sendWelcomeEmail } from "@/lib/email/send-welcome-email";
 import { sendAccessActivatedEmail } from "@/lib/email/send-access-activated-email";
+import { fulfillSeatRequest } from "@/lib/seats";
 
 /**
  * POST /api/webhooks/ghl?product=ondemand|live
@@ -31,9 +32,10 @@ import { sendAccessActivatedEmail } from "@/lib/email/send-access-activated-emai
  * link de registro). El aviso de "acceso activo" a cuentas en verificación se
  * envía igual.
  *
- * `seat=1` en la URL: compra de un SEGUNDO PARTICIPANTE (seat_requests). La
- * compra se crea a nombre del socio que cargó el participante en su perfil,
- * aunque el pago llegue con el email de quien pagó. Se busca la solicitud por
+ * `seat=1` en la URL: pago de un PERFIL ADICIONAL (seat_requests aprobada por
+ * el equipo). La compra se crea a nombre de la persona que cargó el
+ * participante en la pestaña "Perfil adicional", aunque el pago llegue con el
+ * email de quien pagó. Se busca la solicitud por
  * `seat_<id>` en el payload (client_reference_id), por el email del socio o por
  * el email de quien pagó, en ese orden. Siempre se manda el email de registro.
  *
@@ -134,39 +136,13 @@ export async function POST(req: NextRequest) {
         { logged: true, processed: false, reason: "seat_not_found" },
       );
     }
-    const { error: seatErr } = await db.from("purchases").upsert(
-      {
-        email: seat.partner_email,
-        full_name: seat.partner_name,
-        source: "ghl",
-        external_ref: parsed.externalRef,
-        product,
-        notes: `Segundo participante (pagó ${parsed.email})`,
-      },
-      { onConflict: "product,email", ignoreDuplicates: true },
-    );
-    if (seatErr && seatErr.code !== "23505") {
-      return finish({ processed: false, email: seat.partner_email, error: `purchases: ${seatErr.message}` }, { logged: true, processed: false, reason: "db_error" });
-    }
-    const { data: sp } = await db.from("purchases").select("id").eq("product", product).eq("email", seat.partner_email).maybeSingle();
-    const seatPurchaseId = (sp as { id: string } | null)?.id ?? null;
-    await db.from("seat_requests").update({ paid_at: new Date().toISOString(), purchase_id: seatPurchaseId }).eq("id", seat.id);
-
-    const seatProgram = programForProduct(product);
-    const { data: partnerAcc } = await db.from("users").select("id, full_name").ilike("email", seat.partner_email).maybeSingle();
-    const pa = partnerAcc as { id: string; full_name: string | null } | null;
-    let seatAction: string;
-    if (pa) {
-      const r = await autoClaimByAccountEmail(db, pa.id, seat.partner_email, [product]);
-      if (r === "claimed") await sendAccessActivatedEmail({ to: seat.partner_email, name: pa.full_name ?? seat.partner_name, program: seatProgram });
-      seatAction = r === "claimed" ? "seat_access_activated" : `seat_${r}`;
-    } else {
-      const sent = await sendWelcomeEmail({ to: seat.partner_email, name: seat.partner_name, program: seatProgram });
-      seatAction = sent.ok ? "seat_welcome_sent" : "seat_email_failed";
+    const r = await fulfillSeatRequest(db, { ...seat, product }, { payerEmail: parsed.email, externalRef: parsed.externalRef });
+    if (!r.ok) {
+      return finish({ processed: false, email: seat.partner_email, error: `purchases: ${r.error}` }, { logged: true, processed: false, reason: "db_error" });
     }
     return finish(
-      { processed: true, email: seat.partner_email, purchase_id: seatPurchaseId, error: seatAction === "seat_email_failed" ? "compra del socio registrada, pero no se pudo enviar el email" : null },
-      { logged: true, processed: true, action: seatAction },
+      { processed: true, email: seat.partner_email, purchase_id: r.purchaseId, error: r.error ?? null },
+      { logged: true, processed: true, action: r.action },
     );
   }
 
@@ -254,8 +230,7 @@ async function resolveSeatRequest(db: Db, product: string, raw: string, payerEma
       .from("seat_requests")
       .select("id, partner_name, partner_email, host_id")
       .eq("product", product)
-      .is("paid_at", null)
-      .is("canceled_at", null)
+      .eq("status", "approved")
       .order("created_at", { ascending: true });
 
   // 1. client_reference_id = seat_<id> (si GHL lo incluye en el payload).
