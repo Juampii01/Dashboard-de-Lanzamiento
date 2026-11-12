@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { NuevoUsuarioClient } from "./client";
 
-export default async function NuevoUsuarioPage() {
+export default async function NuevoUsuarioPage({ searchParams }: { searchParams: Promise<{ tipo?: string }> }) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -18,5 +18,7 @@ export default async function NuevoUsuarioPage() {
 
   if (!profile?.is_admin) redirect("/dashboard");
 
-  return <NuevoUsuarioClient />;
+  // ?tipo=gratuito → el formulario arranca en "Gratuito" (botón desde el filtro Gratuitos).
+  const { tipo } = await searchParams;
+  return <NuevoUsuarioClient initialFree={tipo === "gratuito"} />;
 }

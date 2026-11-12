@@ -18,6 +18,8 @@ const userSchema = z.object({
     .nullable(),
   expires_at: z.string().datetime().optional().nullable(),
   is_admin: z.boolean().optional().default(false),
+  /** true = usuario gratuito (alumno): no suma puntos ni compite por premios. */
+  is_student: z.boolean().optional().default(false),
   notes: z.string().max(500).optional().nullable(),
 });
 
@@ -119,9 +121,11 @@ export async function POST(req: Request) {
 
       newUserId = createData.user.id;
 
-      const syntheticTxnId = `MANUAL-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)}`;
+      // Gratuito: misma marca que el registro gratuito (/registro/gratis).
+      const isStudent = !!userData.is_student && !userData.is_admin;
+      const syntheticTxnId = isStudent
+        ? `FREE-${newUserId}`
+        : `MANUAL-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
       // 4b. Update public.users with additional fields
       // (trigger already inserted id + email; we add the rest)
@@ -134,6 +138,7 @@ export async function POST(req: Request) {
           access_starts_at: new Date().toISOString(),
           access_expires_at: expiresAt.toISOString(),
           is_admin: userData.is_admin ?? false,
+          is_student: isStudent,
         })
         .eq("id", newUserId);
 

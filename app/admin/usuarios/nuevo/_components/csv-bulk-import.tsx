@@ -36,7 +36,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Component
 // ---------------------------------------------------------------------------
 
-export function CsvBulkImport() {
+export function CsvBulkImport({ isStudent = false }: { isStudent?: boolean }) {
   const [phase, setPhase] = useState<Phase>("drop");
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -203,6 +203,7 @@ export function CsvBulkImport() {
             ? new Date(`${r.expires_at.trim()}T23:59:59Z`).toISOString()
             : null,
           notes: r.notes?.trim() || null,
+          is_student: isStudent,
         })),
       };
 

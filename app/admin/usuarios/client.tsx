@@ -142,8 +142,9 @@ export function UsersClient({ users, allProgress, sorteos }: Props) {
               <Download className="w-4 h-4" /> Exportar CSV
             </Button>
             <Button asChild>
-              <Link href="/admin/usuarios/nuevo" className="gap-2">
-                <UserPlus className="w-4 h-4" /> Crear usuario
+              {/* Con el filtro "Gratuitos" activo, el usuario nuevo se crea como gratuito. */}
+              <Link href={seg === "free" ? "/admin/usuarios/nuevo?tipo=gratuito" : "/admin/usuarios/nuevo"} className="gap-2">
+                <UserPlus className="w-4 h-4" /> {seg === "free" ? "Crear usuario gratuito" : "Crear usuario"}
               </Link>
             </Button>
           </>
