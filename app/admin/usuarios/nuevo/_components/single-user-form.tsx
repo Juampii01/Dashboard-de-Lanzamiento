@@ -11,7 +11,7 @@ function defaultExpiresAt() {
 
 type Status = "idle" | "loading" | "success" | "error";
 
-export function SingleUserForm() {
+export function SingleUserForm({ isStudent = false }: { isStudent?: boolean }) {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -43,6 +43,7 @@ export function SingleUserForm() {
             ? new Date(`${expiresAt}T23:59:59Z`).toISOString()
             : null,
           is_admin: isAdmin,
+          is_student: isStudent && !isAdmin,
           notes: notes.trim() || null,
         }),
       });
