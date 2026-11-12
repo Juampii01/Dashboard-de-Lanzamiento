@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -327,6 +328,30 @@ function UserDrawer({
   const [linkLoading, setLinkLoading] = useState(false);
   const [overriding, setOverriding] = useState<number | null>(null);
   const [resetPhase, setResetPhase] = useState<"idle" | "confirm" | "loading">("idle");
+  const [typeLoading, setTypeLoading] = useState(false);
+  const router = useRouter();
+
+  async function changeType(toFree: boolean) {
+    const who = user.full_name || user.email;
+    if (!confirm(toFree
+      ? `¿Pasar a ${who} a GRATUITO? No suma puntos ni compite por premios.`
+      : `¿Pasar a ${who} a PAGO? Suma puntos y compite por premios.`)) return;
+    setTypeLoading(true);
+    try {
+      const res = await fetch("/api/admin/users/type", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id, is_student: toFree }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(toFree ? `${who} ahora es gratuito.` : `${who} ahora es pago.`);
+      onClose();
+      router.refresh();
+    } catch {
+      toast.error("No se pudo cambiar el tipo de acceso.");
+    }
+    setTypeLoading(false);
+  }
 
   async function loadBreakdown() {
     setBdLoading(true);
@@ -480,6 +505,21 @@ function UserDrawer({
             </div>
             <p className="text-[11px] text-muted-foreground mt-1.5">Override individual: no afecta al resto de los participantes.</p>
           </section>
+
+          {/* Tipo de acceso */}
+          {(seg === "paid" || seg === "free") && (
+            <section>
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Tipo de acceso</h3>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-foreground">
+                  {seg === "free" ? "Gratuito: sin puntos ni premios." : "Pago: suma puntos y compite por premios."}
+                </p>
+                <Button size="sm" variant="outline" disabled={typeLoading} onClick={() => changeType(seg !== "free")} className="shrink-0 text-xs">
+                  {typeLoading ? "…" : seg === "free" ? "Pasar a pago" : "Pasar a gratuito"}
+                </Button>
+              </div>
+            </section>
+          )}
 
           {/* Acceso */}
           <section>
