@@ -108,6 +108,7 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("grant_manual"), user_id: z.string().uuid(), note: z.string().max(300).optional(), product: z.enum(ACCESS_PRODUCTS).optional() }),
   z.object({ action: z.literal("reject"), user_id: z.string().uuid() }),
   z.object({ action: z.literal("reopen"), user_id: z.string().uuid() }),
+  z.object({ action: z.literal("delete_account"), user_id: z.string().uuid() }),
   z.object({ action: z.literal("unlink"), purchase_id: z.string().uuid() }),
   z.object({ action: z.literal("delete"), purchase_id: z.string().uuid() }),
   z.object({ action: z.literal("set_expiry"), value: z.string().max(40).nullable() }),
@@ -231,6 +232,28 @@ export async function POST(req: NextRequest) {
         .eq("id", body.user_id)
         .is("hotmart_transaction_id", null);
       if (error) return NextResponse.json({ error: "internal" }, { status: 500 });
+      return NextResponse.json({ ok: true });
+    }
+
+    case "delete_account": {
+      // Borra una cuenta SIN acceso (pendiente o rechazada): duplicadas o con
+      // el email mal escrito. Nunca una con compra, admin ni con viewers.
+      const { data: u } = await db
+        .from("users")
+        .select("id, is_admin, hotmart_transaction_id")
+        .eq("id", body.user_id)
+        .maybeSingle();
+      const acc = u as { id: string; is_admin: boolean | null; hotmart_transaction_id: string | null } | null;
+      if (!acc) return NextResponse.json({ error: "not_found" }, { status: 404 });
+      if (acc.is_admin || acc.hotmart_transaction_id) return NextResponse.json({ error: "has_access" }, { status: 409 });
+      const [{ count: claimed }, { count: viewers }] = await Promise.all([
+        db.from("purchases").select("id", { count: "exact", head: true }).eq("claimed_by", acc.id),
+        db.from("users").select("id", { count: "exact", head: true }).eq("viewer_of", acc.id),
+      ]);
+      if ((claimed ?? 0) > 0 || (viewers ?? 0) > 0) return NextResponse.json({ error: "has_access" }, { status: 409 });
+      const { error: authErr } = await db.auth.admin.deleteUser(acc.id);
+      if (authErr) return NextResponse.json({ error: "internal" }, { status: 500 });
+      await db.from("users").delete().eq("id", acc.id);
       return NextResponse.json({ ok: true });
     }
 
