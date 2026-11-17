@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Video } from "lucide-react";
 
-type Props = { id: string; url: string; startsAt: string; points: number; canEarn: boolean };
+type Props = { id: string; url: string; startsAt: string; points: number; canEarn: boolean; isAdmin?: boolean };
 
 function fmt(ms: number) {
   const s = Math.max(0, Math.floor(ms / 1000));
@@ -13,10 +13,11 @@ function fmt(ms: number) {
   return h > 0 ? `${h}h ${m}m` : `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-export function CallBanner({ id, url, startsAt, points, canEarn }: Props) {
+export function CallBanner({ id, url, startsAt, points, canEarn, isAdmin = false }: Props) {
   const lsKey = `govbidder_call_banner_${id}`;
   const [now, setNow] = useState<number | null>(null);
   const [joined, setJoined] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     setNow(Date.now());
@@ -45,34 +46,68 @@ export function CallBanner({ id, url, startsAt, points, canEarn }: Props) {
     } catch {}
   }
 
+  if (hidden) return null;
+
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Llamada en vivo"
       style={{
-        flexShrink: 0,
-        display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: "10px 16px",
-        padding: "10px 20px",
-        background: "linear-gradient(90deg, #A11D2E 0%, #D7263D 100%)",
+        position: "fixed", inset: 0, zIndex: 99970,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 24, overflowY: "auto",
+        background: "radial-gradient(circle at 50% 30%, #3A0A12 0%, #12060A 55%, #05070F 100%)",
         color: "#fff", textAlign: "center",
       }}
     >
-      <span style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.4 }}>
-        🔴 {started
-          ? <>¡La llamada en vivo ya empezó! Entra ahora.</>
-          : <>La llamada en vivo arranca a las <strong>{time} (hora de Miami)</strong>{now !== null && <> · faltan <strong style={{ fontFamily: "var(--font-mono)" }}>{fmt(start - now)}</strong></>}. Ve preparando todo.</>}
-        {canEarn && points > 0 && !joined && <> Si entras desde este botón sumas <strong>+{points} puntos</strong>.</>}
-      </span>
-      <button
-        type="button"
-        onClick={join}
-        style={{
+      <div style={{ maxWidth: 640, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
+        <span style={{
           display: "inline-flex", alignItems: "center", gap: 8,
-          background: "#fff", color: "#A11D2E", border: "none", borderRadius: 999,
-          padding: "9px 18px", fontSize: 15, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
-        }}
-      >
-        <Video size={18} />
-        {joined ? `Entrar a la llamada ✓ +${points} sumados` : canEarn && points > 0 ? `Entrar a la llamada (+${points} pts)` : "Entrar a la llamada"}
-      </button>
+          background: "#D7263D", borderRadius: 999, padding: "6px 16px",
+          fontSize: 14, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase",
+        }}>
+          🔴 {started ? "En vivo ahora" : "Llamada en vivo"}
+        </span>
+        <h1 style={{ fontSize: "clamp(28px, 6vw, 44px)", fontWeight: 900, lineHeight: 1.15, margin: 0 }}>
+          {started ? "¡La llamada ya empezó!" : <>La llamada arranca a las {time}<br /><span style={{ fontSize: "0.55em", fontWeight: 700, opacity: 0.85 }}>(hora de Miami)</span></>}
+        </h1>
+        {!started && now !== null && (
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(40px, 10vw, 72px)", fontWeight: 900, margin: 0, color: "#FFD60A", lineHeight: 1 }}>
+            {fmt(start - now)}
+          </p>
+        )}
+        <p style={{ fontSize: 19, lineHeight: 1.5, margin: 0, opacity: 0.92 }}>
+          {started ? "Entra ahora desde este botón." : "Ve preparando todo: cuaderno, cámara y buena conexión. Entra desde este botón."}
+        </p>
+        {canEarn && points > 0 && (
+          <p style={{ fontSize: 20, fontWeight: 800, margin: 0, color: joined ? "#4ADE80" : "#FFD60A" }}>
+            {joined ? `✓ Ya sumaste +${points} puntos` : `Si entras desde aquí sumas +${points} puntos`}
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={join}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 10,
+            background: "#D7263D", color: "#fff", border: "none", borderRadius: 14,
+            padding: "18px 34px", fontSize: 22, fontWeight: 900, cursor: "pointer",
+            boxShadow: "0 0 0 6px rgba(215,38,61,0.25), 0 12px 40px rgba(215,38,61,0.45)",
+          }}
+        >
+          <Video size={26} />
+          {joined ? "Volver a entrar a la llamada" : canEarn && points > 0 ? `Entrar a la llamada (+${points} pts)` : "Entrar a la llamada"}
+        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => setHidden(true)}
+            style={{ marginTop: 6, background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 14, textDecoration: "underline", cursor: "pointer" }}
+          >
+            Ocultar (solo admins)
+          </button>
+        )}
+      </div>
     </div>
   );
 }
