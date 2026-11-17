@@ -963,9 +963,18 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
   const handleBackdrop = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose();
   };
-  const NAVY = "#152340";
   const displayName = (name || "").trim() || "Tu Nombre Completo";
-  const today = new Date().toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+  // Igual que el PDF real: 26pt, se achica hasta entrar en 380pt (mín. 14pt).
+  // Arial tiene las mismas métricas que Helvetica, la fuente del PDF.
+  const [namePt, setNamePt] = useState(26);
+  useEffect(() => {
+    const ctx = document.createElement("canvas").getContext("2d");
+    if (!ctx) return;
+    let size = 26;
+    const width = (s: number) => { ctx.font = `bold ${s}px Helvetica, Arial, sans-serif`; return ctx.measureText(displayName).width; };
+    while (width(size) > 380 && size > 14) size -= 1;
+    setNamePt(size);
+  }, [displayName]);
 
   return (
     <div
@@ -992,119 +1001,47 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
           <X style={{ width: 15, height: 15 }} /> Cerrar
         </button>
 
-        {/* Certificado */}
+        {/* Certificado: muestra con el diseño REAL (plantilla de Canva del certificado que se
+            emite, sin firma ni QR, número "MUESTRA" y fecha de cierre del challenge). Encima va
+            el nombre del alumno y la marca de agua. Medidas en pt de la plantilla (842.25 × 595.5),
+            igual que lib/pdf.js del verificador. */}
         <div style={{
-          position: "relative", overflow: "hidden",
-          background: "linear-gradient(160deg, #ffffff 0%, #f6f7fb 100%)",
-          borderRadius: "14px", aspectRatio: "1.4 / 1",
+          position: "relative", overflow: "hidden", borderRadius: "14px",
+          aspectRatio: "1600 / 1132", background: "#f8f8f8",
           boxShadow: "0 30px 80px rgba(0,0,0,0.55)",
-          fontFamily: "var(--font-sans)",
+          containerType: "inline-size",
         }}>
-          {/* Ondas decorativas */}
-          <svg viewBox="0 0 840 600" preserveAspectRatio="none" aria-hidden
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
-            {Array.from({ length: 9 }).map((_, i) => (
-              <path key={i} fill="none" stroke="rgba(21,41,120,0.10)" strokeWidth="1"
-                d={`M -40 ${150 + i * 13} C 220 ${60 + i * 13}, 600 ${330 + i * 13}, 880 ${150 + i * 13}`} />
-            ))}
-          </svg>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/certificado-muestra.jpg"
+            alt="Muestra del certificado GovBidder Challenge"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }}
+          />
 
-          {/* Swoosh rojo + navy esquina inferior izquierda */}
-          <svg viewBox="0 0 300 240" aria-hidden
-            style={{ position: "absolute", bottom: -6, left: -6, width: "30%", height: "auto" }}>
-            <path d="M -20 260 C 70 210, 150 150, 90 -20" fill="none" stroke="#E42D2C" strokeWidth="16" strokeLinecap="round" />
-            <path d="M -20 285 C 110 220, 190 150, 130 -20" fill="none" stroke={NAVY} strokeWidth="20" strokeLinecap="round" />
-          </svg>
-
-          {/* Contenido */}
+          {/* Nombre: centrado, línea base a 314pt desde arriba */}
           <div style={{
-            position: "relative", height: "100%",
-            display: "flex", flexDirection: "column", alignItems: "center",
-            textAlign: "center", padding: "5.5% 9% 4.5%",
+            position: "absolute", left: 0, right: 0,
+            top: `${((314 - 0.847 * namePt) / 595.5) * 100}%`,
+            textAlign: "center", whiteSpace: "nowrap", lineHeight: 1,
+            fontFamily: "Helvetica, Arial, 'Liberation Sans', sans-serif", fontWeight: 700,
+            fontSize: `${(namePt / 842.25) * 100}cqw`, color: "#0d1f3d",
           }}>
-            {/* Header: sello + título */}
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", justifyContent: "center" }}>
-              {/* Sello con cinta */}
-              <svg width="58" height="74" viewBox="0 0 58 74" aria-hidden style={{ flexShrink: 0 }}>
-                <path d="M20 42 L15 70 L23 62 L29 70 L29 44 Z" fill={NAVY} />
-                <path d="M38 42 L43 70 L35 62 L29 70 L29 44 Z" fill="#0d1a3d" />
-                {Array.from({ length: 16 }).map((_, i) => (
-                  <rect key={i} x="27.5" y="0" width="3" height="9" rx="1.2" fill="#C8A33A"
-                    transform={`rotate(${i * 22.5} 29 27)`} />
-                ))}
-                <circle cx="29" cy="27" r="20" fill={NAVY} />
-                <circle cx="29" cy="27" r="14.5" fill="none" stroke="#E5B83B" strokeWidth="2" />
-                <circle cx="29" cy="27" r="6" fill="#E5B83B" />
-              </svg>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontFamily: "var(--font-mono)", fontWeight: 800, color: NAVY, lineHeight: 0.92, fontSize: "clamp(28px, 5.2vw, 46px)", letterSpacing: "1px" }}>
-                  CERTIFICADO
-                </div>
-                <div style={{ fontWeight: 500, color: "#2a3550", letterSpacing: "3px", fontSize: "clamp(13px, 2.3vw, 21px)", marginTop: "2px" }}>
-                  DE CULMINACIÓN
-                </div>
-              </div>
-            </div>
-
-            <p style={{ fontWeight: 700, color: NAVY, fontSize: "clamp(11px, 1.7vw, 15px)", marginTop: "3%" }}>
-              Otorgado a
-            </p>
-            <p style={{ fontWeight: 700, color: NAVY, fontSize: "clamp(22px, 4.2vw, 38px)", lineHeight: 1.1, margin: "1.5% 0" }}>
-              {displayName}
-            </p>
-            <p style={{ color: "#3a4055", fontSize: "clamp(10px, 1.6vw, 14px)", maxWidth: "62ch" }}>
-              Por haber completado con éxito el programa <strong style={{ color: NAVY }}>GOVBIDDER CHALLENGE</strong>
-            </p>
-            <p style={{ fontStyle: "italic", color: "#5A6B85", fontSize: "clamp(10px, 1.5vw, 14px)", marginTop: "2.5%" }}>
-              {today}
-            </p>
-
-            {/* Pie: firma · logo · QR */}
-            <div style={{
-              marginTop: "auto", width: "100%",
-              display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: "12px",
-            }}>
-              {/* Firma */}
-              <div style={{ textAlign: "center", flex: "1 1 0", minWidth: 0 }}>
-                <div style={{ height: "2px", background: "#1a1a1a", margin: "0 auto 6px", width: "min(150px, 80%)" }} />
-                <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "clamp(11px, 1.7vw, 15px)" }}>Santo González</div>
-                <div style={{ color: NAVY, fontSize: "clamp(10px, 1.5vw, 13px)" }}>Certificado</div>
-              </div>
-
-              {/* Logo */}
-              <div style={{ flex: "1 1 0", display: "flex", justifyContent: "center" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/tpc-logo.png" alt="Tu Primer Contrato Challenge" style={{ height: "clamp(48px, 9vw, 78px)", width: "auto", objectFit: "contain" }} />
-              </div>
-
-              {/* QR */}
-              <div style={{ textAlign: "center", flex: "1 1 0", minWidth: 0 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&margin=0&data=https://dboard.govbidder.net"
-                  alt="QR grupo de graduados"
-                  style={{ width: "clamp(54px, 9vw, 82px)", height: "auto", display: "block", margin: "0 auto 4px" }}
-                />
-                <div style={{ color: "#5A6B85", fontSize: "clamp(8px, 1.2vw, 11px)", lineHeight: 1.25 }}>
-                  Lee el código QR y únete al<br />grupo de graduados
-                </div>
-              </div>
-            </div>
+            {displayName}
           </div>
 
-          {/* Marca de agua MUESTRA — evita que se use el preview como certificado real */}
+          {/* Marca de agua MUESTRA — evita que se use la muestra como certificado real */}
           <div aria-hidden style={{
             position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden",
-            display: "flex", flexDirection: "column", justifyContent: "center", gap: "34px",
-            transform: "rotate(-22deg) scale(1.45)", opacity: 0.13,
+            display: "flex", flexDirection: "column", justifyContent: "center", gap: "4.2cqw",
+            transform: "rotate(-22deg) scale(1.5)", opacity: 0.2,
           }}>
-            {Array.from({ length: 7 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} style={{
                 whiteSpace: "nowrap", textAlign: "center",
-                fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "30px",
-                letterSpacing: "8px", color: "#152340",
+                fontFamily: "Helvetica, Arial, sans-serif", fontWeight: 800, fontSize: "4.6cqw",
+                letterSpacing: "0.9cqw", color: "#E42D2C",
               }}>
-                VISTA&nbsp;PREVIA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;VISTA&nbsp;PREVIA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;VISTA&nbsp;PREVIA
+                MUESTRA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;MUESTRA
               </div>
             ))}
           </div>
