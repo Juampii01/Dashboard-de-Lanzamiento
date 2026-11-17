@@ -366,6 +366,7 @@ export default async function DashboardLayout({
               startsAt={callBanner.startsAt}
               points={callBanner.points}
               canEarn={!isViewer && !((profile as { is_student?: boolean | null } | null)?.is_student ?? false)}
+              isAdmin={profile?.is_admin ?? false}
             />
           )}
 
