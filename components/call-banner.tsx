@@ -10,7 +10,7 @@ function fmt(ms: number) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}:${String(sec).padStart(2, "0")}`;
+  return h > 0 ? `${h} h ${m} min` : `${m} min ${String(sec).padStart(2, "0")} s`;
 }
 
 export function CallBanner({ id, url, startsAt, points, canEarn, isAdmin = false }: Props) {
@@ -73,7 +73,8 @@ export function CallBanner({ id, url, startsAt, points, canEarn, isAdmin = false
           {started ? "¡La llamada ya empezó!" : <>La llamada arranca a las {time}<br /><span style={{ fontSize: "0.55em", fontWeight: 700, opacity: 0.85 }}>(hora de Miami)</span></>}
         </h1>
         {!started && now !== null && (
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(40px, 10vw, 72px)", fontWeight: 900, margin: 0, color: "#FFD60A", lineHeight: 1 }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "clamp(34px, 8vw, 60px)", fontWeight: 900, margin: 0, color: "#FFD60A", lineHeight: 1 }}>
+            <span style={{ display: "block", fontFamily: "var(--font-sans)", fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.75)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>Faltan</span>
             {fmt(start - now)}
           </p>
         )}
