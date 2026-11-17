@@ -20,6 +20,8 @@ import { ViewerFetchGuard } from "@/components/viewer-fetch-guard";
 import { LaunchCountdown } from "@/components/launch-countdown";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { inicioUnlockIso } from "@/lib/launch";
+import { getCallBanner, type CallBanner as CallBannerData } from "@/lib/call-banner";
+import { CallBanner } from "@/components/call-banner";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -311,6 +313,12 @@ export default async function DashboardLayout({
     supportWhatsapp = ((supportRow as { value?: string | null } | null)?.value ?? "").replace(/[^\d]/g, "");
   }
 
+  // Banner de la llamada en vivo (app_settings.call_banner_*). Solo programa en vivo.
+  let callBanner: CallBannerData | null = null;
+  if (!devMode && program === "live") {
+    callBanner = await getCallBanner(createServiceClient());
+  }
+
   return (
     <div
       style={{
@@ -350,6 +358,16 @@ export default async function DashboardLayout({
 
         {/* ── Columna derecha: barras + tabs + contenido ── */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
+
+          {callBanner && (
+            <CallBanner
+              id={callBanner.id}
+              url={callBanner.url}
+              startsAt={callBanner.startsAt}
+              points={callBanner.points}
+              canEarn={!isViewer && !((profile as { is_student?: boolean | null } | null)?.is_student ?? false)}
+            />
+          )}
 
           {/* Barras de progreso — solo en la columna derecha */}
           <div
