@@ -1002,12 +1002,12 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
         </button>
 
         {/* Certificado: muestra con el diseño REAL (plantilla de Canva del certificado que se
-            emite, sin firma ni QR, número "MUESTRA" y fecha de cierre del challenge). Encima va
-            el nombre del alumno y la marca de agua. Medidas en pt de la plantilla (842.25 × 595.5),
+            emite, sin firma ni QR, número "MUESTRA", fecha de cierre del challenge y marca de agua
+            MUESTRA grabada en la imagen). Encima va el nombre del alumno. Medidas en pt de la plantilla (842.25 × 595.5),
             igual que lib/pdf.js del verificador. */}
         <div style={{
           position: "relative", overflow: "hidden", borderRadius: "14px",
-          aspectRatio: "1600 / 1132", background: "#f8f8f8",
+          aspectRatio: "1200 / 849", background: "#f8f8f8",
           boxShadow: "0 30px 80px rgba(0,0,0,0.55)",
           containerType: "inline-size",
         }}>
@@ -1027,23 +1027,6 @@ function CertificateModal({ onClose, name }: { onClose: () => void; name: string
             fontSize: `${(namePt / 842.25) * 100}cqw`, color: "#0d1f3d",
           }}>
             {displayName}
-          </div>
-
-          {/* Marca de agua MUESTRA — evita que se use la muestra como certificado real */}
-          <div aria-hidden style={{
-            position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden",
-            display: "flex", flexDirection: "column", justifyContent: "center", gap: "4.2cqw",
-            transform: "rotate(-22deg) scale(1.5)", opacity: 0.2,
-          }}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} style={{
-                whiteSpace: "nowrap", textAlign: "center",
-                fontFamily: "Helvetica, Arial, sans-serif", fontWeight: 800, fontSize: "4.6cqw",
-                letterSpacing: "0.9cqw", color: "#E42D2C",
-              }}>
-                MUESTRA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;MUESTRA&nbsp;·&nbsp;MUESTRA
-              </div>
-            ))}
           </div>
         </div>
 
