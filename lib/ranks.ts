@@ -43,7 +43,7 @@ export const RANKS: Rank[] = [
   },
   {
     key: "expert", name: "GovBidder Expert", short: "Expert", min: 15000, max: Infinity,
-    color: "#00D67A", emoji: "🏆", winners: 3, revealed: true,
+    color: "#00D67A", emoji: "🏆", winners: 3,
     prize: "La Mentoría Tu Primer Contrato",
     prizeDetail: "La Mentoría GovBidder Tu Primer Contrato: acompañamiento del equipo de Santo para ganar tu primer contrato con el gobierno.",
   },
