@@ -162,8 +162,8 @@ async function getContext(): Promise<PageCtx> {
     ? []
     : ((rafagaRows.data ?? []) as RafagaMission[]).filter(
         (r) => Date.parse(r.starts_at) + r.duration_minutes * 60 * 1000 >= shownSince
-          // Ocultas desde el admin: el participante no las ve; el admin sí (marcadas).
-          && (isAdmin || r.is_visible !== false)
+          // Ocultas desde el admin: no las ve nadie en Misiones Extra (se gestionan en /admin/misiones).
+          && r.is_visible !== false
       );
   const rafagaClaimedIds = ((rafagaSubsRows.data ?? []) as { rafaga_id: string }[]).map((r) => r.rafaga_id);
 
