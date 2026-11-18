@@ -10,6 +10,7 @@ import { getUnregisteredBuyers, sendRegistrationReminder } from "@/lib/access/re
  * GET  ?product=live|ondemand → cuántos hay sin registrar.
  * POST { product, test: true } → manda el email solo al admin que llama.
  * POST { product, offset } → manda a una tanda (mismo patrón que reminder-blast).
+ * POST { product, email } → manda el recordatorio a una sola persona que pagó y no se registró.
  */
 export const maxDuration = 300;
 
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
-  const body = (await req.json().catch(() => ({}))) as { product?: string; test?: boolean; offset?: number };
+  const body = (await req.json().catch(() => ({}))) as { product?: string; test?: boolean; offset?: number; email?: string };
   const product = productFrom(body.product);
 
   if (body.test) {
@@ -56,6 +57,16 @@ export async function POST(req: NextRequest) {
       reminder: true,
     });
     return NextResponse.json({ ok: true, sent: r.ok ? 1 : 0, failed: r.ok ? 0 : 1, errors: r.error ? [r.error] : [], total: 1, nextOffset: null });
+  }
+
+  // Envío a una sola persona que pagó y no se registró: { email }.
+  if (body.email) {
+    const target = body.email.trim().toLowerCase();
+    const all = await getUnregisteredBuyers(auth.db, [product]);
+    const buyer = all.find((b) => b.email.toLowerCase() === target);
+    if (!buyer) return NextResponse.json({ error: "not_found_or_registered" }, { status: 404 });
+    const r = await sendRegistrationReminder(auth.db, buyer);
+    return NextResponse.json({ ok: r.ok, sent: r.ok ? 1 : 0, failed: r.ok ? 0 : 1, errors: r.error ? [r.error] : [], total: 1, nextOffset: null });
   }
 
   // La lista se recalcula en cada tanda: quien se registra mientras tanto sale
