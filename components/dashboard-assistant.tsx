@@ -108,6 +108,7 @@ export function DashboardAssistant({ supportWhatsapp = "" }: { supportWhatsapp?:
           type="button"
           aria-label="Abrir asistente de ayuda"
           onClick={() => { dismissHint(); setOpen(true); }}
+          className="gb-assistant-fab"
           style={{
             position: "fixed",
             right: 20,
@@ -128,7 +129,7 @@ export function DashboardAssistant({ supportWhatsapp = "" }: { supportWhatsapp?:
             boxShadow: "0 10px 30px -8px rgba(0,0,0,0.45)",
           }}
         >
-          <Sparkles size={18} /> ¿Dudas? Pregúntale a la guía
+          <Sparkles size={18} /> <span className="gb-assistant-label">¿Dudas? Pregúntale a la guía</span>
         </button>
       )}
 

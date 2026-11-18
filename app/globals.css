@@ -923,3 +923,9 @@ html:not(.dark) .gb-home-wide .gb-elev {
 }
 html:not(.dark) .gb-home-wide .gb-rec-tile { background: #FFFFFF !important; box-shadow: 0 6px 18px -12px rgba(228, 45, 44, 0.55); }
 .gb-chat-list { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--foreground) 25%, transparent) transparent; }
+
+/* Asistente flotante: en celular solo el ícono, para no tapar botones del día. */
+@media (max-width: 640px) {
+  .gb-assistant-fab { padding: 14px !important; right: 14px !important; bottom: 14px !important; }
+  .gb-assistant-label { display: none; }
+}

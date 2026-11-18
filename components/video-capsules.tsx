@@ -534,7 +534,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
           <div className="flex items-center gap-3">
             <span className="text-lg select-none">📺</span>
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--secondary)", fontFamily: "var(--font-mono)" }}>
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>
                 Misiones en video
               </p>
               <p className="text-[10px] mt-0.5" style={{ color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
@@ -617,7 +617,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
                 return (
                   <div
                     key={c.id}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg"
+                    className="flex flex-wrap sm:flex-nowrap items-center gap-x-3 gap-y-2 px-3 py-2.5 rounded-lg"
                     style={{
                       background: c.completed ? "color-mix(in srgb, var(--success) 8%, transparent)" : "var(--muted)",
                       border: `1px solid ${c.completed ? "color-mix(in srgb, var(--success) 22%, transparent)" : "var(--border)"}`,
@@ -643,11 +643,15 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
 
                     {/* Title */}
                     <span
-                      className="flex-1 text-xs truncate"
+                      className="flex-1 min-w-0 text-sm sm:text-xs font-semibold sm:font-normal line-clamp-2 sm:truncate"
                       style={{ color: c.completed ? "var(--success)" : "var(--foreground)", fontFamily: "var(--font-sans)" }}
                     >
                       {c.title}
                     </span>
+
+                    {/* En celular, puntos y botón bajan a su propia línea para que el título se lea entero */}
+                    <div className="basis-full h-0 sm:hidden" aria-hidden />
+                    <div className="flex items-center gap-2 ml-auto shrink-0">
 
                     {/* Ver de nuevo — solo para completadas; reabre solo el video (sin quiz) */}
                     {c.completed && (
@@ -706,6 +710,7 @@ export function VideoCapsules({ day, isAdmin, over10k = false }: VideoCapsulesPr
                         ▶ Hacer misión
                       </button>
                     )}
+                    </div>
                   </div>
                 );
               })}
