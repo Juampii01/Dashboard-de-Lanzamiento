@@ -177,9 +177,9 @@ export function KeywordCards({ days, over10k = false }: { days: DayKeyword[]; ov
   const enriched = days.map((d) => ({ ...d, done: doneDays.has(d.day_number) }));
 
   return (
-    <div style={{
+    <div className="gb-kw-grid" style={{
       display: "grid",
-      gridTemplateColumns: "repeat(2, 1fr)",
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
       gap: 12,
     }}>
       {enriched.map((day) => (
