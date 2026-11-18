@@ -29,6 +29,9 @@ const bebasNeue = Bebas_Neue({
 export const metadata: Metadata = {
   title: "GovBidder",
   description: "Aprende a venderle al gobierno federal en 4 días.",
+  // El traductor automático de Chrome rompe la página (cambia el texto por
+  // debajo de React y al pasar de paso falla). La plataforma ya está en español.
+  other: { google: "notranslate" },
 };
 
 export default function RootLayout({
@@ -39,6 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
+      translate="no"
       suppressHydrationWarning
       className={`${raleway.variable} ${inter.variable} ${bebasNeue.variable} h-full antialiased`}
     >
