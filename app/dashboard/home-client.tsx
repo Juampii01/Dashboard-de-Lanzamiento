@@ -421,6 +421,9 @@ function RecordingsRow({ urls, titles }: { urls: (string | null)[]; titles: (str
                   alt=""
                   loading="lazy"
                   onError={(e) => { e.currentTarget.style.display = "none"; }}
+                  // YouTube devuelve una imagen gris de 120x90 cuando la miniatura todavía
+                  // no existe (video recién subido o privado): la ocultamos y queda el fondo.
+                  onLoad={(e) => { if (e.currentTarget.naturalWidth <= 120) e.currentTarget.style.display = "none"; }}
                   style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
                 />
               )}

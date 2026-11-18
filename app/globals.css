@@ -929,3 +929,8 @@ html:not(.dark) .gb-home-wide .gb-rec-tile { background: #FFFFFF !important; box
   .gb-assistant-fab { padding: 14px !important; right: 14px !important; bottom: 14px !important; }
   .gb-assistant-label { display: none; }
 }
+
+/* Palabras clave de llamadas: una columna en celular */
+@media (max-width: 640px) {
+  .gb-kw-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
