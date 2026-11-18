@@ -5,17 +5,18 @@ import { Day1AnalysisPDF } from "@/components/pdfs/Day1AnalysisPDF";
 import { createElement } from "react";
 import { fetchLogoDataUri } from "@/lib/logo";
 import { getActor } from "@/lib/viewer";
+import { naicsLabel } from "@/lib/naics-sectors";
 
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: profile } = await supabase
-    .from("company_profiles")
-    .select("*")
-    .eq("user_id", (await getActor(user.id)).userId)
-    .single();
+  const actorId = (await getActor(user.id)).userId;
+  const [{ data: profile }, { data: expansion }] = await Promise.all([
+    supabase.from("company_profiles").select("*").eq("user_id", actorId).maybeSingle(),
+    supabase.from("naics_expansions").select("related_codes").eq("user_id", actorId).maybeSingle(),
+  ]);
 
   if (!profile) {
     return NextResponse.json({ error: "Profile not found" }, { status: 404 });
@@ -39,6 +40,11 @@ export async function GET() {
       problemSolved: profile.problem_solved,
       targetAvatar: profile.target_avatar,
       primaryNaics: profile.primary_naics,
+      naicsDescription: naicsLabel(
+        profile.primary_naics,
+        (expansion as { related_codes?: Array<{ code?: string; description?: string; type?: string }> } | null)?.related_codes,
+      ).description,
+      usState: (p.us_state as string | null) ?? null,
       generatedAt,
       logoDataUri,
     })

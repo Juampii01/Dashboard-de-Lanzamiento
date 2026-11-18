@@ -102,8 +102,9 @@ interface Day1PDFProps {
   problemSolved?: string | null;
   targetAvatar?: string | null;
   primaryNaics?: string | null;
-  naicsDescription?: string;
-  naicsReasoning?: string;
+  naicsDescription?: string | null;
+  naicsReasoning?: string | null;
+  usState?: string | null;
   generatedAt: string;
   logoDataUri?: string | null;
 }
@@ -138,6 +139,7 @@ export function Day1AnalysisPDF({
   primaryNaics,
   naicsDescription,
   naicsReasoning,
+  usState,
   generatedAt,
   logoDataUri,
 }: Day1PDFProps) {
@@ -157,7 +159,7 @@ export function Day1AnalysisPDF({
               </View>
             </View>
             <View style={styles.docBadge}>
-              <Text style={styles.docKicker}>Strategic Profile</Text>
+              <Text style={styles.docKicker}>Perfil estratégico</Text>
               <Text style={styles.docTitle}>DÍA 1</Text>
             </View>
           </View>
@@ -175,8 +177,8 @@ export function Day1AnalysisPDF({
             <Text style={styles.statLabel}>Equipo</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNum}>{primaryNaics ? "1" : "—"}</Text>
-            <Text style={styles.statLabel}>Código NAICS</Text>
+            <Text style={styles.statNum}>{usState || "—"}</Text>
+            <Text style={styles.statLabel}>Estado</Text>
           </View>
           <View style={styles.statItemLast}>
             <Text style={styles.statNumGold}>SAM.gov</Text>
@@ -211,9 +213,27 @@ export function Day1AnalysisPDF({
                 <Text style={styles.naicsCode}>{primaryNaics}</Text>
                 <View style={styles.naicsUnderline} />
                 {naicsDescription ? <Text style={styles.naicsDesc}>{naicsDescription}</Text> : null}
-                {naicsReasoning ? <Text style={styles.naicsReason}>{naicsReasoning}</Text> : null}
+                <Text style={styles.naicsReason}>
+                  {naicsReasoning || "Así te identifica el gobierno en SAM.gov y en cada licitación. Es la base de todo lo que haces en el challenge."}
+                </Text>
               </View>
             ) : null}
+
+            <View style={styles.section}>
+              <SectionTitle>Tus próximos pasos</SectionTitle>
+              {[
+                primaryNaics
+                  ? `Guarda tu código ${primaryNaics}: lo vas a usar en SAM.gov, en los portales y en tu Capability Statement.`
+                  : "Define tu código NAICS principal en el Día 1 de la plataforma.",
+                "En el Día 2 lo convertimos en un mapa de códigos relacionados (NAICS, PSC, NIGP) y palabras clave del gobierno.",
+                "Registra tu empresa en SAM.gov con este código: sin ese registro no puedes recibir contratos federales.",
+              ].map((t, i) => (
+                <View key={i} style={styles.stepRow}>
+                  <View style={styles.stepNum}><Text style={styles.stepNumText}>{i + 1}</Text></View>
+                  <Text style={styles.stepText}>{t}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
 

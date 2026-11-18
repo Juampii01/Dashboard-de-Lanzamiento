@@ -1,8 +1,8 @@
 import { Text, View, StyleSheet } from "@react-pdf/renderer";
 
 // Tira "Tu ruta en el Challenge" reutilizable por todos los PDFs de día.
-// Los días completados (1..currentDay) se muestran HECHOS: punto dorado + texto
-// tachado. Los pendientes: punto suave + texto normal.
+// Los días completados (1..currentDay) se muestran HECHOS: punto dorado y la etiqueta
+// "Completado". Los pendientes: punto suave con el número.
 
 const NAVY      = "#1a2a6c";
 const NAVY_DARK = "#0f1e3d";
@@ -20,9 +20,10 @@ const r = StyleSheet.create({
   dot: { width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center", marginBottom: 5 },
   dotText: { fontSize: 8, fontFamily: "Helvetica-Bold" },
   day: { fontSize: 6.5, fontFamily: "Helvetica-Bold", color: NAVY, letterSpacing: 0.5, textTransform: "uppercase" },
-  dayDone: { color: MUTED, textDecoration: "line-through" },
+  dayDone: { color: NAVY },
   label: { fontSize: 6.5, color: MUTED, textAlign: "center", marginTop: 2, lineHeight: 1.3 },
-  labelDone: { textDecoration: "line-through" },
+  labelDone: { color: MUTED },
+  doneTag: { fontSize: 5.8, fontFamily: "Helvetica-Bold", color: "#1f7a4d", marginTop: 3, letterSpacing: 0.4, textTransform: "uppercase" },
 });
 
 const DAYS = [
@@ -52,6 +53,7 @@ export function ChallengeRoadmap({
               </View>
               <Text style={done ? [r.day, r.dayDone] : r.day}>{n.day}</Text>
               <Text style={done ? [r.label, r.labelDone] : r.label}>{n.label}</Text>
+              {done ? <Text style={r.doneTag}>Completado</Text> : null}
             </View>
           );
         })}
