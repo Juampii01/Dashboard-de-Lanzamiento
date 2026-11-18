@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   mNumText: { fontSize: 8, fontFamily: "Helvetica-Bold", color: NAVY_DARK },
   mBody: { flex: 1 },
   mDay: { fontSize: 6.5, fontFamily: "Helvetica-Bold", color: GOLD, letterSpacing: 0.6, textTransform: "uppercase" },
-  mTitle: { fontSize: 9, fontFamily: "Helvetica-Bold", color: NAVY, textDecoration: "line-through", marginTop: 1 },
+  mTitle: { fontSize: 9, fontFamily: "Helvetica-Bold", color: NAVY, marginTop: 1 },
   mDesc: { fontSize: 8, color: INK, lineHeight: 1.45, marginTop: 2 },
 
   // NAICS recap card
@@ -67,6 +67,15 @@ const styles = StyleSheet.create({
   calloutTitle: { fontSize: 8.5, fontFamily: "Helvetica-Bold", color: NAVY, marginBottom: 3 },
   calloutText: { fontSize: 7.8, color: INK, lineHeight: 1.5 },
 
+  // next steps + keywords
+  wide: { paddingHorizontal: 34, paddingTop: 4 },
+  stepRow: { flexDirection: "row", marginBottom: 7, alignItems: "flex-start" },
+  stepNum: { width: 15, height: 15, borderRadius: 7.5, backgroundColor: GOLD, alignItems: "center", justifyContent: "center", marginRight: 8, flexShrink: 0 },
+  stepNumText: { fontSize: 7.5, fontFamily: "Helvetica-Bold", color: NAVY_DARK },
+  stepText: { fontSize: 8, color: INK, lineHeight: 1.45, flex: 1 },
+  kwWrap: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
+  kwPill: { fontSize: 7, color: NAVY, backgroundColor: LIGHT, border: `0.5 solid ${LINE}`, borderRadius: 9, paddingVertical: 3, paddingHorizontal: 7 },
+
   footer: { backgroundColor: NAVY_DARK, paddingVertical: 9, paddingHorizontal: 34, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   footerLeft: { fontSize: 8, fontFamily: "Helvetica-Bold", color: "#FFFFFF", letterSpacing: 0.6 },
   footerRight: { fontSize: 7.5, color: GOLD, textAlign: "right" },
@@ -80,6 +89,7 @@ interface JourneySummaryProps {
   naicsDescription?: string | null;
   relatedCodesCount?: number;
   keywordsCount?: number;
+  keywordList?: string[];
   generatedAt: string;
   logoDataUri?: string | null;
 }
@@ -92,6 +102,7 @@ export function JourneySummaryPDF({
   naicsDescription,
   relatedCodesCount = 0,
   keywordsCount = 0,
+  keywordList = [],
   generatedAt,
   logoDataUri,
 }: JourneySummaryProps) {
@@ -106,7 +117,7 @@ export function JourneySummaryPDF({
     {
       day: "Día 2",
       title: "Mapa de Códigos",
-      desc: `Mapeaste ${relatedCodesCount} código${relatedCodesCount === 1 ? "" : "s"} relacionado${relatedCodesCount === 1 ? "" : "s"} y ${keywordsCount} keyword${keywordsCount === 1 ? "" : "s"} del gobierno.`,
+      desc: `Mapeaste ${relatedCodesCount} código${relatedCodesCount === 1 ? "" : "s"} relacionado${relatedCodesCount === 1 ? "" : "s"} y ${keywordsCount} palabra${keywordsCount === 1 ? "" : "s"} clave del gobierno.`,
     },
     {
       day: "Día 3",
@@ -155,7 +166,7 @@ export function JourneySummaryPDF({
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{keywordsCount}</Text>
-            <Text style={styles.statLabel}>Keywords</Text>
+            <Text style={styles.statLabel}>Palabras clave</Text>
           </View>
           <View style={styles.statItemLast}>
             <Text style={styles.statNum}>{`${currentDay}/4`}</Text>
@@ -207,6 +218,43 @@ export function JourneySummaryPDF({
               </Text>
             </View>
           </View>
+        </View>
+
+        {/* Próximos pasos + palabras clave */}
+        <View style={styles.wide}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Tus próximos pasos</Text>
+            <View style={styles.sectionRule} />
+            {(isFinal
+              ? [
+                  "Completa o actualiza tu registro en SAM.gov con tus códigos NAICS. Sin ese registro no puedes recibir contratos federales.",
+                  "Envía tu Capability Statement a los oficiales de compras de las agencias que compran lo que tú haces.",
+                  "Revisa los portales cada semana con tus códigos y palabras clave, y postúlate a las oportunidades que encajen con tu empresa.",
+                ]
+              : [
+                  "Publica tu sitio web y agrégalo a tu perfil de SAM.gov y a tus correos: es lo primero que revisa un comprador.",
+                  "Crea alertas en los portales con tus códigos y tus palabras clave para recibir las oportunidades en tu email.",
+                  "En el Día 4 armas tu Capability Statement: la carta de presentación de tu empresa ante el gobierno.",
+                ]
+            ).map((t, i) => (
+              <View key={i} style={styles.stepRow}>
+                <View style={styles.stepNum}><Text style={styles.stepNumText}>{i + 1}</Text></View>
+                <Text style={styles.stepText}>{t}</Text>
+              </View>
+            ))}
+          </View>
+
+          {keywordList.length > 0 ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Tus palabras clave para buscar licitaciones</Text>
+              <View style={styles.sectionRule} />
+              <View style={styles.kwWrap}>
+                {keywordList.slice(0, 18).map((kw) => (
+                  <Text key={kw} style={styles.kwPill}>{kw}</Text>
+                ))}
+              </View>
+            </View>
+          ) : null}
         </View>
 
         {/* Spacer + roadmap */}

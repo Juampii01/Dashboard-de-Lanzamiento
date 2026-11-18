@@ -5,6 +5,7 @@ import { JourneySummaryPDF } from "@/components/pdfs/JourneySummaryPDF";
 import { createElement } from "react";
 import { fetchLogoDataUri } from "@/lib/logo";
 import { getActor } from "@/lib/viewer";
+import { naicsLabel } from "@/lib/naics-sectors";
 
 export async function GET() {
   const supabase = await createClient();
@@ -34,9 +35,13 @@ export async function GET() {
       currentDay: 4,
       yearFounded: (p.year_founded as number | null) ?? null,
       primaryNaics: (p.primary_naics as string | null) ?? (exp.primary_naics as string | null) ?? null,
-      naicsDescription: null,
+      naicsDescription: naicsLabel(
+        (p.primary_naics as string | null) ?? (exp.primary_naics as string | null) ?? null,
+        related as Array<{ code?: string; description?: string; type?: string }>,
+      ).description,
       relatedCodesCount: related.length,
       keywordsCount: keywords.length,
+      keywordList: keywords.filter((k): k is string => typeof k === "string"),
       generatedAt,
       logoDataUri,
     })

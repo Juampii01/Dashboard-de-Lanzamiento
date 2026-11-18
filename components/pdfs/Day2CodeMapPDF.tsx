@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 6.5, color: MUTED, letterSpacing: 0.5, marginTop: 2, textTransform: "uppercase" },
 
   // ── Body ──
-  body: { flexDirection: "row", paddingHorizontal: 34, paddingTop: 14, paddingBottom: 8, gap: 18, flex: 1 },
+  body: { flexDirection: "row", paddingHorizontal: 34, paddingTop: 14, paddingBottom: 8, gap: 18 },
   leftCol: { width: "55%" },
   rightCol: { width: "45%" },
 
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   // ── Code card ──
   codeCard: {
     flexDirection: "row", alignItems: "flex-start",
-    marginBottom: 4, padding: 6, borderRadius: 4,
+    marginBottom: 3, paddingVertical: 4, paddingHorizontal: 6, borderRadius: 4,
     border: `0.5 solid ${LINE}`,
   },
   codeChip: {
@@ -124,11 +124,11 @@ interface Day2PDFProps {
 const TYPE_ORDER = ["NAICS", "PSC", "SIC", "UNSPSC", "NIGP"];
 
 const TYPE_DESC: Record<string, string> = {
-  NAICS:   "Federal — SAM.gov primary code",
-  PSC:     "Federal — DoD & agency purchases",
-  SIC:     "Legacy — state & county systems",
-  UNSPSC:  "International — UN standard",
-  NIGP:    "State / county / school districts",
+  NAICS:   "Federal: el código de tu registro en SAM.gov",
+  PSC:     "Federal: compras de las agencias y del DoD",
+  SIC:     "Sistema anterior: estados y condados",
+  UNSPSC:  "Estándar internacional (ONU)",
+  NIGP:    "Estados, condados y distritos escolares",
 };
 
 function SectionTitle({ children }: { children: string }) {
@@ -156,9 +156,17 @@ export function Day2CodeMapPDF({
   const totalCodes = relatedCodes.length;
   const typesCount = byType.length;
 
-  // Split code groups across two columns
-  const leftGroups  = byType.filter((_, i) => i < Math.ceil(byType.length / 2));
-  const rightGroups = byType.filter((_, i) => i >= Math.ceil(byType.length / 2));
+  // Reparte los grupos en dos columnas equilibrando la cantidad de códigos
+  // (cada grupo suma ~2 filas por su título), para que todo entre en una hoja.
+  const leftGroups: typeof byType = [];
+  const rightGroups: typeof byType = [];
+  let leftSize = 0;
+  let rightSize = 0;
+  for (const g of byType) {
+    const size = g.codes.length + 2;
+    if (leftSize <= rightSize) { leftGroups.push(g); leftSize += size; }
+    else { rightGroups.push(g); rightSize += size; }
+  }
 
   return (
     <Document>
@@ -178,9 +186,9 @@ export function Day2CodeMapPDF({
                 <Text style={styles.tagline}>Tu Primer Contrato Challenge — Mapa de Códigos Día 2</Text>
               </View>
             </View>
-            <Text style={styles.docTitle}>CODE MAP{"\n"}DAY 2</Text>
+            <Text style={styles.docTitle}>MAPA DE CÓDIGOS{"\n"}DÍA 2</Text>
           </View>
-          <Text style={styles.naicsLine}>Primary NAICS: {primaryNaics}</Text>
+          <Text style={styles.naicsLine}>NAICS principal: {primaryNaics}</Text>
         </View>
         <View style={styles.goldBar} />
 
@@ -188,19 +196,19 @@ export function Day2CodeMapPDF({
         <View style={styles.statsBand}>
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{totalCodes}</Text>
-            <Text style={styles.statLabel}>Total Codes</Text>
+            <Text style={styles.statLabel}>Códigos</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{typesCount}</Text>
-            <Text style={styles.statLabel}>Code Systems</Text>
+            <Text style={styles.statLabel}>Sistemas</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{keywordsExpanded.length}</Text>
-            <Text style={styles.statLabel}>Keywords</Text>
+            <Text style={styles.statLabel}>Palabras clave</Text>
           </View>
           <View style={styles.statItemLast}>
             <Text style={styles.statNum}>SAM</Text>
-            <Text style={styles.statLabel}>Register Codes</Text>
+            <Text style={styles.statLabel}>Dónde registrarlos</Text>
           </View>
         </View>
 
@@ -210,7 +218,7 @@ export function Day2CodeMapPDF({
           <View style={styles.leftCol}>
             {leftGroups.map(({ type, codes }) => (
               <View key={type} style={styles.section}>
-                <SectionTitle>{type === "NAICS" ? "NAICS Codes" : type === "PSC" ? "PSC — Product Service Codes" : type === "SIC" ? "SIC — Legacy Codes" : type === "UNSPSC" ? "UNSPSC — UN Standard" : "NIGP Codes"}</SectionTitle>
+                <SectionTitle>{type === "NAICS" ? "Códigos NAICS" : type === "PSC" ? "PSC: productos y servicios" : type === "SIC" ? "SIC: códigos anteriores" : type === "UNSPSC" ? "UNSPSC: estándar de la ONU" : "Códigos NIGP"}</SectionTitle>
                 {/* Type descriptor */}
                 <View style={styles.typeHeader}>
                   <Text
@@ -247,7 +255,7 @@ export function Day2CodeMapPDF({
           <View style={styles.rightCol}>
             {rightGroups.map(({ type, codes }) => (
               <View key={type} style={styles.section}>
-                <SectionTitle>{type === "NAICS" ? "NAICS Codes" : type === "PSC" ? "PSC — Product Service Codes" : type === "SIC" ? "SIC — Legacy Codes" : type === "UNSPSC" ? "UNSPSC — UN Standard" : "NIGP Codes"}</SectionTitle>
+                <SectionTitle>{type === "NAICS" ? "Códigos NAICS" : type === "PSC" ? "PSC: productos y servicios" : type === "SIC" ? "SIC: códigos anteriores" : type === "UNSPSC" ? "UNSPSC: estándar de la ONU" : "Códigos NIGP"}</SectionTitle>
                 <View style={styles.typeHeader}>
                   <Text
                     style={[
@@ -281,7 +289,7 @@ export function Day2CodeMapPDF({
             {/* Keywords — put in right column if there's space, else it wraps */}
             {keywordsExpanded.length > 0 && rightGroups.length < 2 && (
               <View style={styles.section}>
-                <SectionTitle>Government Keywords</SectionTitle>
+                <SectionTitle>Palabras clave para buscar licitaciones</SectionTitle>
                 <View style={styles.kwWrap}>
                   {keywordsExpanded.slice(0, 20).map((kw) => (
                     <Text key={kw} style={styles.kwPill}>{kw}</Text>
@@ -295,7 +303,7 @@ export function Day2CodeMapPDF({
         {/* ── Keywords — full width if not already shown ── */}
         {keywordsExpanded.length > 0 && rightGroups.length >= 2 && (
           <View style={{ paddingHorizontal: 34, paddingBottom: 10 }}>
-            <SectionTitle>Government Keywords</SectionTitle>
+            <SectionTitle>Palabras clave para buscar licitaciones</SectionTitle>
             <View style={styles.kwWrap}>
               {keywordsExpanded.slice(0, 24).map((kw) => (
                 <Text key={kw} style={styles.kwPill}>{kw}</Text>
@@ -303,6 +311,8 @@ export function Day2CodeMapPDF({
             </View>
           </View>
         )}
+
+        <View style={{ flexGrow: 1 }} />
 
         {/* ── Roadmap strip — Días 1-2 hechos ── */}
         <ChallengeRoadmap currentDay={2} />
