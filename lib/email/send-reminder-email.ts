@@ -15,7 +15,7 @@ export type ReminderSegment = "never_accessed" | "day1_incomplete";
 
 const SUBJECTS: Record<ReminderSegment, string> = {
   never_accessed: "Todavía no ingresaste al Challenge Tu Primer Contrato",
-  day1_incomplete: "Completa el Día 1 antes de la clase de hoy",
+  day1_incomplete: "Aún no has completado el Día 1 del Challenge",
 };
 
 export async function sendReminderEmail(opts: {
@@ -62,9 +62,9 @@ const COPY: Record<ReminderSegment, { kicker: string; title: string; body: strin
   },
   day1_incomplete: {
     kicker: "Tu Primer Contrato Challenge",
-    title: "Todavía no completas el Día 1",
-    body: "Vimos que ya entraste al dashboard, pero todavía no completas el Día 1. Ahí armas el perfil de tu empresa y la plataforma te sugiere tus códigos NAICS: los necesitas para el Día 2 y para la web del Día 3. Te toma unos 10 minutos. Haz clic en el botón y entras directo al Día 1, con tu sesión ya iniciada.",
-    cta: "Ir al Día 1 →",
+    title: "Aún no has completado el Día 1",
+    body: "Vimos que ya entraste al dashboard, pero aún no has completado el Día 1. Ve y complétalo: ahí armas el perfil de tu empresa y la plataforma te sugiere tus códigos NAICS: los necesitas para el Día 2 y para la web del Día 3. Te toma unos 10 minutos. Haz clic en el botón y entras directo al Día 1, con tu sesión ya iniciada.",
+    cta: "Ir a realizarlo →",
   },
 };
 
