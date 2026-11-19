@@ -442,7 +442,8 @@ export default async function DashboardLayout({
         />
       )}
       {/* Bloqueo por llamada en vivo: no aplica a on demand */}
-      {!devMode && program === "live" && <DashboardLockOverlay isAdmin={profile?.is_admin ?? false} />}
+      {/* Los admins no quedan bloqueados (se desbloquea desde /admin/en-vivo) */}
+      {!devMode && program === "live" && !profile?.is_admin && <DashboardLockOverlay isAdmin={false} />}
 
       {/* Asistente de IA flotante — guía a todos los usuarios */}
       {!devMode && !isViewer && <DashboardAssistant supportWhatsapp={supportWhatsapp} />}
