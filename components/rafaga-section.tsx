@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Send } from "lucide-react";
 import { MissionText } from "@/components/mission-text";
+import { MISSION_SUBMITTED_EVENT } from "@/components/points-in-review";
 
 export interface RafagaMission {
   id: string;
@@ -36,12 +37,17 @@ function formatCountdown(ms: number): string {
   return `${s}s`;
 }
 
-function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMission; alreadyClaimed: boolean; over10k: boolean }) {
+type SubmissionStatus = "pending" | "approved" | "rejected";
+
+function RafagaCard({ mission, initialStatus, over10k }: { mission: RafagaMission; initialStatus: SubmissionStatus | null; over10k: boolean }) {
   // Sobre 10.000 pts la ráfaga suma la mitad → mostrar el valor real.
   const shownPts = over10k ? Math.floor(mission.points_reward / 2) : mission.points_reward;
   const [status, setStatus] = useState<"upcoming" | "active" | "expired">(getStatus(mission));
   const [countdown, setCountdown] = useState("");
-  const [claimed, setClaimed] = useState(alreadyClaimed);
+  // Estado del envío: null = sin responder; pending = en revisión (los puntos
+  // se suman cuando el equipo aprueba); rejected = puede volver a responder.
+  const [subStatus, setSubStatus] = useState<SubmissionStatus | null>(initialStatus);
+  const claimed = subStatus === "pending" || subStatus === "approved";
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +79,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rafaga_id: mission.id, ...payload }),
       });
-      const json = await res.json() as { ok?: boolean; awarded?: boolean; delta?: number; total?: number; error?: string };
+      const json = await res.json() as { ok?: boolean; pending?: boolean; error?: string };
       if (!res.ok || !json.ok) {
         setError(
           json.error === "expired" ? "La ventana de esta misión ya cerró."
@@ -86,12 +92,9 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
         );
         return;
       }
-      setClaimed(true);
-      if (json.awarded && json.delta) {
-        window.dispatchEvent(new CustomEvent("xp-gained", {
-          detail: { delta: json.delta, total: json.total, source: "rafaga" },
-        }));
-      }
+      // Queda en revisión: los puntos se suman cuando el equipo la aprueba.
+      setSubStatus((prev) => (json.pending ? "pending" : prev === "approved" ? "approved" : "pending"));
+      window.dispatchEvent(new CustomEvent(MISSION_SUBMITTED_EVENT));
     } catch {
       setError("No pudimos enviar tu respuesta. Prueba de nuevo.");
     } finally {
@@ -212,13 +215,29 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
         {status === "expired" && (
           <p style={{ fontSize: 15, color: "var(--muted-foreground)", margin: 0 }}>Esta misión ya cerró.</p>
         )}
-        {status === "active" && claimed && (
+        {subStatus === "pending" && (
+          <span style={{
+            fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
+            color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 12%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--primary) 35%, transparent)",
+            borderRadius: 999, padding: "5px 14px",
+          }}>⏳ En revisión · +{shownPts.toLocaleString()} pts al aprobarse</span>
+        )}
+        {subStatus === "approved" && (
           <span style={{
             fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
             color: "var(--success)", background: "color-mix(in srgb, var(--success) 12%, transparent)",
             border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
             borderRadius: 999, padding: "5px 14px",
-          }}>✓ ¡Enviada! +{shownPts.toLocaleString()} pts</span>
+          }}>✓ Acreditada · +{shownPts.toLocaleString()} pts</span>
+        )}
+        {subStatus === "rejected" && (
+          <span style={{
+            fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 800,
+            color: "var(--destructive)", background: "color-mix(in srgb, var(--destructive) 12%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--destructive) 35%, transparent)",
+            borderRadius: 999, padding: "5px 14px",
+          }}>✗ Respuesta incorrecta{status === "active" ? " · puedes volver a responder" : ""}</span>
         )}
       </div>
 
@@ -249,7 +268,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
               }}
             >
               {busy ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-              Enviar y ganar +{shownPts.toLocaleString()} pts
+              Enviar respuesta · +{shownPts.toLocaleString()} pts
             </button>
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{ display: "none" }} onChange={handleFile} />
             <button
@@ -266,7 +285,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
             </button>
           </div>
           <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: 0 }}>
-            Responde con un link, un texto o una captura (PNG/JPG, máx 5 MB) para ganar los puntos.
+            Responde con un link, un texto o una captura (PNG/JPG, máx 5 MB). Los puntos se suman cuando el equipo revisa y aprueba tu respuesta.
           </p>
           {error && <p style={{ fontSize: 12.5, color: "var(--destructive)", margin: 0 }}>{error}</p>}
         </div>
@@ -277,11 +296,11 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
 
 export function RafagaSection({
   rafagas,
-  claimedIds,
+  statusById,
   over10k = false,
 }: {
   rafagas: RafagaMission[];
-  claimedIds: string[];
+  statusById: Record<string, SubmissionStatus>;
   over10k?: boolean;
 }) {
   if (rafagas.length === 0) {
@@ -306,7 +325,7 @@ export function RafagaSection({
         <RafagaCard
           key={r.id}
           mission={r}
-          alreadyClaimed={claimedIds.includes(r.id)}
+          initialStatus={statusById[r.id] ?? null}
           over10k={over10k}
         />
       ))}

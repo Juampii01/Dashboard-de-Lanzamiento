@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { parseReviewBody, reviewSubmissions } from "@/lib/missions/review";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -59,71 +60,39 @@ export async function GET(req: Request) {
 
   const scope = new URL(req.url).searchParams.get("scope");
 
-  // select * para tolerar que las columnas de contenido/status aún no existan
-  // (pre-migración).
-  const { data: subs } = await auth.service
+  let query = auth.service
     .from("rafaga_submissions")
     .select("*")
-    .order("submitted_at", { ascending: false })
-    .limit(scope === "history" ? 300 : 200);
+    .order(scope === "history" ? "reviewed_at" : "submitted_at", { ascending: false })
+    .limit(scope === "history" ? 300 : 500);
+  query = scope === "history" ? query.not("reviewed_at", "is", null) : query.is("reviewed_at", null);
+  const { data: subs } = await query;
 
   const rows = ((subs ?? []) as Array<Record<string, unknown>>)
-    .filter((r) => (scope === "history" ? !!r.reviewed_at : !r.reviewed_at))
     .filter((r) => r.content_text || r.image_url); // solo las que tienen prueba
 
   return NextResponse.json({ ok: true, submissions: await withNamesAndTitles(auth.service, rows) });
 }
 
 /**
- * POST → moderar una respuesta de ráfaga. Body: { submission_id, action: "reject" | "approve" }
- * - approve: marca revisada. NO borra la foto/texto — queda como historial.
- * - reject: descuenta los puntos y marca revisada como rechazada (status).
- *   Tampoco borra el contenido ni la fila (queda como historial); el índice
- *   único parcial (migración 20260701000003) permite reintentar sin que esta
- *   fila rechazada lo bloquee.
+ * POST → moderar respuestas de ráfaga.
+ * Body: { submission_id } o { submission_ids: [...] } (aprobar/rechazar en
+ * bloque) + { action: "approve" | "reject" }.
+ * - approve: suma los puntos (si todavía no se sumaron) y marca revisada.
+ * - reject: no suma nada; si se habían sumado (flujo viejo), los descuenta.
+ * Nunca borra la foto/texto: queda como historial. El índice único parcial
+ * (migración 20260701000003) permite reintentar tras un rechazo.
  */
 export async function POST(req: Request) {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  let body: { submission_id?: string; action?: string };
+  let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "invalid_json" }, { status: 400 }); }
-  const id = String(body.submission_id ?? "");
-  const action = body.action;
-  if (!id || (action !== "reject" && action !== "approve")) {
-    return NextResponse.json({ error: "bad_request" }, { status: 400 });
-  }
+  const parsed = parseReviewBody(body);
+  if (!parsed.ok) return NextResponse.json({ error: "bad_request" }, { status: 400 });
 
-  const { data: sub } = await auth.service.from("rafaga_submissions").select("*").eq("id", id).maybeSingle();
-  if (!sub) return NextResponse.json({ error: "not_found" }, { status: 404 });
-  const s = sub as Record<string, unknown>;
-
-  if (action === "reject") {
-    const pts = Number(s.points_earned ?? 0);
-    if (pts > 0) {
-      await auth.service.rpc("add_points", { p_user_id: String(s.user_id), p_delta: -pts, p_category: "rafaga" });
-    }
-    let upd = await auth.service
-      .from("rafaga_submissions")
-      .update({ status: "rejected", reviewed_at: new Date().toISOString() } as Record<string, unknown>)
-      .eq("id", id);
-    if (upd.error && /status/i.test(upd.error.message)) {
-      // Columna status aún no existe (falta correr la migración) — marcamos
-      // revisada igual, aunque sin el status no se podrá reintentar hasta que
-      // se corra la migración.
-      await auth.service.from("rafaga_submissions").update({ reviewed_at: new Date().toISOString() }).eq("id", id);
-    }
-    return NextResponse.json({ ok: true, status: "rejected" });
-  }
-
-  let upd = await auth.service
-    .from("rafaga_submissions")
-    .update({ status: "approved", reviewed_at: new Date().toISOString() } as Record<string, unknown>)
-    .eq("id", id);
-  if (upd.error && /status/i.test(upd.error.message)) {
-    await auth.service.from("rafaga_submissions").update({ reviewed_at: new Date().toISOString() }).eq("id", id);
-  }
-  return NextResponse.json({ ok: true, status: "approved" });
+  return reviewSubmissions(auth.service, "rafaga", parsed.ids, parsed.action);
 }
 
 /**

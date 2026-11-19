@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { parseReviewBody, reviewSubmissions } from "@/lib/missions/review";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -78,50 +79,24 @@ export async function GET(req: Request) {
 }
 
 /**
- * POST → moderar una respuesta. Body: { submission_id, action: "reject" | "approve" }
- * - approve: marca revisada. NO borra la foto/texto — queda como historial.
- * - reject: descuenta los puntos y marca revisada como rechazada (status).
- *   Tampoco borra el contenido ni la fila (queda como historial); el índice
- *   único parcial (migración 20260701000003) permite que la persona reintente
- *   sin que esta fila rechazada se lo bloquee.
+ * POST → moderar respuestas de misión del día.
+ * Body: { submission_id } o { submission_ids: [...] } (aprobar/rechazar en
+ * bloque) + { action: "approve" | "reject" }.
+ * - approve: suma los puntos (si todavía no se sumaron) y marca revisada.
+ * - reject: no suma nada; si se habían sumado (flujo viejo), los descuenta.
+ * Nunca borra la foto/texto: queda como historial. El índice único parcial
+ * (migración 20260701000003) permite reintentar tras un rechazo.
  */
 export async function POST(req: Request) {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  let body: { submission_id?: string; action?: string };
+  let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "invalid_json" }, { status: 400 }); }
-  const id = String(body.submission_id ?? "");
-  const action = body.action;
-  if (!id || (action !== "reject" && action !== "approve")) {
-    return NextResponse.json({ error: "bad_request" }, { status: 400 });
-  }
+  const parsed = parseReviewBody(body);
+  if (!parsed.ok) return NextResponse.json({ error: "bad_request" }, { status: 400 });
 
-  const { data: sub } = await auth.service
-    .from("mission_submissions")
-    .select("id, user_id, points_awarded")
-    .eq("id", id)
-    .maybeSingle();
-  if (!sub) return NextResponse.json({ error: "not_found" }, { status: 404 });
-  const s = sub as { user_id: string; points_awarded: number };
-
-  if (action === "reject") {
-    // Descontar los puntos. La fila y su foto/texto se conservan como historial.
-    if (s.points_awarded > 0) {
-      await auth.service.rpc("add_points", { p_user_id: s.user_id, p_delta: -s.points_awarded, p_category: "mission" });
-    }
-    await auth.service
-      .from("mission_submissions")
-      .update({ status: "rejected", reviewed_at: new Date().toISOString() } as Record<string, unknown>)
-      .eq("id", id);
-    return NextResponse.json({ ok: true, status: "rejected" });
-  }
-
-  await auth.service
-    .from("mission_submissions")
-    .update({ status: "approved", reviewed_at: new Date().toISOString() } as Record<string, unknown>)
-    .eq("id", id);
-  return NextResponse.json({ ok: true, status: "approved" });
+  return reviewSubmissions(auth.service, "mission", parsed.ids, parsed.action);
 }
 
 /**

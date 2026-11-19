@@ -1,8 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Camera, CheckCircle2, Loader2, Send } from "lucide-react";
+import { Camera, CheckCircle2, Clock3, Loader2, Send } from "lucide-react";
 import { MissionText } from "@/components/mission-text";
+import { MISSION_SUBMITTED_EVENT } from "@/components/points-in-review";
+
+type SubmissionStatus = "pending" | "approved" | "rejected";
 
 interface Mission {
   id: string;
@@ -13,28 +16,26 @@ interface Mission {
 
 export function DailyMissionUser({
   mission,
-  alreadyDone,
+  initialStatus,
   over10k = false,
 }: {
   mission: Mission;
-  alreadyDone: boolean;
+  /** null = sin responder; pending = en revisión; rejected = puede reintentar. */
+  initialStatus: SubmissionStatus | null;
   over10k?: boolean;
 }) {
   // Sobre 10.000 pts cada misión suma la mitad → mostrar lo que realmente va a sumar.
   const displayPts = over10k ? Math.floor(mission.points_reward / 2) : mission.points_reward;
-  const [done, setDone] = useState(alreadyDone);
+  const [subStatus, setSubStatus] = useState<SubmissionStatus | null>(initialStatus);
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  function award(data: { awarded?: boolean; delta?: number; total?: number }) {
-    setDone(true);
-    if (data.awarded && data.delta) {
-      window.dispatchEvent(new CustomEvent("xp-gained", {
-        detail: { delta: data.delta, total: data.total, source: "mission" },
-      }));
-    }
+  // Queda en revisión: los puntos se suman cuando el equipo la aprueba.
+  function submitted() {
+    setSubStatus((prev) => (prev === "approved" ? "approved" : "pending"));
+    window.dispatchEvent(new CustomEvent(MISSION_SUBMITTED_EVENT));
   }
 
   async function send(payload: object) {
@@ -48,7 +49,7 @@ export function DailyMissionUser({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "error");
-      award(data);
+      submitted();
     } catch (e) {
       setError(
         e instanceof Error && e.message === "missions_hidden"
@@ -113,13 +114,21 @@ export function DailyMissionUser({
       )}
 
       <div style={{ marginTop: 18 }}>
-        {done ? (
+        {subStatus === "approved" ? (
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
             background: "color-mix(in srgb, var(--success) 14%, transparent)", border: "1px solid color-mix(in srgb, var(--success) 45%, transparent)",
             borderRadius: 999, padding: "10px 18px", color: "var(--success)", fontWeight: 700, fontSize: 14,
           }}>
-            <CheckCircle2 size={18} /> ¡Respuesta enviada! Sumaste +{displayPts} XP
+            <CheckCircle2 size={18} /> Respuesta aprobada · +{displayPts} XP acreditados
+          </div>
+        ) : subStatus === "pending" ? (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: "color-mix(in srgb, var(--primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--primary) 40%, transparent)",
+            borderRadius: 999, padding: "10px 18px", color: "var(--primary)", fontWeight: 700, fontSize: 14,
+          }}>
+            <Clock3 size={18} /> Respuesta enviada · En revisión: +{displayPts} XP al aprobarse
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -161,8 +170,13 @@ export function DailyMissionUser({
                 <Camera size={17} /> Subir captura
               </button>
             </div>
+            {subStatus === "rejected" && (
+              <p style={{ fontSize: 13, color: "var(--destructive)", margin: 0, fontWeight: 600 }}>
+                ✗ Tu respuesta anterior no fue aprobada. Puedes volver a responder.
+              </p>
+            )}
             <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", margin: 0 }}>
-              Puedes responder con un <strong style={{ color: "var(--foreground)" }}>link</strong>, un <strong style={{ color: "var(--foreground)" }}>texto</strong> o una <strong style={{ color: "var(--foreground)" }}>captura</strong> (PNG/JPG, máx 5MB).
+              Los puntos se suman cuando el equipo revisa y aprueba tu respuesta. Puedes responder con un <strong style={{ color: "var(--foreground)" }}>link</strong>, un <strong style={{ color: "var(--foreground)" }}>texto</strong> o una <strong style={{ color: "var(--foreground)" }}>captura</strong> (PNG/JPG, máx 5MB).
             </p>
           </div>
         )}

@@ -26,7 +26,7 @@ interface RafagaSub {
   content_text: string | null;
   image_url: string | null;
   points_earned: number;
-  status?: string;               // approved | rejected
+  status?: string;               // pending | approved | rejected
   reviewed_at?: string | null;
   full_name: string | null;
   email: string;
@@ -36,6 +36,9 @@ export function RafagaAdminPanel() {
   const [missions, setMissions] = useState<RafagaRow[]>([]);
   const [subs, setSubs] = useState<RafagaSub[]>([]);
   const [reviewing, setReviewing] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [filterTitle, setFilterTitle] = useState<string>("");
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [history, setHistory] = useState<RafagaSub[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -71,17 +74,56 @@ export function RafagaAdminPanel() {
   async function moderate(id: string, action: "approve" | "reject") {
     setReviewing(id);
     try {
-      await fetch("/api/admin/rafaga/submissions", {
+      const r = await fetch("/api/admin/rafaga/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ submission_id: id, action }),
       });
+      if (r.status === 409) { toast.error("Los puntos están pausados: reanúdalos en Cierre y sorteo para poder aceptar."); setReviewing(null); return; }
+      if (!r.ok) throw new Error();
       setSubs((prev) => prev.filter((s) => s.id !== id));
+      setSelected((prev) => { const n = new Set(prev); n.delete(id); return n; });
       if (historyOpen) await loadHistory();
     } catch {
       toast.error("Error al moderar la respuesta.");
     }
     setReviewing(null);
+  }
+
+  // Aprobar / rechazar en bloque las seleccionadas.
+  async function moderateBulk(action: "approve" | "reject") {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    const verb = action === "approve" ? "aceptar" : "rechazar";
+    if (!confirm(`¿${verb[0].toUpperCase()}${verb.slice(1)} ${ids.length} respuesta(s)?`)) return;
+    setBulkBusy(true);
+    try {
+      for (let i = 0; i < ids.length; i += 200) {
+        const r = await fetch("/api/admin/rafaga/submissions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ submission_ids: ids.slice(i, i + 200), action }),
+        });
+        if (r.status === 409) { toast.error("Los puntos están pausados: reanúdalos en Cierre y sorteo para poder aceptar."); setBulkBusy(false); return; }
+        if (!r.ok) throw new Error();
+      }
+      const done = new Set(ids);
+      setSubs((prev) => prev.filter((s) => !done.has(s.id)));
+      setSelected(new Set());
+      toast.success(action === "approve" ? `${ids.length} aceptada(s): puntos sumados.` : `${ids.length} rechazada(s).`);
+      if (historyOpen) await loadHistory();
+    } catch {
+      toast.error("Error al moderar en bloque. Recarga y revisa cuáles quedaron.");
+    }
+    setBulkBusy(false);
+  }
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
   }
 
   async function loadHistory() {
@@ -568,17 +610,50 @@ export function RafagaAdminPanel() {
       )}
 
       {/* Respuestas de ráfaga pendientes de revisar */}
-      {subs.length > 0 && (
+      {subs.length > 0 && (() => {
+        const titles = [...new Set(subs.map((s) => s.rafaga_title))];
+        const shown = filterTitle ? subs.filter((s) => s.rafaga_title === filterTitle) : subs;
+        const allShownSelected = shown.length > 0 && shown.every((s) => selected.has(s.id));
+        const btn: React.CSSProperties = { padding: "6px 12px", borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: bulkBusy ? "wait" : "pointer", background: "transparent" };
+        return (
         <div className="space-y-2" style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Respuestas de ráfaga pendientes · {subs.length}
           </p>
           <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: 0 }}>
-            Aceptar = queda cumplida. Rechazar = descuenta los puntos y la persona puede reintentar. Ninguna de las dos borra la foto — queda en el Historial de abajo; ahí sí puedes eliminarla si hace falta.
+            Aceptar = suma los puntos (recién ahí la persona los recibe). Rechazar = no suma nada y la persona puede reintentar mientras la ráfaga siga abierta. Ninguna de las dos borra la foto — queda en el Historial de abajo.
           </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <select value={filterTitle} onChange={(e) => { setFilterTitle(e.target.value); setSelected(new Set()); }}
+              style={{ fontSize: 12, padding: "6px 8px", borderRadius: 7, border: "1px solid var(--border)", background: "var(--background)", color: "var(--foreground)", maxWidth: 280 }}>
+              <option value="">Todas las ráfagas ({subs.length})</option>
+              {titles.map((t) => (
+                <option key={t} value={t}>{t} ({subs.filter((s) => s.rafaga_title === t).length})</option>
+              ))}
+            </select>
+            <button disabled={bulkBusy} onClick={() => setSelected(allShownSelected ? new Set() : new Set(shown.map((s) => s.id)))}
+              style={{ ...btn, border: "1px solid var(--border)", color: "var(--foreground)" }}>
+              {allShownSelected ? "Quitar selección" : `Seleccionar todas (${shown.length})`}
+            </button>
+            {selected.size > 0 && (
+              <>
+                <button disabled={bulkBusy} onClick={() => moderateBulk("approve")}
+                  style={{ ...btn, border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)", color: "var(--success)" }}>
+                  {bulkBusy ? "..." : `Aceptar ${selected.size}`}
+                </button>
+                <button disabled={bulkBusy} onClick={() => moderateBulk("reject")}
+                  style={{ ...btn, border: "1px solid color-mix(in srgb, var(--destructive) 40%, transparent)", color: "var(--destructive)" }}>
+                  {bulkBusy ? "..." : `Rechazar ${selected.size}`}
+                </button>
+              </>
+            )}
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))", gap: 12 }}>
-            {subs.map((s) => (
-              <div key={s.id} style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden" }}>
+            {shown.map((s) => (
+              <div key={s.id} style={{ border: selected.has(s.id) ? "2px solid var(--primary)" : "1px solid var(--border)", borderRadius: 10, overflow: "hidden", position: "relative" }}>
+                <label style={{ position: "absolute", top: 6, left: 6, zIndex: 1, background: "var(--background)", borderRadius: 5, padding: "2px 4px", display: "flex", cursor: "pointer" }}>
+                  <input type="checkbox" checked={selected.has(s.id)} onChange={() => toggleSelected(s.id)} aria-label="Seleccionar respuesta" />
+                </label>
                 {s.content_type === "image" && s.image_url ? (
                   <a href={s.image_url} target="_blank" rel="noreferrer">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -600,6 +675,9 @@ export function RafagaAdminPanel() {
                   <p style={{ fontSize: 10.5, color: "var(--muted-foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", margin: "1px 0 0" }}>
                     {s.rafaga_title} · +{s.points_earned.toLocaleString("es")} pts
                   </p>
+                  <p style={{ fontSize: 10, color: s.status === "pending" ? "var(--primary)" : "var(--muted-foreground)", margin: "2px 0 0" }}>
+                    {s.status === "pending" ? "⏳ Suma al aceptar" : "Ya sumó al enviar (flujo anterior)"}
+                  </p>
                   <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
                     <button onClick={() => moderate(s.id, "approve")} disabled={reviewing === s.id}
                       style={{ flex: 1, padding: "5px", borderRadius: 6, border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)", background: "transparent", color: "var(--success)", fontSize: 11.5, fontWeight: 700, cursor: "pointer" }}>
@@ -615,7 +693,8 @@ export function RafagaAdminPanel() {
             ))}
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Historial de misiones ráfaga — nada se borra al desactivar/vencer una
           ráfaga; aquí quedan todas las respuestas ya revisadas. */}

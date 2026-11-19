@@ -7,8 +7,8 @@ import { areMissionsVisible } from "@/lib/missions-visibility";
  * Body: { base64: string }  → captura de pantalla
  *    o: { text: string, kind: "link" | "text" }  → link o texto
  *
- * Registra la respuesta (1 por usuario por misión activa) y acredita
- * points_reward al instante. Idempotente por UNIQUE(user_id, mission_id).
+ * Registra la respuesta (1 viva por usuario por misión) como 'pending'. Los
+ * puntos se suman cuando el equipo la aprueba (review_mission_submissions).
  */
 function detectImageType(buf: Buffer): string | null {
   if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return "image/png";
@@ -78,7 +78,8 @@ export async function POST(req: Request) {
     content_text = null;
   }
 
-  // 3. Registrar (idempotente por UNIQUE user+mission).
+  // 3. Registrar como pendiente de revisión (idempotente por el índice único
+  // parcial user+mission). Los puntos se suman cuando el equipo lo aprueba.
   const { error: insErr } = await service.from("mission_submissions").insert({
     user_id: user.id,
     mission_id: missionId,
@@ -86,24 +87,17 @@ export async function POST(req: Request) {
     storage_path,
     content_type,
     content_text,
-    status: "approved",
+    status: "pending",
     points_awarded: reward,
   } as Record<string, unknown>);
 
   if (insErr) {
     if ((insErr as { code?: string }).code === "23505") {
-      return NextResponse.json({ ok: true, awarded: false, reason: "already_submitted" });
+      return NextResponse.json({ ok: true, pending: false, reason: "already_submitted" });
     }
     console.error("[missions/submit] insert error:", insErr);
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  // 4. Acreditar XP (atómico).
-  const { data: total, error: rpcErr } = await service.rpc("add_points", { p_user_id: user.id, p_delta: reward, p_category: "mission" });
-  if (rpcErr) {
-    console.error("[missions/submit] add_points error:", rpcErr);
-    return NextResponse.json({ ok: true, awarded: false, reason: "award_failed" });
-  }
-
-  return NextResponse.json({ ok: true, awarded: true, delta: reward, total });
+  return NextResponse.json({ ok: true, pending: true, reward });
 }

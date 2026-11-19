@@ -11,6 +11,13 @@ import Link from "next/link";
 import { redirectOndemandToHome } from "@/lib/program-server";
 import { areMissionsVisible } from "@/lib/missions-visibility";
 import { getActor } from "@/lib/viewer";
+import { PointsInReview } from "@/components/points-in-review";
+
+type SubmissionStatus = "pending" | "approved" | "rejected";
+function toSubmissionStatus(s: string | null | undefined): SubmissionStatus | null {
+  if (!s) return null;
+  return s === "pending" || s === "rejected" ? s : "approved";
+}
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -48,11 +55,13 @@ interface PageCtx {
   refLink: string | null;
   mission: Mission | null;
   missionExpired: boolean;
-  missionDone: boolean;
+  /** Estado de la respuesta a la misión del día (null = no respondió). */
+  missionStatus: SubmissionStatus | null;
   keywordDays: { day_number: number; hasKeyword: boolean; done: boolean }[];
   storyDoneToday: boolean;
   rafagas: RafagaMission[];
-  rafagaClaimedIds: string[];
+  /** Estado del último envío por ráfaga (las que no figuran, no se respondieron). */
+  rafagaStatus: Record<string, SubmissionStatus>;
   /** El admin ocultó las misiones (los admins las siguen viendo). */
   missionsHidden: boolean;
 }
@@ -67,11 +76,11 @@ async function getContext(): Promise<PageCtx> {
       refLink: "https://dboard.govbidder.net/referido?ref=DEVTEST",
       mission: null,
       missionExpired: false,
-      missionDone: false,
+      missionStatus: null,
       keywordDays: emptyKeywordDays,
       storyDoneToday: false,
       rafagas: [],
-      rafagaClaimedIds: [],
+      rafagaStatus: {},
       missionsHidden: false,
     };
   }
@@ -80,9 +89,9 @@ async function getContext(): Promise<PageCtx> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return {
-      isAdmin: false, over10k: false, refLink: null, mission: null, missionExpired: false, missionDone: false,
+      isAdmin: false, over10k: false, refLink: null, mission: null, missionExpired: false, missionStatus: null,
       keywordDays: emptyKeywordDays, storyDoneToday: false,
-      rafagas: [], rafagaClaimedIds: [], missionsHidden: false,
+      rafagas: [], rafagaStatus: {}, missionsHidden: false,
     };
   }
   const actor = await getActor(user.id);
@@ -114,7 +123,7 @@ async function getContext(): Promise<PageCtx> {
       .select("*")
       .eq("is_active", true)
       .order("starts_at", { ascending: false }),
-    service.from("rafaga_submissions").select("rafaga_id").eq("user_id", actor.userId),
+    service.from("rafaga_submissions").select("rafaga_id, status, submitted_at").eq("user_id", actor.userId).order("submitted_at", { ascending: true }),
     areMissionsVisible(service),
   ]);
 
@@ -131,16 +140,19 @@ async function getContext(): Promise<PageCtx> {
   // historial), así que esto ya no puede inferirse solo de si existen filas.
   const missionExpired = mission ? false : (await getDailyMissionCloseState(service)) === "expired";
 
-  // Check mission done
-  let missionDone = false;
+  // Estado de la respuesta a la misión del día (la más reciente: puede haber
+  // rechazadas viejas como historial). pending = en revisión.
+  let missionStatus: SubmissionStatus | null = null;
   if (mission) {
     const { data: sub } = await service
       .from("mission_submissions")
       .select("status")
       .eq("user_id", actor.userId)
       .eq("mission_id", mission.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
-    missionDone = (sub as { status?: string } | null)?.status === "approved";
+    missionStatus = toSubmissionStatus((sub as { status?: string } | null)?.status);
   }
 
   const kwSet = new Set(
@@ -165,9 +177,13 @@ async function getContext(): Promise<PageCtx> {
           // Ocultas desde el admin: no las ve nadie en Misiones Extra (se gestionan en /admin/misiones).
           && r.is_visible !== false
       );
-  const rafagaClaimedIds = ((rafagaSubsRows.data ?? []) as { rafaga_id: string }[]).map((r) => r.rafaga_id);
+  // Estado por ráfaga: el último envío manda (ordenados por fecha ascendente).
+  const rafagaStatus: Record<string, SubmissionStatus> = {};
+  for (const r of (rafagaSubsRows.data ?? []) as { rafaga_id: string; status?: string }[]) {
+    rafagaStatus[r.rafaga_id] = toSubmissionStatus(r.status) ?? "approved";
+  }
 
-  return { isAdmin, over10k, refLink, mission, missionExpired, missionDone, keywordDays, storyDoneToday, rafagas, rafagaClaimedIds, missionsHidden };
+  return { isAdmin, over10k, refLink, mission, missionExpired, missionStatus, keywordDays, storyDoneToday, rafagas, rafagaStatus, missionsHidden };
 }
 
 export default async function SumaPuntosPage() {
@@ -219,6 +235,9 @@ export default async function SumaPuntosPage() {
         </div>
       )}
 
+      {/* Puntos en revisión: misiones que el equipo revisa (se suman al aprobarse) */}
+      {!ctx.missionsHidden && <PointsInReview defaultOpen />}
+
       {/* 1. Referidos — OCULTO (referidos discontinuados; la lógica sigue activa) */}
       {SHOW_REFERRALS && ctx.refLink && (
         <section className="space-y-3">
@@ -253,7 +272,7 @@ export default async function SumaPuntosPage() {
       <section className="space-y-3">
         <SectionHeader emoji="🎯" title="Misión Diaria" subtitle={ctx.mission ? `+${(ctx.over10k ? Math.floor(ctx.mission.points_reward / 2) : ctx.mission.points_reward).toLocaleString()} pts · una por misión` : "Una por misión"} />
         {ctx.mission ? (
-          <DailyMissionUser mission={ctx.mission} alreadyDone={ctx.missionDone} over10k={ctx.over10k} />
+          <DailyMissionUser mission={ctx.mission} initialStatus={ctx.missionStatus} over10k={ctx.over10k} />
         ) : ctx.missionExpired ? (
           <div style={{
             padding: "18px 20px",
@@ -290,7 +309,7 @@ export default async function SumaPuntosPage() {
       {/* 5. Misiones Ráfaga */}
       <section className="space-y-3">
         <SectionHeader emoji="⚡" title="Misiones Ráfaga" subtitle={ctx.over10k ? "+500 pts · ventanas de 2 horas programadas por el admin" : "+1,000 pts · ventanas de 2 horas programadas por el admin"} />
-        <RafagaSection rafagas={ctx.rafagas} claimedIds={ctx.rafagaClaimedIds} over10k={ctx.over10k} />
+        <RafagaSection rafagas={ctx.rafagas} statusById={ctx.rafagaStatus} over10k={ctx.over10k} />
       </section>
       </>)}
     </div>

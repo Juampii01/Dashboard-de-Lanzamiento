@@ -20,11 +20,23 @@ export default async function AdminLayout({
 
   if (!profile?.is_admin) redirect("/dashboard");
 
-  // Aviso en el menú: cotizaciones de perfil adicional esperando respuesta.
-  const { count: seatPending } = await createServiceClient()
-    .from("seat_requests")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "requested");
+  // Avisos en el menú: cotizaciones de perfil adicional esperando respuesta y
+  // misiones enviadas esperando revisión (sus puntos se suman al aprobarlas).
+  const db = createServiceClient();
+  const [{ count: seatPending }, { count: rafagaPending }, { count: missionPending }] = await Promise.all([
+    db.from("seat_requests").select("id", { count: "exact", head: true }).eq("status", "requested"),
+    db.from("rafaga_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    db.from("mission_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
+  ]);
 
-  return <AdminShell badges={{ "/admin/perfiles-adicionales": seatPending ?? 0 }}>{children}</AdminShell>;
+  return (
+    <AdminShell
+      badges={{
+        "/admin/perfiles-adicionales": seatPending ?? 0,
+        "/admin/misiones": (rafagaPending ?? 0) + (missionPending ?? 0),
+      }}
+    >
+      {children}
+    </AdminShell>
+  );
 }

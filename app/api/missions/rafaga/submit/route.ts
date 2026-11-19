@@ -7,9 +7,10 @@ import { areMissionsVisible } from "@/lib/missions-visibility";
  * Body: { rafaga_id, base64 }  → captura
  *    o: { rafaga_id, text, kind: "link" | "text" }  → link o texto
  *
- * El usuario debe enviar una PRUEBA (texto/link o captura) para reclamar — ya no
- * es un click directo. Acredita points_reward al instante (como la misión diaria)
- * e idempotente por UNIQUE(user_id, rafaga_id). El admin puede rechazar después.
+ * El usuario debe enviar una PRUEBA (texto/link o captura). El envío queda
+ * 'pending' (puntos "en revisión"): los puntos se suman recién cuando el equipo
+ * lo aprueba (review_mission_submissions). Idempotente por el índice único
+ * parcial (user_id, rafaga_id) de las filas no rechazadas.
  */
 function detectImageType(buf: Buffer): string | null {
   if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return "image/png";
@@ -89,35 +90,26 @@ export async function POST(req: NextRequest) {
     content_text = null;
   }
 
-  // Registrar (idempotente por UNIQUE user+rafaga). Con fallback si las columnas de
-  // contenido aún no existen (falta correr 20260701000001): guarda solo el reclamo.
-  const full = { user_id: user.id, rafaga_id, points_earned: r.points_reward, content_type, content_text, image_url, storage_path };
-  const bare = { user_id: user.id, rafaga_id, points_earned: r.points_reward };
-  let insErr = (await service.from("rafaga_submissions").insert(full as Record<string, unknown>)).error;
-  if (insErr && /(content_type|content_text|image_url|storage_path)/i.test(insErr.message)) {
-    insErr = (await service.from("rafaga_submissions").insert(bare)).error;
-  }
+  // Registrar como pendiente de revisión (idempotente por el índice único
+  // parcial user+rafaga). Los puntos se suman al aprobar.
+  const { error: insErr } = await service.from("rafaga_submissions").insert({
+    user_id: user.id,
+    rafaga_id,
+    points_earned: r.points_reward,
+    content_type,
+    content_text,
+    image_url,
+    storage_path,
+    status: "pending",
+  } as Record<string, unknown>);
 
   if (insErr) {
     if ((insErr as { code?: string }).code === "23505") {
-      return NextResponse.json({ ok: true, awarded: false, reason: "already_claimed" });
+      return NextResponse.json({ ok: true, pending: false, reason: "already_claimed" });
     }
     console.error("[rafaga/submit] insert error:", insErr);
     return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 
-  // Acreditar XP. Si falla, rollback de la fila para que el reintento reacredite.
-  const { data: total, error: rpcErr } = await service.rpc("add_points", {
-    p_user_id: user.id,
-    p_delta: r.points_reward,
-    p_category: "rafaga",
-  });
-
-  if (rpcErr) {
-    console.error("[rafaga/submit] add_points error:", rpcErr);
-    await service.from("rafaga_submissions").delete().eq("user_id", user.id).eq("rafaga_id", rafaga_id);
-    return NextResponse.json({ ok: false, error: "award_failed" }, { status: 500 });
-  }
-
-  return NextResponse.json({ ok: true, awarded: true, delta: r.points_reward, total });
+  return NextResponse.json({ ok: true, pending: true, reward: r.points_reward });
 }
