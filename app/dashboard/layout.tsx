@@ -22,6 +22,7 @@ import { getAdminToggle } from "@/lib/supabase/helpers";
 import { inicioUnlockIso } from "@/lib/launch";
 import { getCallBanner, type CallBanner as CallBannerData } from "@/lib/call-banner";
 import { CallBanner } from "@/components/call-banner";
+import { Day1ReminderBanner } from "@/components/day1-reminder-banner";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -415,6 +416,11 @@ export default async function DashboardLayout({
             <div style={{ padding: "6px 20px", textAlign: "center", fontSize: "13px", fontWeight: 600, background: "#A11D2E", color: "#FFFFFF", flexShrink: 0 }}>
               ⏳ Te quedan <strong>{remaining} día{remaining !== 1 ? "s" : ""}</strong> de acceso.
             </div>
+          )}
+
+          {/* Recordatorio fijo: Día 1 sin completar (solo en vivo, no admins ni viewers) */}
+          {!devMode && program === "live" && !isViewer && !profile?.is_admin && !progressMapFromLayout[1]?.is_completed && (
+            <Day1ReminderBanner />
           )}
 
           {/* Tabs */}

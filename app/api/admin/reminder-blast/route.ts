@@ -99,8 +99,11 @@ export async function POST(req: NextRequest) {
         email,
         options: { redirectTo: `${APP_URL}/auth/confirm` },
       });
+      // Día 1 sin completar: el link entra con la sesión iniciada y lleva
+      // directo al Día 1 (sin pasar por el inicio).
       const magicLink = buildMagicLinkUrl(
-        (linkData as { properties?: { hashed_token?: string; verification_type?: string } } | null)?.properties
+        (linkData as { properties?: { hashed_token?: string; verification_type?: string } } | null)?.properties,
+        segment === "day1_incomplete" ? "/dashboard/dia-1" : "/dashboard"
       );
       if (linkError || !magicLink) {
         failed++;
