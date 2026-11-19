@@ -86,10 +86,31 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
   async function moderate(id: string, action: "reject" | "approve") {
     setBusy(id);
     try {
-      await fetch("/api/admin/mission-submissions", {
+      const r = await fetch("/api/admin/mission-submissions", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ submission_id: id, action }),
       });
+      if (r.status === 409) alert("Los puntos están pausados: reanúdalos en Cierre y sorteo para poder aceptar.");
+      await loadSubs();
+      if (historyOpen) await loadHistory();
+    } catch { /* noop */ }
+    setBusy(null);
+  }
+
+  // Aceptar todas las pendientes de una vez (suma los puntos a cada una).
+  async function approveAll() {
+    const ids = subs.map((s) => s.id);
+    if (ids.length === 0) return;
+    if (!confirm(`¿Aceptar las ${ids.length} respuestas pendientes? Se suman los puntos a cada persona.`)) return;
+    setBusy("__all__");
+    try {
+      for (let i = 0; i < ids.length; i += 200) {
+        const r = await fetch("/api/admin/mission-submissions", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ submission_ids: ids.slice(i, i + 200), action: "approve" }),
+        });
+        if (r.status === 409) { alert("Los puntos están pausados: reanúdalos en Cierre y sorteo para poder aceptar."); break; }
+      }
       await loadSubs();
       if (historyOpen) await loadHistory();
     } catch { /* noop */ }
@@ -192,8 +213,14 @@ export function DailyMissionAdmin({ initialMission = null }: { initialMission?: 
           Respuestas pendientes {subs.length > 0 && <span style={{ color: "var(--muted-foreground)", fontWeight: 500 }}>· {subs.length}</span>}
         </p>
         <p style={{ fontSize: 11.5, color: "var(--muted-foreground)" }}>
-          Aceptar = queda cumplida. Rechazar = resta los puntos y la persona puede reintentar. Ninguna de las dos borra la foto — queda en el Historial de abajo; ahí sí puedes eliminarla si hace falta.
+          Aceptar = suma los puntos (recién ahí la persona los recibe). Rechazar = no suma nada y la persona puede reintentar. Ninguna de las dos borra la foto — queda en el Historial de abajo; ahí sí puedes eliminarla si hace falta.
         </p>
+        {subs.length > 1 && (
+          <button onClick={approveAll} disabled={busy !== null}
+            style={{ padding: "6px 12px", borderRadius: 7, border: "1px solid color-mix(in srgb, var(--success) 40%, transparent)", background: "transparent", color: "var(--success)", fontSize: 12, fontWeight: 700, cursor: busy ? "wait" : "pointer" }}>
+            {busy === "__all__" ? <Loader2 size={12} className="animate-spin inline" /> : `Aceptar todas (${subs.length})`}
+          </button>
+        )}
         {subs.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--muted-foreground)" }}>No hay respuestas para revisar.</p>
         ) : (

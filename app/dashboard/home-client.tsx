@@ -9,6 +9,7 @@ import { useUserAvatar } from "@/lib/hooks/use-user-avatar";
 import { ReferralLinkCard } from "@/components/referral-link-card";
 import { REFERRAL_LEAD_XP } from "@/lib/referrals";
 import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
+import { PointsInReview } from "@/components/points-in-review";
 import { OndemandRecording } from "@/components/ondemand-recording";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1281,8 +1282,10 @@ export function HomeClient({ initialPoints, devMode, avatarUrl, fullName, record
           Las miniaturas mantienen 16:9; al abrir el desglose de puntos no se estiran. */}
       {!devMode && (
         <div className="gb-points-row" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 16, alignItems: "start" }}>
-          <div style={{ minWidth: 0, display: "flex" }}>
+          <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             <PointsCard initial={initialPoints} avatarUrl={avatarUrl} pointsCap={isAdmin ? null : pointsCap} />
+            {/* Puntos en revisión (misiones que aprueba el equipo). Solo en vivo. */}
+            {program === "live" && <PointsInReview />}
           </div>
           <RecordingsRow urls={recordings ?? [null, null, null, null]} titles={recordingTitles ?? [null, null, null, null]} />
         </div>
