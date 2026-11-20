@@ -26,6 +26,8 @@ import { Day1ReminderBanner } from "@/components/day1-reminder-banner";
 import { getCupoPopupFor, type CupoPopup } from "@/lib/cupo-popup";
 import { CupoPopupModal } from "@/components/cupo-popup";
 import { RifaPopup } from "@/components/rifa-popup";
+import { MentoriaPopup } from "@/components/mentoria-popup";
+import { hasSeenMentoriaPopup, isMentoriaPopupEnabled } from "@/lib/mentoria-popup";
 import { canJoinRifa, hasJoinedRifa, isRifaEnabled } from "@/lib/rifa";
 
 
@@ -326,6 +328,16 @@ export default async function DashboardLayout({
     cupoPopup = await getCupoPopupFor(createServiceClient(), userId);
   }
 
+  // Ventana de la mentoría (una sola vez por persona; todos menos admins y
+  // viewers, hayan hecho el Día 4 o no). Si ya la vio no se monta; si está
+  // apagada se monta igual y consulta cada 20 s para aparecer al activarla.
+  let mentoria: { initialShow: boolean } | null = null;
+  if (!devMode && program === "live" && !isViewer && !profile?.is_admin && userId) {
+    const svc = createServiceClient();
+    const seen = await hasSeenMentoriaPopup(svc, userId);
+    if (!seen) mentoria = { initialShow: await isMentoriaPopupEnabled(svc) };
+  }
+
   // Rifa en vivo: el banner "¡Quiero participar!" se monta para todo
   // participante que puede ganar; aparece solo cuando el equipo lo activa.
   let rifa: { enabled: boolean; joined: boolean } | null = null;
@@ -472,6 +484,7 @@ export default async function DashboardLayout({
       {/* Bloqueo por llamada en vivo: no aplica a on demand */}
       {cupoPopup && <CupoPopupModal popup={cupoPopup} name={profile?.full_name ?? ""} email={userEmail} />}
       {rifa && <RifaPopup initialEnabled={rifa.enabled} initialJoined={rifa.joined} />}
+      {mentoria && <MentoriaPopup initialShow={mentoria.initialShow} name={profile?.full_name ?? ""} email={userEmail} />}
       {/* Los admins no quedan bloqueados (se desbloquea desde /admin/en-vivo) */}
       {!devMode && program === "live" && !profile?.is_admin && <DashboardLockOverlay isAdmin={false} />}
 

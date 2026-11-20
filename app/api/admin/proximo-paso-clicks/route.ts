@@ -16,7 +16,9 @@ export async function GET() {
   const { data, error } = await service
     .from("proximo_paso_clicks")
     .select("id, user_id, button, clicked_at")
-    .neq("button", "quiero_cupo_visto") // cerró la ventana sin interés: no es un lead
+    // Solo los botones de "Tu próximo paso" y la ventana del cupo. La ventana de
+    // la mentoría (mentoria_*) tiene su propio panel.
+    .in("button", ["pagar_ahora", "whatsapp", "banner_inicio", "quiero_cupo"])
     .order("clicked_at", { ascending: false })
     .limit(500);
 
