@@ -98,9 +98,10 @@ export async function GET() {
     color: r.color,
     prize: r.prize,
     target: r.winners,
-    // Lo que se muestra en pantalla incluye a los excluidos (no se tiene que
-    // notar quién está excluido); el sorteo real usa solo los elegibles.
-    pool: participants.filter((p) => (p.eligible || p.excluded) && !p.won && p.rank === r.key).length,
+    // Lo que se muestra en pantalla cuenta a todos los anotados del rango
+    // (excluidos, admins y gratuitos incluidos: no se tiene que notar quién
+    // tiene 0%); el sorteo real usa solo los elegibles.
+    pool: participants.filter((p) => !p.won && p.rank === r.key).length,
     winners: winnerRows
       .filter((w) => w.rank_key === r.key)
       .map((w) => ({
