@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { Camera, CheckCircle2, Loader2, Send } from "lucide-react";
 import { MissionText } from "@/components/mission-text";
+import { compressImage, fileToDataUrl } from "@/lib/compress-image";
 
 interface Mission {
   id: string;
@@ -64,13 +65,11 @@ export function DailyMissionUser({
     const file = e.target.files?.[0];
     if (inputRef.current) inputRef.current.value = "";
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setError("La imagen no puede superar 5MB."); return; }
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result as string);
-      r.onerror = reject;
-      r.readAsDataURL(file);
-    });
+    if (file.size > 25 * 1024 * 1024) { setError("La imagen es demasiado pesada (máx. 25 MB)."); return; }
+    // Se achica antes de subir: el servidor rechaza requests de más de 4,5 MB.
+    const small = await compressImage(file);
+    if (small.size > 3 * 1024 * 1024) { setError("La imagen es demasiado pesada. Prueba con una captura de pantalla."); return; }
+    const base64 = await fileToDataUrl(small);
     await send({ base64 });
   }
 
