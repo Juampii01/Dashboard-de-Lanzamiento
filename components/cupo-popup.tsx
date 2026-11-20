@@ -87,7 +87,10 @@ export function CupoPopupModal({ popup, name, email }: { popup: CupoPopup; name:
         <div>
           <button
             onClick={close}
-            style={{ marginTop: 18, background: "none", border: "none", color: "rgba(255,255,255,0.7)", fontSize: 14, cursor: "pointer", textDecoration: "underline" }}
+            style={{
+              marginTop: 16, background: "rgba(255,255,255,0.08)", border: "2px solid rgba(255,255,255,0.75)",
+              color: "#FFFFFF", borderRadius: 999, padding: "12px 32px", fontSize: 16, fontWeight: 800, cursor: "pointer",
+            }}
           >
             Ahora no
           </button>
