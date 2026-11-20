@@ -11,7 +11,7 @@ const MENTORIA_WHATSAPP = (process.env.NEXT_PUBLIC_MENTORIA_WHATSAPP ?? "1732937
 // tener que escribir por WhatsApp primero). Configurable por env
 // NEXT_PUBLIC_MENTORIA_PAYMENT_LINK.
 const PAYMENT_LINK =
-  process.env.NEXT_PUBLIC_MENTORIA_PAYMENT_LINK ?? "https://one.govbidder.net/payment-link/6a46c758a655fa0b802a26ec";
+  process.env.NEXT_PUBLIC_MENTORIA_PAYMENT_LINK ?? "https://payments.govbidder.net/tpcusa";
 
 export function ProximoPasoUnlocked({ fullName }: { fullName: string }) {
   function trackClick(button: "pagar_ahora" | "whatsapp") {
