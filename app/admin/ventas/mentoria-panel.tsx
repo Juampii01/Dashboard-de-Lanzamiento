@@ -72,7 +72,7 @@ export function MentoriaPopupPanel() {
       icon={GraduationCap}
       tone="gold"
       title="Ventana de la mentoría (pantalla completa)"
-      description="Aparece una sola vez por persona, a todos los participantes menos admins (hayan hecho el Día 4 o no). Botones: Pagar ahora, Hablar con el equipo antes y Ahora no me interesa."
+      description="Aparece una sola vez por persona, a todos los participantes menos admins (hayan hecho el Día 4 o no). Mientras esté activa, la página “Tu próximo paso” queda abierta para todos. Botones: Pagar ahora, Hablar con el equipo antes y Ahora no me interesa."
     >
       {!data ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Cargando…</p>
