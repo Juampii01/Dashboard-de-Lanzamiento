@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { ProximoPasoUnlocked } from "./unlocked";
 import { getActor } from "@/lib/viewer";
+import { isMentoriaPopupEnabled } from "@/lib/mentoria-popup";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const DEV_MODE = !(SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("placeholder"));
@@ -21,10 +22,11 @@ export default async function ProximoPasoPage() {
     const actor = await getActor(user.id);
 
     const service = createServiceClient();
-    const [{ data: progress }, { data: profile }, { data: toggle }] = await Promise.all([
+    const [{ data: progress }, { data: profile }, { data: toggle }, mentoriaOn] = await Promise.all([
       service.from("day_progress").select("day_number, is_completed").eq("user_id", actor.userId),
       service.from("users").select("full_name, is_admin").eq("id", actor.userId).maybeSingle(),
       service.from("admin_toggles").select("is_globally_unlocked").eq("day_number", 5).maybeSingle(),
+      isMentoriaPopupEnabled(service),
     ]);
 
     const completed = new Set(
@@ -34,9 +36,11 @@ export default async function ProximoPasoPage() {
     );
     const allDone = [1, 2, 3, 4].every((d) => completed.has(d));
     // Se desbloquea al completar los 4 días, O si el admin lo habilitó manualmente
-    // (día 5 en admin_toggles, igual que Inicio y los otros 4 días).
+    // (día 5 en admin_toggles, igual que Inicio y los otros 4 días), O mientras
+    // esté activa la ventana de la mentoría (/admin/ventas): al activarla se abre
+    // para todos, hayan hecho el Día 4 o no.
     const adminUnlocked = (toggle as { is_globally_unlocked?: boolean } | null)?.is_globally_unlocked === true;
-    unlocked = allDone || adminUnlocked || (profile as { is_admin?: boolean } | null)?.is_admin === true;
+    unlocked = allDone || adminUnlocked || mentoriaOn || (profile as { is_admin?: boolean } | null)?.is_admin === true;
     fullName = (profile as { full_name?: string } | null)?.full_name ?? "";
   }
 
