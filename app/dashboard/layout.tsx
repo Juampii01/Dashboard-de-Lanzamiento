@@ -23,6 +23,8 @@ import { inicioUnlockIso } from "@/lib/launch";
 import { getCallBanner, type CallBanner as CallBannerData } from "@/lib/call-banner";
 import { CallBanner } from "@/components/call-banner";
 import { Day1ReminderBanner } from "@/components/day1-reminder-banner";
+import { getCupoPopupFor, type CupoPopup } from "@/lib/cupo-popup";
+import { CupoPopupModal } from "@/components/cupo-popup";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -138,6 +140,7 @@ export default async function DashboardLayout({
   let userEmail = "";
   let authUserId = "";
   let isViewer = false;
+  let userId = "";
   let viewerHostName: string | null = null;
   let streak = 0;
   let program: Program = "live";
@@ -164,6 +167,7 @@ export default async function DashboardLayout({
     if (!user) redirect("/login");
 
     userEmail = user.email ?? "";
+    userId = user.id;
     // Viewer (solo lectura): se muestran los datos de quien lo invitó.
     const actor = await getActor(user.id);
     isViewer = actor.isViewer;
@@ -314,6 +318,12 @@ export default async function DashboardLayout({
     supportWhatsapp = ((supportRow as { value?: string | null } | null)?.value ?? "").replace(/[^\d]/g, "");
   }
 
+  // Ventana "¡Quiero mi cupo!" (una sola vez; solo participantes del en vivo).
+  let cupoPopup: CupoPopup | null = null;
+  if (!devMode && program === "live" && !isViewer && !profile?.is_admin && userId) {
+    cupoPopup = await getCupoPopupFor(createServiceClient(), userId);
+  }
+
   // Banner de la llamada en vivo (app_settings.call_banner_*). Solo programa en vivo.
   let callBanner: CallBannerData | null = null;
   if (!devMode && program === "live") {
@@ -442,6 +452,7 @@ export default async function DashboardLayout({
         />
       )}
       {/* Bloqueo por llamada en vivo: no aplica a on demand */}
+      {cupoPopup && <CupoPopupModal popup={cupoPopup} name={profile?.full_name ?? ""} email={userEmail} />}
       {/* Los admins no quedan bloqueados (se desbloquea desde /admin/en-vivo) */}
       {!devMode && program === "live" && !profile?.is_admin && <DashboardLockOverlay isAdmin={false} />}
 

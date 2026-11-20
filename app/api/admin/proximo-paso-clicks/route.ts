@@ -16,8 +16,9 @@ export async function GET() {
   const { data, error } = await service
     .from("proximo_paso_clicks")
     .select("id, user_id, button, clicked_at")
+    .neq("button", "quiero_cupo_visto") // cerró la ventana sin interés: no es un lead
     .order("clicked_at", { ascending: false })
-    .limit(200);
+    .limit(500);
 
   if (error?.code === "42P01") {
     return NextResponse.json({ ok: true, clicks: [] });

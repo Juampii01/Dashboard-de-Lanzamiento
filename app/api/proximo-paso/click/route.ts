@@ -3,10 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 /**
  * POST /api/proximo-paso/click
- * Body: { button: "pagar_ahora" | "whatsapp" | "banner_inicio" }
+ * Body: { button: "pagar_ahora" | "whatsapp" | "banner_inicio" | "quiero_cupo" | "quiero_cupo_visto" }
  *
  * Solo tracking — registra que el usuario tocó uno de los botones de
  * "Tu Próximo Paso" o el banner de la mentoría en Inicio ("banner_inicio").
+ * "quiero_cupo" / "quiero_cupo_visto": ventana "¡Quiero mi cupo!" (tocó el
+ * botón / la cerró). Cualquiera de los dos hace que no se vuelva a mostrar.
  * No otorga puntos ni cambia ningún estado.
  */
 export async function POST(req: NextRequest) {
@@ -15,7 +17,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = (await req.json().catch(() => ({}))) as { button?: string };
-  const ALLOWED = new Set(["whatsapp", "pagar_ahora", "banner_inicio"]);
+  const ALLOWED = new Set(["whatsapp", "pagar_ahora", "banner_inicio", "quiero_cupo", "quiero_cupo_visto"]);
   const button = ALLOWED.has(body.button ?? "") ? (body.button as string) : null;
   if (!button) return NextResponse.json({ error: "bad_button" }, { status: 400 });
 

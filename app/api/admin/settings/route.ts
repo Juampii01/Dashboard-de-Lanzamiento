@@ -7,6 +7,8 @@ const ALLOWED = new Set([
   "tutorial_youtube", "points_paused", "access_closed", "support_whatsapp",
   "mentoria_banner_enabled", "instagram_handles", "story_copy_example",
   "missions_visible",
+  // Ventana "¡Quiero mi cupo!"
+  "cupo_popup_enabled", "cupo_popup_title", "cupo_popup_text", "cupo_popup_button", "cupo_popup_whatsapp",
 ]);
 
 // Extrae el ID de YouTube de una URL (youtu.be/ID, watch?v=ID, embed/ID, shorts/ID)
@@ -57,6 +59,10 @@ export async function POST(req: NextRequest) {
   if (key === "instagram_handles") value = value.split(/[\s,]+/).filter(Boolean).map((h) => "@" + h.replace(/^@+/, "").replace(/[^A-Za-z0-9._]/g, "")).filter((h) => h.length > 1).join(" ");
   if (key === "story_copy_example") value = value.slice(0, 1000);
   if (key === "support_whatsapp") value = value.replace(/[^\d]/g, ""); // solo dígitos, con código de país
+  if (key === "cupo_popup_enabled") value = value === "true" ? "true" : "false";
+  if (key === "cupo_popup_whatsapp") value = value.replace(/[^\d]/g, "");
+  if (key === "cupo_popup_title" || key === "cupo_popup_button") value = value.slice(0, 80);
+  if (key === "cupo_popup_text") value = value.slice(0, 500);
 
   const { error } = await ctx.service
     .from("app_settings")
