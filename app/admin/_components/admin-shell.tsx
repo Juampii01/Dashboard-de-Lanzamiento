@@ -71,7 +71,7 @@ const NAV: NavGroup[] = [
     items: [
       { href: "/admin/ventas", label: "Ventas", icon: TrendingUp },
       { href: "/admin/referidos", label: "Referidos", icon: Handshake },
-      { href: "/admin/cierre", label: "Cierre y sorteo", icon: Trophy, also: ["/admin/sorteo"] },
+      { href: "/admin/cierre", label: "Cierre y rifa", icon: Trophy, also: ["/admin/sorteo"] },
     ],
   },
 ];
