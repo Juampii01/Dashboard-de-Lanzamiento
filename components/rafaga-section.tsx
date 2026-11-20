@@ -251,19 +251,30 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
               {busy ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
               Enviar y ganar +{shownPts.toLocaleString()} pts
             </button>
-            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" style={{ display: "none" }} onChange={handleFile} />
-            <button
-              onClick={() => fileRef.current?.click()}
-              disabled={busy}
+            {/* <label> nativo con el input adentro: en iPhone/Safari el selector de
+                fotos no se abre de forma confiable con input.click() sobre un
+                input con display:none. */}
+            <label
+              aria-disabled={busy}
               style={{
+                position: "relative",
                 display: "inline-flex", alignItems: "center", gap: 7,
                 padding: "9px 14px", borderRadius: 8, cursor: busy ? "wait" : "pointer",
                 fontSize: 13, fontWeight: 700, color: "var(--foreground)",
                 background: "var(--muted)", border: "1px solid var(--border)",
+                pointerEvents: busy ? "none" : undefined, opacity: busy ? 0.6 : 1,
               }}
             >
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFile}
+                disabled={busy}
+                style={{ position: "absolute", width: 1, height: 1, opacity: 0, overflow: "hidden", clip: "rect(0 0 0 0)" }}
+              />
               <Camera size={15} /> Subir captura
-            </button>
+            </label>
           </div>
           <p style={{ fontSize: 11.5, color: "var(--muted-foreground)", margin: 0 }}>
             Responde con un link, un texto o una captura (PNG/JPG, máx 5 MB) para ganar los puntos.

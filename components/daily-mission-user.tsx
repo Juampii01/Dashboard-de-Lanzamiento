@@ -147,19 +147,29 @@ export function DailyMissionUser({
               </button>
 
               {/* Captura */}
-              <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleFile} />
-              <button
-                onClick={() => inputRef.current?.click()}
-                disabled={busy}
+              {/* <label> nativo: en iPhone/Safari input.click() sobre un input
+                  oculto no abre el selector de fotos de forma confiable. */}
+              <label
+                aria-disabled={busy}
                 style={{
+                  position: "relative",
                   display: "inline-flex", alignItems: "center", gap: 8,
                   padding: "11px 18px", borderRadius: 12, cursor: busy ? "wait" : "pointer",
                   fontSize: 14.5, fontWeight: 700, color: "var(--foreground)",
                   background: "var(--muted)", border: "1px solid var(--border)",
+                  pointerEvents: busy ? "none" : undefined, opacity: busy ? 0.6 : 1,
                 }}
               >
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFile}
+                  disabled={busy}
+                  style={{ position: "absolute", width: 1, height: 1, opacity: 0, overflow: "hidden", clip: "rect(0 0 0 0)" }}
+                />
                 <Camera size={17} /> Subir captura
-              </button>
+              </label>
             </div>
             <p style={{ fontSize: 12.5, color: "var(--muted-foreground)", margin: 0 }}>
               Puedes responder con un <strong style={{ color: "var(--foreground)" }}>link</strong>, un <strong style={{ color: "var(--foreground)" }}>texto</strong> o una <strong style={{ color: "var(--foreground)" }}>captura</strong> (PNG/JPG, máx 5MB).
