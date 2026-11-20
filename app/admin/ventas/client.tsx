@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CreditCard, MessageCircle, Home, Copy, Loader2, Flame } from "lucide-react";
+import { CreditCard, MessageCircle, Home, Copy, Loader2, Flame, Ticket } from "lucide-react";
+import { CupoPopupPanel } from "./cupo-panel";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Panel, Stat, StatusPill } from "../_components/ui";
@@ -17,10 +18,11 @@ interface Click {
   email: string;
 }
 
-type ButtonKey = "pagar_ahora" | "whatsapp" | "banner_inicio";
+type ButtonKey = "pagar_ahora" | "quiero_cupo" | "whatsapp" | "banner_inicio";
 
 const BUTTONS: Record<ButtonKey, { label: string; short: string; icon: typeof CreditCard; weight: number }> = {
   pagar_ahora: { label: "Pagar ahora", short: "Pagar", icon: CreditCard, weight: 3 },
+  quiero_cupo: { label: "¡Quiero mi cupo! (ventana)", short: "Quiero mi cupo", icon: Ticket, weight: 3 },
   whatsapp: { label: "Hablar con el equipo", short: "WhatsApp", icon: MessageCircle, weight: 2 },
   banner_inicio: { label: "Banner de mentoría", short: "Banner", icon: Home, weight: 1 },
 };
@@ -68,7 +70,7 @@ export function VentasClient() {
           user_id: c.user_id,
           name: c.full_name || c.email || "—",
           email: c.email,
-          counts: { pagar_ahora: 0, whatsapp: 0, banner_inicio: 0 },
+          counts: { pagar_ahora: 0, quiero_cupo: 0, whatsapp: 0, banner_inicio: 0 },
           last: c.clicked_at,
           intent: 0,
           total: 0,
@@ -86,6 +88,7 @@ export function VentasClient() {
   const visible = filter === "all" ? leads : leads.filter((l) => l.counts[filter] > 0);
   const totals = {
     pagar_ahora: leads.filter((l) => l.counts.pagar_ahora > 0).length,
+    quiero_cupo: leads.filter((l) => l.counts.quiero_cupo > 0).length,
     whatsapp: leads.filter((l) => l.counts.whatsapp > 0).length,
     banner_inicio: leads.filter((l) => l.counts.banner_inicio > 0).length,
   };
@@ -110,9 +113,12 @@ export function VentasClient() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <CupoPopupPanel claimed={totals.quiero_cupo} />
+
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Stat label="Personas interesadas" value={leads.length} hint={`${clicks.length} clicks en total`} />
         <Stat label="Tocaron Pagar" value={totals.pagar_ahora} tone="danger" hint="Mayor intención" />
+        <Stat label="¡Quiero mi cupo!" value={totals.quiero_cupo} tone="danger" hint="Tocaron el botón de la ventana" />
         <Stat label="Pidieron WhatsApp" value={totals.whatsapp} />
         <Stat label="Solo el banner" value={leads.filter((l) => l.intent === 1).length} />
       </div>
@@ -121,7 +127,7 @@ export function VentasClient() {
         icon={Flame}
         tone="gold"
         title="Leads de “Tu Próximo Paso”"
-        description="Una fila por persona, ordenadas por intención: primero quien tocó Pagar, después WhatsApp, después el banner. Es la lista para llamar."
+        description="Una fila por persona, ordenadas por intención: primero quien tocó Pagar o ¡Quiero mi cupo!, después WhatsApp, después el banner. Es la lista para llamar."
         action={
           <Button size="sm" variant="outline" onClick={copyEmails} disabled={visible.length === 0} className="gap-1.5">
             <Copy className="w-3.5 h-3.5" /> Copiar emails
