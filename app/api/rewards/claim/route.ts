@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const points = (me as { total_points?: number } | null)?.total_points ?? 0;
   if (points < t.points) return NextResponse.json({ error: "not_enough_points", points, needed: t.points }, { status: 400 });
 
-  const { error } = await db.from("reward_claims").insert({ user_id: userId, tier_id: tierId, points_at_request: points });
+  const { error } = await db.from("reward_claims").insert({ user_id: userId, tier_id: tierId, points_at_request: Math.floor(Number(points)) });
   if (error) {
     if (error.code === "23505") return NextResponse.json({ ok: true, already: true });
     console.error("[rewards/claim]", error.message);

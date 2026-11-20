@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Send } from "lucide-react";
 import { MissionText } from "@/components/mission-text";
+import { effectivePoints, formatPoints } from "@/lib/points";
 
 export interface RafagaMission {
   id: string;
@@ -38,7 +39,7 @@ function formatCountdown(ms: number): string {
 
 function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMission; alreadyClaimed: boolean; over10k: boolean }) {
   // Sobre 10.000 pts la ráfaga suma la mitad → mostrar el valor real.
-  const shownPts = over10k ? Math.floor(mission.points_reward / 2) : mission.points_reward;
+  const shownPts = effectivePoints(Number(mission.points_reward), over10k);
   const [status, setStatus] = useState<"upcoming" | "active" | "expired">(getStatus(mission));
   const [countdown, setCountdown] = useState("");
   const [claimed, setClaimed] = useState(alreadyClaimed);
@@ -218,7 +219,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
             color: "var(--success)", background: "color-mix(in srgb, var(--success) 12%, transparent)",
             border: "1px solid color-mix(in srgb, var(--success) 35%, transparent)",
             borderRadius: 999, padding: "5px 14px",
-          }}>✓ ¡Enviada! +{shownPts.toLocaleString()} pts</span>
+          }}>✓ ¡Enviada! +{formatPoints(shownPts)} pts</span>
         )}
       </div>
 
@@ -249,7 +250,7 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
               }}
             >
               {busy ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-              Enviar y ganar +{shownPts.toLocaleString()} pts
+              Enviar y ganar +{formatPoints(shownPts)} pts
             </button>
             {/* <label> nativo con el input adentro: en iPhone/Safari el selector de
                 fotos no se abre de forma confiable con input.click() sobre un

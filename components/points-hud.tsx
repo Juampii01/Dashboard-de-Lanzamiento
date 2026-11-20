@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { flyPoints } from "@/lib/wow-effects";
 import { type Breakdown, breakdownRows } from "@/lib/points-breakdown";
+import { formatPoints } from "@/lib/points";
 
 interface PointsHUDProps {
   points: number;
@@ -198,7 +199,7 @@ export function PointsHUD({
         }}
       >
         <span>★</span>
-        <span>{currentPoints} pts</span>
+        <span>{formatPoints(currentPoints)} pts</span>
       </div>
 
       {/* Detail tooltip — fixed position to escape header stacking context */}
@@ -232,7 +233,7 @@ export function PointsHUD({
               fontFamily: "var(--font-mono)", fontWeight: 700,
             }}>
               <span style={{ fontSize: "10px", color: "#647FA8", letterSpacing: "0.06em" }}>TUS PUNTOS</span>
-              <span style={{ fontSize: "14px", color: "#FFD60A" }}>{currentPoints}</span>
+              <span style={{ fontSize: "14px", color: "#FFD60A" }}>{formatPoints(currentPoints)}</span>
             </div>
 
             {/* Desglose por origen */}

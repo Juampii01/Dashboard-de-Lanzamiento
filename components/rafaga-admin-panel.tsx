@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ExpandableTextarea } from "@/components/expandable-textarea";
+import { formatPoints, parsePointsInput } from "@/lib/points";
 
 interface RafagaRow {
   id: string;
@@ -158,7 +159,7 @@ export function RafagaAdminPanel() {
           description: description.trim() || null,
           starts_at: localDate.toISOString(),
           duration_minutes: parseInt(duration, 10) || 120,
-          points_reward: parseInt(points, 10) || 1000,
+          points_reward: parsePointsInput(points) || 1000,
           image_url: imageUrl,
           link_buttons: linkButtons.filter((b) => b.url.trim()),
         }),
@@ -172,7 +173,7 @@ export function RafagaAdminPanel() {
         description: description.trim() || null,
         starts_at: localDate.toISOString(),
         duration_minutes: parseInt(duration, 10) || 120,
-        points_reward: parseInt(points, 10) || 1000,
+        points_reward: parsePointsInput(points) || 1000,
         image_url: imageUrl,
         link_buttons: cleanButtons,
         is_active: true,
@@ -235,7 +236,7 @@ export function RafagaAdminPanel() {
           description: description.trim() || null,
           starts_at: localDate.toISOString(),
           duration_minutes: parseInt(duration, 10) || 120,
-          points_reward: parseInt(points, 10) || 1000,
+          points_reward: parsePointsInput(points) || 1000,
           image_url: imageUrl,
           link_buttons: linkButtons.filter((b) => b.url.trim()),
         }),
@@ -250,7 +251,7 @@ export function RafagaAdminPanel() {
         description: description.trim() || null,
         starts_at: localDate.toISOString(),
         duration_minutes: parseInt(duration, 10) || 120,
-        points_reward: parseInt(points, 10) || 1000,
+        points_reward: parsePointsInput(points) || 1000,
         image_url: imageUrl,
         link_buttons: cleanButtons,
         is_active: true,
@@ -465,7 +466,7 @@ export function RafagaAdminPanel() {
               type="number"
               min={0}
               max={100000}
-              step={50}
+              step={0.01}
               value={points}
               onChange={(e) => setPoints(e.target.value)}
             />
@@ -481,7 +482,7 @@ export function RafagaAdminPanel() {
             ? (editingId ? "Guardando..." : "Creando...")
             : editingId
             ? "Guardar cambios"
-            : `Crear misión ráfaga +${(parseInt(points, 10) || 1000).toLocaleString("es")} pts`}
+            : `Crear misión ráfaga +${formatPoints(parsePointsInput(points) || 1000)} pts`}
         </Button>
         {editingId && (
           <Button type="button" variant="outline" onClick={cancelEdit} className="w-full">
@@ -525,7 +526,7 @@ export function RafagaAdminPanel() {
                   )}
                   <p className="text-[11px] text-muted-foreground">
                     {new Date(m.starts_at).toLocaleString("es-US", { dateStyle: "short", timeStyle: "short" })} ·{" "}
-                    {m.duration_minutes} min · +{m.points_reward.toLocaleString("es")} pts
+                    {m.duration_minutes} min · +{formatPoints(m.points_reward)} pts
                   </p>
                 </div>
                 <span className="text-[10px] font-bold shrink-0" style={{ color: statusColor }}>
