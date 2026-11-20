@@ -98,7 +98,9 @@ export async function GET() {
     color: r.color,
     prize: r.prize,
     target: r.winners,
-    pool: participants.filter((p) => p.eligible && !p.won && p.rank === r.key).length,
+    // Lo que se muestra en pantalla incluye a los excluidos (no se tiene que
+    // notar quién está excluido); el sorteo real usa solo los elegibles.
+    pool: participants.filter((p) => (p.eligible || p.excluded) && !p.won && p.rank === r.key).length,
     winners: winnerRows
       .filter((w) => w.rank_key === r.key)
       .map((w) => ({
@@ -176,7 +178,7 @@ export async function POST(req: NextRequest) {
     }
     const pool = participants.filter((p) => p.eligible && !p.won && p.rank === rank.key);
     if (pool.length === 0) {
-      return NextResponse.json({ error: "empty", message: `No quedan participantes en ${rank.short}.` }, { status: 409 });
+      return NextResponse.json({ error: "empty", message: `No quedan participantes disponibles en ${rank.short}.` }, { status: 409 });
     }
 
     const winnerId = weightedPick(pool, WEIGHTED.has(rank.key));
