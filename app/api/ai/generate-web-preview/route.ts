@@ -241,7 +241,7 @@ ${contactLines ? `\nDatos de contacto REALES (úsalos en la sección de contacto
 ═══════════════════════════════════════════
 
 Genera el sitio web COMERCIAL premium de esta empresa, para atraer clientes, usando EXCLUSIVAMENTE los datos reales de arriba. Que se vea como hecho por la mejor agencia del mundo. Recuerda: NADA de NAICS, capability statement ni datos de procurement, y NADA de cifras, certificaciones o testimonios inventados.`
-    , 14000);
+    , 20000); // 14000 se quedaba corto: la web se cortaba a mitad del JSON ("Unterminated string")
 
     if (grantIdToConsume) {
       await createServiceClient().from('web_issue_reports').update({ regen_consumed_at: new Date().toISOString() }).eq('id', grantIdToConsume);
