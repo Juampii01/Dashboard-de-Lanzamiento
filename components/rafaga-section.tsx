@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Send } from "lucide-react";
 import { MissionText } from "@/components/mission-text";
 import { effectivePoints, formatPoints } from "@/lib/points";
+import { compressImage, fileToDataUrl } from "@/lib/compress-image";
 
 export interface RafagaMission {
   id: string;
@@ -104,13 +105,11 @@ function RafagaCard({ mission, alreadyClaimed, over10k }: { mission: RafagaMissi
     const file = e.target.files?.[0];
     if (fileRef.current) fileRef.current.value = "";
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { setError("La imagen no puede superar 5 MB."); return; }
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const rd = new FileReader();
-      rd.onload = () => resolve(rd.result as string);
-      rd.onerror = reject;
-      rd.readAsDataURL(file);
-    });
+    if (file.size > 25 * 1024 * 1024) { setError("La imagen es demasiado pesada (máx. 25 MB)."); return; }
+    // Se achica antes de subir: el servidor rechaza requests de más de 4,5 MB.
+    const small = await compressImage(file);
+    if (small.size > 3 * 1024 * 1024) { setError("La imagen es demasiado pesada. Prueba con una captura de pantalla."); return; }
+    const base64 = await fileToDataUrl(small);
     await send({ base64 });
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { compressImage } from "@/lib/compress-image";
 
 // El reset ocurre a las 8:00 AM hora Miami (America/New_York). Devolvemos esa
 // MISMA hora expresada en la zona horaria LOCAL del navegador de quien lo ve
@@ -140,8 +141,8 @@ export function StoryUpload({ alreadyDone, over10k = false }: { alreadyDone: boo
       setErrorMsg("Solo se aceptan imágenes (JPG, PNG, WEBP).");
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setErrorMsg("La imagen no puede pesar más de 8 MB.");
+    if (file.size > 25 * 1024 * 1024) {
+      setErrorMsg("La imagen es demasiado pesada (máx. 25 MB).");
       return;
     }
     setErrorMsg("");
@@ -150,16 +151,19 @@ export function StoryUpload({ alreadyDone, over10k = false }: { alreadyDone: boo
   };
 
   const handleSubmit = async () => {
-    const file = fileRef.current?.files?.[0];
-    if (!file || phase === "loading") return;
+    const original = fileRef.current?.files?.[0];
+    if (!original || phase === "loading") return;
 
     setPhase("loading");
+    // Se achica antes de subir: el servidor rechaza requests de más de 4,5 MB
+    // y eso se veía como "Error de conexión".
+    const file = await compressImage(original);
     const form = new FormData();
     form.append("file", file);
 
     try {
       const res = await fetch("/api/missions/story/submit", { method: "POST", body: form });
-      const json = await res.json() as {
+      const json = (await res.json().catch(() => ({ error: res.status === 413 ? "file_too_large" : "bad_response" }))) as {
         ok?: boolean; awarded?: boolean; delta?: number; total?: number; error?: string; reason?: string;
       };
 
@@ -169,7 +173,7 @@ export function StoryUpload({ alreadyDone, over10k = false }: { alreadyDone: boo
         setErrorMsg(
           json.error === "upload_failed" ? "Error al subir la imagen. Intenta de nuevo."
           : json.error === "award_failed" ? "No pudimos acreditar los puntos. Intenta de nuevo."
-          : json.error === "file_too_large" ? "La imagen es demasiado grande (máx 8 MB)."
+          : json.error === "file_too_large" ? "La imagen es demasiado pesada. Prueba con una captura de pantalla."
           : json.error === "invalid_image" ? "Formato de imagen no válido."
           : "Error inesperado. Intenta de nuevo."
         );
