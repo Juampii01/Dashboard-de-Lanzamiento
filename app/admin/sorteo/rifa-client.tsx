@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Dices, Loader2, RotateCcw, Ticket, Users } from "lucide-react";
+import { Ban, Dices, Loader2, RotateCcw, Ticket, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, StatusPill, ToggleRow } from "../_components/ui";
 import { formatPoints } from "@/lib/points";
@@ -20,8 +20,9 @@ interface RankState {
 }
 interface Participant {
   id: string; full_name: string | null; email: string; points: number; rank: string;
-  joined_at: string; eligible: boolean; won: boolean;
+  joined_at: string; eligible: boolean; excluded?: boolean; won: boolean;
 }
+interface Excluded { email: string; reason: string | null; full_name: string | null; created_at: string }
 
 /**
  * Rifa en vivo (reemplaza al sorteo anterior). Flujo en la llamada:
@@ -39,13 +40,18 @@ export function RifaClient() {
   const [lastWinner, setLastWinner] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [showList, setShowList] = useState(false);
+  const [excluded, setExcluded] = useState<Excluded[]>([]);
+  const [showExcluded, setShowExcluded] = useState(false);
+  const [exEmail, setExEmail] = useState("");
+  const [exReason, setExReason] = useState("");
 
   const load = useCallback(async () => {
     try {
       const r = await fetch("/api/admin/rifa", { cache: "no-store" });
       if (!r.ok) throw new Error();
-      const d = (await r.json()) as { enabled: boolean; ranks: RankState[]; participants: Participant[] };
+      const d = (await r.json()) as { enabled: boolean; ranks: RankState[]; participants: Participant[]; excluded?: Excluded[] };
       setEnabled(d.enabled);
+      setExcluded(d.excluded ?? []);
       setRanks(d.ranks);
       setParticipants(d.participants);
     } catch {
@@ -67,7 +73,7 @@ export function RifaClient() {
       body: JSON.stringify(body),
     });
     const d = await r.json().catch(() => ({}));
-    return { ok: r.ok, d: d as { message?: string; position?: number; winner?: { full_name: string | null; points: number } } };
+    return { ok: r.ok, d: d as { message?: string; position?: number; winner?: { full_name: string | null; points: number }; full_name?: string | null; has_account?: boolean } };
   }
 
   async function toggle() {
@@ -88,6 +94,29 @@ export function RifaClient() {
       setLastWinner(`${rankKey}-${d.position}`);
       toast.success(`${ordinalWinner(d.position ?? 1)}: ${d.winner.full_name ?? "Participante"}`);
     } else toast.error(d.message ?? "No se pudo sortear");
+    setBusy(null);
+    load();
+  }
+
+  async function exclude() {
+    const email = exEmail.trim();
+    if (!email) return;
+    setBusy("exclude");
+    const { ok, d } = await post({ action: "exclude", email, reason: exReason });
+    if (ok) {
+      toast.success(d.has_account ? `Excluido: ${d.full_name ?? email}` : `Excluido ${email} (todavía no tiene cuenta con ese email)`);
+      setExEmail("");
+      setExReason("");
+    } else toast.error(d.message ?? "No se pudo excluir");
+    setBusy(null);
+    load();
+  }
+
+  async function unexclude(email: string) {
+    setBusy(`un-${email}`);
+    const { ok } = await post({ action: "unexclude", email });
+    if (ok) toast.success("Vuelve a participar normalmente");
+    else toast.error("No se pudo quitar");
     setBusy(null);
     load();
   }
@@ -204,7 +233,7 @@ export function RifaClient() {
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-xs font-bold capitalize">{p.rank}</p>
-                    <p className="text-xs text-muted-foreground">{formatPoints(p.points)} pts{!p.eligible && " · no elegible"}</p>
+                    <p className="text-xs text-muted-foreground">{formatPoints(p.points)} pts{p.excluded ? " · excluido" : !p.eligible ? " · no elegible" : ""}</p>
                   </div>
                 </div>
               ))}
@@ -212,7 +241,52 @@ export function RifaClient() {
           )}
         </Panel>
 
-        <Panel icon={RotateCcw} tone="danger" title="Reiniciar rifa" description="Para el simulacro: borra participantes y ganadores y apaga el banner. No toca puntos ni nada más.">
+        <Panel
+          icon={Ban}
+          title={`Excluidos de la rifa (${excluded.length})`}
+          description="Pueden tocar “¡Quiero participar!” y ven que están participando, pero nunca salen sorteados (0% de chances). Oculto por defecto para no mostrarlo al compartir pantalla."
+          action={<Button size="sm" variant="outline" onClick={() => setShowExcluded((v) => !v)}>{showExcluded ? "Ocultar" : "Ver"}</Button>}
+        >
+          {showExcluded && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <input
+                  className="flex-1 min-w-[200px] rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="Email de la cuenta"
+                  type="email"
+                  value={exEmail}
+                  onChange={(e) => setExEmail(e.target.value)}
+                />
+                <input
+                  className="flex-1 min-w-[160px] rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="Motivo (opcional, solo interno)"
+                  value={exReason}
+                  maxLength={200}
+                  onChange={(e) => setExReason(e.target.value)}
+                />
+                <Button size="sm" onClick={exclude} disabled={busy !== null || !exEmail.trim()}>
+                  {busy === "exclude" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Excluir"}
+                </Button>
+              </div>
+              <div className="divide-y divide-border text-sm">
+                {excluded.length === 0 && <p className="text-muted-foreground py-2">No hay nadie excluido.</p>}
+                {excluded.map((e) => (
+                  <div key={e.email} className="flex items-center justify-between gap-3 py-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">{e.full_name ?? "Sin cuenta con ese email"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{e.email}{e.reason ? ` · ${e.reason}` : ""}</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => unexclude(e.email)} disabled={busy !== null}>
+                      {busy === `un-${e.email}` ? <Loader2 className="w-4 h-4 animate-spin" /> : "Quitar"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Panel>
+
+        <Panel icon={RotateCcw} tone="danger" title="Reiniciar rifa" description="Para el simulacro: borra participantes y ganadores y apaga el banner. No toca puntos, ni la lista de excluidos, ni nada más.">
           {confirmReset ? (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold">¿Seguro? Se borran todos los participantes y ganadores.</span>

@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
  *
  * Pool de cada premio: quienes tocaron "¡Quiero participar!" (rifa_participants),
  * siguen siendo elegibles (en vivo, no admin/estudiante/viewer, con compra),
+ * no están en rifa_excluded (pueden anotarse pero tienen 0% de chances),
  * todavía no ganaron nada en la rifa, y cuyo rango ACTUAL es el del premio.
  * Elevate y Prime sortean ponderado por puntos (más puntos = más chances,
  * nadie con 0); Legacy y Expert, todos con la misma chance. Se sortea de a un
@@ -36,11 +37,12 @@ type UserRow = {
 };
 
 async function loadState(service: Svc) {
-  const [{ data: setting }, { data: parts }, { data: winners }, { data: mentors }] = await Promise.all([
+  const [{ data: setting }, { data: parts }, { data: winners }, { data: mentors }, { data: excludedRows }] = await Promise.all([
     service.from("app_settings").select("value").eq("key", RIFA_SETTING).maybeSingle(),
     service.from("rifa_participants").select("user_id, joined_at"),
     service.from("rifa_winners").select("rank_key, position, user_id, points_at_draw, drawn_at").order("position"),
     service.from("sorteo_mentorship_buyers").select("email"),
+    service.from("rifa_excluded").select("email, reason, created_at").order("created_at", { ascending: false }),
   ]);
   const participantRows = (parts ?? []) as { user_id: string; joined_at: string }[];
   const winnerRows = (winners ?? []) as { rank_key: string; position: number; user_id: string; points_at_draw: number | string | null; drawn_at: string }[];
@@ -55,6 +57,8 @@ async function loadState(service: Svc) {
     for (const u of (data ?? []) as UserRow[]) users[u.id] = u;
   }
   const mentorEmails = new Set(((mentors ?? []) as { email: string }[]).map((m) => m.email.toLowerCase()));
+  const excluded = (excludedRows ?? []) as { email: string; reason: string | null; created_at: string }[];
+  const excludedEmails = new Set(excluded.map((e) => e.email.toLowerCase()));
   const wonIds = new Set(winnerRows.map((w) => w.user_id));
 
   const participants = participantRows
@@ -62,19 +66,30 @@ async function loadState(service: Svc) {
       const u = users[p.user_id];
       if (!u) return null;
       const points = Number(u.total_points ?? 0);
-      const eligible = canJoinRifa(u) && !mentorEmails.has((u.email || "").toLowerCase());
-      return { id: u.id, full_name: u.full_name, email: u.email, points, rank: getRank(points).key, joined_at: p.joined_at, eligible, won: wonIds.has(u.id) };
+      const email = (u.email || "").toLowerCase();
+      const isExcluded = excludedEmails.has(email);
+      const eligible = canJoinRifa(u) && !mentorEmails.has(email) && !isExcluded;
+      return { id: u.id, full_name: u.full_name, email: u.email, points, rank: getRank(points).key, joined_at: p.joined_at, eligible, excluded: isExcluded, won: wonIds.has(u.id) };
     })
     .filter((x): x is NonNullable<typeof x> => !!x)
     .sort((a, b) => b.points - a.points);
 
-  return { enabled: (setting as { value?: string } | null)?.value === "true", participants, winnerRows, users };
+  return { enabled: (setting as { value?: string } | null)?.value === "true", participants, winnerRows, users, excluded };
 }
 
 export async function GET() {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
-  const { enabled, participants, winnerRows, users } = await loadState(auth.service);
+  const { enabled, participants, winnerRows, users, excluded } = await loadState(auth.service);
+
+  // Nombre de cada excluido (si tiene cuenta) para mostrarlo en el panel.
+  const exEmails = excluded.map((e) => e.email);
+  const names: Record<string, string | null> = {};
+  if (exEmails.length) {
+    const { data } = await auth.service.from("users").select("email, full_name").in("email", exEmails);
+    for (const u of (data ?? []) as { email: string; full_name: string | null }[]) names[u.email.toLowerCase()] = u.full_name;
+  }
+  const excludedOut = excluded.map((e) => ({ ...e, full_name: names[e.email.toLowerCase()] ?? null }));
 
   const ranks = RANKS.map((r) => ({
     key: r.key,
@@ -95,7 +110,7 @@ export async function GET() {
       })),
   }));
 
-  return NextResponse.json({ ok: true, enabled, participants, ranks });
+  return NextResponse.json({ ok: true, enabled, participants, ranks, excluded: excludedOut });
 }
 
 function weightedPick(pool: { id: string; points: number }[], weighted: boolean): string {
@@ -113,7 +128,24 @@ function weightedPick(pool: { id: string; points: number }[], weighted: boolean)
 export async function POST(req: NextRequest) {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
-  const body = (await req.json().catch(() => ({}))) as { action?: string; enabled?: boolean; rankKey?: string };
+  const body = (await req.json().catch(() => ({}))) as { action?: string; enabled?: boolean; rankKey?: string; email?: string; reason?: string };
+
+  if (body.action === "exclude" || body.action === "unexclude") {
+    const email = String(body.email ?? "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: "bad_email", message: "Email inválido." }, { status: 400 });
+    if (body.action === "unexclude") {
+      const { error } = await auth.service.from("rifa_excluded").delete().eq("email", email);
+      if (error) return NextResponse.json({ error: "internal" }, { status: 500 });
+      return NextResponse.json({ ok: true });
+    }
+    const { data: u } = await auth.service.from("users").select("full_name").ilike("email", email).maybeSingle();
+    const { error } = await auth.service.from("rifa_excluded").upsert(
+      { email, reason: String(body.reason ?? "").trim().slice(0, 200) || null, created_by: auth.adminId },
+      { onConflict: "email" },
+    );
+    if (error) return NextResponse.json({ error: "internal" }, { status: 500 });
+    return NextResponse.json({ ok: true, full_name: (u as { full_name?: string } | null)?.full_name ?? null, has_account: !!u });
+  }
 
   if (body.action === "toggle") {
     const value = body.enabled ? "true" : "false";
