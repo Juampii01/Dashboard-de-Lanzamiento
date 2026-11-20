@@ -103,7 +103,16 @@ export async function fetchNicheImageUrls(
 /** Reduce un niche largo (párrafo) a una query corta de ~4 palabras útiles. */
 function shortNiche(niche?: string): string {
   if (!niche) return "";
-  const stop = new Set(["de","la","el","los","las","y","para","con","que","una","un","del","en","servicios","ofrecemos","resolvemos"]);
+  // Palabras genéricas que no describen el rubro. Si el texto empieza con
+  // "Tenemos más de 11 años de experiencia…", sin este filtro la búsqueda
+  // de fotos termina siendo "tenemos anos experiencia ramo" y devuelve bodas.
+  const stop = new Set([
+    "de","la","el","los","las","y","para","con","que","una","un","del","en","por","como","entre","otros","otras",
+    "servicios","servicio","ofrecemos","resolvemos","tenemos","somos","hacemos","brindamos","contamos","nos","nuestro",
+    "nuestra","nuestros","nuestras","nuestro","mas","más","anos","años","experiencia","ramo","rubro","empresa","negocio",
+    "especificamente","específicamente","mencionando","algunos","destacados","trabajos","trabajo","clientes","cliente",
+    "calidad","profesional","profesionales","equipo","personas","especializamos","especializados","dedicamos","general",
+  ]);
   const words = niche.toLowerCase().replace(/[^a-záéíóúñ0-9\s]/gi, " ").split(/\s+/)
     .filter((w) => w.length > 3 && !stop.has(w));
   return words.slice(0, 4).join(" ");
