@@ -24,8 +24,8 @@ export default function CierrePage() {
         <LinkTile
           href="/admin/sorteo"
           icon={Dices}
-          title="2 · Sorteo final"
-          description="Sorteo de premios por rango (Elevate, Prime, Legacy, Expert). Pensado para compartir pantalla en el evento."
+          title="2 · Rifa en vivo"
+          description="Banner “¡Quiero participar!” y rifa de los premios por rango, un ganador por vez. Pensado para compartir pantalla en la llamada."
         />
 
         <Panel

@@ -25,6 +25,8 @@ import { CallBanner } from "@/components/call-banner";
 import { Day1ReminderBanner } from "@/components/day1-reminder-banner";
 import { getCupoPopupFor, type CupoPopup } from "@/lib/cupo-popup";
 import { CupoPopupModal } from "@/components/cupo-popup";
+import { RifaPopup } from "@/components/rifa-popup";
+import { canJoinRifa, hasJoinedRifa, isRifaEnabled } from "@/lib/rifa";
 
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -324,6 +326,22 @@ export default async function DashboardLayout({
     cupoPopup = await getCupoPopupFor(createServiceClient(), userId);
   }
 
+  // Rifa en vivo: el banner "¡Quiero participar!" se monta para todo
+  // participante que puede ganar; aparece solo cuando el equipo lo activa.
+  let rifa: { enabled: boolean; joined: boolean } | null = null;
+  if (!devMode && program === "live" && !isViewer && !profile?.is_admin && userId) {
+    const svc = createServiceClient();
+    const { data: rifaUser } = await svc
+      .from("users")
+      .select("program, is_admin, is_student, viewer_of, hotmart_transaction_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (canJoinRifa(rifaUser as Parameters<typeof canJoinRifa>[0])) {
+      const [enabled, joined] = await Promise.all([isRifaEnabled(svc), hasJoinedRifa(svc, userId)]);
+      rifa = { enabled, joined };
+    }
+  }
+
   // Banner de la llamada en vivo (app_settings.call_banner_*). Solo programa en vivo.
   let callBanner: CallBannerData | null = null;
   if (!devMode && program === "live") {
@@ -453,6 +471,7 @@ export default async function DashboardLayout({
       )}
       {/* Bloqueo por llamada en vivo: no aplica a on demand */}
       {cupoPopup && <CupoPopupModal popup={cupoPopup} name={profile?.full_name ?? ""} email={userEmail} />}
+      {rifa && <RifaPopup initialEnabled={rifa.enabled} initialJoined={rifa.joined} />}
       {/* Los admins no quedan bloqueados (se desbloquea desde /admin/en-vivo) */}
       {!devMode && program === "live" && !profile?.is_admin && <DashboardLockOverlay isAdmin={false} />}
 
