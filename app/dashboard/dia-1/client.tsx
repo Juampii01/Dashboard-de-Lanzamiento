@@ -26,6 +26,7 @@ const STATE_CERTS   = ["MBE", "WBE", "MWBE", "SBE", "DBE", "VBE", "SDVBE/DVBE", 
 const selectClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
+import { downloadBlob } from "@/lib/download-file";
 
 type CompanyProfile = Database["public"]["Tables"]["company_profiles"]["Row"];
 
@@ -400,12 +401,7 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
       if (!res.ok) throw new Error("PDF error");
 
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "govbidder-dia-1-analisis.pdf";
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, "govbidder-dia-1-analisis.pdf");
       setNaicsChanged(false);
     } catch {
       toast.error("Error al generar el PDF. Intenta de nuevo.");
