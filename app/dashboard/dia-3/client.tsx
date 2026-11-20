@@ -15,6 +15,7 @@ import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
 import { PortalsAccordion } from "@/components/portals-accordion";
 import { PORTALS } from "@/lib/portals-data";
+import { downloadBlob } from "@/lib/download-file";
 
 type CompanyProfile = Database["public"]["Tables"]["company_profiles"]["Row"];
 type WebPreview = Database["public"]["Tables"]["web_previews"]["Row"];
@@ -252,12 +253,7 @@ export function Dia3Client({
     if (!webResult) return;
     const content = buildFullHtml();
     const blob = new Blob([content], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "mi-web-govbidder.html";
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(blob, "mi-web-govbidder.html");
   }
 
   return (

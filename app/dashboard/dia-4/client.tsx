@@ -16,6 +16,7 @@ import { loadDraft, clearDraft, useAutosaveDraft } from "@/lib/hooks/use-draft";
 import type { Database } from "@/lib/supabase/types";
 import type { CapabilityStatementData } from "@/app/api/ai/generate-capability-statement/route";
 import { DevTestBar } from "@/components/dev-test-bar";
+import { downloadBlob } from "@/lib/download-file";
 
 type CompanyProfile = Database["public"]["Tables"]["company_profiles"]["Row"];
 type NaicsExpansion = Database["public"]["Tables"]["naics_expansions"]["Row"];
@@ -219,12 +220,7 @@ export function Dia4Client({
       const res = await fetch("/api/pdf/capability-statement");
       if (!res.ok) throw new Error("PDF error");
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "govbidder-capability-statement.pdf";
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, "govbidder-capability-statement.pdf");
     } catch {
       toast.error("Error al generar el PDF.");
     } finally {

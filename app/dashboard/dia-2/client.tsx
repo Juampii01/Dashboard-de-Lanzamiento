@@ -14,6 +14,7 @@ import { WizardModal } from "@/components/wizard-modal";
 import { TaskCompleteModal } from "@/components/task-complete-modal";
 import type { Database } from "@/lib/supabase/types";
 import { DevTestBar } from "@/components/dev-test-bar";
+import { downloadBlob } from "@/lib/download-file";
 
 type NaicsExpansion = Database["public"]["Tables"]["naics_expansions"]["Row"];
 
@@ -277,12 +278,7 @@ export function Dia2Client({
       const res = await fetch("/api/pdf/day-2");
       if (!res.ok) throw new Error("PDF error");
       const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "govbidder-dia-2-mapa-codigos.pdf";
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, "govbidder-dia-2-mapa-codigos.pdf");
     } catch {
       toast.error("Error al generar el PDF. Intenta de nuevo.");
     } finally {
