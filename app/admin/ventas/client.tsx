@@ -49,7 +49,9 @@ const INTENT_LABEL: Record<number, { text: string; tone: "danger" | "gold" | "mu
 export function VentasClient() {
   const [clicks, setClicks] = useState<Click[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>("all");
+  // Por defecto, solo quienes tocaron Pagar. Pagar y "¡Quiero mi cupo!" van
+  // separados: no hay pestaña "Todos".
+  const [filter, setFilter] = useState<Filter>("pagar_ahora");
 
   useEffect(() => {
     fetch("/api/admin/proximo-paso-clicks")
@@ -138,7 +140,7 @@ export function VentasClient() {
         }
       >
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {([["all", "Todos", leads.length], ...(Object.keys(BUTTONS) as ButtonKey[]).map((k) => [k, BUTTONS[k].short, totals[k]])] as [Filter, string, number][]).map(
+          {((Object.keys(BUTTONS) as ButtonKey[]).map((k) => [k, BUTTONS[k].short, totals[k]]) as [Filter, string, number][]).map(
             ([key, label, n]) => (
               <button
                 key={key}
