@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Panel, Stat, StatusPill } from "../_components/ui";
 import { relativeTime } from "../_lib/types";
+import { MentoriaPopupPanel } from "./mentoria-panel";
 
 interface Click {
   id: string;
@@ -113,6 +114,8 @@ export function VentasClient() {
 
   return (
     <div className="space-y-6">
+      <MentoriaPopupPanel />
+
       <CupoPopupPanel claimed={totals.quiero_cupo} />
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
