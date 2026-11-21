@@ -37,15 +37,18 @@ type UserRow = {
 };
 
 async function loadState(service: Svc) {
-  const [{ data: setting }, { data: parts }, { data: winners }, { data: mentors }, { data: excludedRows }] = await Promise.all([
+  const [{ data: setting }, { data: parts }, { data: winners }, { data: mentors }, { data: excludedRows }, { data: forfeitRows }] = await Promise.all([
     service.from("app_settings").select("value").eq("key", RIFA_SETTING).maybeSingle(),
     service.from("rifa_participants").select("user_id, joined_at"),
-    service.from("rifa_winners").select("rank_key, position, user_id, points_at_draw, drawn_at").order("position"),
+    service.from("rifa_winners").select("rank_key, position, user_id, points_at_draw, drawn_at, claimed_at").order("position"),
     service.from("sorteo_mentorship_buyers").select("email"),
     service.from("rifa_excluded").select("email, reason, created_at").order("created_at", { ascending: false }),
+    service.from("rifa_forfeits").select("user_id"),
   ]);
   const participantRows = (parts ?? []) as { user_id: string; joined_at: string }[];
-  const winnerRows = (winners ?? []) as { rank_key: string; position: number; user_id: string; points_at_draw: number | string | null; drawn_at: string }[];
+  const winnerRows = (winners ?? []) as { rank_key: string; position: number; user_id: string; points_at_draw: number | string | null; drawn_at: string; claimed_at: string | null }[];
+  // Quien no reclamó su premio queda fuera del resto de la rifa.
+  const forfeitIds = new Set(((forfeitRows ?? []) as { user_id: string }[]).map((f) => f.user_id));
   const ids = [...new Set([...participantRows.map((p) => p.user_id), ...winnerRows.map((w) => w.user_id)])];
 
   const users: Record<string, UserRow> = {};
@@ -69,7 +72,7 @@ async function loadState(service: Svc) {
       const email = (u.email || "").toLowerCase();
       const isExcluded = excludedEmails.has(email);
       const eligible = canJoinRifa(u) && !mentorEmails.has(email) && !isExcluded;
-      return { id: u.id, full_name: u.full_name, email: u.email, points, rank: getRank(points).key, joined_at: p.joined_at, eligible, excluded: isExcluded, won: wonIds.has(u.id) };
+      return { id: u.id, full_name: u.full_name, email: u.email, points, rank: getRank(points).key, joined_at: p.joined_at, eligible, excluded: isExcluded, won: wonIds.has(u.id) || forfeitIds.has(u.id) };
     })
     .filter((x): x is NonNullable<typeof x> => !!x)
     .sort((a, b) => b.points - a.points);
@@ -110,6 +113,7 @@ export async function GET() {
         email: users[w.user_id]?.email ?? "",
         points: Number(w.points_at_draw ?? users[w.user_id]?.total_points ?? 0),
         drawn_at: w.drawn_at,
+        claimed: !!w.claimed_at,
       })),
   }));
 
@@ -163,8 +167,33 @@ export async function POST(req: NextRequest) {
     // Para el simulacro: borra participantes y ganadores y apaga el banner.
     const a = await auth.service.from("rifa_winners").delete().not("id", "is", null);
     const b = await auth.service.from("rifa_participants").delete().not("user_id", "is", null);
+    await auth.service.from("rifa_forfeits").delete().not("id", "is", null);
     const c = await auth.service.from("app_settings").upsert({ key: RIFA_SETTING, value: "false", updated_at: new Date().toISOString() }, { onConflict: "key" });
     if (a.error || b.error || c.error) return NextResponse.json({ error: "internal" }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
+  if (body.action === "claim" || body.action === "forfeit") {
+    const rank = RANKS.find((r) => r.key === body.rankKey);
+    const position = Number((body as { position?: number }).position);
+    if (!rank || !Number.isInteger(position)) return NextResponse.json({ error: "bad_request" }, { status: 400 });
+    const { data: w } = await auth.service
+      .from("rifa_winners").select("id, user_id, points_at_draw, drawn_at, claimed_at")
+      .eq("rank_key", rank.key).eq("position", position).maybeSingle();
+    const row = w as { id: string; user_id: string; points_at_draw: number | null; drawn_at: string; claimed_at: string | null } | null;
+    if (!row) return NextResponse.json({ error: "not_found", message: "Ese ganador ya no está. Actualiza la página." }, { status: 404 });
+    if (body.action === "claim") {
+      const { error } = await auth.service.from("rifa_winners").update({ claimed_at: new Date().toISOString() }).eq("id", row.id);
+      if (error) return NextResponse.json({ error: "internal" }, { status: 500 });
+      return NextResponse.json({ ok: true });
+    }
+    if (row.claimed_at) return NextResponse.json({ error: "claimed", message: "Ese premio ya figura como reclamado." }, { status: 409 });
+    const ins = await auth.service.from("rifa_forfeits").insert({
+      rank_key: rank.key, position, user_id: row.user_id, points_at_draw: row.points_at_draw, drawn_at: row.drawn_at, created_by: auth.adminId,
+    });
+    if (ins.error) return NextResponse.json({ error: "internal" }, { status: 500 });
+    const del = await auth.service.from("rifa_winners").delete().eq("id", row.id);
+    if (del.error) return NextResponse.json({ error: "internal" }, { status: 500 });
     return NextResponse.json({ ok: true });
   }
 
@@ -173,6 +202,10 @@ export async function POST(req: NextRequest) {
     if (!rank) return NextResponse.json({ error: "bad_rank" }, { status: 400 });
 
     const { participants, winnerRows } = await loadState(auth.service);
+    // No se sortea el siguiente hasta que el anterior reclame (o se marque que no reclamó).
+    if (winnerRows.some((w) => w.rank_key === rank.key && !w.claimed_at)) {
+      return NextResponse.json({ error: "pending_claim", message: "Primero marca si el ganador anterior reclamó o no." }, { status: 409 });
+    }
     const already = winnerRows.filter((w) => w.rank_key === rank.key).length;
     if (already >= rank.winners) {
       return NextResponse.json({ error: "complete", message: `Ya están los ${rank.winners} ganadores de ${rank.short}.` }, { status: 409 });

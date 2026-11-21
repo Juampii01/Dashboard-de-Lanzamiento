@@ -1,25 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Dices, Loader2, X } from "lucide-react";
+import { Check, Dices, Loader2, X } from "lucide-react";
 import { formatPoints } from "@/lib/points";
 import { ordinalWinner } from "@/lib/rifa";
 
-export interface StageWinner { position: number; full_name: string | null; points: number }
+export interface StageWinner { position: number; full_name: string | null; points: number; claimed?: boolean }
 
 /**
  * Pantalla completa de la rifa de un rango, pensada para compartir pantalla:
  * arriba un banner grande con el último ganador (con unos segundos de nombres
  * pasando antes de revelarlo) y abajo, en chico, los ganadores anteriores.
- * El botón de abajo sortea el siguiente ganador ("Sortear segundo ganador"…).
+ * Después de cada sorteo el equipo marca si el ganador reclamó el premio en la
+ * llamada: "Reclamó" habilita el siguiente sorteo; "No reclamó" lo saca de la
+ * rifa y vuelve a sortear ese mismo lugar.
  */
 export function RifaStage({
-  name, emoji, color, prize, target, winners, candidateNames, onDraw, onClose,
+  name, emoji, color, prize, target, winners, candidateNames, onDraw, onClaim, onForfeit, onClose,
 }: {
   name: string; emoji: string; color: string; prize: string; target: number;
   winners: StageWinner[];
   candidateNames: string[];
   onDraw: () => Promise<StageWinner | null>;
+  onClaim: (position: number) => Promise<boolean>;
+  onForfeit: (position: number) => Promise<boolean>;
   onClose: () => void;
 }) {
   const [rolling, setRolling] = useState(false);
@@ -29,15 +33,31 @@ export function RifaStage({
 
   useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
 
-  const latest = revealed ?? (winners.length ? winners[winners.length - 1] : null);
+  const [deciding, setDeciding] = useState(false);
+  const [forfeited, setForfeited] = useState<StageWinner | null>(null);
+
+  // El último ganador sale de la lista del servidor (trae si reclamó o no).
+  const fromServer = (pos?: number) => winners.find((w) => w.position === pos);
+  const latest = forfeited ? null : (revealed ? (fromServer(revealed.position) ?? revealed) : (winners.length ? winners[winners.length - 1] : null));
+  const pending = winners.find((w) => !w.claimed) ?? null;
   const previous = winners.filter((w) => w.position !== latest?.position);
-  const done = winners.length >= target;
+  const done = winners.length >= target && !pending;
   const next = winners.length + 1;
 
+  async function decide(claimed: boolean) {
+    if (!pending || deciding) return;
+    setDeciding(true);
+    const ok = claimed ? await onClaim(pending.position) : await onForfeit(pending.position);
+    setDeciding(false);
+    if (!ok) return;
+    if (!claimed) { setForfeited(pending); setRevealed(null); }
+  }
+
   async function draw() {
-    if (rolling || done) return;
+    if (rolling || done || pending) return;
     setRolling(true);
     setRevealed(null);
+    setForfeited(null);
     const pool = candidateNames.length ? candidateNames : ["…"];
     timer.current = setInterval(() => {
       setRollName(pool[Math.floor(Math.random() * pool.length)]);
@@ -100,6 +120,16 @@ export function RifaStage({
                 {rollName}
               </p>
             </>
+          ) : forfeited ? (
+            <>
+              <p style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "#fca5a5" }}>
+                ❌ No reclamó
+              </p>
+              <p style={{ margin: "14px 0 6px", fontSize: "clamp(30px, 6vw, 56px)", fontWeight: 900, lineHeight: 1.05, textDecoration: "line-through", opacity: 0.7 }}>
+                {forfeited.full_name ?? "Participante"}
+              </p>
+              <p style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>Se vuelve a sortear el {ordinalWinner(next).toLowerCase()}</p>
+            </>
           ) : latest ? (
             <>
               <p style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)" }}>
@@ -109,6 +139,11 @@ export function RifaStage({
                 {latest.full_name ?? "Participante"}
               </p>
               <p style={{ margin: 0, fontSize: 18, color: "rgba(255,255,255,0.8)" }}>{formatPoints(latest.points)} pts</p>
+              {latest.claimed ? (
+                <p style={{ margin: "14px 0 0", fontSize: 20, fontWeight: 900, color: "#86efac" }}>✅ Premio reclamado</p>
+              ) : (
+                <p style={{ margin: "14px 0 0", fontSize: 18, fontWeight: 800, color: "#fde68a" }}>⏳ Esperando que reclame su premio</p>
+              )}
             </>
           ) : (
             <>
@@ -122,7 +157,32 @@ export function RifaStage({
 
         {/* Botón para el siguiente ganador */}
         <div style={{ margin: "26px 0 32px" }}>
-          {done ? (
+          {pending && !rolling ? (
+            <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+              <button
+                onClick={() => decide(true)}
+                disabled={deciding}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 10, border: "none", borderRadius: 999,
+                  padding: "18px 36px", fontSize: 20, fontWeight: 900, cursor: deciding ? "wait" : "pointer",
+                  background: "#16a34a", color: "#fff", boxShadow: "0 10px 30px rgba(22,163,74,0.45)",
+                }}
+              >
+                {deciding ? <Loader2 size={22} className="animate-spin" /> : <Check size={22} />} Reclamó
+              </button>
+              <button
+                onClick={() => decide(false)}
+                disabled={deciding}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 10, borderRadius: 999,
+                  padding: "18px 36px", fontSize: 20, fontWeight: 900, cursor: deciding ? "wait" : "pointer",
+                  background: "transparent", color: "#fff", border: "2px solid rgba(255,255,255,0.5)",
+                }}
+              >
+                <X size={22} /> No reclamó
+              </button>
+            </div>
+          ) : done ? (
             <p style={{ fontSize: 18, fontWeight: 800, color: "#86efac", margin: 0 }}>✅ Están todos los ganadores de {name}</p>
           ) : (
             <button
@@ -135,7 +195,7 @@ export function RifaStage({
               }}
             >
               {rolling ? <Loader2 size={22} className="animate-spin" /> : <Dices size={22} />}
-              Sortear {ordinalWinner(next).toLowerCase()}
+              {forfeited ? "Volver a sortear" : winners.length ? "Siguiente:" : "Sortear"} {ordinalWinner(next).toLowerCase()}
             </button>
           )}
         </div>

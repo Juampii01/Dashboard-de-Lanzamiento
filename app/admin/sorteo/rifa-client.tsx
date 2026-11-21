@@ -17,7 +17,7 @@ interface RankState {
   prize: string;
   target: number;
   pool: number;
-  winners: { position: number; full_name: string | null; email: string; points: number; drawn_at: string }[];
+  winners: { position: number; full_name: string | null; email: string; points: number; drawn_at: string; claimed?: boolean }[];
 }
 interface Participant {
   id: string; full_name: string | null; email: string; points: number; rank: string;
@@ -96,6 +96,14 @@ export function RifaClient() {
     return result;
   }
 
+  async function decide(rankKey: string, position: number, claimed: boolean): Promise<boolean> {
+    const { ok, d } = await post({ action: claimed ? "claim" : "forfeit", rankKey, position });
+    if (ok) toast.success(claimed ? "Premio reclamado. Ya puedes sortear el siguiente." : "No reclamó: se vuelve a sortear ese lugar.");
+    else toast.error(d.message ?? "No se pudo guardar");
+    await load();
+    return ok;
+  }
+
   async function reset() {
     setBusy("reset");
     const { ok } = await post({ action: "reset" });
@@ -166,6 +174,7 @@ export function RifaClient() {
                           >
                             <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{ordinalWinner(w.position)}</p>
                             <p className={fresh ? "text-xl font-extrabold" : "text-base font-bold"}>🎉 {w.full_name ?? "Participante"}</p>
+                            <p className="text-xs font-semibold">{w.claimed ? "✅ Reclamado" : "⏳ Falta confirmar si reclamó"}</p>
                             <p className="text-xs text-muted-foreground">{formatPoints(w.points)} pts</p>
                           </li>
                         );
@@ -173,7 +182,7 @@ export function RifaClient() {
                     </ol>
                   )}
 
-                  {done && <StatusPill tone="success">✅ Ganadores completos</StatusPill>}
+                  {done && r.winners.every((w) => w.claimed) && <StatusPill tone="success">✅ Ganadores completos</StatusPill>}
                   <Button
                     className="w-full h-12 text-base font-bold gap-2"
                     variant={done ? "outline" : "default"}
@@ -245,9 +254,11 @@ export function RifaClient() {
             color={r.color}
             prize={r.prize}
             target={r.target}
-            winners={r.winners.map((w) => ({ position: w.position, full_name: w.full_name, points: w.points }))}
+            winners={r.winners.map((w) => ({ position: w.position, full_name: w.full_name, points: w.points, claimed: w.claimed }))}
             candidateNames={names}
             onDraw={() => draw(r.key)}
+            onClaim={(pos) => decide(r.key, pos, true)}
+            onForfeit={(pos) => decide(r.key, pos, false)}
             onClose={() => setStageRank(null)}
           />
         );
