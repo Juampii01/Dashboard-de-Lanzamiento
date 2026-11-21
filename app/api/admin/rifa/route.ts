@@ -71,8 +71,9 @@ async function loadState(service: Svc) {
       const points = Number(u.total_points ?? 0);
       const email = (u.email || "").toLowerCase();
       const isExcluded = excludedEmails.has(email);
-      const eligible = canJoinRifa(u) && !mentorEmails.has(email) && !isExcluded;
-      return { id: u.id, full_name: u.full_name, email: u.email, points, rank: getRank(points).key, joined_at: p.joined_at, eligible, excluded: isExcluded, won: wonIds.has(u.id) || forfeitIds.has(u.id) };
+      const canJoin = canJoinRifa(u);
+      const eligible = canJoin && !mentorEmails.has(email) && !isExcluded;
+      return { id: u.id, full_name: u.full_name, email: u.email, points, rank: getRank(points).key, joined_at: p.joined_at, eligible, canJoin, excluded: isExcluded, won: wonIds.has(u.id) || forfeitIds.has(u.id) };
     })
     .filter((x): x is NonNullable<typeof x> => !!x)
     .sort((a, b) => b.points - a.points);
@@ -105,6 +106,10 @@ export async function GET() {
     // (excluidos, admins y gratuitos incluidos: no se tiene que notar quién
     // tiene 0%); el sorteo real usa solo los elegibles.
     pool: participants.filter((p) => !p.won && p.rank === r.key).length,
+    // Solo para el panel: cuántos tienen chance real (sin compradores ni agendados).
+    // Si llega a 0, el sorteo se abre a todos los anotados del rango.
+    realPool: participants.filter((p) => !p.won && p.rank === r.key && p.eligible).length,
+    openPool: participants.filter((p) => !p.won && p.rank === r.key && p.canJoin).length,
     winners: winnerRows
       .filter((w) => w.rank_key === r.key)
       .map((w) => ({
@@ -210,7 +215,10 @@ export async function POST(req: NextRequest) {
     if (already >= rank.winners) {
       return NextResponse.json({ error: "complete", message: `Ya están los ${rank.winners} ganadores de ${rank.short}.` }, { status: 409 });
     }
-    const pool = participants.filter((p) => p.eligible && !p.won && p.rank === rank.key);
+    let pool = participants.filter((p) => p.eligible && !p.won && p.rank === rank.key);
+    // Si en el rango no queda nadie sin comprar ni agendar, se abre a todos los
+    // anotados (incluidos los que pagaron o agendaron) para que el premio no quede vacante.
+    if (pool.length === 0) pool = participants.filter((p) => p.canJoin && !p.won && p.rank === rank.key);
     if (pool.length === 0) {
       return NextResponse.json({ error: "empty", message: `No quedan participantes disponibles en ${rank.short}.` }, { status: 409 });
     }
