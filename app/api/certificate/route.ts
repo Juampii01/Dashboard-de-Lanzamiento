@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { getActor } from "@/lib/viewer";
 import { getUserProgram } from "@/lib/program-server";
-import { CERT_NAME_MAX, callVerify, completionDate } from "@/lib/certificates";
+import { CERT_NAME_MAX, callVerify, completionDate, isCertificatesEnabled } from "@/lib/certificates";
 import { sendCertificateEmail } from "@/lib/email/send-certificate-email";
 
 type Claim = { certificate_number: string; full_name: string; first_name: string | null; last_name: string; issue_date: string; verify_url: string | null; created_at: string };
@@ -47,6 +47,12 @@ export async function POST(req: NextRequest) {
   const full = String(body.full_name ?? "").replace(/\s+/g, " ").trim();
   if (!first || !last) return NextResponse.json({ error: "missing_names", message: "Escribe tu nombre y tu apellido." }, { status: 400 });
   if (!full || full.length > CERT_NAME_MAX) return NextResponse.json({ error: "bad_full_name", message: `El nombre del certificado tiene que tener entre 1 y ${CERT_NAME_MAX} caracteres.` }, { status: 400 });
+
+  const svc = createServiceClient();
+  const { data: me } = await svc.from("users").select("is_admin").eq("id", user.id).maybeSingle();
+  if ((me as { is_admin?: boolean } | null)?.is_admin !== true && !(await isCertificatesEnabled(svc))) {
+    return NextResponse.json({ error: "not_enabled", message: "Los certificados todavía no están habilitados." }, { status: 403 });
+  }
 
   const s = await loadState(actor.userId);
   if (!s.eligible) return NextResponse.json({ error: "not_eligible", message: "Primero completa el Día 4." }, { status: 403 });

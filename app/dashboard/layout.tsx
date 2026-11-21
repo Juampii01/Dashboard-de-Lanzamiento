@@ -28,6 +28,7 @@ import { CupoPopupModal } from "@/components/cupo-popup";
 import { RifaPopup } from "@/components/rifa-popup";
 import { MentoriaPopup } from "@/components/mentoria-popup";
 import { hasSeenMentoriaPopup, isMentoriaPopupEnabled } from "@/lib/mentoria-popup";
+import { isCertificatesEnabled } from "@/lib/certificates";
 import { canJoinRifa, hasJoinedRifa, isRifaEnabled } from "@/lib/rifa";
 
 
@@ -322,6 +323,9 @@ export default async function DashboardLayout({
     supportWhatsapp = ((supportRow as { value?: string | null } | null)?.value ?? "").replace(/[^\d]/g, "");
   }
 
+  // Pestaña Certificado: la habilita el equipo desde /admin/en-vivo; los admins la ven siempre.
+  const showCertificate = devMode || profile?.is_admin === true || await isCertificatesEnabled(createServiceClient());
+
   // Ventana "¡Quiero mi cupo!" (una sola vez; solo participantes del en vivo).
   let cupoPopup: CupoPopup | null = null;
   if (!devMode && program === "live" && !isViewer && !profile?.is_admin && userId) {
@@ -392,6 +396,7 @@ export default async function DashboardLayout({
           email={userEmail}
           progressMap={progressMapFromLayout}
           completedDays={completedDays}
+          showCertificate={showCertificate}
           devMode={devMode}
           program={program}
           isViewer={isViewer}
@@ -464,7 +469,7 @@ export default async function DashboardLayout({
           )}
 
           {/* Tabs */}
-          <DayTabs progressMap={progressMapFromLayout} program={program} isViewer={isViewer} />
+          <DayTabs progressMap={progressMapFromLayout} program={program} isViewer={isViewer} showCertificate={showCertificate} />
 
           {/* Contenido principal — contenedor centrado y con aire */}
           <main className="gb-main" style={{ flex: 1, overflowY: "auto", background: "var(--background)", padding: "40px 24px 64px" }}>

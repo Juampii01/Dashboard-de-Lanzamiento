@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 const ALLOWED = new Set([
   "tutorial_youtube", "points_paused", "access_closed", "support_whatsapp",
   "mentoria_banner_enabled", "instagram_handles", "story_copy_example",
-  "missions_visible",
+  "missions_visible", "certificates_enabled",
   // Ventana "¡Quiero mi cupo!"
   "cupo_popup_enabled", "cupo_popup_title", "cupo_popup_text", "cupo_popup_button", "cupo_popup_whatsapp",
 ]);
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
   if (key === "points_paused") value = value === "true" ? "true" : "false"; // solo true/false
   if (key === "access_closed") value = value === "true" ? "true" : "false"; // solo true/false
   if (key === "mentoria_banner_enabled") value = value === "true" ? "true" : "false"; // solo true/false
+  if (key === "certificates_enabled") value = value === "true" ? "true" : "false"; // solo true/false
   if (key === "missions_visible") value = value === "true" ? "true" : "false"; // solo true/false
   if (key === "instagram_handles") value = value.split(/[\s,]+/).filter(Boolean).map((h) => "@" + h.replace(/^@+/, "").replace(/[^A-Za-z0-9._]/g, "")).filter((h) => h.length > 1).join(" ");
   if (key === "story_copy_example") value = value.slice(0, 1000);

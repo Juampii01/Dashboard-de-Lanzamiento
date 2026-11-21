@@ -5,7 +5,16 @@
  */
 import type { Program } from "@/lib/program";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 export const CERT_NAME_MAX = 45;
+/** app_settings: la pestaña Certificado solo la ven los participantes cuando el equipo la habilita. Los admins la ven siempre. */
+export const CERT_SETTING = "certificates_enabled";
+
+export async function isCertificatesEnabled(db: SupabaseClient): Promise<boolean> {
+  const { data } = await db.from("app_settings").select("value").eq("key", CERT_SETTING).maybeSingle();
+  return (data as { value?: string | null } | null)?.value === "true";
+}
 /** Fecha de finalización del Challenge en vivo de noviembre (va impresa en el certificado). */
 export const LIVE_COMPLETION_DATE = "2026-11-20";
 

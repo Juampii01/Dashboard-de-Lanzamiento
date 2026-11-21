@@ -36,6 +36,8 @@ interface SidebarNavProps {
   program?: "live" | "ondemand";
   /** Cuenta de solo lectura (viewer). */
   isViewer?: boolean;
+  /** Pestaña Certificado: solo cuando el equipo la habilita (o admins). */
+  showCertificate?: boolean;
 }
 
 const DAY_META: Record<number, { label: string; href: string }> = {
@@ -240,9 +242,9 @@ function SectionHeader({
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export function SidebarNav({ profile, email, progressMap, program = "live", isViewer = false }: SidebarNavProps) {
+export function SidebarNav({ profile, email, progressMap, program = "live", isViewer = false, showCertificate = false }: SidebarNavProps) {
   // On demand: sin Ranking ni Misiones Extra; en su lugar, misiones fijas y premios.
-  const exploreItems = program === "ondemand"
+  const exploreItemsAll = program === "ondemand"
     ? [
         EXPLORE_ITEMS[0],
         { icon: <Target size={15} />, label: "Misiones", href: "/dashboard/misiones" },
@@ -250,6 +252,7 @@ export function SidebarNav({ profile, email, progressMap, program = "live", isVi
         ...EXPLORE_ITEMS.slice(1).filter((i) => i.href !== "/dashboard/ranking" && i.href !== "/dashboard/suma-puntos"),
       ]
     : EXPLORE_ITEMS;
+  const exploreItems = showCertificate ? exploreItemsAll : exploreItemsAll.filter((i) => i.href !== "/dashboard/certificado");
   const day1Done = progressMap[1]?.is_completed ?? false;
   const day2Done = progressMap[2]?.is_completed ?? false;
   const day3Done = progressMap[3]?.is_completed ?? false;
