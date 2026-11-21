@@ -7,6 +7,7 @@ import {
   Shield, LogOut, Menu, X, ChevronLeft, ChevronDown,
   CheckCircle2, Lock, FileText, CalendarDays, FolderDown, Pencil,
   Home, Zap, Trophy, Rocket, Compass, Target, Gift,
+  Award,
 } from "lucide-react";
 import { ResetTutorialButton } from "@/components/reset-tutorial-button";
 import { ResetDashboardButton } from "@/components/reset-dashboard-button";
@@ -49,6 +50,7 @@ const EXPLORE_ITEMS: { icon: React.ReactNode; label: string; href: string }[] = 
   { icon: <Home size={15} />,   label: "Inicio",          href: "/dashboard" },
   { icon: <Zap size={15} />,    label: "Misiones Extra",  href: "/dashboard/suma-puntos" },
   { icon: <Trophy size={15} />, label: "Ranking",         href: "/dashboard/ranking" },
+  { icon: <Award size={15} />,  label: "Certificado",     href: "/dashboard/certificado" },
   { icon: <Rocket size={15} />, label: "Tu próximo paso", href: "/dashboard/proximo-paso" },
 ];
 
