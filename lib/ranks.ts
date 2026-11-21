@@ -20,7 +20,7 @@ export interface Rank {
   revealed?: boolean;
 }
 
-// Premios del lanzamiento de noviembre 2026 (llamada con Santo del 31/10).
+// Premios del lanzamiento de noviembre 2026 (actualizados en la llamada con Santo del 21/11).
 // Cada ganador recibe UN premio; "winners" es cuántos ganadores hay por rango.
 export const RANKS: Rank[] = [
   {
@@ -31,20 +31,20 @@ export const RANKS: Rank[] = [
   },
   {
     key: "prime", name: "GovBidder Prime", short: "Prime", min: 5000, max: 10000,
-    color: "#C0C0C0", emoji: "⚡", winners: 1,
-    prize: "US$500 para herramientas o servicios GovBidder",
-    prizeDetail: "Cupón de US$500 para usar en herramientas o servicios de GovBidder (por ejemplo, meses de GovBidder Connect o la creación de tu LLC).",
+    color: "#C0C0C0", emoji: "⚡", winners: 10,
+    prize: "US$500 para herramientas, servicios o la Mentoría GovBidder",
+    prizeDetail: "Bono de US$500 para usar en herramientas o servicios de GovBidder (por ejemplo, meses de GovBidder Connect o la creación de tu LLC) o como descuento en la Mentoría.",
   },
   {
     key: "legacy", name: "GovBidder Legacy", short: "Legacy", min: 10000, max: 15000,
-    color: "#FFD700", emoji: "👑", winners: 5,
+    color: "#FFD700", emoji: "👑", winners: 10,
     prize: "US$1,000 de descuento en la Mentoría",
-    prizeDetail: "Cupón de US$1,000 de descuento en la Mentoría GovBidder Tu Primer Contrato.",
+    prizeDetail: "Bono de US$1,000 de descuento en la Mentoría GovBidder Tu Primer Contrato (solo para la Mentoría).",
   },
   {
     key: "expert", name: "GovBidder Expert", short: "Expert", min: 15000, max: Infinity,
-    color: "#00D67A", emoji: "🏆", winners: 3,
-    prize: "La Mentoría Tu Primer Contrato",
+    color: "#00D67A", emoji: "🏆", winners: 1,
+    prize: "La Mentoría Tu Primer Contrato gratis",
     prizeDetail: "La Mentoría GovBidder Tu Primer Contrato: acompañamiento del equipo de Santo para ganar tu primer contrato con el gobierno.",
   },
 ];
