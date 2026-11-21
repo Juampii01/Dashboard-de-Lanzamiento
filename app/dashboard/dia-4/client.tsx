@@ -43,6 +43,8 @@ interface Dia4ClientProps {
   fullName: string;
   accessExpiresAt: string | null;
   devMode?: boolean;
+  /** Botón "Reclamar mi certificado": solo cuando el equipo habilita los certificados (o admins). */
+  certificatesEnabled?: boolean;
 }
 
 export function Dia4Client({
@@ -53,6 +55,7 @@ export function Dia4Client({
   expansion,
   fullName,
   devMode,
+  certificatesEnabled = false,
 }: Dia4ClientProps) {
   const router = useRouter();
   const [isCompleted, setIsCompleted] = useState(initCompleted);
@@ -459,14 +462,14 @@ export function Dia4Client({
               Hola <strong>{fullName}</strong>, completaste los 4 días del programa.
               Ya tienes las herramientas para aplicar por grants y contratos gubernamentales.
             </p>
-            <div className="flex justify-center">
+            {certificatesEnabled && <div className="flex justify-center">
               <a
                 href="/dashboard/certificado"
                 style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#D4A017", color: "#0d1a3d", borderRadius: 12, padding: "14px 26px", fontSize: 16, fontWeight: 900, textDecoration: "none" }}
               >
                 🎓 Reclamar mi certificado
               </a>
-            </div>
+            </div>}
           </CardContent>
         </Card>
       )}

@@ -1,6 +1,6 @@
-import { Radio, CalendarClock, KeyRound, DoorOpen } from "lucide-react";
+import { Radio, CalendarClock, KeyRound, DoorOpen, Award } from "lucide-react";
 import { PageHeader, Panel } from "../_components/ui";
-import { DashboardLockControl, DayUnlockControl, KeywordsAdminPanel, LaunchScheduleControl } from "../_components/panels";
+import { CertificatesPanel, DashboardLockControl, DayUnlockControl, KeywordsAdminPanel, LaunchScheduleControl } from "../_components/panels";
 import { getToggles } from "../_lib/data";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +33,15 @@ export default async function EnVivoPage() {
           description="Abre el Inicio o un día para todos al instante. Después de cada clase, abre el día aquí. A los admins nunca se les bloquea."
         >
           <DayUnlockControl initialToggles={toggles} />
+        </Panel>
+
+        <Panel
+          icon={Award}
+          tone="gold"
+          title="Certificados"
+          description="Al habilitarlo, los participantes que completaron el Día 4 ven la pestaña “Certificado” y lo reclaman ahí mismo."
+        >
+          <CertificatesPanel />
         </Panel>
 
         <div className="grid gap-6 xl:grid-cols-2">

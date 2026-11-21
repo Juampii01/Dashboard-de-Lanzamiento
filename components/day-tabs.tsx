@@ -10,6 +10,8 @@ interface DayTabsProps {
   program?: "live" | "ondemand";
   /** Viewers (solo lectura): no ven "Perfil adicional". */
   isViewer?: boolean;
+  /** Pestaña Certificado: solo cuando el equipo la habilita (o admins). */
+  showCertificate?: boolean;
 }
 
 /** Tabs que no existen en on demand. */
@@ -34,7 +36,7 @@ const TABS = [
   { day: 6, label: "Tu próximo paso", sub: "Después del challenge", href: "/dashboard/proximo-paso" },
 ];
 
-export function DayTabs({ progressMap, program = "live", isViewer = false }: DayTabsProps) {
+export function DayTabs({ progressMap, program = "live", isViewer = false, showCertificate = false }: DayTabsProps) {
   const allTabs = program === "ondemand"
     ? (() => {
         const base = TABS.filter((t) => !LIVE_ONLY_HREFS.has(t.href));
@@ -42,7 +44,9 @@ export function DayTabs({ progressMap, program = "live", isViewer = false }: Day
         return [...base.slice(0, next), ...ONDEMAND_TABS, ...base.slice(next)];
       })()
     : TABS;
-  const tabs = isViewer ? allTabs.filter((t) => t.href !== "/dashboard/perfil-adicional") : allTabs;
+  const tabs = allTabs.filter((t) =>
+    !(isViewer && t.href === "/dashboard/perfil-adicional") &&
+    !(!showCertificate && t.href === "/dashboard/certificado"));
   const pathname = usePathname();
   const router   = useRouter();
   const tabRef   = useRef<HTMLDivElement>(null);

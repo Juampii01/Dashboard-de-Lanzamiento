@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { isCertificatesEnabled } from "@/lib/certificates";
 import { CertificadoClient } from "./client";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -13,6 +14,11 @@ export default async function CertificadoPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/login");
+    // Oculta hasta que el equipo la habilite (los admins la ven siempre).
+    const db = createServiceClient();
+    const { data: me } = await db.from("users").select("is_admin").eq("id", user.id).maybeSingle();
+    const isAdmin = (me as { is_admin?: boolean } | null)?.is_admin === true;
+    if (!isAdmin && !(await isCertificatesEnabled(db))) redirect("/dashboard");
   }
   return <CertificadoClient />;
 }

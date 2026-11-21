@@ -661,6 +661,40 @@ export function PausePointsPanel() {
   );
 }
 
+// ─── Pestaña Certificado ────────────────────────────────────────────────────
+
+export function CertificatesPanel() {
+  const { value, setValue, loading } = useSetting("certificates_enabled");
+  const [saving, setSaving] = useState(false);
+  const on = value === "true";
+
+  async function toggle(val: boolean) {
+    setSaving(true);
+    try {
+      await saveSetting("certificates_enabled", val ? "true" : "false");
+      setValue(val ? "true" : "false");
+      toast.success(val ? "Certificados habilitados: los participantes ya ven la pestaña." : "Certificados ocultos para los participantes.");
+    } catch {
+      toast.error("No se pudo cambiar.");
+    }
+    setSaving(false);
+  }
+
+  if (loading) return <p className="text-sm text-muted-foreground">Cargando…</p>;
+
+  return (
+    <ToggleRow
+      title={on ? "Certificados habilitados" : "Certificados ocultos"}
+      description="Muestra la pestaña “Certificado” y el botón del Día 4 para que los que completaron el challenge reclamen su certificado. Los admins la ven siempre."
+      on={on}
+      onTone="success"
+      pill={<StatusPill tone={on ? "success" : "muted"}>{on ? "Visible" : "Oculto"}</StatusPill>}
+    >
+      <Switch checked={on} onCheckedChange={toggle} disabled={saving} />
+    </ToggleRow>
+  );
+}
+
 // ─── Banner de la mentoría en el inicio ─────────────────────────────────────
 
 export function MentoriaBannerPanel() {

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { isCertificatesEnabled } from "@/lib/certificates";
 import { redirect } from "next/navigation";
 import { getAdminToggle } from "@/lib/supabase/helpers";
 import { Dia4Client } from "./client";
@@ -91,6 +92,7 @@ export default async function Dia4Page() {
       expansion={expansion}
       fullName={userProfile?.full_name ?? user.email ?? ""}
       accessExpiresAt={userProfile?.access_expires_at ?? null}
+      certificatesEnabled={isAdmin || await isCertificatesEnabled(createServiceClient())}
     />
       {preLocked && program === "ondemand" && (
         <OndemandDayLock day={4} title="Día 4 — Capability Statement" />
