@@ -62,6 +62,8 @@ async function loadState(service: Svc) {
   const mentorEmails = new Set(((mentors ?? []) as { email: string }[]).map((m) => m.email.toLowerCase()));
   const excluded = (excludedRows ?? []) as { email: string; reason: string | null; created_at: string }[];
   const excludedEmails = new Set(excluded.map((e) => e.email.toLowerCase()));
+  // Solo agendó (no compró): segunda prioridad. Cualquier otra exclusión cuenta como compra.
+  const scheduledOnly = new Set(excluded.filter((e) => (e.reason ?? "").toLowerCase().startsWith("agend")).map((e) => e.email.toLowerCase()));
   const wonIds = new Set(winnerRows.map((w) => w.user_id));
 
   const participants = participantRows
@@ -73,7 +75,9 @@ async function loadState(service: Svc) {
       const isExcluded = excludedEmails.has(email);
       const canJoin = canJoinRifa(u);
       const eligible = canJoin && !mentorEmails.has(email) && !isExcluded;
-      return { id: u.id, full_name: u.full_name, email: u.email, points, rank: getRank(points).key, joined_at: p.joined_at, eligible, canJoin, excluded: isExcluded, won: wonIds.has(u.id) || forfeitIds.has(u.id) };
+      // Prioridad del sorteo: 1 = no compró ni agendó · 2 = agendó sin comprar · 3 = compró.
+      const tier = eligible ? 1 : (!mentorEmails.has(email) && scheduledOnly.has(email) ? 2 : 3);
+      return { id: u.id, tier, full_name: u.full_name, email: u.email, points, rank: getRank(points).key, joined_at: p.joined_at, eligible, canJoin, excluded: isExcluded, won: wonIds.has(u.id) || forfeitIds.has(u.id) };
     })
     .filter((x): x is NonNullable<typeof x> => !!x)
     .sort((a, b) => b.points - a.points);
@@ -215,10 +219,12 @@ export async function POST(req: NextRequest) {
     if (already >= rank.winners) {
       return NextResponse.json({ error: "complete", message: `Ya están los ${rank.winners} ganadores de ${rank.short}.` }, { status: 409 });
     }
-    let pool = participants.filter((p) => p.eligible && !p.won && p.rank === rank.key);
-    // Si en el rango no queda nadie sin comprar ni agendar, se abre a todos los
-    // anotados (incluidos los que pagaron o agendaron) para que el premio no quede vacante.
-    if (pool.length === 0) pool = participants.filter((p) => p.canJoin && !p.won && p.rank === rank.key);
+    // Prioridad: primero quienes no compraron ni agendaron; si no queda ninguno,
+    // quienes agendaron sin comprar; como última opción, quienes ya compraron.
+    // No se muestra nada en pantalla: el sorteo se ve igual.
+    const available = participants.filter((p) => p.canJoin && !p.won && p.rank === rank.key);
+    const bestTier = Math.min(...available.map((p) => p.tier));
+    const pool = available.filter((p) => p.tier === bestTier);
     if (pool.length === 0) {
       return NextResponse.json({ error: "empty", message: `No quedan participantes disponibles en ${rank.short}.` }, { status: 409 });
     }
