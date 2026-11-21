@@ -4,6 +4,10 @@ import { isDayUnlocked } from "@/lib/supabase/day-access";
 import { getUserProgram } from "@/lib/program-server";
 
 const POINTS_PER_DAY = 500;
+// El Día 4 vale 1.000 pts para todos, también para quien ya pasó los 10.000
+// (add_points divide a la mitad desde 10.000, así que a esos se les pasa el
+// doble para que el neto sea 1.000).
+const DAY4_POINTS = 1000;
 
 /**
  * On demand: completar un día abre el siguiente (en el en vivo los abre el
@@ -105,10 +109,19 @@ export async function POST(req: NextRequest) {
 
   await unlockNextDayIfOndemand(service, user.id, day);
 
+  let delta = POINTS_PER_DAY;
+  let awarded = POINTS_PER_DAY;
+  if (day === 4) {
+    const { data: cur } = await service.from("users").select("total_points").eq("id", user.id).maybeSingle();
+    const over10k = Number((cur as { total_points?: number | string } | null)?.total_points ?? 0) >= 10000;
+    delta = over10k ? DAY4_POINTS * 2 : DAY4_POINTS;
+    awarded = DAY4_POINTS;
+  }
+
   // A3 fix: atomic increment — no read-then-write race on total_points
   const { data: newTotal, error: pointsError } = await service.rpc("add_points", {
     p_user_id: user.id,
-    p_delta: POINTS_PER_DAY,
+    p_delta: delta,
     p_category: "day",
   });
 
@@ -119,7 +132,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    pointsAwarded: POINTS_PER_DAY,
+    pointsAwarded: awarded,
     total: newTotal ?? 0,
     alreadyCompleted: false,
   });
