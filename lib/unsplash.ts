@@ -59,7 +59,12 @@ export async function fetchNicheImageUrls(
 ): Promise<string[]> {
   const key = getUnsplashKey();
   const cleanNiche = niche?.trim();
-  const nicheQuery = shortNiche(cleanNiche);
+  // El niche lo escribe el participante en español y suele ser un párrafo
+  // ("Beacon Expansion está desarrollando una línea de suministro…"). Cortarlo
+  // a 4 palabras daba búsquedas sin sentido (faros, carteles políticos). Primero
+  // le pedimos a la IA 3 búsquedas visuales en inglés; si falla, queda lo de antes.
+  const visual = await visualQueries(cleanNiche ?? "");
+  const nicheQuery = visual[0] ?? shortNiche(cleanNiche);
 
   // Queries CONCISAS para Unsplash. El `niche` real va primero SIEMPRE. Las
   // keywords de Día 2 son jerga de contratación gubernamental (ej. "federal
@@ -68,7 +73,7 @@ export async function fetchNicheImageUrls(
   // al negocio real. Por eso solo se usan como refinamiento ANCLADO al niche
   // (`${niche} ${term}`), nunca como query standalone.
   const queries = [
-    nicheQuery,
+    ...(visual.length ? visual : [nicheQuery]),
     ...(refineTerms
       .map((t) => t?.trim())
       .filter(Boolean) as string[])
@@ -94,10 +99,37 @@ export async function fetchNicheImageUrls(
   // 2. Fallback SIN key (LoremFlickr): garantiza que el sitio SIEMPRE tenga
   //    fotos reales relevantes al rubro, aunque Unsplash falle o no esté.
   if (out.length < count) {
-    out = out.concat(loremFlickrUrls(cleanNiche ?? "", refineTerms, count - out.length));
+    out = out.concat(loremFlickrUrls(visual[0] ?? cleanNiche ?? "", refineTerms, count - out.length));
   }
 
   return out.slice(0, count);
+}
+
+/**
+ * Traduce la descripción del negocio a 3 búsquedas de fotos en inglés, cortas y
+ * visuales (ej. "office supplies warehouse", "printer toner cartridges").
+ * Sin marcas, política ni personas famosas. Devuelve [] si algo falla.
+ */
+async function visualQueries(niche: string): Promise<string[]> {
+  if (!niche || !process.env.ANTHROPIC_API_KEY) return [];
+  try {
+    const { callClaudeJSON } = await import("@/lib/claude");
+    const res = await callClaudeJSON<{ queries?: string[] }>(
+      "Generas búsquedas para un banco de fotos (Unsplash). A partir de la descripción de un negocio, " +
+        "devuelve SOLO un JSON {\"queries\": [\"...\", \"...\", \"...\"]} con 3 búsquedas EN INGLÉS de 2 a 4 palabras " +
+        "cada una, concretas y visuales, que muestren el producto o servicio real del negocio (objetos, lugares, " +
+        "trabajos). Nada de marcas, logos, política, banderas, protestas, personas famosas ni conceptos abstractos. " +
+        "El nombre de la empresa NO va en las búsquedas.",
+      niche.slice(0, 600),
+      200
+    );
+    return (res.queries ?? [])
+      .map((q) => String(q).replace(/[^a-zA-Z0-9\s-]/g, " ").replace(/\s+/g, " ").trim().toLowerCase())
+      .filter((q) => q.length > 2)
+      .slice(0, 3);
+  } catch {
+    return [];
+  }
 }
 
 /** Reduce un niche largo (párrafo) a una query corta de ~4 palabras útiles. */
