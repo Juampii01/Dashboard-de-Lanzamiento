@@ -92,7 +92,7 @@ export default async function Dia4Page() {
       expansion={expansion}
       fullName={userProfile?.full_name ?? user.email ?? ""}
       accessExpiresAt={userProfile?.access_expires_at ?? null}
-      certificatesEnabled={isAdmin || await isCertificatesEnabled(createServiceClient())}
+      certificatesEnabled={isAdmin || await isCertificatesEnabled(createServiceClient(), user.id)}
     />
       {preLocked && program === "ondemand" && (
         <OndemandDayLock day={4} title="Día 4 — Capability Statement" />

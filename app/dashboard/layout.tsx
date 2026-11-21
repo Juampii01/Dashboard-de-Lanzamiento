@@ -324,7 +324,7 @@ export default async function DashboardLayout({
   }
 
   // Pestaña Certificado: la habilita el equipo desde /admin/en-vivo; los admins la ven siempre.
-  const showCertificate = devMode || profile?.is_admin === true || await isCertificatesEnabled(createServiceClient());
+  const showCertificate = devMode || profile?.is_admin === true || await isCertificatesEnabled(createServiceClient(), userId);
 
   // Ventana "¡Quiero mi cupo!" (una sola vez; solo participantes del en vivo).
   let cupoPopup: CupoPopup | null = null;

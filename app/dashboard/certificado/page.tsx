@@ -18,7 +18,7 @@ export default async function CertificadoPage() {
     const db = createServiceClient();
     const { data: me } = await db.from("users").select("is_admin").eq("id", user.id).maybeSingle();
     const isAdmin = (me as { is_admin?: boolean } | null)?.is_admin === true;
-    if (!isAdmin && !(await isCertificatesEnabled(db))) redirect("/dashboard");
+    if (!isAdmin && !(await isCertificatesEnabled(db, user.id))) redirect("/dashboard");
   }
   return <CertificadoClient />;
 }

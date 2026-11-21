@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
   const svc = createServiceClient();
   const { data: me } = await svc.from("users").select("is_admin").eq("id", user.id).maybeSingle();
-  if ((me as { is_admin?: boolean } | null)?.is_admin !== true && !(await isCertificatesEnabled(svc))) {
+  if ((me as { is_admin?: boolean } | null)?.is_admin !== true && !(await isCertificatesEnabled(svc, user.id))) {
     return NextResponse.json({ error: "not_enabled", message: "Los certificados todavía no están habilitados." }, { status: 403 });
   }
 
