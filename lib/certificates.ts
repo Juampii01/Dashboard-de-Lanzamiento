@@ -11,9 +11,16 @@ export const CERT_NAME_MAX = 45;
 /** app_settings: la pestaña Certificado solo la ven los participantes cuando el equipo la habilita. Los admins la ven siempre. */
 export const CERT_SETTING = "certificates_enabled";
 
-export async function isCertificatesEnabled(db: SupabaseClient): Promise<boolean> {
-  const { data } = await db.from("app_settings").select("value").eq("key", CERT_SETTING).maybeSingle();
-  return (data as { value?: string | null } | null)?.value === "true";
+/** IDs de usuarios con el certificado habilitado antes que el resto (separados por coma). */
+export const CERT_EARLY_SETTING = "certificates_early_users";
+
+export async function isCertificatesEnabled(db: SupabaseClient, userId?: string): Promise<boolean> {
+  const { data } = await db.from("app_settings").select("key, value").in("key", [CERT_SETTING, CERT_EARLY_SETTING]);
+  const rows = (data ?? []) as { key: string; value: string | null }[];
+  if (rows.find((r) => r.key === CERT_SETTING)?.value === "true") return true;
+  if (!userId) return false;
+  const early = rows.find((r) => r.key === CERT_EARLY_SETTING)?.value ?? "";
+  return early.split(",").map((x) => x.trim()).includes(userId);
 }
 /** Fecha de finalización del Challenge en vivo de noviembre (va impresa en el certificado). */
 export const LIVE_COMPLETION_DATE = "2026-11-20";
