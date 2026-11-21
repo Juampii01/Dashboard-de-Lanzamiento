@@ -28,19 +28,16 @@ export default async function ProximoPasoPage() {
       service.from("admin_toggles").select("is_globally_unlocked").eq("day_number", 5).maybeSingle(),
       isMentoriaPopupEnabled(service),
     ]);
+    const { data: banner } = await service
+      .from("app_settings").select("value").eq("key", "mentoria_banner_enabled").maybeSingle();
+    const bannerOn = (banner as { value?: string | null } | null)?.value === "true";
 
-    const completed = new Set(
-      ((progress as { day_number: number; is_completed: boolean }[] | null) ?? [])
-        .filter((p) => p.is_completed)
-        .map((p) => p.day_number)
-    );
-    const allDone = [1, 2, 3, 4].every((d) => completed.has(d));
-    // Se desbloquea al completar los 4 días, O si el admin lo habilitó manualmente
-    // (día 5 en admin_toggles, igual que Inicio y los otros 4 días), O mientras
-    // esté activa la ventana de la mentoría (/admin/ventas): al activarla se abre
-    // para todos, hayan hecho el Día 4 o no.
+    // Se desbloquea SOLO cuando el equipo lo abre (pedido del 20/11): al prender
+    // el banner o la ventana de la mentoría (/admin/ventas y /admin/comunicaciones),
+    // o el día 5 en admin_toggles. Completar el Día 4 ya NO lo abre solo.
+    void progress;
     const adminUnlocked = (toggle as { is_globally_unlocked?: boolean } | null)?.is_globally_unlocked === true;
-    unlocked = allDone || adminUnlocked || mentoriaOn || (profile as { is_admin?: boolean } | null)?.is_admin === true;
+    unlocked = adminUnlocked || mentoriaOn || bannerOn || (profile as { is_admin?: boolean } | null)?.is_admin === true;
     fullName = (profile as { full_name?: string } | null)?.full_name ?? "";
   }
 
@@ -48,7 +45,7 @@ export default async function ProximoPasoPage() {
     return <ProximoPasoUnlocked fullName={fullName} />;
   }
 
-  // ── Estado bloqueado (todavía no completó los 4 días) ──
+  // ── Estado bloqueado (el equipo todavía no lo abrió) ──
   return (
     <div className="space-y-8">
       <Link
@@ -100,7 +97,7 @@ export default async function ProximoPasoPage() {
           background: "rgba(228,45,44,0.12)", border: "1px solid rgba(228,45,44,0.4)",
           borderRadius: 999, padding: "8px 18px", marginTop: 4,
         }}>
-          🔒 Se desbloquea al completar el challenge de los 4 días
+          🔒 Se desbloquea al cierre del challenge, en la llamada final
         </span>
       </div>
     </div>
