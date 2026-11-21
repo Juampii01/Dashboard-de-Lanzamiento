@@ -30,6 +30,7 @@ const TABS = [
   { day: 7, label: "Misiones Extra", sub: "Gana más puntos",       href: "/dashboard/suma-puntos" },
   { day: 5, label: "Ranking",   sub: "Rangos y Premios"    ,  href: "/dashboard/ranking" },
   { day: 10, label: "Perfil adicional", sub: "Solicita cotización", href: "/dashboard/perfil-adicional" },
+  { day: 11, label: "Certificado", sub: "Reclama el tuyo", href: "/dashboard/certificado" },
   { day: 6, label: "Tu próximo paso", sub: "Después del challenge", href: "/dashboard/proximo-paso" },
 ];
 

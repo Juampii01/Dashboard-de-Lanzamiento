@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CheckCircle2, Download, Loader2, Sparkles, FileText, ArrowRight, Pencil, Lock, Gift, ChevronDown } from "lucide-react";
-import { WhatsAppButton } from "@/components/whatsapp-button";
 import { PortalsAccordion } from "@/components/portals-accordion";
 import { WizardModal } from "@/components/wizard-modal";
 import { TaskCompleteModal } from "@/components/task-complete-modal";
@@ -33,18 +32,6 @@ const LOADING_STEPS = [
 ];
 
 
-// Número de WhatsApp del equipo para solicitar el certificado (solo dígitos, con
-// código de país, sin "+"). Configurable por env NEXT_PUBLIC_CERT_WHATSAPP.
-const CERT_WHATSAPP = (process.env.NEXT_PUBLIC_CERT_WHATSAPP ?? "17329645246").replace(/\D/g, "");
-
-// 5 variantes de distinto tono — se elige una al azar al solicitar el certificado.
-const CERT_REQUEST_MESSAGES: ((name: string) => string)[] = [
-  (n) => `Hola, soy ${n}. Acabo de completar el Challenge Tu Primer Contrato y paso por aquí para solicitar mi certificado. ¡Gracias!`,
-  (n) => `Hola equipo de GovBidder, soy ${n}. Ya terminé el Challenge Tu Primer Contrato y quiero solicitar mi certificado de participación. ¡Gracias por el apoyo!`,
-  (n) => `¡Hola! Soy ${n}. Completé los 4 días del Challenge Tu Primer Contrato y me encantaría recibir mi certificado. ¿Me ayudan?`,
-  (n) => `Hola, mi nombre es ${n}. He completado satisfactoriamente el Challenge Tu Primer Contrato y quisiera solicitar la emisión de mi certificado de participación. Quedo atento. ¡Muchas gracias!`,
-  (n) => `Saludos, equipo de GovBidder. Soy ${n} y completé el Challenge Tu Primer Contrato. Por este medio solicito mi certificado correspondiente. Muchas gracias por la oportunidad.`,
-];
 
 interface Dia4ClientProps {
   userId: string;
@@ -226,16 +213,6 @@ export function Dia4Client({
     } finally {
       setDownloadingPdf(false);
     }
-  }
-
-  // El certificado lo emite el equipo (firmado por Santo). El botón abre WhatsApp
-  // con un mensaje pre-armado (uno de 5 tonos, al azar) para solicitarlo.
-  function handleRequestCertificate() {
-    const name = (fullName || "").trim();
-    const build = CERT_REQUEST_MESSAGES[Math.floor(Math.random() * CERT_REQUEST_MESSAGES.length)];
-    const text = encodeURIComponent(build(name));
-    const base = CERT_WHATSAPP ? `https://wa.me/${CERT_WHATSAPP}` : "https://wa.me/";
-    window.open(`${base}?text=${text}`, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -483,9 +460,12 @@ export function Dia4Client({
               Ya tienes las herramientas para aplicar por grants y contratos gubernamentales.
             </p>
             <div className="flex justify-center">
-              <WhatsAppButton onClick={handleRequestCertificate}>
-                Solicitar certificado
-              </WhatsAppButton>
+              <a
+                href="/dashboard/certificado"
+                style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#D4A017", color: "#0d1a3d", borderRadius: 12, padding: "14px 26px", fontSize: 16, fontWeight: 900, textDecoration: "none" }}
+              >
+                🎓 Reclamar mi certificado
+              </a>
             </div>
           </CardContent>
         </Card>
