@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, StatusPill, ToggleRow } from "../_components/ui";
 import { formatPoints } from "@/lib/points";
 import { ordinalWinner } from "@/lib/rifa";
+import { RifaStage, type StageWinner } from "./rifa-stage";
 
 interface RankState {
   key: string;
@@ -39,6 +40,7 @@ export function RifaClient() {
   const [lastWinner, setLastWinner] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
   const [showList, setShowList] = useState(false);
+  const [stageRank, setStageRank] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -81,15 +83,17 @@ export function RifaClient() {
     load();
   }
 
-  async function draw(rankKey: string) {
+  async function draw(rankKey: string): Promise<StageWinner | null> {
     setBusy(rankKey);
     const { ok, d } = await post({ action: "draw", rankKey });
+    let result: StageWinner | null = null;
     if (ok && d.winner) {
       setLastWinner(`${rankKey}-${d.position}`);
-      toast.success(`${ordinalWinner(d.position ?? 1)}: ${d.winner.full_name ?? "Participante"}`);
+      result = { position: d.position ?? 1, full_name: d.winner.full_name, points: d.winner.points };
     } else toast.error(d.message ?? "No se pudo sortear");
     setBusy(null);
     load();
+    return result;
   }
 
   async function reset() {
@@ -169,18 +173,20 @@ export function RifaClient() {
                     </ol>
                   )}
 
-                  {done ? (
-                    <StatusPill tone="success">✅ Ganadores completos</StatusPill>
-                  ) : (
-                    <Button
-                      className="w-full h-12 text-base font-bold gap-2"
-                      onClick={() => draw(r.key)}
-                      disabled={busy !== null || r.pool === 0}
-                    >
-                      {busy === r.key ? <Loader2 className="w-5 h-5 animate-spin" /> : <Dices className="w-5 h-5" />}
-                      {r.pool === 0 ? "Nadie en la rifa de este rango" : `Rifar ${ordinalWinner(next).toLowerCase()}`}
-                    </Button>
-                  )}
+                  {done && <StatusPill tone="success">✅ Ganadores completos</StatusPill>}
+                  <Button
+                    className="w-full h-12 text-base font-bold gap-2"
+                    variant={done ? "outline" : "default"}
+                    onClick={() => setStageRank(r.key)}
+                    disabled={busy !== null || (!done && r.winners.length === 0 && r.pool === 0)}
+                  >
+                    <Dices className="w-5 h-5" />
+                    {done
+                      ? "Ver ganadores"
+                      : r.winners.length === 0
+                        ? (r.pool === 0 ? "Nadie en la rifa de este rango" : "Iniciar rifa")
+                        : `Continuar rifa (${ordinalWinner(next).toLowerCase()})`}
+                  </Button>
                 </div>
               );
             })}
@@ -226,6 +232,26 @@ export function RifaClient() {
           )}
         </Panel>
       </div>
+      {stageRank && (() => {
+        const r = ranks.find((x) => x.key === stageRank);
+        if (!r) return null;
+        const names = participants
+          .filter((p) => p.rank === r.key && !p.won)
+          .map((p) => p.full_name ?? "Participante");
+        return (
+          <RifaStage
+            name={r.name}
+            emoji={r.emoji}
+            color={r.color}
+            prize={r.prize}
+            target={r.target}
+            winners={r.winners.map((w) => ({ position: w.position, full_name: w.full_name, points: w.points }))}
+            candidateNames={names}
+            onDraw={() => draw(r.key)}
+            onClose={() => setStageRank(null)}
+          />
+        );
+      })()}
     </>
   );
 }
