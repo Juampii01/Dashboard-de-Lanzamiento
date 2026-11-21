@@ -17,6 +17,8 @@ interface RankState {
   prize: string;
   target: number;
   pool: number;
+  realPool?: number;
+  openPool?: number;
   winners: { position: number; full_name: string | null; email: string; points: number; drawn_at: string; claimed?: boolean }[];
 }
 interface Participant {
@@ -157,6 +159,13 @@ export function RifaClient() {
                     <p className="text-xs text-muted-foreground mt-1">
                       {r.target} {r.target === 1 ? "ganador" : "ganadores"} · <strong>{r.pool}</strong> en la rifa
                     </p>
+                    {r.pool > 0 && (
+                      <p className="text-xs mt-1" style={{ color: (r.realPool ?? 0) === 0 ? "var(--accent)" : "var(--muted-foreground)" }}>
+                        {(r.realPool ?? 0) > 0
+                          ? `${r.realPool} con chance real (sin compradores ni agendados)`
+                          : `Nadie sin comprar ni agendar: se sortea entre los ${r.openPool ?? 0} anotados del rango`}
+                      </p>
+                    )}
                   </div>
 
                   {r.winners.length > 0 && (
