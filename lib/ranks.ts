@@ -31,7 +31,7 @@ export const RANKS: Rank[] = [
   },
   {
     key: "prime", name: "GovBidder Prime", short: "Prime", min: 5000, max: 10000,
-    color: "#C0C0C0", emoji: "⚡", winners: 10,
+    color: "#C0C0C0", emoji: "⚡", winners: 15,
     prize: "US$500 para herramientas, servicios o la Mentoría GovBidder",
     prizeDetail: "Bono de US$500 para usar en herramientas o servicios de GovBidder (por ejemplo, meses de GovBidder Connect o la creación de tu LLC) o como descuento en la Mentoría.",
   },
