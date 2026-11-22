@@ -91,4 +91,4 @@ export function rankProgress(points: number): RankProgress {
  * premios tapados (borrosos, con texto de relleno) en vez de qué se gana (los admins los ven siempre). El asistente
  * (lib/assistant.ts) tampoco los menciona.
  */
-export const PRIZES_VISIBLE = false;
+export const PRIZES_VISIBLE = true;
