@@ -37,7 +37,7 @@ export const RANKS: Rank[] = [
   },
   {
     key: "legacy", name: "GovBidder Legacy", short: "Legacy", min: 10000, max: 15000,
-    color: "#FFD700", emoji: "👑", winners: 10,
+    color: "#FFD700", emoji: "👑", winners: 15,
     prize: "US$1,000 de descuento en la Mentoría",
     prizeDetail: "Bono de US$1,000 de descuento en la Mentoría GovBidder Tu Primer Contrato (solo para la Mentoría).",
   },
