@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { callClaudeJSON, sanitizeInput } from "@/lib/claude";
 import { checkRateLimit, checkOndemandAiCap } from "@/lib/rate-limit";
 import { z } from "zod";
-import { fixNaics, fixPsc } from "@/lib/codes/official";
+import { candidatesFor, fixCode } from "@/lib/codes/official";
 
 const bodySchema = z.object({
   primaryNaics: z.string(),
@@ -41,16 +41,14 @@ function cleanCodes(codes: RelatedCode[], primaryNaics: string): RelatedCode[] {
     let description = String(c?.description ?? "").trim();
     const format = CODE_FORMAT[c?.type];
     if (!format || !format.test(code)) continue;
-    // PSC y NAICS se validan contra las listas oficiales (PSC Manual abril 2025 y NAICS 2022):
-    // código que no existe se descarta y la descripción siempre es la oficial.
-    if (c.type === "PSC") {
-      const fixed = fixPsc(code, description);
-      if (!fixed) continue;
+    // Todos los códigos se validan contra las listas oficiales (lib/codes/official.ts):
+    // código que no existe o que no corresponde a lo que describe se corrige o se descarta,
+    // y la descripción siempre es la oficial. El NAICS primario lo eligió el participante.
+    const fixed = fixCode(c.type, code, description);
+    if (fixed) {
       ({ code, description } = fixed);
-    } else if (c.type === "NAICS") {
-      const fixed = fixNaics(code);
-      if (!fixed && code !== primaryNaics) continue;
-      if (fixed) description = fixed.description;
+    } else if (!(c.type === "NAICS" && code === primaryNaics)) {
+      continue;
     }
     const key = `${c.type}:${code}`;
     if (seen.has(key)) continue;
@@ -122,6 +120,19 @@ export async function POST(request: Request) {
   const niche        = parsed.data.niche ? sanitizeInput(parsed.data.niche) : undefined;
   const usState      = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
 
+  // Códigos oficiales que coinciden con las palabras del negocio, para que la IA elija de la
+  // lista oficial y no de memoria.
+  const terms = [...keywords, ...(niche ? [niche] : [])];
+  const officialHints = ([
+    ["NAICS", 10], ["PSC", 25], ["SIC", 8], ["UNSPSC", 15], ["NIGP", 10],
+  ] as const)
+    .map(([type, n]) => {
+      const list = candidatesFor(type, terms, n);
+      return list.length ? `${type}:\n${list.map((c) => `- ${c.code}: ${c.title}`).join("\n")}` : "";
+    })
+    .filter(Boolean)
+    .join("\n\n");
+
   try {
     const result = await callClaudeJSON<ExpandCodesResult>(
       `Eres un experto en contratación gubernamental de EEUU especializado en todos los sistemas de clasificación: NAICS, PSC (Product Service Codes), SIC, UNSPSC y NIGP.
@@ -137,7 +148,7 @@ Responde SIEMPRE en JSON con esta estructura exacta:
 REGLA DE ORO — PRECISIÓN ANTES QUE CANTIDAD:
 - Cada código debe describir lo que ESTA empresa realmente hace o vende según su nicho. Nada de códigos de otros rubros parecidos (ej: si limpia piscinas, NO incluyas limpieza de oficinas ni janitorial; si da capacitación, NO incluyas limpieza).
 - Usa solo códigos que existan de verdad, con su título oficial tal cual. NUNCA adaptes ni inventes la descripción para que encaje con el nicho, y nunca agregues aclaraciones entre paréntesis que no sean parte del título oficial.
-- En PSC, la "description" debe ser el título oficial EXACTO del PSC Manual (edición abril 2025), en inglés. Ej: S201 = "Housekeeping- Custodial Janitorial", S214 = "Housekeeping- Carpet Laying/Cleaning". Ojo: los S2xx NO son todos de limpieza (S202 es Fire Protection, S203 Food, S206 Guard, S209 Laundry). Los títulos se validan contra el manual y se descarta todo código cuyo título no coincida.
+- En PSC, la "description" debe ser el título oficial EXACTO del PSC Manual (edición abril 2025), en inglés. Ej: S201 = "Housekeeping- Custodial Janitorial", S214 = "Housekeeping- Carpet Laying/Cleaning". Ojo: los S2xx NO son todos de limpieza (S202 es Fire Protection, S203 Food, S206 Guard, S209 Laundry). Lo mismo para NAICS, SIC, UNSPSC y NIGP: todos los títulos se validan contra las listas oficiales y se descarta todo código cuyo título no coincida.
 - Si no estás seguro de que un código existe o de cuál es su título oficial, NO lo incluyas. Es preferible devolver menos códigos que uno equivocado.
 - Antes de responder, revisa código por código: ¿el título oficial corresponde a esta empresa? Si no, sácalo.
 
@@ -154,6 +165,7 @@ ${niche ? `Nicho/servicio: ${niche}` : ""}
 ${usState ? `Estado de operación: ${usState} — prioriza agencias y contratos activos en ese estado.` : ""}
 Keywords del usuario: ${keywords.join(", ")}
 
+${officialHints ? `CÓDIGOS OFICIALES RELACIONADOS (extraídos de las listas oficiales; prefiere elegir de aquí y copia el título tal cual; descarta los que no correspondan a lo que hace este negocio):\n${officialHints}\n` : ""}
 Genera el mapa de códigos que correspondan a lo que hace este negocio (solo códigos reales, con su título oficial) y expande las keywords con terminología gubernamental.`
     , 3000);
 

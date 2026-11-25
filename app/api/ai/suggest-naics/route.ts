@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { callClaudeJSON, sanitizeInput } from "@/lib/claude";
 import { checkRateLimit, checkOndemandAiCap } from "@/lib/rate-limit";
 import { z } from "zod";
+import { candidatesFor, fixNaics } from "@/lib/codes/official";
 
 const bodySchema = z.object({
   companyName: z.string(),
@@ -87,6 +88,8 @@ export async function POST(request: Request) {
   const usState          = parsed.data.usState ? sanitizeInput(parsed.data.usState) : undefined;
   const legalStructure   = parsed.data.legalStructure ? sanitizeInput(parsed.data.legalStructure) : undefined;
 
+  const naicsHints = candidatesFor("NAICS", [niche, businessCategory ?? "", currentOffering ?? "", ...keywords], 12);
+
   try {
     const result = await callClaudeJSON<NAICSResult>(
       `Eres un experto en contratación del gobierno federal de Estados Unidos.
@@ -111,8 +114,20 @@ Consideraciones importantes:
 - Sugiere el NAICS donde hay mayor volumen de contratos activos para small businesses en el estado indicado.
 - El NAICS debe ser de 6 dígitos.
 
-Sugiere el código NAICS primario más apropiado para que esta empresa pueda registrarse en SAM.gov y competir por contratos gubernamentales.`
+${naicsHints.length ? `Códigos NAICS 2022 oficiales relacionados (elige de aquí si alguno corresponde, con su título tal cual):\n${naicsHints.map((c) => `- ${c.code}: ${c.title}`).join("\n")}\n` : ""}
+Sugiere el código NAICS primario más apropiado para que esta empresa pueda registrarse en SAM.gov y competir por contratos gubernamentales. Debe ser un código vigente de NAICS 2022.`
     );
+
+    // Validación contra NAICS 2022: si el código no existe o no coincide con la descripción,
+    // se usa el código oficial que coincide con esa descripción o el mejor candidato.
+    const fixed =
+      fixNaics(String(result.naics_code ?? ""), String(result.naics_description ?? "")) ??
+      fixNaics(String(result.naics_code ?? "")) ??
+      (naicsHints[0] ? { code: naicsHints[0].code, description: naicsHints[0].title } : null);
+    if (fixed) {
+      result.naics_code = fixed.code;
+      result.naics_description = fixed.description;
+    }
 
     return NextResponse.json(result);
   } catch (err) {
