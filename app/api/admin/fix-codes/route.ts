@@ -48,6 +48,20 @@ export async function POST(req: Request) {
   const service = await requireAdmin();
   if (!service) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const { dryRun = true } = (await req.json().catch(() => ({}))) as { dryRun?: boolean };
+  return run(service, dryRun);
+}
+
+// Uso único desde fuera del navegador: GET ?token=<FIX_CODES_TOKEN>&apply=1
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const expected = process.env.FIX_CODES_TOKEN;
+  if (!expected || url.searchParams.get("token") !== expected) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  return run(createServiceClient(), url.searchParams.get("apply") !== "1");
+}
+
+async function run(service: ReturnType<typeof createServiceClient>, dryRun: boolean) {
 
   const stats = { maps: 0, mapsChanged: 0, pscBefore: 0, pscAfter: 0, statements: 0, statementsChanged: 0 };
   const pscByUser = new Map<string, Code[]>();
