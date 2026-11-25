@@ -65,7 +65,7 @@ export async function POST(req: Request) {
   try { body = await req.json(); } catch { return NextResponse.json({ error: "invalid_json" }, { status: 400 }); }
 
   // Guardar una web regenerada por un admin en nombre del participante
-  // (el admin genera con /api/ai/generate-web-preview y la guarda acá).
+  // (el admin genera con /api/ai/generate-web-preview y la guarda aquí).
   if (body.action === "save_preview") {
     const userId = String(body.user_id ?? "").trim();
     const html = typeof body.html === "string" ? body.html : "";
