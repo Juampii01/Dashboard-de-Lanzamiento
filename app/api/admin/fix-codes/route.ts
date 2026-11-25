@@ -48,16 +48,6 @@ export async function POST(req: Request) {
   return run(service, dryRun);
 }
 
-// TEMPORAL — se quita apenas corre: GET ?token=<FIX_CODES_TOKEN>&apply=1
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const expected = process.env.FIX_CODES_TOKEN;
-  if (!expected || url.searchParams.get("token") !== expected) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  }
-  return run(createServiceClient(), url.searchParams.get("apply") !== "1");
-}
-
 async function run(service: ReturnType<typeof createServiceClient>, dryRun: boolean) {
 
   const stats: Record<string, number> = { maps: 0, mapsChanged: 0, statements: 0, statementsChanged: 0 };
