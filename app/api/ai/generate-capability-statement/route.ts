@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { callClaudeJSON, sanitizeInput } from "@/lib/claude";
 import { checkRateLimit, checkOndemandAiCap } from "@/lib/rate-limit";
 import { z } from "zod";
+import { fixNaics, fixPsc } from "@/lib/codes/official";
 
 const bodySchema = z.object({
   companyName: z.string(),
@@ -137,7 +138,7 @@ Responde SIEMPRE en JSON válido con esta estructura EXACTA:
   "quality_commitment": "párrafo de 2-3 oraciones sobre el compromiso de calidad y los procesos de control (QA, documentación, follow-through).",
   "past_performance": "${hasGovContracts ? "instrucción: la empresa SÍ tiene experiencia con gobierno; redacta un párrafo que invite a solicitar referencias documentadas de contratos previos." : "instrucción: la empresa es NUEVA en gobierno; usa 'bridge mode' — redacta un párrafo genérico sobre su compromiso de calidad y su capacidad de escalar hacia el sector público, basado ÚNICAMENTE en el rubro/problema que resuelve descritos abajo. NO inventes clientes, sectores regulados, ni experiencia comercial específica que la empresa no mencionó explícitamente — si no dio detalles de clientes previos, no los inventes. Menciona que hay referencias comerciales disponibles a pedido, sin escribir solo 'available upon request'."}",
   "primary_markets": ["niveles de gobierno + comercial que la empresa puede servir, de esta lista fija: Federal", "State", "Local", "Commercial"],
-  "naics_with_desc": [{"code": "el código NAICS REAL provisto abajo (nunca inventado)", "description": "su descripción oficial real, máx 5 palabras"}],
+  "naics_with_desc": [{"code": "el código NAICS REAL provisto abajo (nunca inventado)", "description": "su descripción oficial real"}],
   "psc_with_desc": [{"code": "el código PSC REAL provisto abajo, o inferido del NAICS/rubro real si no hay ninguno provisto", "description": "su descripción oficial real, máx 5 palabras"}],
   "image_keywords": ["2-3 términos visuales en inglés que describan EXACTAMENTE el rubro real de la empresa (no copies un rubro distinto al de abajo)"],
   "key_promises": ["3 promesas/beneficios CORTOS para la portada, en MAYÚSCULAS, 2-4 palabras, basadas en lo que la empresa realmente ofrece — NO afirmes compliance/certificaciones que no estén en la lista de certificaciones reales de abajo"],
@@ -186,6 +187,33 @@ ${pscRef.length ? pscRef.map(c => `- ${c.code}: ${c.description}`).join("\n") : 
 
 Genera el Capability Statement completo, rico y profesional para esta empresa, usando EXCLUSIVAMENTE los datos reales de arriba. Sin certificaciones, métricas ni historial inventado.`
     , 4000);
+
+    // Los códigos se validan contra las listas oficiales: la IA a veces cambia la descripción
+    // o agrega códigos que no corresponden. Si el Día 2 trae códigos, solo se usan esos.
+    const allowedPsc = new Set(pscRef.map((c) => fixPsc(c.code, c.description)?.code).filter(Boolean) as string[]);
+    const allowedNaics = new Set(naicsCodes.map((c) => fixNaics(String(c))?.code).filter(Boolean) as string[]);
+    const dedupe = (list: CodeWithDesc[]) => list.filter((c, i) => list.findIndex((x) => x.code === c.code) === i);
+
+    let psc = dedupe((result.psc_with_desc ?? [])
+      .map((c) => fixPsc(String(c?.code ?? ""), String(c?.description ?? "")))
+      .filter((c): c is CodeWithDesc => !!c && (!allowedPsc.size || allowedPsc.has(c.code))));
+    if (!psc.length && allowedPsc.size) {
+      psc = dedupe(pscRef.map((c) => fixPsc(c.code, c.description)).filter((c): c is CodeWithDesc => !!c));
+    }
+    psc = psc.slice(0, 4);
+
+    let naics = dedupe((result.naics_with_desc ?? [])
+      .map((c) => fixNaics(String(c?.code ?? "")))
+      .filter((c): c is CodeWithDesc => !!c && (!allowedNaics.size || allowedNaics.has(c.code))));
+    if (!naics.length && allowedNaics.size) {
+      naics = dedupe([...allowedNaics].map((c) => fixNaics(c)).filter((c): c is CodeWithDesc => !!c));
+    }
+    naics = naics.slice(0, 5);
+
+    result.psc_with_desc = psc;
+    result.psc_codes = psc.map((c) => c.code);
+    result.naics_with_desc = naics;
+    result.naics_codes = naics.map((c) => c.code);
 
     return NextResponse.json(result);
   } catch (err) {
