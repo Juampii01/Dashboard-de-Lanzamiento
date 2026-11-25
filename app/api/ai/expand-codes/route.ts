@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { callClaudeJSON, sanitizeInput } from "@/lib/claude";
 import { checkRateLimit, checkOndemandAiCap } from "@/lib/rate-limit";
 import { z } from "zod";
+import { fixNaics, fixPsc } from "@/lib/codes/official";
 
 const bodySchema = z.object({
   primaryNaics: z.string(),
@@ -32,18 +33,31 @@ const CODE_FORMAT: Record<RelatedCode["type"], RegExp> = {
   NIGP: /^\d{3}-\d{2}$/,
 };
 
-function cleanCodes(codes: RelatedCode[]): RelatedCode[] {
+function cleanCodes(codes: RelatedCode[], primaryNaics: string): RelatedCode[] {
   const seen = new Set<string>();
-  return codes.filter((c) => {
-    const code = String(c?.code ?? "").trim().toUpperCase();
+  const out: RelatedCode[] = [];
+  for (const c of codes) {
+    let code = String(c?.code ?? "").trim().toUpperCase();
+    let description = String(c?.description ?? "").trim();
     const format = CODE_FORMAT[c?.type];
-    if (!format || !format.test(code)) return false;
+    if (!format || !format.test(code)) continue;
+    // PSC y NAICS se validan contra las listas oficiales (PSC Manual abril 2025 y NAICS 2022):
+    // código que no existe se descarta y la descripción siempre es la oficial.
+    if (c.type === "PSC") {
+      const fixed = fixPsc(code, description);
+      if (!fixed) continue;
+      ({ code, description } = fixed);
+    } else if (c.type === "NAICS") {
+      const fixed = fixNaics(code);
+      if (!fixed && code !== primaryNaics) continue;
+      if (fixed) description = fixed.description;
+    }
     const key = `${c.type}:${code}`;
-    if (seen.has(key)) return false;
+    if (seen.has(key)) continue;
     seen.add(key);
-    c.code = code;
-    return true;
-  });
+    out.push({ code, description, type: c.type });
+  }
+  return out;
 }
 
 export async function POST(request: Request) {
@@ -123,6 +137,7 @@ Responde SIEMPRE en JSON con esta estructura exacta:
 REGLA DE ORO — PRECISIÓN ANTES QUE CANTIDAD:
 - Cada código debe describir lo que ESTA empresa realmente hace o vende según su nicho. Nada de códigos de otros rubros parecidos (ej: si limpia piscinas, NO incluyas limpieza de oficinas ni janitorial; si da capacitación, NO incluyas limpieza).
 - Usa solo códigos que existan de verdad, con su título oficial tal cual. NUNCA adaptes ni inventes la descripción para que encaje con el nicho, y nunca agregues aclaraciones entre paréntesis que no sean parte del título oficial.
+- En PSC, la "description" debe ser el título oficial EXACTO del PSC Manual (edición abril 2025), en inglés. Ej: S201 = "Housekeeping- Custodial Janitorial", S214 = "Housekeeping- Carpet Laying/Cleaning". Ojo: los S2xx NO son todos de limpieza (S202 es Fire Protection, S203 Food, S206 Guard, S209 Laundry). Los títulos se validan contra el manual y se descarta todo código cuyo título no coincida.
 - Si no estás seguro de que un código existe o de cuál es su título oficial, NO lo incluyas. Es preferible devolver menos códigos que uno equivocado.
 - Antes de responder, revisa código por código: ¿el título oficial corresponde a esta empresa? Si no, sácalo.
 
@@ -143,7 +158,7 @@ Genera el mapa de códigos que correspondan a lo que hace este negocio (solo có
     , 3000);
 
     return NextResponse.json({
-      related_codes: cleanCodes(result.related_codes ?? []),
+      related_codes: cleanCodes(result.related_codes ?? [], primaryNaics),
       keywords_expanded: result.keywords_expanded ?? [],
     });
   } catch (err) {
