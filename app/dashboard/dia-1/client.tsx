@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { isValidNaics } from "@/lib/codes/naics";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -194,6 +195,10 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
   async function handleUpdateNaics() {
     const code = naicsEditValue.trim();
     if (!code) return;
+    if (!isValidNaics(code)) {
+      toast.error("Ese código NAICS no existe en el listado oficial NAICS 2022 (el que usa SAM.gov). Revisa que tenga 6 dígitos y sea vigente.");
+      return;
+    }
     setSavingNaics(true);
     try {
       const supabase = createClient();
@@ -286,7 +291,10 @@ export function Dia1Client({ userId, isCompleted: initCompleted, existingProfile
 
     try {
       // 1. Sugerir NAICS si no hay uno ingresado
-      let primaryNaics = form.primary_naics;
+      let primaryNaics = form.primary_naics.trim();
+      if (primaryNaics && !isValidNaics(primaryNaics)) {
+        throw new Error("El código NAICS que ingresaste no existe en el listado oficial NAICS 2022 (el que usa SAM.gov). Corrígelo o déjalo vacío para que la IA lo sugiera.");
+      }
       if (!primaryNaics) {
         const res = await fetch("/api/ai/suggest-naics", {
           method: "POST",

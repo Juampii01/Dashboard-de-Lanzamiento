@@ -1,3 +1,4 @@
+import { naicsTitle } from "@/lib/codes/naics";
 /**
  * Sectores NAICS (los 2 primeros dígitos del código), en español.
  * Se usa en los PDFs cuando no tenemos la descripción exacta del código:
@@ -42,6 +43,9 @@ export function naicsLabel(
   relatedCodes?: Array<{ code?: string; description?: string; type?: string }> | null,
 ): { description: string | null; isSector: boolean } {
   const c = String(code ?? "").trim();
+  // Primero el título oficial NAICS 2022; después lo que haya en el mapa del Día 2.
+  const official = naicsTitle(c);
+  if (official) return { description: official, isSector: false };
   const exact = (relatedCodes ?? []).find((r) => String(r.code ?? "").trim() === c && (r.type ?? "NAICS") === "NAICS");
   if (exact?.description) return { description: exact.description, isSector: false };
   const sector = naicsSector(c);

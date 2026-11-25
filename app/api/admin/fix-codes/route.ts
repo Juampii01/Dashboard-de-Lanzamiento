@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
-import { fixNaics, fixPsc } from "@/lib/codes/official";
+import { fixCode, fixNaics, fixPsc, type CodeType } from "@/lib/codes/official";
 
 // Corrección única de los códigos ya guardados (Día 2 y Capability Statement)
 // contra el PSC Manual abril 2025 y NAICS 2022. Solo admin.
@@ -27,19 +27,16 @@ function dedupe<T extends { code: string; type?: string }>(list: T[]): T[] {
   });
 }
 
+const TYPES = new Set(["NAICS", "PSC", "SIC", "UNSPSC", "NIGP"]);
+
 function fixRelated(codes: Code[], primaryNaics: string): Code[] {
   const out: Code[] = [];
   for (const c of codes ?? []) {
-    if (c?.type === "PSC") {
-      const f = fixPsc(String(c.code ?? ""), String(c.description ?? ""));
-      if (f) out.push({ ...f, type: "PSC" });
-    } else if (c?.type === "NAICS") {
-      const f = fixNaics(String(c.code ?? ""));
-      if (f) out.push({ ...f, type: "NAICS" });
-      else if (String(c.code) === primaryNaics) out.push(c);
-    } else {
-      out.push(c);
-    }
+    const type = String(c?.type ?? "");
+    if (!TYPES.has(type)) { out.push(c); continue; }
+    const f = fixCode(type as CodeType, String(c.code ?? ""), String(c.description ?? ""));
+    if (f) out.push({ ...f, type });
+    else if (type === "NAICS" && String(c.code) === primaryNaics) out.push(c);
   }
   return dedupe(out);
 }
@@ -51,9 +48,19 @@ export async function POST(req: Request) {
   return run(service, dryRun);
 }
 
+// TEMPORAL — se quita apenas corre: GET ?token=<FIX_CODES_TOKEN>&apply=1
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const expected = process.env.FIX_CODES_TOKEN;
+  if (!expected || url.searchParams.get("token") !== expected) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  return run(createServiceClient(), url.searchParams.get("apply") !== "1");
+}
+
 async function run(service: ReturnType<typeof createServiceClient>, dryRun: boolean) {
 
-  const stats = { maps: 0, mapsChanged: 0, pscBefore: 0, pscAfter: 0, statements: 0, statementsChanged: 0 };
+  const stats: Record<string, number> = { maps: 0, mapsChanged: 0, statements: 0, statementsChanged: 0 };
   const pscByUser = new Map<string, Code[]>();
 
   const { data: maps, error: mErr } = await service
@@ -65,8 +72,8 @@ async function run(service: ReturnType<typeof createServiceClient>, dryRun: bool
     stats.maps++;
     const before = m.related_codes ?? [];
     const after = fixRelated(before, String(m.primary_naics ?? ""));
-    stats.pscBefore += before.filter((c) => c?.type === "PSC").length;
-    stats.pscAfter += after.filter((c) => c.type === "PSC").length;
+    for (const c of before) stats[`${c?.type}_antes`] = (stats[`${c?.type}_antes`] ?? 0) + 1;
+    for (const c of after) stats[`${c.type}_despues`] = (stats[`${c.type}_despues`] ?? 0) + 1;
     pscByUser.set(m.user_id, after.filter((c) => c.type === "PSC"));
     if (JSON.stringify(before) !== JSON.stringify(after)) {
       stats.mapsChanged++;
