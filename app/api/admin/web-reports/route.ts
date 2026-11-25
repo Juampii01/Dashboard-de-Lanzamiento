@@ -61,8 +61,25 @@ export async function POST(req: Request) {
   const auth = await requireAdmin();
   if ("error" in auth) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
-  let body: { id?: string; action?: string };
+  let body: { id?: string; action?: string; user_id?: string; html?: string; css?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ error: "invalid_json" }, { status: 400 }); }
+
+  // Guardar una web regenerada por un admin en nombre del participante
+  // (el admin genera con /api/ai/generate-web-preview y la guarda acá).
+  if (body.action === "save_preview") {
+    const userId = String(body.user_id ?? "").trim();
+    const html = typeof body.html === "string" ? body.html : "";
+    const css = typeof body.css === "string" ? body.css : "";
+    if (!userId || html.length < 500) return NextResponse.json({ error: "bad_request" }, { status: 400 });
+    const { error: upErr } = await auth.service
+      .from("web_previews")
+      .upsert({ user_id: userId, generated_html: html, generated_css: css }, { onConflict: "user_id" });
+    if (upErr) {
+      console.error("[admin/web-reports save_preview]", upErr.message);
+      return NextResponse.json({ error: "internal" }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+  }
   const id = String(body.id ?? "").trim();
   if (!id) return NextResponse.json({ error: "bad_request" }, { status: 400 });
   const action = body.action === "grant_regen" ? "grant_regen" : "resolve";
